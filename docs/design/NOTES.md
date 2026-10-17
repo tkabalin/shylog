@@ -53,6 +53,23 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Headline figures show the hand value. The dive detail board shows the D4i's 44 min while the hand value is 45.
 - Any difference from the computer is flagged. The boards flag only depth over 1 m or duration over 3 min.
 
+## Decisions taken after the boards
+
+These were settled while planning the build (`docs/PLAN.md`, decisions D1 to D22) and the boards have not been redrawn for them.
+
+- Entity detail and the Settings sections save with an explicit Save action that appears when a field changes, as the Certifications edit screen does. A colliding rename shows the error under the field with a "Merge instead" action. The boards have bare inputs.
+- Every field whose hand value differs from the computer's gets the ✓ "Use D4i value" / ✕ "Keep mine" group (start time, max depth, average depth, duration, temperatures). A field holding a computer value shows the "From the D4i" marker, which becomes "Reset to the D4i value" once edited. `EditDiveHifi` draws the group only for start time and duration.
+- Computer and calculated values keep the normal text colour. The accent colour `EditDiveHifi` gives D4i and calculated values was tried in review and dropped.
+- A site's region is typed with the existing regions in that country offered as you type. `SitePickerHifi` has a plain free-text field.
+- The Log header is the board's "Hero count" variant. The Tiles, Split, Sentence and Stat strip variants were explorations.
+- The Import done screen lists the dives that differ from the computer, each linking to its detail. The board links the row to one dive.
+- The Compare table on Change pairing also shows average depth.
+- The upload card shows an indeterminate "Reading your export" state. The board's "48 of 72 dives" progress bar implies streaming that the server does not do.
+- The import summary counts included freedives separately when there are any. The review board folds them into "new".
+- Entities are created only from the dive form's pickers; the entity screens list, rename, merge and delete.
+- The Icon key is a reference, not a screen. Each board's Essential icon set is what gets built; the key's Essential column is a vocabulary, not a per-screen rule.
+- The tank-pressure lane is not built; neither computer records pressure.
+
 ## Sync
 
 - The header pill also has a "server unreachable" state, separate from offline.
