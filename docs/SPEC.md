@@ -50,10 +50,10 @@ Everything is TypeScript, so one core package (draft upload and edit schemas, na
 
 Nothing in the code or the Compose file assumes a single deployment, so the second diver's instance is a new env file rather than a code change. v1 runs two instances, one per diver, and everything that differs between them comes from configuration:
 
-- **Identity**: the allowed Tailscale logins are a list in config (`SHYLOG_ALLOWED_LOGINS`), checked against `Tailscale-User-Login`. No login is hard-coded.
+- **Identity**: the allowed Tailscale logins are a list in config (`SHYLOG_ALLOWED_LOGINS`), checked against `Tailscale-User-Login`. No login is hard-coded. The owner's login is allowed on both instances, the second diver's only on theirs. For development, `SHYLOG_DEV_LOGIN` supplies a login in place of the header, and the server refuses to start with it set in production.
 - **Hostname and origin**: the tailnet hostname (`TS_HOSTNAME`, default `shylog`) and the expected `Origin` (`SHYLOG_ORIGIN`) are config, so the security checks work under any name.
 - **Data directory**: one root per instance (`SHYLOG_DATA_DIR`, such as `/srv/shylog/<instance>/`) holds `shylog.db`, `export/`, the nightly snapshots, and `cards/`. No other path appears in the code. Every instance lives under one parent folder that the nightly off-site backup job covers.
-- **Compose**: no fixed `container_name`, published ports, or named volumes. Each instance is its own Compose project (`COMPOSE_PROJECT_NAME`) with its own `.env` and Tailscale state volume. All instances run the same image tag, so one pull updates them all, and each runs its own migrations on startup.
+- **Compose**: no fixed `container_name`, published ports, or named volumes. Each instance is its own Compose project (`COMPOSE_PROJECT_NAME`) with its own `.env`, and the Tailscale sidecar keeps its state on a bind mount at `${SHYLOG_DATA_DIR}/tailscale`. All instances run the same image tag, so one pull updates them all, and each runs its own migrations on startup.
 - **App name**: the display name (`SHYLOG_APP_NAME`) sets the page title and the web app manifest, which the server serves rather than the build baking in, so two installed apps on one phone are told apart.
 - **Diver details**: the owner written to the UDDF export's diver section comes from Settings, not the code.
 - **Scripts**: the restore drill and backup scripts take the instance name as an argument.
@@ -106,11 +106,11 @@ Foreign keys and unique constraints enforce integrity on every write. Unique key
 - Deleting a dive sets `deleted_at`. Deleted dives appear only in Recently deleted, are left out of the log and the UDDF export, and are never purged, so any of them can be restored and their fingerprints keep blocking re-imports.
 - A trip can be deleted, which unlinks its dives. A site, region, person, or dive centre can be deleted only while nothing uses it, counting dives in Recently deleted (and, for a region, sites and dive centres); otherwise it is merged into another. Nothing is deleted automatically, and every delete is journalled.
 - Cylinder material, cylinder volume, and oxygen percentage are plain columns on each dive, so changing one dive never affects another. The export groups dives with the same material and volume into one UDDF tank, and dives with the same oxygen fraction into one gas mix, so 32.4% nitrox never shares a mix with 32%.
-- Schema changes go through numbered migrations, each preceded by a database snapshot and journalled.
+- Schema changes go through numbered migrations, each preceded by a database snapshot (skipped for a new, empty database) and journalled.
 
 ### UDDF export
 
-Nightly, alongside the database snapshot, the server writes the whole log to `export/dives.uddf`: to a temp file in the same folder, fsynced, re-parsed to confirm it is valid, then renamed over the previous export. Downloading from Settings builds a fresh one. It is plain UDDF that opens in Subsurface without Shylog, every dive in its own repetition group.
+Nightly, alongside the database snapshot, the server writes the whole log to `export/dives.uddf`: to a temp file in the same folder, fsynced, re-parsed to confirm it is valid, then renamed over the previous export. Downloading from Settings builds a fresh one, which also replaces `export/dives.uddf` and updates the time of the last export. It is plain UDDF that opens in Subsurface without Shylog, every dive in its own repetition group.
 
 - Per-dive data with no UDDF element (surface, weather, rough visibility rating, maximum water temperature, gear details, tags, dive centre) goes in `<applicationdata><shylog>` under Shylog's own XML namespace.
 - **Standard data is passed through**: standard UDDF elements from an imported dive that Shylog doesn't model or show (such as extra sample channels, deco stops, and alarms) are written back into their normal places in the export, in schema order and with links remapped to Shylog ids, so Subsurface and other tools read them as usual. Where a field Shylog models has a hand value that differs from the computer's, the standard element carries the hand value.
@@ -138,13 +138,13 @@ Four fields are required and the dive number is derived; everything else is opti
 
 | Field | Input | Notes | UDDF export |
 | --- | --- | --- | --- |
-| Dive number | Shown only, never edited | Chronological position across all dives by local start time, recalculated by the server after every change | `informationbeforedive/divenumber` |
+| Dive number | Shown only, never edited | Chronological position across all dives by local start time, recalculated by the server after every change; two dives with the same start time keep the order they were written in | `informationbeforedive/divenumber` |
 | Date and time | Date and time pickers | Local time at the site | `informationbeforedive/datetime`, local time with no UTC offset |
 | Site | Pick or create | Matched ignoring case, spacing, and accents within the same country, so "Long Beach" and "long beach " are one site but a Long Beach elsewhere is not. Rename and merge in Settings | `informationbeforedive/link` to `divesite/site` |
 | Duration | Minutes |  | `informationafterdive/diveduration` |
 | Max depth | Metres |  | `informationafterdive/greatestdepth` |
 
-Each site stores, once rather than per dive: a country, picked from a fixed list (ISO 3166), and optionally a region such as Cape Town or Sodwana, typed and deduplicated like sites within its country (UDDF `geography`); a body of water (UDDF `environment`: Ocean or sea, Lake or quarry, River or spring, Cave or cavern, Pool, Hyperbaric chamber, Under ice, Other, with aquariums under Other); and, in the database only, a water type (Salt or Fresh, defaulting to Salt and switching to Fresh for Lake or quarry, River or spring, and Pool). Regions are entities of their own: they can be created offline by a draft, and renamed, merged, and deleted like sites.
+Each site stores, once rather than per dive: a country, picked from a fixed list (ISO 3166), and optionally a region such as Cape Town or Sodwana, typed with the existing regions in that country offered as you type, and deduplicated like sites within its country (UDDF `geography`); a body of water (UDDF `environment`: Ocean or sea, Lake or quarry, River or spring, Cave or cavern, Pool, Hyperbaric chamber, Under ice, Other, with aquariums under Other); and, in the database only, a water type (Salt or Fresh, defaulting to Salt and switching to Fresh for Lake or quarry, River or spring, and Pool). Regions are entities of their own: they can be created offline by a draft, and renamed, merged, and deleted like sites.
 
 Buddies, dive professionals, dive centres, and trips are stored once each and picked from a list, and a dive centre can have a region. In the export, dive professionals are UDDF buddies (whether a person was a buddy or a dive professional on a dive stays in the database), dive centres are UDDF `divebase` entries linked from each dive's `<shylog>` because UDDF has no per-dive link for them, and trips appear as UDDF's `tripmembership`, which holds the trip's name. Renaming or merging any of these in Settings rewrites the links and records an alias, so late offline ops still resolve.
 
@@ -167,7 +167,7 @@ Tags are a fixed list in the app code, not editable in the app. Each dive stores
 | Surge | Choice | None, Mild, Moderate, Hard, Very hard. The strongest back-and-forth push from swell felt during the dive: Mild is a slight sway, Moderate needs finning or a handhold to stay put, Hard makes holding position difficult, Very hard makes it impossible |  | `<shylog>` |
 | Surface | Choice | Calm, Moving, Stormy |  | `<shylog>` |
 | Weather | Choice | Cloudless, Cloudy, Rainy |  | `<shylog>` |
-| Minimum water temperature | Number | °C |  | `informationafterdive/lowesttemperature` |
+| Minimum water temperature | Number | °C | Filled from the profile samples on import when empty | `informationafterdive/lowesttemperature` |
 | Maximum water temperature | Number | °C | Filled from the profile samples on import when empty | `<shylog>` (UDDF has no maximum) |
 | Visibility | Number, or a rough rating when unsure (one or the other) | metres, or Low, Average, High |  | Metres in `informationafterdive/visibility`; rating in `<shylog>` |
 | Workload | Choice | Resting, Light, Moderate, Severe, Exhausting |  | `informationafterdive/workload` |
@@ -188,7 +188,7 @@ Tags are a fixed list in the app code, not editable in the app. Each dive stores
 | Max PO₂ | Calculated, read-only | bar | From max depth and the dive's gas mix | Not stored |
 | Notable animals | Free text |  |  | `informationafterdive/observations/notes` |
 | Gear details | Free text |  |  | `<shylog>` |
-| Notes | Free text |  |  | `informationafterdive/notes` |
+| Notes (labelled General in the app, under the Notes heading) | Free text |  |  | `informationafterdive/notes` |
 
 **New-dive defaults**: Settings holds log-wide defaults for cylinder material and volume, start pressure, gas, weight, dive type, and how visibility is entered (metres or rating), filled into every new dive. They use the same controls as the dive form (material, volume in litres, and Nitrox with its oxygen percentage), not a fixed list. A filled-in default counts as a hand value, like anything typed.
 
@@ -275,7 +275,7 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/api/version` | Current data version and server time, checked on every sync |
+| GET | `/api/version` | Current data version and server time, checked on app open, on regaining focus, after each upload, and every five minutes while the app is open |
 | GET | `/api/log` | The log as JSON, without profile samples, with an ETag |
 | GET | `/api/dives/:id/samples` | One dive's profile samples and computer events, fetched when its detail opens and then cached |
 | POST | `/api/ops` | Upload one offline draft's ops in one transaction; returns the result, the new version, and server time |
@@ -286,14 +286,19 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 | DELETE | `/api/entities/:kind/:id` | Delete a trip (unlinking its dives), or a site, region, person, or dive centre that nothing uses |
 | GET, PUT | `/api/settings` | Read or change the log-wide settings: diver name, maximum PO₂, and new-dive defaults |
 | GET | `/api/cards` | List certification cards |
-| PUT, DELETE | `/api/cards/:id` | Create or change a card, with its images, under a client-generated id, or delete it |
-| GET | `/api/cards/:id/images/:n` | One card image, cached on the phone for offline viewing |
-| POST | `/api/import` | Upload a Subsurface export; stores and returns a preview without changing any dive data |
-| POST | `/api/import/:id/apply` | Apply the confirmed pairings; safe to retry, since the import id makes it idempotent |
-| GET | `/api/export` | Download a fresh UDDF export or a consistent snapshot of the database |
+| PUT, DELETE | `/api/cards/:id` | Create or change a card, with its images (multipart PNG, JPEG, or WebP, up to 10 MB each), under a client-generated id, or delete it |
+| GET | `/api/cards/:id/images/:n` | One card image, fetched with the `X-Shylog` header and cached on the phone as a blob for offline viewing |
+| POST | `/api/import` | Upload a Subsurface export (`application/xml`, `text/xml`, or `application/octet-stream` with a `.uddf` or `.xml` name, up to 25 MB); stores and returns a preview without changing any dive data |
+| GET | `/api/import/pending` | The preview awaiting review, if any |
+| PATCH | `/api/import/:id` | Store a clock-offset override for one day and return that day's re-proposed pairs |
+| DELETE | `/api/import/:id` | Discard a preview |
+| POST | `/api/import/:id/apply` | Apply the pairings, skips, and included freedives sent in the body; re-checks every pairing against current data and returns the dives changed since the preview before committing; safe to retry, since the import id makes it idempotent |
+| GET | `/api/export/uddf` | Build a fresh UDDF export, replace `export/dives.uddf`, and download it |
+| GET | `/api/export/snapshot` | Download a consistent snapshot of the database |
+| POST | `/api/export/run` | Rewrite `export/dives.uddf` without downloading, for Export now after a failed night |
 | GET | `/api/health` | WAL size, integrity status, dive count, and the times of the last snapshot and export, for Settings |
 
-**Client data**: `/api/log` returns `{ schemaVersion, version, serverTime, dives, sites, countries, regions, people, diveCentres, trips, links, fieldMeta, settings, cards }`. Dexie keeps one table per collection, mirroring it, so the log can be read offline. An app that receives a newer `schemaVersion` than it understands stops syncing, keeps its queue, and offers to update.
+**Client data**: `/api/log` returns `{ schemaVersion, version, serverTime, dives, sites, countries, regions, people, diveCentres, trips, links, fieldMeta, settings, cards }`. Each dive carries a 24-point downsampled depth profile for the Log's sparkline and its count of ascent alarms, both stored when its samples are written, so the list and the statistics never need the samples themselves; deleted dives are included with `deletedAt`, so Recently deleted works from the copy. Dexie keeps one table per collection, mirroring it, so the log can be read offline. An app that receives a newer `schemaVersion` than it understands stops syncing, keeps its queue, and offers to update.
 
 The service worker precaches the app shell and lazy chunks, so the app opens with no signal. Certification card images are cached on the phone once fetched, so they open offline too. When a new version is available, it offers to reload once the queue has synced, or straight away if the only drafts left were rejected, so a bug fix can never be blocked by the draft it fixes.
 
@@ -310,11 +315,11 @@ One Node process running Hono serves the app, hands out the log, and is the only
 - **Journal**: every write is recorded in `ops` with a server sequence number and apply time, in the same transaction as the change. That covers draft uploads, edits to synced data, and also internal entries for applied imports (with their full payload), alias matches made during uploads, and migrations, so replaying the journal reproduces the database exactly. "After a point" in a replay always means server sequence, never a client timestamp.
 - **Integrity**: foreign keys and unique constraints are enforced on every write. `PRAGMA integrity_check` runs at startup and daily, and `foreign_key_check` after every migration. A failure stops writes and shows an alert in Settings.
 - **Version**: every commit stores a new random id in `meta`. This is the version clients see, so a restore can never roll it back to a value a client has already seen.
-- **UDDF export**: written nightly with the database snapshot, and on demand from Settings, from a read-only connection inside one read transaction. A failed export is logged, retried the next night, and shown in Settings. Each export is validated against the UDDF XSD, ignoring the unregistered `<shylog>` element.
+- **UDDF export**: written nightly with the database snapshot, and on demand from Settings, from a read-only connection inside one read transaction. A failed export is logged, retried the next night, and shown in Settings until an export succeeds, nightly or from Export now. At runtime each export is re-parsed and its dive count checked; validation against the UDDF XSD, with the `<shylog>` element stripped first, runs in CI (see Testing).
 - **Imports**: applied in chunks of 50 dives, one transaction per chunk, each chunk journalled, so a large import neither blocks the server for long nor makes a huge WAL burst. Previews expire after seven days.
 - **Health**: `/api/health` reports WAL size, integrity status, the dive count, and the times of the last snapshot and export.
-- **Network**: the app container uses the Tailscale sidecar's network (`network_mode: service:tailscale`), listens on 127.0.0.1 only, and publishes no ports, so it can only be reached through Tailscale Serve.
-- **Security**: Tailscale keeps the network private, but any website open in the same browser could otherwise send requests. Checks apply to `/api/*` only, never to the app's static files, manifest, or service worker. Every API request needs an `X-Shylog` header. Requests that change data must also send an `Origin` matching the app and the right content type: JSON for draft uploads and edits, the UDDF file for imports. Serve adds a `Tailscale-User-Login` header and strips any copy a client sends, and the server checks it against the instance's allowed logins (see Instance configuration). Tagged devices get no identity header, so only personal devices can use the app. A development bypass exists, and the server refuses to start with it enabled in production. Tailnet ACLs restrict each node to its diver's devices (plus the owner's for support, where allowed); the owner's instance is never shared.
+- **Network**: the app container uses the Tailscale sidecar's network (`network_mode: service:tailscale`), listens on 127.0.0.1 only, on `PORT` (default 3000), which the sidecar's Serve config (`TS_SERVE_CONFIG`) forwards to, and publishes no ports, so it can only be reached through Tailscale Serve.
+- **Security**: Tailscale keeps the network private, but any website open in the same browser could otherwise send requests. Checks apply to `/api/*` only, never to the app's static files, manifest, or service worker. Every API request needs an `X-Shylog` header. Requests that change data must also send an `Origin` matching the app and the right content type: JSON for draft uploads and edits, the UDDF file for imports. Serve adds a `Tailscale-User-Login` header and strips any copy a client sends, and the server checks it against the instance's allowed logins (see Instance configuration). Tagged devices get no identity header, so only personal devices can use the app. A development bypass (`SHYLOG_DEV_LOGIN`, see Instance configuration) exists, and the server refuses to start with it enabled in production. Tailnet ACLs restrict each node to its diver's devices (plus the owner's for support, where allowed); the owner's instance is never shared.
 - **Serving**: Node serves the built PWA as well as the API. Alongside it runs a Tailscale sidecar for HTTPS, two containers in total.
 
 ### Restores
@@ -334,7 +339,7 @@ The log has to outlive this app, this server, and any one provider, so backups a
 
 ### Built into the server
 
-1. Nightly, the server writes a consistent database snapshot with `VACUUM INTO` to a temp name, renames it once complete, compresses it, and stores it with the current UDDF export in the folder the existing nightly off-site backup job covers. Snapshots are real files, never symlinks. The `cards/` folder is in the same data directory, so the off-site job covers it too.
+1. Nightly at midnight, server local time (the container's `TZ`), the server writes a consistent database snapshot with `VACUUM INTO` to a temp name, renames it once complete, compresses it, and stores it with the current UDDF export in the folder the existing nightly off-site backup job covers. Snapshots are real files, never symlinks. The `cards/` folder is in the same data directory, so the off-site job covers it too.
 2. Retention for those snapshots: daily for 90 days, weekly for two years, and monthly forever.
 3. Settings shows the total dive count and the times of the last snapshot and export, so an unexplained drop or a stalled backup is easy to notice.
 4. Restores are described under Server.
@@ -370,7 +375,7 @@ Import is always preview, then confirm: nothing is written until you confirm.
   - start times no further apart than half the longer duration (at least 60 seconds)
 - **Adjusting the clock**: if times look off, you can shift a day's offset in 15-minute steps (or reset it to the estimate), and that day's pairings are proposed again. The override is stored with the preview.
 - **Review**: pairs that pass cleanly can be confirmed together without opening each one, and any pairing can be changed. A pairing you make by hand may join dives on different days or dives that fail the same-dive test, with a warning, since you may know better than the clock.
-- **Unpaired dives**: unpaired computer dives are ticked to be added as new dives by default, and each can instead be skipped or paired with a logged dive. A skipped dive gets no fingerprint, so it shows up again in a later export. The review also lists hand-logged dives that no computer dive was paired with, with how far apart the nearest computer dive starts.
+- **Unpaired dives**: unpaired computer dives are ticked to be added as new dives by default, and each can instead be skipped or paired with a logged dive. A skipped dive gets no fingerprint, so it shows up again in a later export. The review also lists hand-logged dives that no computer dive was paired with, with how far apart the nearest computer dive starts. Dives already imported are shown as a count, never listed, since an export can hold hundreds. The upload itself shows an indeterminate "Reading your export" state, since the preview comes back in one response.
 
 ### Freedives
 
@@ -380,16 +385,16 @@ The D4i also records freedives, and these appear in the Subsurface export alongs
 
 Checked against a real Subsurface export of 72 dives on 12 October 2026:
 
-- Samples carry only depth, dive time, and temperature (in kelvin, and only on samples where it changed). There is no tank pressure, CNS, OTU, or PO₂.
-- Computer events arrive as `<alarm>` inside a sample, with only two types. `ascent` comes in pairs (59 in the first export, 1 to 21 seconds apart, mostly 1 to 3), matched in order, and each pair is stored as one event spanning them. `surface` marks the start, the end, and any surfacing mid-dive; it is stored but not shown as a warning.
+- Samples carry only depth, dive time, and temperature (in kelvin, and only on samples where it changed). There is no tank pressure, CNS, OTU, or PO₂, and no `lowesttemperature`: the computer's minimum and maximum water temperatures are the lowest and highest sample temperatures, and both fill empty fields as computer values and are compared with hand values.
+- Computer events arrive as `<alarm>` inside a sample, with only two types. `ascent` comes in pairs (59 in the first export, 1 to 21 seconds apart, mostly 1 to 3), matched in order, and each pair is stored as one event spanning them. `surface` marks the start, the end, and any surfacing mid-dive; it is stored but not shown as a warning. The closing `surface` alarm is not always on the last sample (dives 39, 47, 58, and 67 of the first export end a few seconds later).
 - The only `<switchmix>` is at time 0 and sets the starting gas, so it is read as the dive's gas rather than as an event.
 - Some samples repeat the same dive time; duplicates are merged before anything is calculated.
 - Samples can run past `diveduration` (time at the surface before the computer ends the dive). They are stored, but the chart's time axis ends as Subsurface's does (see Axis ranges), and duration stays the computer's figure.
 - `greatestdepth` can be slightly deeper than any sample, since the computer catches peaks between samples, so max depth comes from it rather than from the samples.
 - `informationafterdive` carries `averagedepth` (in metres) alongside `greatestdepth` and `diveduration`. It is used directly as the dive's average depth, a computer value, rather than recalculated from the samples.
-- Gas mixes are whole per cent (`<o2>0.32</o2>`), so an imported dive's oxygen is 32.0% unless typed by hand.
+- Gas mixes are whole per cent (`<o2>0.32</o2>`), so an imported dive's oxygen is 32.0% unless typed by hand. Air is written as `<o2>0.21</o2>` and is read as air (Nitrox no, 20.9% in calculations), as Subsurface treats it.
 - Subsurface writes `leadquantity` under `informationbeforedive/equipmentused` rather than UDDF's `informationafterdive/equipmentused`; the import reads it there, and the export writes the standard place.
-- Subsurface writes placeholders that carry no data and are ignored: a `leadquantity` of 0, an empty site link, empty notes, and a dummy divebase. Otherwise, filling empty fields from the computer would record 0 kg of weight.
+- Subsurface writes placeholders that carry no data and are ignored: a `leadquantity` of 0, an empty site link, empty notes, an empty `<divetrip/>`, and a dummy divebase. Otherwise, filling empty fields from the computer would record 0 kg of weight.
 - Datetimes have no UTC offset, as the import already assumes.
 
 ### The Zoop Novo
@@ -411,7 +416,7 @@ The Zoop Novo is from the same Suunto family and Subsurface downloads it the sam
 
 ### Summary
 
-After confirming, the app shows a short summary: dives paired, dives added, dives skipped as already imported, and freedives left out, plus how many dives differ from the computer, with a link to them.
+After confirming, the app shows a short summary: dives paired, dives added, dives skipped as already imported, freedives left out, and freedives included when any were, plus the dives that differ from the computer, listed on the summary with a link to each.
 
 ## Statistics
 
@@ -434,7 +439,7 @@ The chart library is the heavy part, not the maths, so the dive detail's profile
 | Depth bands (0 to 10, 10 to 18, 18 to 30, and over 30 m) | Max depths |
 | Conditions: current, surge, visibility, workload, and thermal comfort, each with its most common value | Those fields |
 | Weather and surface | Those fields |
-| Time of day (morning, midday, afternoon, night) | Start times |
+| Time of day (morning before 11:00, midday 11:00 to 14:00, afternoon 14:00 to 18:00, night after 18:00, by local start time) | Start times |
 | Gas: share of nitrox dives and average nitrox oxygen | Gas fields |
 | Entry | Entry field |
 
@@ -476,7 +481,7 @@ The Difference rule runs on each measure against each field in its row.
 | --- | --- |
 | SAC rate | Current, surge, workload, thermal comfort, depth band, gas, cylinder material, cylinder volume, time of day, entry, region, dive centre, buddy, Dry suit / Night / Drift / Photo tags |
 | Max depth | Buddy, dive professional, dive centre, region, trip, gas, entry |
-| Duration | Depth band, gas, entry, region, current, water temperature band |
+| Duration | Depth band, gas, entry, region, current, water temperature band (under 16 °C, 16 to 20 °C, over 20 °C) |
 | Ascent alarms per dive | Depth band, current, surge, workload, buddy, gas, time of day |
 | Thermal comfort | Water temperature (threshold), region, month, Dry suit tag |
 | Visibility | Surge, weather, surface, region, month |
@@ -528,17 +533,17 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - Each card shows the dive number, site, date and place, max depth, and duration, with an icon on each of max depth and duration, and a small sparkline of the depth profile when the dive has one.
   - The date comes before the place and leaves out the month, which the heading already gives (for example "Sat 10 · Simon's Town"); if the line is too long, only the place is shortened.
   - A dive still on the device has a coloured outline and a cloud-off icon, with screen-reader text, instead of a visible Not synced label.
-  - The header shows aggregate stats for the log, which follow the active filters (a year filter shows that year's figures) and collapse into a compact line when the list scrolls. Sync status sits in the header too (see Mobile rules).
+  - The header shows the dive count, the hours underwater (the sum of durations), and the deepest dive, which follow the active filters (a year filter shows that year's figures) and collapse into a compact line when the list scrolls. Sync status sits in the header too (see Mobile rules).
   - Search across site, buddy, animals, and notes, with filters for year, tag, and region.
-- **Dive detail**: the time series profile chart (see Profile chart) with the computer's alarms listed below it, key figures, then all fields. A banner shows when values differ from the computer (see For a matched dive).
+- **Dive detail**: the time series profile chart (see Profile chart) with the computer's alarms listed below it, the key figures (max depth, duration, average depth), then all fields. A banner shows when values differ from the computer (see For a matched dive).
 - **Add or edit**: one form, grouped into sections; save works offline.
   - A new dive starts blank apart from the new-dive defaults from Settings, except the date, which is pre-filled with today and shown as plain text until it is tapped, which opens the native date picker.
   - The calculated block shows SAC rate, MOD, and max PO₂; CNS and OTU appear only on the dive detail.
-  - An optional Copy from last dive action fills most fields (site, trip, buddies, dive professionals, dive centre, entry, weight, cylinder, gas, gear details, conditions, and tags), leaving the number, date and time, depths, duration, pressures, temperatures, animals, and notes to fill.
+  - An optional Copy from last dive action fills most fields (site, trip, buddies, dive professionals, dive centre, entry, weight, cylinder, gas, gear details, current, surge, surface, weather, visibility, and tags), leaving the number, date and time, depths, duration, pressures, temperatures, animals, and notes to fill.
 - **Statistics**: headline figures and charts, filtered by year (see Statistics).
 - **Import**: upload a Subsurface UDDF export, review the pairings, then see the summary (see Subsurface import).
 - **Settings**, in sections:
-  - Sync status at the top, with save waiting dives to a file when there are drafts
+  - Sync status at the top, with save waiting dives to a file when there are drafts. Sections with fields save with an explicit Save action that appears when a value changes
   - You: diver name and certifications
   - Diving: maximum PO₂ and new-dive defaults
   - Your log: dive count, times of the last snapshot and export, and Recently deleted
@@ -547,9 +552,9 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - This phone: storage protection with help for keeping data safe, and appearance (system, light, dark)
   - About: version and server
   - Alerts for a failed export or paused saving
-- **Sites, people and trips** (from Settings): sites, regions, people, dive centres, and trips with search (people are listed by name only), and suggested likely duplicates (such as "2 Mile Reef" for Two Mile Reef) to merge. Each one's detail shows its fields and its own figures (dives, deepest, last dive; dives together for a person; dives, sites, and last dive for a dive centre; dives, days, and deepest for a trip, whose dates come from its dives), with rename, merge a duplicate into it, and delete where allowed (see Rules for edits).
+- **Sites, people and trips** (from Settings): sites, regions, people, dive centres, and trips with search (people are listed by name only), and suggested likely duplicates (such as "2 Mile Reef" for Two Mile Reef) to merge: two names are likely duplicates when their normalised keys match after number words become digits, when one is an initialled form of the other such as "Sam N" for Sam Naidoo, or when they share a prefix of at least five characters. New sites, regions, people, dive centres, and trips are created from the dive form's pickers, not here. Each one's detail shows its fields and its own figures (dives, deepest, last dive; dives together for a person; dives, sites, and last dive for a dive centre; dives, days, and deepest for a trip, whose dates come from its dives), with rename, merge a duplicate into it, and delete where allowed (see Rules for edits). Changes save with an explicit Save action, and a rename that collides shows the error under the field with a Merge instead action.
 - **Recently deleted** (from Settings): deleted dives grouped by when they were deleted, each viewable and restorable. Restoring needs a connection and offers a link to the restored dive. A note says deleted dives keep blocking re-imports of the same computer dive.
-- **Certifications** (from Settings): each card is a name and one or more images (such as screenshots of an agency eCard, front and back), shown full screen with pinch to zoom, keeping the screen on while shown. Adding several images at once offers one card with several pages or separate cards, and a card's images can be reordered. Adding, editing, and deleting need a connection; cards are cached on the phone so they open with no signal. Cards are not part of the UDDF export.
+- **Certifications** (from Settings): each card is a name and one or more images (such as screenshots of an agency eCard, front and back), shown full screen with pinch to zoom, keeping the screen on while shown where the browser supports the Screen Wake Lock API. Adding several images at once offers one card with several pages or separate cards, and a card's images can be reordered. Adding, editing, and deleting need a connection; cards are cached on the phone so they open with no signal. Cards are not part of the UDDF export.
 
 ### Profile chart
 
@@ -557,12 +562,12 @@ The dive detail shows the computer's time series much as Subsurface does, everyt
 
 - Depth as the main line, with the surface at the top. The line is coloured by vertical speed, using the bands below, and no legend is shown for them.
 - Water temperature in its own lane below the depth chart, on the same time axis. The D4i records temperature only when it changes, so each value is carried forward to the next.
-- Tank pressure as a further line, when the computer recorded it (the D4i doesn't).
+- Tank pressure is not drawn in v1, since neither the D4i nor the Zoop Novo records it in a Subsurface export; the `samples` table keeps a pressure column so an export that carries it is not lost.
 - Computer events (warnings and flags) as markers on the timeline at the moment they occurred, each with an icon and a short label. An event that spans an interval, such as an ascent-rate alarm, is drawn as a band. Surface events are not shown as warnings.
 - The gas's MOD as a horizontal line at that depth, with a short label such as "MOD 33.2 m", drawn only when the MOD falls within the depth axis's range. The line never widens the depth axis, which still comes from the dive's own depth (see Axis ranges), so air dives and shallow nitrox dives usually show no line. It uses the same MOD as the dive's figures (the gas mix and the maximum PO₂ setting), so it appears only for single-cylinder dives with a known gas mix. For example, dive 63 of the first export (EANx32, 32.66 m) has a depth axis reaching at least 35.7 m (the deepest point plus 3 m), past its MOD of 33.2 m at 1.4 bar, so the line is shown.
 - Tapping or hovering anywhere shows a crosshair with the time, depth, temperature, vertical rate, and any event at that moment. Vertical rate is shown as ±x.x m/min (positive when ascending, negative when descending), calculated as Subsurface's tooltip does (`analyze_plot_info` and `plot_string` in `core/profile.cpp`): the depth change from the previous chart point, including the interpolated and event points described under Chart points, divided by the time between them and truncated to whole mm per second, so it moves in steps of 0.06 m/min. The crosshair shows the value at the first chart point at or after its time, and a point at the same time as the one before it reads 0. This is calculated after duplicate samples are merged.
 
-Hand-logged dives with no computer data show the key figures without a chart, and a note in its place that the profile comes from a Subsurface import once the dive has synced. The chart has a table alternative for screen readers, like every chart.
+Hand-logged dives with no computer data show the key figures without a chart, and a note in its place: for a draft, that the profile comes from a Subsurface import once the dive has synced; for a synced dive, that importing a Subsurface export attaches the profile. The chart has a table alternative for screen readers, like every chart.
 
 #### Vertical speed colours
 
@@ -587,7 +592,7 @@ The exact boundaries are 25, 76, 152, and 304 mm/s for ascents (1.5, 4.56, 9.12,
 
 #### Axis ranges
 
-Each axis's range comes from the data, and some axes then round their ends to the next tick mark. The heart rate and gas partial pressure rows apply only if those axes are added; the profile chart above lists depth, temperature, tank pressure, events, and the MOD line, which never affects the depth range.
+Each axis's range comes from the data, and some axes then round their ends to the next tick mark. The tank pressure, heart rate, and gas partial pressure rows are kept for reference and are not built in v1; the profile chart draws depth, temperature, events, and the MOD line, which never affects the depth range.
 
 | Axis | Range | Rounded to ticks? |
 | --- | --- | --- |
@@ -649,24 +654,24 @@ Each step ends with something usable, and the core package comes first because e
 
 1. **Scaffold**: pnpm workspace, Vite and React app, `shadcn init` with preset `b1sAmWXiM` (the updated preset, set before the repo is initialised), touch-size overrides.
 2. **Core package**: draft upload and edit schemas, name normalisation, unit conversion, and calculations, with the calculation tests under Testing.
-3. **Server**: SQLite schema and migrations, the draft upload and edit endpoints, integrity checks, and the security headers.
+3. **Server**: SQLite schema and migrations, the draft upload and edit endpoints, integrity checks, the security headers, and a dev-only seed script that loads dives, samples, and alarms from the fixture through a small UDDF reader the Import step later grows into the Suunto module.
 4. **Deploy**: Docker Compose with the Tailscale sidecar on the home server, plus nightly snapshots, so you test on your phone early and backups run from day one. Includes the second instance on a shared node, with a smoke test of its identity check.
-5. **Read-only app**: log list, dive detail, and the profile chart (depth, temperature, events, vertical rate, and the MOD line), using a dive seeded from the fixture.
+5. **Read-only app**: log list, dive detail, and the profile chart (depth, temperature, events, vertical rate, and the MOD line), using the seeded fixture, with the log mirrored into IndexedDB from the start.
 6. **Editing from day one**: add, edit, delete, Recently deleted, entities (including deletes), settings, and certification cards as plain API calls, with new dives always saved as drafts through the upload path, so offline support later only adds the queue.
 7. **UDDF export**: the nightly and on-demand export, with XSD and pass-through tests.
 8. **Statistics** screen.
-9. **Offline**: service worker, IndexedDB copy, draft dives with sync indicators, queue persistence, storage warnings, and the update flow.
-10. **Import**: Suunto parsing rules (D4i and Zoop Novo), freedive detection, preview, clock offsets, pairing review, fingerprints, events, storing CNS and OTU from imported samples, and apply.
+9. **Offline**: service worker, the draft queue waiting and retrying while offline (the IndexedDB copy exists from step 5 and drafts from step 6), sync indicators, storage warnings, and the update flow.
+10. **Import**: Suunto parsing rules (D4i and Zoop Novo), freedive detection, preview, clock offsets, pairing review, fingerprints, events, storing CNS and OTU from imported samples, and apply. Starts once a Zoop Novo export is in `fixtures/subsurface/`.
 
 ## Testing
 
 The sync rules and the UDDF import and export carry most of the risk, so they get the most tests.
 
 - **Sync**: tests cover re-sent and duplicated draft uploads, drafts that point at entities merged on the server, and imports against hand-logged dives, checking that each produces the same final data.
-- **Schema validation**: exports are validated against the UDDF XSD in CI. The only allowed failure is the unregistered `<shylog>` element. This also checks element order and whether `<samples>` may be left out of hand-logged dives.
-- **Calculations**: SAC rate, MOD, max PO₂, CNS, OTU, vertical rate, and the time-weighted average depth (still the fallback when an export has no `averagedepth`) are unit-tested in the core package against hand-worked values. They are also checked against Subsurface's own figures for the same dives in the first real export, with Subsurface set to salt water and 1,013 mbar, since the export carries neither. For example, dive 63 (EANx32, 32.66 m, salt water, surface pressure 1,013 mbar) gives a max PO₂ of 1.38 bar and an MOD of 33.2 m at 1.4 bar. Import tests cover each rule under What the D4i export contains, including that `averagedepth` is read and stored as a computer value.
+- **Schema validation**: exports are validated against the vendored UDDF 3.2.1 XSD in CI with `xmllint`, after the unregistered `<shylog>` element is stripped, so no failure is allowed. This also checks element order and whether `<samples>` may be left out of hand-logged dives. The exact UDDF elements for a site's region, country, and body of water are settled against the XSD when the export is built.
+- **Calculations**: SAC rate, MOD, max PO₂, CNS, OTU, vertical rate, and the time-weighted average depth (still the fallback when an export has no `averagedepth`) are unit-tested in the core package against hand-worked values. They are also checked against Subsurface's own figures for the same dives in the first real export, with Subsurface set to salt water and 1,013 mbar, since the export carries neither (the owner records Subsurface's CNS and OTU for dives 63, 54, 61, and 36 before the core calculations are built). For example, dive 63 (EANx32, 32.66 m, salt water, surface pressure 1,013 mbar) gives a max PO₂ of 1.38 bar and an MOD of 33.2 m at 1.4 bar. Import tests cover each rule under What the D4i export contains, including that `averagedepth` is read and stored as a computer value.
 - **Pass-through**: importing a real Subsurface export and then exporting keeps every standard element Shylog doesn't model, in its normal place and valid against the XSD. A test compares each dive's elements before and after, allowing only remapped ids and hand-entered values to differ.
-- **Real fixtures**: Subsurface exports from the D4i and the Zoop Novo, including a trip abroad with an offset clock, a night dive crossing midnight, and a batch containing freedives. The first real D4i export already covers Sodwana in July 2026 (nitrox, dives past 30 m, ascent alarms, mid-dive surfacings) and the freedives of 28 December 2025, which test the freedive rule. A Zoop Novo export, with a gauge dive if there is one, is needed before the Import step.
+- **Real fixtures**: Subsurface exports from the D4i and the Zoop Novo. The first real D4i export covers Sodwana in July 2026 (nitrox, dives past 30 m, ascent alarms, mid-dive surfacings) and the freedives of 28 December 2025, which test the freedive rule. Cases the real exports lack (a trip abroad with an offset clock, a night dive crossing midnight, a gauge dive, pressure samples, a PO₂ over the limit) come from small synthetic UDDF files generated from real fixture dives by a checked-in script under `fixtures/synthetic/`. A Zoop Novo export, with a gauge dive if there is one, is needed before the Import step.
 - **Migrations**: every migration runs against a copy of real data, followed by `foreign_key_check`.
 - **Restore drill**: a script restores from a nightly snapshot, replays the journal, and compares the result with the live database.
 
