@@ -520,6 +520,7 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
 - No serif fonts. Mono only in a few carefully chosen places; other figures use tabular numerals.
 - Headings use sentence case, never all caps.
 - One accent colour, used sparingly.
+- Colours come from Tailwind's palette, as shadcn's do. A colour outside it is used only where something specific needs one Tailwind doesn't have.
 
 ### Screens
 
@@ -567,15 +568,15 @@ Hand-logged dives with no computer data show the key figures without a chart, an
 
 Subsurface colours its profile line by vertical speed, and ascent and descent use different bands. Speeds are compared in whole mm per second, truncated, against Subsurface's thresholds.
 
-| Band | RGB (0 to 1) | Ascent (m/min) | Descent (m/min) |
+| Band | Colour | Ascent (m/min) | Descent (m/min) |
 | --- | --- | --- | --- |
-| Stable | 0.0, 0.4, 0.0 | under 1.5 | under 1.5 |
-| Slow | 0.4, 0.8, 0.0 | 1.5 to 4.56 | 1.5 to 9.12 |
-| Moderate | 0.8, 0.8, 0.0 | 4.56 to 9.12 | 9.12 to 18.24 |
-| Fast | 0.8, 0.5, 0.0 | 9.12 to 18.24 | 18.24 to 30.42 |
-| Crazy | 1.0, 0.0, 0.0 | over 18.24 | over 30.42 |
+| Stable | green-800 | under 1.5 | under 1.5 |
+| Slow | lime-500 | 1.5 to 4.56 | 1.5 to 9.12 |
+| Moderate | yellow-500 | 4.56 to 9.12 | 9.12 to 18.24 |
+| Fast | amber-600 | 9.12 to 18.24 | 18.24 to 30.42 |
+| Crazy | red-600 | over 18.24 | over 30.42 |
 
-The exact boundaries are 25, 76, 152, and 304 mm/s for ascents (1.5, 4.56, 9.12, and 18.24 m/min), and 25, 152, 304, and 507 mm/s for descents (1.5, 9.12, 18.24, and 30.42 m/min). An ascent exactly on a boundary falls in the slower band, and a descent in the faster one. Source: `velocity()` in Subsurface's `core/profile.cpp`. The RGB values are from its original 2011 colour commit and may have changed since.
+The exact boundaries are 25, 76, 152, and 304 mm/s for ascents (1.5, 4.56, 9.12, and 18.24 m/min), and 25, 152, 304, and 507 mm/s for descents (1.5, 9.12, 18.24, and 30.42 m/min). An ascent exactly on a boundary falls in the slower band, and a descent in the faster one. Source: `velocity()` in Subsurface's `core/profile.cpp`. The colours are the nearest Tailwind shades to Subsurface's (dark green, lime, yellow, orange, red), adjusted in dark mode where they lack contrast.
 
 #### Chart points
 
