@@ -604,9 +604,9 @@ Where a board shows something the spec does not and no decision above covers it,
 
 ---
 
-## Decision to confirm: pnpm scripts
+## pnpm scripts
 
-The test stack is fixed in `CLAUDE.md`. These are the proposed scripts; confirm or amend before milestone 1.
+The test stack is fixed in `CLAUDE.md`. These scripts were confirmed on 17 October 2026 and milestone 1 sets them up as written.
 
 Root `package.json`:
 
@@ -644,7 +644,7 @@ Root `package.json`:
 {
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format esm --target node22",
+    "build": "tsup",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --project server",
@@ -667,6 +667,8 @@ Root `package.json`:
   }
 }
 ```
+
+`apps/server/tsup.config.ts` holds the entry, `esm` format and the Node target, read from `engines.node` in its `package.json`, so a Node LTS bump is one edit. `check` runs the whole Vitest suite and is for CI and milestone sign-off; day to day, scope a run with `vitest run --project core` or a file path. `restore-drill` needs `sqlite3` and `sqldiff` on the host and never runs in CI.
 
 `playwright.config.ts` runs Chromium and WebKit at a 390 × 844 viewport with a `webServer` that starts the server on a temp `SHYLOG_DATA_DIR` with `SHYLOG_DEV_LOGIN` set and seeds the fixture. `scripts/validate-uddf.sh` strips `<shylog>` elements with a short Node script and runs `xmllint --noout --schema fixtures/uddf/uddf_v321.xsd` over the files given; CI installs `libxml2-utils` (it is not installed in the local WSL today).
 
