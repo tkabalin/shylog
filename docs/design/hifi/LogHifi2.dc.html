@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Log (hi-fi v2)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+--shadow-fab:0 8px 20px -6px oklch(0.48 0.09 200 / 45%),0 2px 4px -2px rgb(0 0 0 / 0.15);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+--shadow-fab:0 8px 20px -6px oklch(0 0 0 / 60%);
+}
+.sl.sky{
+--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);
+--accent-soft:oklch(0.5 0.134 242.749 / 9%);
+--shadow-fab:0 8px 20px -6px oklch(0.5 0.134 242.749 / 45%),0 2px 4px -2px rgb(0 0 0 / 0.15);
+}
+.sl.dark.sky{
+--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);
+--accent-soft:oklch(0.746 0.16 232.661 / 14%);
+--shadow-fab:0 8px 20px -6px oklch(0 0 0 / 60%);
+}
+.sl.emerald{
+--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);
+--accent-soft:oklch(0.508 0.118 165.612 / 9%);
+--shadow-fab:0 8px 20px -6px oklch(0.508 0.118 165.612 / 45%),0 2px 4px -2px rgb(0 0 0 / 0.15);
+}
+.sl.dark.emerald{
+--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);
+--accent-soft:oklch(0.765 0.177 163.223 / 14%);
+--shadow-fab:0 8px 20px -6px oklch(0 0 0 / 60%);
+}
+.sl.cyan{
+--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);
+--accent-soft:oklch(0.52 0.105 223.128 / 9%);
+--shadow-fab:0 8px 20px -6px oklch(0.52 0.105 223.128 / 45%),0 2px 4px -2px rgb(0 0 0 / 0.15);
+}
+.sl.dark.cyan{
+--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);
+--accent-soft:oklch(0.789 0.154 211.53 / 14%);
+--shadow-fab:0 8px 20px -6px oklch(0 0 0 / 60%);
+}
+.tn{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.scroll{scrollbar-width:none}.scroll::-webkit-scrollbar{display:none}
+input::placeholder{color:var(--muted-foreground)}
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+.xsep{display:none}.noxi .xsep{display:inline}
+.xgap{display:inline-block;width:14px}.noxi .xgap{display:none}
+</style>
+</helmet>
+<div class="{{mode}}" style="width: 390px; height: 844px; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; position: relative; overflow: hidden; -webkit-font-smoothing: antialiased">
+
+<header style="display: flex; flex-direction: column; padding: 12px 16px 0; border-bottom: 1px solid {{headerRule}}; transition: border-color .2s ease">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px">
+<p class="tn" style="flex: 1; min-width: 0; margin: 0; display: flex; align-items: baseline; gap: 8px; height: 64px; white-space: nowrap"><span style="font-size: 52px; line-height: 56px; font-weight: 600; letter-spacing: -0.05em">{{st.n}}</span><span style="font-size: 17px; font-weight: 500; color: var(--muted-foreground)">dives logged</span></p><div style="display: flex; align-items: baseline; gap: 10px; min-width: 0">
+
+<span class="tn" aria-hidden="{{compactHidden}}" style="font-size: 13px; color: var(--muted-foreground); white-space: nowrap; opacity: {{compactOp}}; transition: opacity .2s ease">{{st.compact}}</span>
+</div>
+<sc-if value="{{sy.show}}" hint-placeholder-val="{{true}}"><a href="SettingsHifi.dc.html" aria-label="{{sy.aria}}" style="flex: none; display: inline-flex; align-items: center; height: 44px; text-decoration: none"><span style="display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 {{sy.padR}} 0 10px; border-radius: 15px; background: var(--muted); font-size: 13px; font-weight: 500; color: var(--muted-foreground); white-space: nowrap"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="{{sy.ic}}"></path></svg><span>{{sy.label}}</span><sc-if value="{{sy.hasCount}}" hint-placeholder-val="{{true}}"><span class="tn" style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600">{{sy.count}}</span></sc-if></span></a></sc-if>
+</div>
+
+<div style="max-height: {{stripMax}}; opacity: {{stripOp}}; overflow: hidden; transition: max-height .26s ease, opacity .18s ease">
+<sc-if value="{{hv.hero}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 2px 0 16px">
+
+<p class="tn" style="margin: 0; font-size: 16px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>{{st.h}} h underwater<span class="xsep"> · </span><span class="xgap" aria-hidden="true"></span><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>deepest {{st.deep}} m</p>
+</div>
+</sc-if>
+
+<sc-if value="{{hv.tiles}}" hint-placeholder-val="{{false}}">
+<dl aria-label="{{st.scope}}" style="margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 0 14px">
+<div style="display: flex; flex-direction: column-reverse; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--muted)">
+<dt style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l14 0 M5 15l14 0 M11 4l-4 16 M17 4l-4 16"></path></svg>Dives</dt>
+<dd class="tn" style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.03em">{{st.n}}</dd>
+</div>
+<div style="display: flex; flex-direction: column-reverse; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--muted)">
+<dt style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>Underwater</dt>
+<dd class="tn" style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.03em">{{st.h}}<span style="margin-left: 2px; font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--muted-foreground)">h</span></dd>
+</div>
+<div style="display: flex; flex-direction: column-reverse; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--muted)">
+<dt style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>Deepest</dt>
+<dd class="tn" style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.03em">{{st.deep}}<span style="margin-left: 2px; font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--muted-foreground)">m</span></dd>
+</div>
+</dl>
+</sc-if>
+
+<sc-if value="{{hv.split}}" hint-placeholder-val="{{false}}">
+<dl aria-label="{{st.scope}}" style="margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 20px; padding: 4px 0 16px">
+<div style="display: flex; flex-direction: column-reverse; gap: 0; padding-right: 20px; border-right: 1px solid var(--hairline)">
+<dt style="font-size: 13px; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l14 0 M5 15l14 0 M11 4l-4 16 M17 4l-4 16"></path></svg>Dives logged</dt>
+<dd class="tn" style="margin: 0; font-size: 44px; line-height: 48px; font-weight: 600; letter-spacing: -0.05em">{{st.n}}</dd>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 14px"><dt style="color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>Underwater</dt><dd class="tn" style="margin: 0; font-weight: 600">{{st.h}} h</dd></div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 14px"><dt style="color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>Deepest</dt><dd class="tn" style="margin: 0; font-weight: 600">{{st.deep}} m</dd></div>
+</div>
+</dl>
+</sc-if>
+
+<sc-if value="{{hv.sentence}}" hint-placeholder-val="{{false}}">
+<p class="tn" style="margin: 0; padding: 2px 0 16px; font-size: 19px; line-height: 27px; font-weight: 500; letter-spacing: -0.02em; color: var(--muted-foreground); text-wrap: balance">{{st.lead}} <span style="color: var(--foreground)">{{st.n}} dives</span> and <span style="color: var(--foreground)">{{st.h}} hours</span> underwater, deepest <span style="color: var(--foreground)">{{st.deep}} m</span>.</p>
+</sc-if>
+
+<sc-if value="{{hv.strip}}" hint-placeholder-val="{{true}}">
+<dl aria-label="{{st.scope}}" style="margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 6px 0 16px">
+<div style="display: flex; flex-direction: column-reverse; gap: 1px; padding-right: 12px">
+<dt style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l14 0 M5 15l14 0 M11 4l-4 16 M17 4l-4 16"></path></svg>Dives</dt>
+<dd class="tn" style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -0.035em">{{st.n}}</dd>
+</div>
+<div style="display: flex; flex-direction: column-reverse; gap: 1px; padding: 0 12px; border-left: 1px solid var(--hairline)">
+<dt style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>Underwater</dt>
+<dd class="tn" style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -0.035em">{{st.h}}<span style="margin-left: 2px; font-size: 15px; font-weight: 500; letter-spacing: 0; color: var(--muted-foreground)">h</span></dd>
+</div>
+<div style="display: flex; flex-direction: column-reverse; gap: 1px; padding-left: 12px; border-left: 1px solid var(--hairline)">
+<dt style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>Deepest</dt>
+<dd class="tn" style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -0.035em">{{st.deep}}<span style="margin-left: 2px; font-size: 15px; font-weight: 500; letter-spacing: 0; color: var(--muted-foreground)">m</span></dd>
+</div>
+</dl>
+</sc-if>
+</div>
+
+<sc-if value="{{notEmpty}}" hint-placeholder-val="{{true}}">
+<label style="position: relative; display: block">
+<span class="sr">Search dives</span>
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; left: 13px; top: 13.5px; color: var(--muted-foreground)"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg>
+<input type="search" placeholder="Search" style="box-sizing: border-box; width: 100%; height: 44px; padding: 0 14px 0 38px; border: 0; border-radius: 12px; background: var(--muted); color: var(--foreground); font-size: 16px; outline: none">
+</label>
+<div role="group" aria-label="Filters" style="display: flex; gap: 4px; margin: 4px 0 6px -2px">
+<button type="button" aria-haspopup="listbox" onClick="{{nextYear}}" style="display: inline-flex; align-items: center; gap: 3px; height: 36px; margin: 4px 0; padding: 0 8px 0 10px; border: 0; border-radius: 18px; background: {{yearBg}}; font-size: 13px; font-weight: 500; color: {{yearFg}}; cursor: pointer; transition: background .15s ease"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z M16 3v4 M8 3v4 M4 11h16 M11 15h1 M12 15v3"></path></svg>{{yearLabel}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: .7"><path d="M8 9l4 -4l4 4 M16 15l-4 4l-4 -4"></path></svg></button>
+<button type="button" aria-haspopup="listbox" style="display: inline-flex; align-items: center; gap: 3px; height: 36px; margin: 4px 0; padding: 0 8px 0 10px; border: 0; border-radius: 18px; background: none; font-size: 13px; font-weight: 500; color: var(--foreground); cursor: pointer"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3z"></path></svg>Any tag<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--muted-foreground)"><path d="M8 9l4 -4l4 4 M16 15l-4 4l-4 -4"></path></svg></button>
+<button type="button" aria-haspopup="listbox" style="display: inline-flex; align-items: center; gap: 3px; height: 36px; margin: 4px 0; padding: 0 8px 0 10px; border: 0; border-radius: 18px; background: none; font-size: 13px; font-weight: 500; color: var(--foreground); cursor: pointer"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13 M9 4v13 M15 7v13"></path></svg>Any region<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: var(--muted-foreground)"><path d="M8 9l4 -4l4 4 M16 15l-4 4l-4 -4"></path></svg></button>
+</div>
+</sc-if>
+</header>
+
+<div class="scroll" onScroll="{{onScroll}}" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 12px 16px 120px">
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin: auto 0; padding: 0 20px 40px; text-align: center">
+<span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18"></path><path d="M13 8l2 0"></path><path d="M13 12l2 0"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 18px; font-weight: 600; letter-spacing: -0.015em">No dives yet</span>
+<span style="font-size: 14px; line-height: 1.5; color: var(--muted-foreground)">Log your first dive, or bring in your history from a Subsurface export.</span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 4px; width: 100%; margin-top: 8px">
+<a href="EditDiveHifi.dc.html" style="display: flex; align-items: center; justify-content: center; height: 48px; border-radius: 14px; background: var(--accent); color: var(--accent-foreground); font-size: 16px; font-weight: 600; text-decoration: none"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M12 5l0 14 M5 12l14 0"></path></svg>Log a dive</a>
+<a href="ImportHifi.dc.html" style="display: flex; align-items: center; justify-content: center; height: 48px; font-size: 16px; font-weight: 600; color: var(--accent); text-decoration: none"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2 M7 9l5 -5l5 5 M12 4l0 12"></path></svg>Import from Subsurface</a>
+</span>
+</div>
+</sc-if>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<section style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; justify-content: space-between; height: 24px; padding: 0 4px">
+<h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: -0.005em; color: var(--muted-foreground)">{{g.label}}</h2>
+<span class="tn" style="font-size: 12px; color: var(--muted-foreground)">{{g.count}}</span>
+</div>
+<sc-for list="{{g.dives}}" as="d" hint-placeholder-count="2">
+<a href="{{d.href}}" style="display: grid; grid-template-columns: 28px minmax(0, 1fr) 56px auto; align-items: center; column-gap: 12px; padding: 14px 16px 14px 14px; border-radius: 14px; background: var(--card); box-shadow: {{d.ring}}; text-decoration: none">
+<span style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+<span class="{{numClass}}" style="font-size: 13px; font-weight: 500; color: {{d.numColor}}">{{d.num}}</span>
+<sc-if value="{{d.draft}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display: block; color: var(--accent)"><path d="M9.58 5.548c.24 -.11 .492 -.207 .752 -.286c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 .957 -.383 1.824 -1.003 2.454m-2.997 1.033h-11.343c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.13 -.582 .37 -1.128 .7 -1.62"></path><path d="M3 3l18 18"></path></svg></sc-if>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<span style="font-size: 16px; font-weight: 500; letter-spacing: -0.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{d.site}}</span>
+<span style="display: flex; min-width: 0; font-size: 13px; color: var(--muted-foreground); white-space: nowrap"><span class="tn" style="flex: none">{{d.day}}</span><span aria-hidden="true" style="flex: none; padding: 0 5px">·</span><span style="min-width: 0; overflow: hidden; text-overflow: ellipsis">{{d.place}}</span></span>
+<sc-if value="{{d.draft}}" hint-placeholder-val="{{false}}"><span class="sr">Not synced</span></sc-if>
+</span>
+<span style="display: flex; align-items: center">
+<sc-if value="{{d.synced}}" hint-placeholder-val="{{true}}">
+<svg width="56" height="22" viewBox="0 0 60 24" fill="none" role="img" aria-label="{{d.profileLabel}}" style="display: block; color: var(--accent)"><polyline points="{{d.pts}}" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"></polyline></svg>
+</sc-if>
+</span>
+<span class="tn" style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Max depth" role="img" style="color: var(--muted-foreground)"><path d="M4 20l16 0"></path><path d="M12 14l0 -10"></path><path d="M12 14l4 -4"></path><path d="M12 14l-4 -4"></path></svg>{{d.depth}}</span>
+<span style="display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted-foreground)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Duration" role="img"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>{{d.dur}}</span>
+</span>
+</a>
+</sc-for>
+</section>
+</sc-for>
+</div>
+
+<sc-if value="{{notEmpty}}" hint-placeholder-val="{{true}}">
+<a href="EditDiveHifi.dc.html" aria-label="Log a dive" style="position: absolute; right: 20px; bottom: 92px; display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 28px; background: var(--accent); color: var(--accent-foreground); text-decoration: none; box-shadow: var(--shadow-fab)">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg>
+</a>
+</sc-if>
+
+<nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 8px 16px; border-top: 1px solid var(--hairline); background: var(--nav); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px)">
+<a href="LogHifi2.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 600; color: var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18"></path><path d="M13 8l2 0"></path><path d="M13 12l2 0"></path></svg>Log</a>
+<a href="StatsHifi.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M4 20h14"></path></svg>Stats</a>
+<a href="ImportHifi.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path><path d="M7 9l5 -5l5 5"></path><path d="M12 4l0 12"></path></svg>Import</a>
+<a href="SettingsHifi.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 6l8 0 M16 6l4 0 M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 12l2 0 M10 12l10 0 M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 18l11 0 M19 18l1 0"></path></svg>Settings</a>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;diveNumber&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;UI font&quot;,&quot;Mono&quot;],&quot;default&quot;:&quot;UI font&quot;},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;header&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Stat strip&quot;,&quot;Hero count&quot;,&quot;Tiles&quot;,&quot;Split&quot;,&quot;Sentence&quot;],&quot;default&quot;:&quot;Hero count&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;collapsed&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;empty&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;sync&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Synced&quot;,&quot;Syncing 1 dive&quot;,&quot;Offline&quot;,&quot;Offline, 1 not synced&quot;],&quot;default&quot;:&quot;Offline, 1 not synced&quot;},&quot;year&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;All years&quot;,&quot;2026&quot;,&quot;2025&quot;,&quot;2024&quot;],&quot;default&quot;:&quot;All years&quot;},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { yi: null, scrolled: false };
+}
+renderVals() {
+var self = this;
+var years = ['All years', '2026', '2025', '2024'];
+var s = this.state || {};
+var yi = s.yi != null ? s.yi : Math.max(0, years.indexOf(this.props.year || 'All years'));
+var year = years[yi];
+
+var line = function (p) {
+var step = 58 / (p.length - 1);
+return p.map(function (d, i) { return (1 + i * step).toFixed(1) + ',' + (2 + Math.min(d, 35) / 35 * 20).toFixed(1); }).join(' ');
+};
+var shape = function (d) { return [0, d * 0.6, d * 0.95, d, d * 0.9, d * 0.8, d * 0.7, d * 0.6, d * 0.45, Math.min(5, d * 0.4), Math.min(5, d * 0.4), 0]; };
+var dive = function (num, site, place, date, depth, dur, p) {
+return { num: num, site: site, place: place, date: date, day: date.split(' ').slice(0, 2).join(' '), depth: depth.toFixed(1) + ' m', dur: dur + ' min', pts: line(p || shape(depth)), profileLabel: 'Depth profile to ' + depth + ' metres', draft: false, synced: true, href: 'DiveDetailHifi.dc.html', numColor: 'var(--muted-foreground)', ring: '0 0 0 1px var(--edge), var(--shadow-xs)' };
+};
+var draft = { num: 73, site: 'Long Beach', place: "Simon's Town", date: 'Sun 11 Oct', day: 'Sun 11', depth: '14.2 m', dur: '48 min', pts: '', profileLabel: '', draft: true, synced: false, href: 'DiveDetailHifi.dc.html', numColor: 'var(--accent)', ring: '0 0 0 1.5px var(--accent), var(--shadow-xs)' };
+
+var byYear = {
+'2026': [
+{ label: 'October 2026', count: 2, dives: [draft, dive(72, 'Partridge Point', "Simon's Town", 'Sat 10 Oct', 18.6, 41, [0, 8, 14, 18.6, 17, 15, 12, 10, 8, 5, 5, 0])] },
+{ label: 'July 2026', count: 12, dives: [
+dive(71, 'Seven Mile Reef', 'Sodwana', 'Sun 27 Jul', 24.1, 52, [0, 15, 22, 24.1, 21, 18, 16, 14, 10, 5, 5, 0]),
+dive(70, 'Two Mile Reef', 'Sodwana', 'Sat 25 Jul', 32.7, 44, [0, 20, 32.7, 30, 26, 22, 18, 14, 10, 5, 5, 0]),
+dive(69, 'Stringer', 'Sodwana', 'Sat 25 Jul', 17.9, 55, [0, 10, 16, 17.9, 16, 15, 13, 12, 9, 5, 5, 0]),
+dive(68, 'Two Mile Reef', 'Sodwana', 'Fri 24 Jul', 21.4, 49, [0, 12, 19, 21.4, 20, 17, 15, 12, 9, 5, 5, 0])
+] },
+{ label: 'April 2026', count: 4, dives: [
+dive(53, 'A-Frame', "Simon's Town", 'Sat 4 Apr', 11.4, 38),
+dive(52, 'Windmill Beach', "Simon's Town", 'Sat 4 Apr', 7.8, 52)
+] }
+],
+'2025': [
+{ label: 'December 2025', count: 6, dives: [
+dive(49, 'Partridge Point', "Simon's Town", 'Sun 28 Dec', 16.9, 47),
+dive(48, 'Long Beach', "Simon's Town", 'Sat 27 Dec', 12.3, 55)
+] },
+{ label: 'September 2025', count: 4, dives: [
+dive(41, 'Castle Rocks', "Simon's Town", 'Sat 13 Sep', 13.5, 50),
+dive(40, 'Windmill Beach', "Simon's Town", 'Sat 13 Sep', 8.2, 46)
+] }
+],
+'2024': [
+{ label: 'November 2024', count: 5, dives: [
+dive(18, 'Aliwal Shoal', 'Umkomaas', 'Sat 16 Nov', 22.0, 42),
+dive(17, 'Aliwal Shoal', 'Umkomaas', 'Sat 16 Nov', 18.3, 45)
+] }
+]
+};
+var stats = {
+'All years': { n: '72', h: '58', deep: '32.7', scope: 'All time' },
+'2026': { n: '23', h: '18', deep: '32.7', scope: '2026' },
+'2025': { n: '31', h: '24', deep: '28.4', scope: '2025' },
+'2024': { n: '18', h: '16', deep: '22.0', scope: '2024' }
+};
+var st = stats[year];
+st.compact = st.n + ' dives · ' + st.h + ' h';
+st.lead = year === 'All years' ? 'So far:' : 'In ' + year + ':';
+var hName = this.props.header ?? 'Hero count';
+var hv = { strip: hName === 'Stat strip', hero: hName === 'Hero count', tiles: hName === 'Tiles', split: hName === 'Split', sentence: hName === 'Sentence' };
+
+var groups = year === 'All years' ? byYear['2026'].concat(byYear['2025'], byYear['2024']) : byYear[year];
+var empty = !!this.props.empty;
+if (empty) { groups = []; st = { n: '0', h: '0', deep: '0', scope: 'All time', compact: '0 dives', lead: 'So far:' }; hv = { strip: false, hero: false, tiles: false, split: false, sentence: false }; }
+var collapsed = !!this.props.collapsed || !!s.scrolled;
+var filtered = year !== 'All years';
+
+return {
+numClass: (this.props.diveNumber ?? 'UI font') === 'Mono' ? 'mono' : 'tn',
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (this.props.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[this.props.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[this.props.font ?? 'Geist'] || ''),
+st: st,
+hv: hv,
+empty: empty, notEmpty: !empty,
+sy: (function () {
+var st = this.props.sync ?? 'Offline, 1 not synced';
+var off = st.indexOf('Offline') === 0, n = st.indexOf('1 not synced') >= 0 ? 1 : 0;
+var syncing = st === 'Syncing 1 dive';
+if (syncing) n = 1;
+return { show: !empty && (off || n > 0), label: off ? 'Offline' : 'Syncing', ic: off ? "M12 18l.01 0 M9.172 15.172a4 4 0 0 1 5.656 0 M6.343 12.343a7.963 7.963 0 0 1 3.864 -2.14m4.163 .155a7.965 7.965 0 0 1 3.287 2 M3.515 9.515a12 12 0 0 1 3.544 -2.455m3.101 -.92a12 12 0 0 1 10.325 3.374 M3 3l18 18" : "M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-1 M9 15l3 -3l3 3 M12 12l0 9", hasCount: n > 0, count: String(n), padR: n > 0 ? '5px' : '11px',
+aria: (off ? 'Offline' : 'Syncing') + (n ? ', ' + n + (n === 1 ? ' dive' : ' dives') + ' not synced yet' : '') + '. Open sync status' };
+}).call(this),
+groups: groups,
+yearLabel: year,
+yearBg: filtered ? 'var(--accent-soft)' : 'transparent',
+yearFg: filtered ? 'var(--accent)' : 'var(--foreground)',
+nextYear: function () { self.setState({ yi: (yi + 1) % years.length }); },
+onScroll: function (e) {
+var sc = e.currentTarget.scrollTop > 24;
+if (sc !== !!(self.state && self.state.scrolled)) self.setState({ scrolled: sc });
+},
+titleSize: collapsed ? '19px' : '28px',
+stripMax: collapsed ? '0px' : '130px',
+stripOp: collapsed ? '0' : '1',
+compactOp: collapsed ? '1' : '0',
+compactHidden: collapsed ? 'false' : 'true',
+headerRule: collapsed ? 'var(--hairline)' : 'transparent'
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Settings (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.sl{--warn:oklch(0.553 0.195 38.402);--danger:oklch(0.577 0.245 27.325)}
+.sl.dark{--warn:oklch(0.75 0.183 55.934);--danger:oklch(0.704 0.191 22.216)}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 12px 10px 16px;box-sizing:border-box;text-decoration:none;color:inherit;width:100%;border:0;background:none;text-align:left;font-size:15px}
+.row .k{flex:1;min-width:0;display:block}
+.row .k .s{display:block;margin-top:2px}
+.row .s{font-size:13px;color:var(--muted-foreground)}
+.row .v{flex:none;display:inline-flex;align-items:center;gap:4px;font-size:15px;color:var(--muted-foreground);font-variant-numeric:tabular-nums}
+.row .chev{flex:none;color:var(--faint)}
+.ico{flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:var(--muted);color:var(--muted-foreground)}
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+</style>
+</helmet>
+<div class="{{mode}}" style="position: relative; width: 390px; min-height: 1940px; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+
+<header style="padding: 24px 16px 4px">
+<h1 style="margin: 0; font-size: 28px; line-height: 34px; font-weight: 600; letter-spacing: -0.03em">Settings</h1>
+</header>
+
+<main style="display: flex; flex-direction: column; gap: 24px; padding: 16px 16px 40px">
+
+<section aria-label="Sync" class="card" style="display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px">
+<span aria-hidden="true" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: {{sync.bg}}; color: {{sync.fg}}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{sync.d1}}"></path><path d="{{sync.d2}}"></path><path d="{{sync.d3}}"></path></svg></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+<span role="status" style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em">{{sync.title}}</span>
+<span class="tn" style="font-size: 13px; color: var(--muted-foreground)">{{sync.sub}}</span>
+</span>
+<sc-if value="{{sync.canRetry}}" hint-placeholder-val="{{false}}"><button type="button" class="restore-like" style="flex: none; height: 34px; padding: 0 12px; border: 0; border-radius: 17px; background: var(--accent-soft); color: var(--accent); font-size: 14px; font-weight: 500; cursor: pointer"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4 M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></svg>Try again</button></sc-if>
+</div>
+<sc-if value="{{sync.hasDrafts}}" hint-placeholder-val="{{false}}">
+<button type="button" class="row" style="border-top: 1px solid var(--hairline)">
+<span class="k"><span><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2 M7 11l5 5l5 -5 M12 4l0 12"></path></svg>Save waiting dives to a file</span><span class="s">A backup in case this phone clears its storage</span></span>
+<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path><path d="M7 11l5 5l5 -5"></path><path d="M12 4l0 12"></path></svg>
+</button>
+</sc-if>
+</section>
+
+<sc-if value="{{alert.show}}" hint-placeholder-val="{{false}}">
+<section role="alert" style="display: flex; gap: 12px; padding: 14px 16px; border-radius: 14px; box-shadow: inset 0 0 0 1px {{alert.ring}}; background: {{alert.bg}}">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px; color: {{alert.fg}}"><path d="M12 9v4"></path><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"></path><path d="M12 16h.01"></path></svg>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">{{alert.title}}</span>
+<span style="font-size: 13px; line-height: 1.45; color: var(--muted-foreground)">{{alert.body}}</span>
+<sc-if value="{{alert.hasAction}}" hint-placeholder-val="{{false}}"><button type="button" style="align-self: flex-start; height: 32px; margin: 6px 0 0 -8px; padding: 0 8px; border: 0; background: none; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer">{{alert.action}}</button></sc-if>
+</span>
+</section>
+</sc-if>
+
+<section aria-labelledby="s-you">
+<h2 id="s-you" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"></path></svg>You</h2>
+<div class="card fl">
+<div class="frow"><label for="s-diver" style="font-size: 15px; color: var(--foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"></path></svg>Diver name</label><input id="s-diver" class="fin" type="text" value="{{diver}}" onChange="{{setDiver}}" placeholder="Your name" autocomplete="name"></div>
+<a href="CertsHifi.dc.html" class="row"><span class="k"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 15m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M13 17.5v4.5l2 -1.5l2 1.5v-4.5 M10 19h-5a2 2 0 0 1 -2 -2v-10c0 -1.1 .9 -2 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -1 1.73 M6 9l12 0 M6 12l3 0 M6 15l2 0"></path></svg>Certifications</span><span class="v">3</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></a>
+</div>
+</section>
+
+<section aria-labelledby="s-log">
+<h2 id="s-log" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18 M13 8l2 0 M13 12l2 0"></path></svg>Your log</h2>
+<div class="card fl">
+<div class="row"><span class="k"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l14 0 M5 15l14 0 M11 4l-4 16 M17 4l-4 16"></path></svg>Dives</span><span class="v">72</span></div>
+<div class="row"><span class="k"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8l0 4l2 2 M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path></svg>Last backup</span><span class="v">{{lastSnap}}</span></div>
+<div class="row"><span class="k"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8l0 4l2 2 M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path></svg>Last UDDF export</span><span class="v" style="color: {{exportColor}}">{{lastExport}}</span></div>
+<a href="RecentlyDeletedHifi.dc.html" class="row"><span class="k"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg>Recently deleted</span><span class="v">3</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></a>
+</div>
+</section>
+
+<section aria-labelledby="s-dl">
+<h2 id="s-dl" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2 M7 11l5 5l5 -5 M12 4l0 12"></path></svg>Download</h2>
+<div class="card fl">
+<sc-for list="{{downloads}}" as="d" hint-placeholder-count="2">
+<button type="button" class="row" disabled="{{offline}}" style="min-height: 60px; cursor: {{dlCursor}}">
+<span aria-hidden="true" class="ico" style="color: {{dlIco}}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{d.d1}}"></path><path d="{{d.d2}}"></path><path d="{{d.d3}}"></path><path d="{{d.d4}}"></path><path d="{{d.d5}}"></path><path d="{{d.d6}}"></path></svg></span>
+<span class="k"><span style="color: {{dlText}}">{{d.title}}</span><span class="s">{{d.sub}}</span></span>
+<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path><path d="M7 11l5 5l5 -5"></path><path d="M12 4l0 12"></path></svg>
+</button>
+</sc-for>
+</div>
+<sc-if value="{{offline}}" hint-placeholder-val="{{false}}"><p style="margin: 8px 4px 0; font-size: 13px; color: var(--muted-foreground)">Downloads need a connection to the server.</p></sc-if>
+</section>
+
+<section aria-labelledby="s-ent">
+<h2 id="s-ent" class="sec">Sites, people and trips</h2>
+<div class="card fl">
+<sc-for list="{{entities}}" as="e" hint-placeholder-count="4">
+<a href="{{e.href}}" class="row"><span class="k"><svg class="xi {{e.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{e.ic}}"></path></svg>{{e.label}}</span><span class="v">{{e.n}}</span><svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></a>
+</sc-for>
+</div>
+<p style="margin: 8px 4px 0; font-size: 13px; color: var(--muted-foreground)">{{entNote}}</p>
+</section>
+
+<section aria-labelledby="s-dive">
+<h2 id="s-dive" class="sec">Diving</h2>
+<div class="card fl">
+<div class="frow"><label for="s-po2" style="font-size: 15px; color: var(--foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12v.01 M19.071 4.929c-1.562 -1.562 -6 .337 -9.9 4.243c-3.905 3.905 -5.804 8.337 -4.242 9.9c1.562 1.561 6 -.338 9.9 -4.244c3.905 -3.905 5.804 -8.337 4.242 -9.9 M4.929 4.929c-1.562 1.562 .337 6 4.243 9.9c3.905 3.905 8.337 5.804 9.9 4.242c1.561 -1.562 -.338 -6 -4.244 -9.9c-3.905 -3.905 -8.337 -5.804 -9.9 -4.242"></path></svg>Maximum PO₂</label><input id="s-po2" class="fin" type="text" inputmode="decimal" value="{{po2}}" onChange="{{setPo2}}" placeholder="1.4"><span class="unit">bar</span></div>
+<sc-for list="{{defs}}" as="d" hint-placeholder-count="6"><div class="frow"><span class="lbl" style="font-size: 15px; color: var(--foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{d.ic}}"></path></svg>{{d.label}}</span><sc-if value="{{d.isIn}}" hint-placeholder-val="{{true}}"><input class="fin" type="text" inputmode="decimal" value="{{d.val}}" onChange="{{d.change}}" placeholder="None" aria-label="Default {{d.label}}"><sc-if value="{{d.showUnit}}" hint-placeholder-val="{{true}}"><span class="unit">{{d.unit}}</span></sc-if></sc-if><sc-if value="{{d.isPick}}" hint-placeholder-val="{{false}}"><span class="pick" style="position: relative; color: {{d.col}}; font-weight: {{d.fw}}"><span aria-hidden="true">{{d.text}}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l4 -4l4 4 M16 15l-4 4l-4 -4"></path></svg><select value="{{d.val}}" onChange="{{d.change}}" aria-label="Default {{d.label}}" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; font-size: 16px; cursor: pointer; appearance: none; -webkit-appearance: none"><sc-for list="{{d.opts}}" as="o" hint-placeholder-count="4"><option value="{{o.v}}">{{o.label}}</option></sc-for></select></span></sc-if></div></sc-for>
+</div>
+<p style="margin: 8px 4px 0; font-size: 13px; line-height: 1.5; color: var(--muted-foreground)">Everything under Maximum PO₂ fills in on every new dive. Empty a field or choose No default to leave it blank.</p>
+</section>
+
+<section aria-labelledby="s-phone">
+<h2 id="s-phone" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-14z M11 4h2 M12 17v.01"></path></svg>This phone</h2>
+<div class="card fl">
+<div class="fblock" style="gap: 10px; padding: 14px 16px">
+<span id="s-theme" style="font-size: 15px"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25 M8.5 10.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M12.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M16.5 10.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg>Appearance</span>
+<div class="seg" role="group" aria-labelledby="s-theme" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+<sc-for list="{{themes}}" as="o" hint-placeholder-count="3"><button type="button" aria-pressed="{{o.on}}" onClick="{{o.pick}}">{{o.label}}</button></sc-for>
+</div>
+</div>
+<button type="button" class="row" onClick="{{openStorage}}" aria-label="{{storage.aria}}" style="min-height: 60px; cursor: pointer">
+<span class="k"><span><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 21h10a2 2 0 0 0 2 -2v-14a2 2 0 0 0 -2 -2h-6.172a2 2 0 0 0 -1.414 .586l-3.828 3.828a2 2 0 0 0 -.586 1.414v10.172a2 2 0 0 0 2 2z M13 6v2 M16 6v2 M10 7v1"></path></svg>Offline storage</span><span class="s" style="color: {{storage.subCol}}">{{storage.sub}}</span></span>
+<sc-if value="{{storage.ok}}" hint-placeholder-val="{{true}}"><span class="v" style="gap: 5px; color: var(--muted-foreground)"><span style="display: inline-flex; color: var(--accent)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06 M15 19l2 2l4 -4"></path></svg></span>Protected</span></sc-if>
+<sc-if value="{{storage.bad}}" hint-placeholder-val="{{false}}"><span style="flex: none; display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 17px; background: var(--accent-soft); color: var(--accent); font-size: 14px; font-weight: 500">Keep them safe</span></sc-if>
+<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg>
+</button>
+</div>
+</section>
+
+<section aria-labelledby="s-about">
+<h2 id="s-about" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 9h.01 M11 12h1v4h1"></path></svg>About</h2>
+<div class="card fl">
+<div class="row"><span class="k"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5m0 2a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2z M7 7l0 10 M4 8l0 8"></path></svg>Version</span><span class="v">1.0.0</span></div>
+<div class="row"><span class="k"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z M3 12m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z M7 8l0 .01 M7 16l0 .01"></path></svg>Server</span><span class="v">shylog</span></div>
+</div>
+</section>
+
+</main>
+
+<nav aria-label="Main" style="position: sticky; bottom: 0; margin-top: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 8px 16px; border-top: 1px solid var(--hairline); background: var(--nav); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px)">
+<a href="LogHifi2.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18"></path><path d="M13 8l2 0"></path><path d="M13 12l2 0"></path></svg>Log</a>
+<a href="StatsHifi.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M4 20h14"></path></svg>Stats</a>
+<a href="ImportHifi.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path><path d="M7 9l5 -5l5 5"></path><path d="M12 4l0 12"></path></svg>Import</a>
+<a href="SettingsHifi.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 600; color: var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 6l8 0 M16 6l4 0 M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 12l2 0 M10 12l10 0 M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 18l11 0 M19 18l1 0"></path></svg>Settings</a>
+</nav>
+
+<sc-if value="{{storageOpen}}" hint-placeholder-val="{{false}}">
+<div aria-hidden="true" onClick="{{closeStorage}}" style="position: absolute; inset: 0; background: {{scrim}}"></div>
+<section role="dialog" aria-modal="true" aria-labelledby="st-h" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 16px; padding: 10px 20px 28px; border-radius: 16px 16px 0 0; background: var(--background); box-shadow: 0 0 0 1px var(--edge)">
+<span aria-hidden="true" style="align-self: center; width: 36px; height: 5px; border-radius: 3px; background: var(--faint); opacity: 0.5"></span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 id="st-h" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.015em">Offline storage</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted-foreground)">Dives you log without signal are saved on this phone until they sync. Browsers can clear a website’s saved data when the phone runs low on space. Protected storage asks the browser to keep Shylog’s data.</p>
+</div>
+<div class="card" style="display: flex; flex-direction: column">
+<div style="display: flex; gap: 12px; padding: 12px 16px"><span style="flex: none; width: 74px; font-size: 13px; font-weight: 600">iPhone</span><span style="font-size: 14px; line-height: 1.45; color: var(--muted-foreground)">Open Shylog from your Home Screen. If it isn’t there, use Share › Add to Home Screen in Safari.</span></div>
+<div style="display: flex; gap: 12px; padding: 12px 16px; border-top: 1px solid var(--hairline)"><span style="flex: none; width: 74px; font-size: 13px; font-weight: 600">Android</span><span style="font-size: 14px; line-height: 1.45; color: var(--muted-foreground)">Tap Keep them safe and allow it when the browser asks.</span></div>
+</div>
+<sc-if value="{{storage.ok}}" hint-placeholder-val="{{true}}"><p style="margin: -4px 4px 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted-foreground)"><span style="display: inline-flex; color: var(--accent)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06 M15 19l2 2l4 -4"></path></svg></span>Protected on this phone.</p></sc-if>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-if value="{{storage.bad}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{closeStorage}}" style="height: 48px; border: 0; border-radius: 14px; background: var(--accent); color: var(--accent-foreground); font-size: 16px; font-weight: 600; cursor: pointer">Keep them safe</button></sc-if>
+<button type="button" onClick="{{closeStorage}}" style="height: 48px; border: 0; border-radius: 14px; background: none; color: var(--accent); font-size: 16px; font-weight: 600; cursor: pointer">{{storage.closeLabel}}</button>
+</div>
+</section>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Off&quot;, &quot;Essential&quot;, &quot;All&quot;], &quot;default&quot;: &quot;Essential&quot;}, &quot;sync&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Synced&quot;, &quot;Syncing&quot;, &quot;Dives waiting (offline)&quot;, &quot;Offline&quot;, &quot;Server unreachable&quot;], &quot;default&quot;: &quot;Synced&quot;}, &quot;alert&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;None&quot;, &quot;Export failed&quot;, &quot;Integrity check failed&quot;], &quot;default&quot;: &quot;None&quot;}, &quot;storage&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Protected&quot;, &quot;Not protected&quot;], &quot;default&quot;: &quot;Protected&quot;}, &quot;storageSheet&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false}, &quot;font&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Geist&quot;, &quot;Inter&quot;, &quot;System (SF)&quot;, &quot;Windows (Segoe UI)&quot;], &quot;default&quot;: &quot;Geist&quot;}, &quot;accent&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Teal&quot;, &quot;Sky 700&quot;, &quot;Cyan 700&quot;, &quot;Emerald 700&quot;], &quot;default&quot;: &quot;Cyan 700&quot;}, &quot;dark&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false}, &quot;$preview&quot;: {&quot;width&quot;: 390, &quot;height&quot;: 1940}}">
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = {};
+}
+renderVals() {
+var self = this;
+var s = this.state || {};
+var p = this.props || {};
+var syncState = p.sync ?? 'Synced';
+var I = {
+check: ['M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878', 'M9.5 13.5l2 2l3.5 -3.5', ''],
+sync: ['M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4', 'M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4', ''],
+upload: ['M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-1', 'M9 15l3 -3l3 3', 'M12 12l0 9'],
+off: ['M9.58 5.548c.24 -.11 .492 -.207 .752 -.286c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 .957 -.383 1.824 -1.003 2.454m-2.997 1.033h-11.343c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.13 -.582 .37 -1.128 .7 -1.62', 'M3 3l18 18', ''],
+server: ['M12 12h-6a3 3 0 0 1 -3 -3v-2c0 -1.083 .574 -2.033 1.435 -2.56m3.565 -.44h10a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-2', 'M16 12h2a3 3 0 0 1 3 3v2m-1.448 2.568a2.986 2.986 0 0 1 -1.552 .432h-12a3 3 0 0 1 -3 -3v-2a3 3 0 0 1 3 -3h6', 'M3 3l18 18'],
+uddf: ['M14 3v4a1 1 0 0 0 1 1h4', 'M5 12v-7a2 2 0 0 1 2 -2h7l5 5v4', 'M4 15l4 6', 'M4 21l4 -6', 'M19 15v6h3', 'M11 21v-6l2.5 3l2.5 -3v6'],
+db: ['M12 6m-8 0a8 3 0 1 0 16 0a8 3 0 1 0 -16 0', 'M4 6v6a8 3 0 0 0 16 0v-6', 'M4 12v6a8 3 0 0 0 16 0v-6']
+};
+I.check = ["M11 18.004h-4.343c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.388 0 2.585 .82 3.138 2.007 M15 19l2 2l4 -4", '', '']; I.sync = ["M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7h-1 M9 15l3 -3l3 3 M12 12l0 9", '', '']; I.upload = ["M9.58 5.548c.24 -.11 .492 -.207 .752 -.286c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 .957 -.383 1.824 -1.003 2.454m-2.997 1.033h-11.343c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.13 -.582 .37 -1.128 .7 -1.62 M3 3l18 18", '', '']; I.off = ["M12 18l.01 0 M9.172 15.172a4 4 0 0 1 5.656 0 M6.343 12.343a7.963 7.963 0 0 1 3.864 -2.14m4.163 .155a7.965 7.965 0 0 1 3.287 2 M3.515 9.515a12 12 0 0 1 3.544 -2.455m3.101 -.92a12 12 0 0 1 10.325 3.374 M3 3l18 18", '', '']; I.server = ["M12 12h-6a3 3 0 0 1 -3 -3v-2c0 -1.083 .574 -2.033 1.435 -2.56m3.565 -.44h10a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-2 M16 12h2a3 3 0 0 1 3 3v2m-1.448 2.568a2.986 2.986 0 0 1 -1.552 .432h-12a3 3 0 0 1 -3 -3v-2a3 3 0 0 1 3 -3h6 M7 8v.01 M7 16v.01 M3 3l18 18", '', '']; I.db = ["M12 6m-8 0a8 3 0 1 0 16 0a8 3 0 1 0 -16 0 M4 6v6a8 3 0 0 0 16 0v-6 M4 12v6a8 3 0 0 0 16 0v-6", '', ''];
+var S = {
+'Synced': { icon: 'check', title: 'All synced', sub: 'Last sync 2 min ago', tone: 'ok' },
+'Syncing': { icon: 'sync', title: 'Syncing 1 dive', sub: 'Uploading Long Beach, Sun 11 Oct', tone: 'accent' },
+'Dives waiting (offline)': { icon: 'upload', title: '2 dives waiting to upload', sub: 'Oldest logged 2 days ago · they upload when you’re back online', tone: 'accent', drafts: true, offline: true },
+'Offline': { icon: 'off', title: 'Offline', sub: 'Last sync 3 h ago · new dives save on this phone', tone: 'muted', offline: true },
+'Server unreachable': { icon: 'server', title: 'Can’t reach the server', sub: 'Is Tailscale on? Last sync 3 h ago', tone: 'muted', retry: true, offline: true }
+}[syncState] || {};
+var ic = I[S.icon] || I.check;
+var tone = { ok: ['var(--accent-soft)', 'var(--accent)'], accent: ['var(--accent-soft)', 'var(--accent)'], muted: ['var(--muted)', 'var(--muted-foreground)'] }[S.tone] || ['var(--muted)', 'var(--muted-foreground)'];
+var offline = !!S.offline;
+var alertKind = p.alert ?? 'None';
+var A = {
+'Export failed': { title: 'Last night’s export failed', body: 'Your dives are safe in the database and last night’s backup. The export runs again tonight, or you can run it now.', action: 'Export now', warn: true },
+'Integrity check failed': { title: 'Saving is paused', body: 'The daily database check found a problem, so changes are paused to protect your log. Restore from a backup using the guide in the repo.', danger: true }
+}[alertKind];
+var po2 = s.po2 || '1.4';
+var theme = s.theme || 'System';
+var protectedStorage = (p.storage ?? 'Protected') === 'Protected';
+return {
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || ''),
+sync: { title: S.title, sub: S.sub, d1: ic[0], d2: ic[1], d3: ic[2], bg: tone[0], fg: tone[1], hasDrafts: !!S.drafts, canRetry: !!S.retry },
+offline: offline,
+alert: A ? { show: true, title: A.title, body: A.body, hasAction: !!A.action, action: A.action || '', fg: A.danger ? 'var(--danger)' : 'var(--warn)', ring: A.danger ? 'color-mix(in oklab, var(--danger) 35%, transparent)' : 'color-mix(in oklab, var(--warn) 35%, transparent)', bg: A.danger ? 'color-mix(in oklab, var(--danger) 6%, var(--card))' : 'color-mix(in oklab, var(--warn) 6%, var(--card))' } : { show: false },
+lastSnap: 'Today 02:00',
+lastExport: alertKind === 'Export failed' ? 'Failed today' : 'Today 02:00',
+exportColor: alertKind === 'Export failed' ? 'var(--warn)' : 'var(--muted-foreground)',
+downloads: [
+{ title: 'UDDF export', sub: 'Your whole log, fresh. Opens in Subsurface', d1: I.uddf[0], d2: I.uddf[1], d3: I.uddf[2], d4: I.uddf[3], d5: I.uddf[4], d6: I.uddf[5] },
+{ title: 'Database snapshot', sub: 'The SQLite file, as of now', d1: I.db[0], d2: I.db[1], d3: I.db[2], d4: '', d5: '', d6: '' }
+],
+dlCursor: offline ? 'default' : 'pointer',
+dlIco: offline ? 'var(--faint)' : 'var(--muted-foreground)',
+dlText: offline ? 'var(--faint)' : 'var(--foreground)',
+entities: [['Sites', 14, "M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"], ['People', 9, "M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z M10 16h6 M13 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 8h3 M4 12h3 M4 16h3"], ['Dive centres', 5, "M3 21l18 0 M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4 M5 21l0 -10.15 M19 21l0 -10.15 M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"], ['Trips', 4, "M6 6m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z M9 6v-1a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v1 M6 10h12 M6 16h12 M9 20v1 M15 20v1"]].map(function (r) { return { label: r[0], n: r[1], ic: r[2], icc: '', href: 'EntitiesHifi.dc.html' }; }),
+entNote: offline ? 'Renaming and merging need a connection.' : 'Rename or merge duplicates. Every dive that uses them updates too.',
+po2: po2,
+defs: (function () {
+var dv = s.defs || {};
+var DEF = [['cyl', 'Cylinder', 'pick', 'Aluminium · 11.1 L', '', "M8 11a4 4 0 1 1 8 0v5h-8z M8 16v3a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-3 M9 4h6 M12 7v-3 M8 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"], ['pst', 'Start pressure', 'in', '200', 'bar', "M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M13.41 10.59l2.59 -2.59 M7 12a5 5 0 0 1 5 -5"], ['gas', 'Gas', 'pick', 'Nitrox 32%', '', "M3 10.5a4.5 5.5 0 1 0 9 0a4.5 5.5 0 1 0 -9 0 M15 15a2 2 0 1 1 4 0c0 1 -.7 1.6 -1.5 2.3l-2.5 2.7h4"], ['wt', 'Weight', 'in', '6', 'kg', "M12 6m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M6.835 9h10.33a1 1 0 0 1 .984 .821l1.637 9a1 1 0 0 1 -.984 1.179h-13.604a1 1 0 0 1 -.984 -1.179l1.637 -9a1 1 0 0 1 .984 -.821z"], ['type', 'Dive type', 'pick', 'Recreation', '', "M4 4h6v6h-6z M14 4h6v6h-6z M4 14h6v6h-6z M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"], ['vis', 'Visibility as', 'pick', 'Metres', '', "M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"]];
+return DEF.map(function (d) {
+var v = dv[d[0]] !== undefined ? dv[d[0]] : d[3];
+var set = function (x) { var n = Object.assign({}, dv); n[d[0]] = x; self.setState({ defs: n }); };
+var OP = { cyl: ['Aluminium · 11.1 L', 'Steel · 12 L', 'Steel · 15 L'], gas: ['Air', 'Nitrox 32%', 'Nitrox 36%'], type: ['Recreation', 'Training', 'Technical', 'Work'], vis: ['Metres', 'Low, average, high'] }[d[0]] || [];
+return { opts: [''].concat(OP).map(function (x) { return { v: x, label: x || 'No default' }; }), label: d[1], ic: d[5], isIn: d[2] === 'in', isPick: d[2] === 'pick', val: v, unit: d[4], showUnit: !!v && !!d[4], has: !!v, empty: !v, text: v || 'None', col: v ? 'var(--foreground)' : 'var(--faint)', fw: v ? '500' : '400',
+change: function (e) { set(e.target.value); } };
+});
+})(),
+diver: s.diver != null ? s.diver : 'Your name',
+setDiver: function (e) { self.setState({ diver: e.target.value }); },
+setPo2: function (e) { self.setState({ po2: e.target.value }); },
+po2s: ['1.2', '1.3', '1.4', '1.5', '1.6'].map(function (v) { return { label: v, on: v === po2 ? 'true' : 'false', pick: function () { self.setState({ po2: v }); } }; }),
+themes: ['System', 'Light', 'Dark'].map(function (v) { return { label: v, on: v === theme ? 'true' : 'false', pick: function () { self.setState({ theme: v }); } }; }),
+storage: (function () { var w = S.drafts ? 2 : 0; var ok = protectedStorage;
+return { ok: ok, bad: !ok, sub: ok ? (w ? w + ' dives only on this phone, safe until they sync' : 'Dives saved on this phone won’t be cleared') : ('Your browser may clear dives saved on this phone' + (w ? ', including ' + w + ' not synced yet' : '')),
+subCol: ok ? 'var(--muted-foreground)' : 'var(--warn)', closeLabel: ok ? 'Done' : 'Not now', aria: 'Offline storage, ' + (ok ? 'protected' : 'not protected') + '. More about this' }; })(),
+storageOpen: (s.stOpen !== undefined ? s.stOpen : !!p.storageSheet),
+openStorage: function () { self.setState({ stOpen: true }); },
+closeStorage: function () { self.setState({ stOpen: false }); },
+scrim: p.dark ? 'rgb(0 0 0 / 0.55)' : 'rgb(0 0 0 / 0.32)',
+};
+}
+}
+</script>
+</body>
+</html>

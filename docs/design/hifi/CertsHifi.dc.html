@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Certifications (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.sl{--warn:oklch(0.553 0.195 38.402);--danger:oklch(0.577 0.245 27.325)}
+.sl.dark{--warn:oklch(0.75 0.183 55.934);--danger:oklch(0.704 0.191 22.216)}
+.hbtn{display:inline-flex;align-items:center;height:44px;padding:0 8px;border:0;background:none;text-decoration:none;font-size:16px;font-weight:500;color:var(--accent);cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 20px;border:0;border-radius:14px;font-size:16px;font-weight:600;text-decoration:none;cursor:pointer}
+.btn-p{background:var(--accent);color:var(--accent-foreground)}
+.nudge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:50%;background:var(--muted);color:var(--foreground);cursor:pointer}
+.tlink{flex:none;border:0;padding:4px 0;background:none;font-size:13px;font-weight:500;color:var(--accent);cursor:pointer}
+.pair{display:flex;flex-direction:column;width:100%;border:0;padding:0;text-align:left;color:inherit;cursor:pointer}
+.pr{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px}
+.d4{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-top:1px solid var(--hairline);font-size:13px;color:var(--muted-foreground)}
+.scr > *{flex-shrink:0}
+.rmain{display:flex;align-items:center;gap:12px;width:100%;padding:12px 12px 12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit}
+button.rmain{cursor:pointer}
+a.rmain{text-decoration:none;color:inherit}
+.rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rn{font-size:16px;font-weight:500;letter-spacing:-0.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm{font-size:13px;color:var(--muted-foreground)}
+.rnote{display:flex;align-items:center;gap:10px;margin-top:-6px;padding:0 12px 12px 16px;font-size:13px}
+.hl{border-top:1px solid var(--hairline)}
+.seg.sm{border-radius:9px}.seg.sm button{height:28px;padding:0 12px;border-radius:7px;font-size:13px}
+.xrow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:10px 12px 10px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font-size:15px;cursor:pointer}
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.opt.hl{border-top:1px solid var(--hairline)}
+.rad{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--faint)}
+.opt[aria-checked="true"] .rad{box-shadow:inset 0 0 0 2px var(--accent)}
+.rad > span{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+a.rmain{text-decoration:none;color:inherit}
+.srch{box-sizing:border-box;width:100%;height:44px;padding:0 14px 0 38px;border:0;border-radius:12px;background:var(--muted);color:var(--foreground);font-size:16px;outline:none}
+.srch::placeholder{color:var(--muted-foreground)}
+.sheet{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:16px;padding:10px 20px 28px;border-radius:16px 16px 0 0;background:var(--background);box-shadow:0 0 0 1px var(--edge)}
+.grab{align-self:center;width:36px;height:5px;border-radius:3px;background:var(--faint);opacity:.5}
+
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+
+.im{position:relative;display:block;overflow:hidden;flex:none}
+.im > span{position:absolute;display:block}
+.thumb{flex:none;display:flex;align-items:center;justify-content:center;width:76px;height:56px;border-radius:9px;overflow:hidden;background:var(--muted);box-shadow:0 0 0 1px var(--edge)}
+.dk{--dk-fg:oklch(0.97 0 0);--dk-mut:oklch(0.72 0.01 240)}
+.dbtn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:22px;background:rgb(255 255 255 / 0.1);color:var(--dk-fg);cursor:pointer}
+.dot{width:7px;height:7px;padding:0;border:0;border-radius:4px;cursor:pointer}
+.picked{position:relative;display:block;flex:none;height:132px;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs)}
+.rmv{position:absolute;top:6px;right:6px;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border:0;border-radius:13px;background:rgb(0 0 0 / 0.55);color:#fff;cursor:pointer}
+
+</style>
+</helmet>
+<div class="{{mode}}" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+<sc-if value="{{showList}}" hint-placeholder-val="{{true}}">
+<header style="flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px">
+<a href="SettingsHifi.dc.html" class="hbtn" style="justify-self: start; gap: 2px; padding-left: 2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"></path></svg>Settings</a>
+<h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em">Certifications</h1>
+<button type="button" class="hbtn" onClick="{{openAdd}}" disabled="{{offline}}" aria-label="Add a card" style="justify-self: end; width: 44px; justify-content: center; padding: 0; color: {{addFg}}; cursor: {{addCursor}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14 M5 12l14 0"></path></svg></button>
+</header>
+<main class="scr" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 8px 16px 40px">
+<div class="card">
+<sc-for list="{{certs}}" as="c" hint-placeholder-count="3">
+<button type="button" class="rmain {{c.cls}}" onClick="{{c.open}}" aria-label="{{c.aria}}" style="padding-top: 10px; padding-bottom: 10px">
+<span class="rt"><span class="rn"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 15m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M13 17.5v4.5l2 -1.5l2 1.5v-4.5 M10 19h-5a2 2 0 0 1 -2 -2v-10c0 -1.1 .9 -2 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -1 1.73 M6 9l12 0 M6 12l3 0 M6 15l2 0"></path></svg>{{c.name}}</span><span class="rm tn">{{c.meta}}</span></span>
+<span class="thumb"><span class="im" style="{{c.fit}}; aspect-ratio: {{c.p0.ar}}; background: {{c.p0.bg}}"><sc-for list="{{c.p0.parts}}" as="q" hint-placeholder-count="6"><span style="left: {{q.x}}; top: {{q.y}}; width: {{q.w}}; height: {{q.h}}; background: {{q.c}}; border-radius: {{q.r}}"></span></sc-for></span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
+</button>
+</sc-for>
+</div>
+<p style="display: flex; align-items: flex-start; gap: 8px; margin: 0 4px; font-size: 13px; line-height: 1.5; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0; margin-top: 0.1em"><path d="M11.5 21h-3.5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v9.5 M11 4h2 M12 17v.01 M15 19l2 2l4 -4"></path></svg><span>{{note}}</span></p>
+</main>
+</sc-if>
+
+<sc-if value="{{showEmpty}}" hint-placeholder-val="{{false}}">
+<header style="flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px">
+<a href="SettingsHifi.dc.html" class="hbtn" style="justify-self: start; gap: 2px; padding-left: 2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"></path></svg>Settings</a>
+<h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em">Certifications</h1><span></span>
+</header>
+<div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 28px 120px; text-align: center">
+<span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 15m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M13 17.5v4.5l2 -1.5l2 1.5v-4.5 M10 19h-5a2 2 0 0 1 -2 -2v-10c0 -1.1 .9 -2 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -1 1.73 M6 9l12 0 M6 12l3 0 M6 15l2 0"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 18px; font-weight: 600; letter-spacing: -0.015em">No cards yet</span>
+<span style="font-size: 14px; line-height: 1.5; color: var(--muted-foreground)">Add screenshots of your eCards from your agency’s app. They open even without signal, for when a dive centre asks.</span></span>
+<button type="button" class="btn btn-p" onClick="{{openAdd}}" style="width: 100%; margin-top: 8px"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M15 8h.01 M12.5 21h-6.5a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v6.5 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l4 4 M14 14l1 -1c.67 -.644 1.45 -.824 2.182 -.54 M16 19h6 M19 16v6"></path></svg>Choose screenshots</button>
+</div>
+</sc-if>
+
+<sc-if value="{{showViewer}}" hint-placeholder-val="{{false}}">
+<div class="dk" style="position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; background: oklch(0.12 0.005 240); color: var(--dk-fg)">
+<div style="flex: none; display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; padding: 16px 16px 0">
+<button type="button" class="dbtn" onClick="{{closeViewer}}" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button>
+<h2 style="margin: 0; text-align: center; font-size: 16px; font-weight: 600; letter-spacing: -0.015em">{{v.name}}</h2>
+<button type="button" class="dbtn" aria-label="Edit card" onClick="{{openEdit}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg></button>
+</div>
+<div style="position: relative; flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 16px">
+<div role="img" aria-label="{{v.aria}}" style="display: flex; align-items: center; justify-content: center; width: 358px; height: 600px"><span class="im" style="{{v.fit}}; border-radius: 10px; box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.8); aspect-ratio: {{v.p.ar}}; background: {{v.p.bg}}"><sc-for list="{{v.p.parts}}" as="q" hint-placeholder-count="6"><span style="left: {{q.x}}; top: {{q.y}}; width: {{q.w}}; height: {{q.h}}; background: {{q.c}}; border-radius: {{q.r}}"></span></sc-for></span></div>
+<sc-if value="{{v.multi}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{v.prev}}" aria-label="Previous screenshot" style="position: absolute; left: 0; top: 0; bottom: 0; width: 30%; border: 0; background: none; cursor: pointer"></button>
+<button type="button" onClick="{{v.next}}" aria-label="Next screenshot" style="position: absolute; right: 0; top: 0; bottom: 0; width: 30%; border: 0; background: none; cursor: pointer"></button>
+</sc-if>
+</div>
+<sc-if value="{{v.multi}}" hint-placeholder-val="{{true}}"><div role="tablist" aria-label="Screenshots" style="flex: none; display: flex; justify-content: center; gap: 8px; padding-bottom: 14px"><sc-for list="{{v.dots}}" as="d" hint-placeholder-count="2"><button type="button" class="dot" role="tab" aria-selected="{{d.on}}" aria-label="{{d.aria}}" onClick="{{d.go}}" style="background: {{d.bg}}"></button></sc-for></div></sc-if>
+<p class="tn" style="flex: none; margin: 0; padding: 0 24px 34px; text-align: center; font-size: 13px; color: var(--dk-mut)">{{v.hint}}</p>
+</div>
+</sc-if>
+
+<sc-if value="{{showAdd}}" hint-placeholder-val="{{false}}">
+<div style="position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; background: var(--background)">
+<div style="flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px">
+<button type="button" class="hbtn" onClick="{{cancelAdd}}" style="justify-self: start">Cancel</button>
+<h2 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em">{{addTitle}}</h2>
+<button type="button" class="hbtn" onClick="{{cancelAdd}}" style="justify-self: end; font-weight: 600">Save</button>
+</div>
+<div class="scr" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; padding: 8px 16px 32px">
+<section aria-labelledby="ad-shots">
+<h3 id="ad-shots" class="sec">Screenshots</h3>
+<div style="display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 6px">
+<sc-for list="{{picked}}" as="k" hint-placeholder-count="2">
+<span class="picked"><span class="im" style="height: 132px; aspect-ratio: {{k.ar}}; background: {{k.bg}}"><sc-for list="{{k.parts}}" as="q" hint-placeholder-count="6"><span style="left: {{q.x}}; top: {{q.y}}; width: {{q.w}}; height: {{q.h}}; background: {{q.c}}; border-radius: {{q.r}}"></span></sc-for></span><button type="button" class="rmv" onClick="{{k.remove}}" aria-label="{{k.aria}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button></span>
+</sc-for>
+<button type="button" onClick="{{addMore}}" style="flex: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 92px; height: 132px; border: 1px dashed var(--faint); border-radius: 10px; background: none; color: var(--accent); font-size: 13px; font-weight: 500; cursor: pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 8h.01 M12.5 21h-6.5a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v6.5 M3 16l5 -5c.928 -.893 2.072 -.893 3 0l4 4 M14 14l1 -1c.67 -.644 1.45 -.824 2.182 -.54 M16 19h6 M19 16v6"></path></svg>Add more</button>
+</div>
+</section>
+<sc-if value="{{showSeg}}" hint-placeholder-val="{{true}}">
+<div class="seg" role="group" aria-label="How to save these screenshots" style="grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: -8px">
+<button type="button" aria-pressed="{{oneOn}}" onClick="{{pickOne}}">{{oneLabel}}</button>
+<button type="button" aria-pressed="{{sepOn}}" onClick="{{pickSep}}">{{sepLabel}}</button>
+</div>
+</sc-if>
+<sc-if value="{{oneCard}}" hint-placeholder-val="{{true}}">
+<label style="display: flex; flex-direction: column; gap: 8px"><span class="sec" style="margin: 0">Name</span>
+<input type="text" placeholder="e.g. Rescue Diver" value="{{nameVal}}" style="box-sizing: border-box; width: 100%; height: 46px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--card); box-shadow: 0 0 0 1px var(--edge), var(--shadow-xs); font-size: 16px; outline: none"></label>
+</sc-if>
+<sc-if value="{{sepCards}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="ad-names"><h3 id="ad-names" class="sec">Names</h3>
+<div class="card">
+<sc-for list="{{picked}}" as="k" hint-placeholder-count="2"><div class="frow {{k.cls}}"><span class="thumb" style="width: 40px; height: 30px; border-radius: 6px"><span class="im" style="{{k.fitS}}; aspect-ratio: {{k.ar}}; background: {{k.bg}}"><sc-for list="{{k.parts}}" as="q" hint-placeholder-count="6"><span style="left: {{q.x}}; top: {{q.y}}; width: {{q.w}}; height: {{q.h}}; background: {{q.c}}; border-radius: {{q.r}}"></span></sc-for></span></span><input class="fin" style="text-align: left" placeholder="{{k.ph}}" aria-label="{{k.ph}}"></div></sc-for>
+</div></section>
+</sc-if>
+<p style="margin: -8px 4px 0; font-size: 13px; line-height: 1.5; color: var(--muted-foreground)">{{addNote}}</p>
+<sc-if value="{{editing}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{deleteCard}}" style="align-self: center; display: inline-flex; align-items: center; gap: 8px; height: 44px; margin-top: 8px; padding: 0 16px; border: 0; background: none; font-size: 15px; font-weight: 500; color: var(--danger); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg>Delete card</button></sc-if>
+</div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;List&quot;,&quot;Viewing a card&quot;,&quot;Adding a card&quot;,&quot;Editing a card&quot;,&quot;Empty&quot;],&quot;default&quot;:&quot;List&quot;},&quot;offline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+renderVals() {
+var self = this;
+var p = this.props || {};
+var s = this.state || {};
+var offline = !!p.offline;
+var scr = p.screen ?? 'List';
+var view = (s.scr === scr && s.view) || ({ 'List': 'list', 'Viewing a card': 'viewer', 'Adding a card': 'add', 'Editing a card': 'edit', 'Empty': 'empty' }[scr] || 'list');
+var W = 'rgb(255 255 255 / 0.55)', W2 = 'rgb(255 255 255 / 0.3)', G = 'oklch(0.86 0.005 240)', G2 = 'oklch(0.92 0.004 240)', K = 'oklch(0.25 0.01 240)';
+var R = function (x, y, w, h, c, r) { return { x: x + '%', y: y + '%', w: w + '%', h: h + '%', c: c, r: r || '3px' }; };
+var SHOTS = {
+ecard: { ar: 0.8, bg: 'oklch(0.97 0.003 240)', parts: [R(0, 0, 100, 52, 'linear-gradient(135deg, oklch(0.36 0.09 250), oklch(0.52 0.11 228))', '0'), R(7, 7, 13, 10.4, 'rgb(255 255 255 / 0.85)', '50%'), R(24, 9, 38, 3, W), R(24, 14, 24, 2.4, W2), R(7, 24, 26, 22, 'rgb(255 255 255 / 0.22)', '6px'), R(38, 27, 50, 3.4, W), R(38, 34, 36, 2.4, W2), R(38, 40, 44, 2.4, W2), R(34, 60, 32, 25.6, 'repeating-linear-gradient(90deg, ' + K + ' 0 5%, transparent 5% 9%), repeating-linear-gradient(0deg, ' + K + ' 0 4%, transparent 4% 8%)', '4px'), R(28, 90, 44, 2.4, G)] },
+details: { ar: 0.72, bg: 'oklch(0.98 0.002 240)', parts: [R(8, 6, 50, 4, 'oklch(0.36 0.09 250)'), R(8, 16, 84, 2.6, G), R(8, 22, 70, 2.6, G), R(8, 28, 78, 2.6, G), R(8, 40, 30, 2.4, G2), R(8, 45, 60, 3, G), R(8, 55, 30, 2.4, G2), R(8, 60, 48, 3, G), R(8, 70, 30, 2.4, G2), R(8, 75, 66, 3, G), R(8, 88, 84, 6, 'oklch(0.93 0.01 228)', '6px')] },
+landscape: { ar: 1.6, bg: 'linear-gradient(135deg, oklch(0.42 0.08 172), oklch(0.56 0.09 158))', parts: [R(5, 9, 10, 16, 'rgb(255 255 255 / 0.85)', '50%'), R(18, 12, 30, 4.5, W), R(18, 20, 18, 3.5, W2), R(5, 38, 20, 46, 'rgb(255 255 255 / 0.22)', '6px'), R(30, 42, 46, 5, W), R(30, 54, 34, 3.5, W2), R(30, 64, 40, 3.5, W2), R(0, 88, 100, 12, 'rgb(0 0 0 / 0.16)', '0')] },
+square: { ar: 1, bg: 'oklch(0.97 0.003 240)', parts: [R(0, 0, 100, 30, 'linear-gradient(135deg, oklch(0.3 0.012 240), oklch(0.44 0.02 236))', '0'), R(36, 18, 28, 28, 'oklch(0.85 0.01 240)', '50%'), R(25, 54, 50, 4, K), R(32, 62, 36, 3, G), R(12, 74, 76, 3, G2), R(12, 80, 60, 3, G2), R(12, 86, 70, 3, G2)] }
+};
+var certs = [
+{ name: 'Advanced Open Water', shots: ['ecard', 'details'] },
+{ name: 'Nitrox', shots: ['landscape'] },
+{ name: 'Open Water', shots: ['square'] }
+];
+var cover = function (ar, boxAr) { return ar > boxAr ? 'height: 100%' : 'width: 100%'; };
+var contain = function (ar, boxAr) { return ar > boxAr ? 'width: 100%' : 'height: 100%'; };
+var sel = s.sel != null ? s.sel : 0;
+var page = s.page || 0;
+var c = certs[sel];
+var shot = SHOTS[c.shots[Math.min(page, c.shots.length - 1)]];
+var setPage = function (i) { self.setState({ page: (i + c.shots.length) % c.shots.length }); };
+var removed = s.removed || [];
+var editing = view === 'edit';
+var pickedIds = (editing ? c.shots : ['ecard', 'details']).filter(function (x) { return removed.indexOf(x) < 0; });
+var mode = s.saveAs || 'one';
+var many = pickedIds.length > 1;
+return {
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || ''),
+offline: offline,
+showList: view !== 'empty',
+showEmpty: view === 'empty',
+showViewer: view === 'viewer',
+showAdd: view === 'add' || editing,
+editing: editing, addTitle: editing ? 'Edit card' : 'New card', nameVal: editing ? c.name : '', showSeg: many && !editing,
+openEdit: function () { self.setState({ scr: scr, view: 'edit', removed: [] }); },
+cancelAdd: function () { self.setState({ scr: scr, view: editing ? 'viewer' : 'list' }); },
+deleteCard: function () { self.setState({ scr: scr, view: 'list' }); },
+certs: certs.map(function (k, i) { var p0 = SHOTS[k.shots[0]]; return { name: k.name, meta: k.shots.length === 1 ? '1 screenshot' : k.shots.length + ' screenshots', cls: i ? 'hl' : '', p0: p0, fit: cover(p0.ar, 76 / 56), aria: k.name + ', ' + k.shots.length + (k.shots.length === 1 ? ' screenshot' : ' screenshots') + '. Open', open: function () { self.setState({ scr: scr, view: 'viewer', sel: i, page: 0 }); } }; }),
+note: offline ? 'You’re offline. Your cards are on this phone and still open; adding one needs a connection.' : 'Kept on this phone, so they open without signal.',
+addFg: offline ? 'var(--faint)' : 'var(--accent)', addCursor: offline ? 'default' : 'pointer',
+openAdd: function () { if (!offline) self.setState({ scr: scr, view: 'add', removed: [], saveAs: 'one' }); },
+closeAdd: function () { self.setState({ scr: scr, view: 'list' }); },
+closeViewer: function () { self.setState({ scr: scr, view: 'list' }); },
+v: { name: c.name, p: shot, fit: contain(shot.ar, 358 / 600), aria: c.name + ', screenshot ' + (page + 1) + ' of ' + c.shots.length, multi: c.shots.length > 1,
+prev: function () { setPage(page - 1); }, next: function () { setPage(page + 1); },
+dots: c.shots.map(function (x, i) { return { on: i === page ? 'true' : 'false', bg: i === page ? 'var(--dk-fg)' : 'rgb(255 255 255 / 0.3)', aria: 'Screenshot ' + (i + 1), go: function () { setPage(i); } }; }),
+hint: (c.shots.length > 1 ? 'Swipe for more · ' : '') + 'Pinch to zoom · screen stays on' },
+picked: pickedIds.map(function (x, i) { var P = SHOTS[x]; return { ar: P.ar, bg: P.bg, parts: P.parts, cls: i ? 'hl' : '', fitS: cover(P.ar, 40 / 30), ph: 'Name for screenshot ' + (i + 1), aria: 'Remove screenshot ' + (i + 1), remove: function () { self.setState({ removed: removed.concat([x]) }); } }; }),
+addMore: function () {},
+pickedMany: many,
+oneOn: mode === 'one' ? 'true' : 'false', sepOn: mode === 'sep' ? 'true' : 'false',
+oneLabel: 'One card, ' + pickedIds.length + ' pages', sepLabel: pickedIds.length + ' separate cards',
+pickOne: function () { self.setState({ saveAs: 'one' }); }, pickSep: function () { self.setState({ saveAs: 'sep' }); },
+oneCard: editing || !many || mode === 'one', sepCards: !editing && many && mode === 'sep',
+addNote: editing ? (many ? 'Swipe between these when you open the card. Drag to reorder; the first one shows first.' : 'Add more screenshots if the card has a second screen.') : !many ? 'Shown as you took it, so make sure the screenshot is cropped to the card.' : (mode === 'one' ? 'Swipe between them when you open the card. Put the main one first.' : 'Each screenshot becomes its own card.')
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Edit dive (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+--danger:oklch(0.577 0.245 27.325);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+--danger:oklch(0.704 0.191 22.216);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.cin{flex:1 1 120px;min-width:120px;height:34px;border:0;padding:0 2px;background:none;font-size:16px;outline:none}
+.cin::placeholder{color:var(--faint)}
+.sug{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:8px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;cursor:pointer}
+.sug + .sug{border-top:1px solid var(--hairline)}
+.sug .av{flex:none;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--muted);color:var(--muted-foreground);font-size:12px;font-weight:600}
+.sug .st{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.sug .sn{font-size:16px;font-weight:500;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sug .sp{font-size:13px;color:var(--muted-foreground)}
+.diff{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;background:var(--accent-soft)}
+.calc{display:flex;flex-direction:column-reverse;gap:1px;padding:12px 16px}
+.calc dt{font-size:12px;color:var(--muted-foreground)}
+.calc dd{margin:0;font-size:16px;font-weight:600;letter-spacing:-0.01em;font-variant-numeric:tabular-nums}
+.calc dd .u{margin-left:2px;font-size:12px;font-weight:500;color:var(--muted-foreground)}
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+.sl{--accent-strong:color-mix(in oklab, var(--accent) 72%, var(--foreground))}
+</style>
+</helmet>
+<div class="{{mode}}" style="width: 390px; min-height: 3160px; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+
+<header style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px; border-bottom: 1px solid var(--hairline); background: var(--nav); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px)">
+<a href="{{backHref}}" style="justify-self: start; display: inline-flex; align-items: center; height: 44px; padding: 0 8px; text-decoration: none; font-size: 16px; font-weight: 500; color: var(--accent)">Cancel</a>
+<h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em">{{title}}</h1>
+<a href="{{backHref}}" style="justify-self: end; display: inline-flex; align-items: center; height: 44px; padding: 0 8px; text-decoration: none; font-size: 16px; font-weight: 600; color: var(--accent)">Save</a>
+</header>
+
+<form style="display: flex; flex-direction: column; gap: 24px; padding: 20px 16px 40px" onSubmit="{{noSubmit}}">
+<sc-if value="{{isNew}}" hint-placeholder-val="{{false}}">
+<button type="button" class="card" style="display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 10px 14px 10px 16px; border: 0; text-align: left; color: inherit; cursor: pointer"><span aria-hidden="true" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"></path><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"></path></svg></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px; font-weight: 500; color: var(--accent)">Copy from last dive</span><span style="font-size: 13px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Dive 70 · Two Mile Reef · Sat 25 Jul</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg></button>
+</sc-if>
+
+<section aria-labelledby="basics-h">
+<h2 id="basics-h" class="sec">Basics</h2>
+<div class="card fl">
+<div class="frow"><label for="f-date"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z M16 3v4 M8 3v4 M4 11h16 M11 15h1 M12 15v3"></path></svg>Date</label><input id="f-date" class="fin" type="text" value="{{nv.date}}" placeholder="Required"></div>
+<div class="frow"><span class="lbl"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg>Site</span><a href="SitePickerHifi.dc.html" class="pick" style="text-decoration: none; color: {{nv.pc}}">{{nv.site}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></a></div><div class="frow"><span style="flex: none; display: inline-flex; align-items: center; gap: 6px"><label for="f-time" style="font-size: 14px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 7v5l3 3"></path></svg>Start time</label><sc-if value="{{timeUsed}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="From the D4i" style="flex: none; color: var(--accent-strong)"><path d="M6 9a3 3 0 0 1 3 -3h6a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-6a3 3 0 0 1 -3 -3v-6z M9 18v3h6v-3 M9 6v-3h6v3"></path></svg></sc-if></span>
+<sc-if value="{{timeOpen}}" hint-placeholder-val="{{true}}"><div class="tn" role="group" aria-label="The D4i recorded a different start time" style="margin-left: auto; display: flex; align-items: center; gap: 2px; font-size: 13px; color: var(--muted-foreground)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 3px; color: var(--accent-strong)"><path d="M6 9a3 3 0 0 1 3 -3h6a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-6a3 3 0 0 1 -3 -3v-6z M9 18v3h6v-3 M9 6v-3h6v3"></path></svg><span>09:14</span><button type="button" onClick="{{useTime}}" aria-label="Use D4i value" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-left: 4px; border: 0; background: none; color: var(--accent); cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"></path></svg></button><button type="button" onClick="{{keepTime}}" aria-label="Keep mine" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; background: none; color: var(--muted-foreground); cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg></button><span aria-hidden="true" style="width: 1px; height: 18px; margin-left: 4px; background: var(--hairline)"></span></div></sc-if>
+<sc-if value="{{timeUsed}}" hint-placeholder-val="{{false}}"><input id="f-time" class="fin" type="text" value="09:14"></sc-if>
+<sc-if value="{{timeMine}}" hint-placeholder-val="{{true}}"><input id="f-time" class="{{timeFin}}" type="text" value="{{nv.time}}" placeholder="Required"></sc-if>
+</div>
+<div class="frow"><span style="flex: none; display: inline-flex; align-items: center; gap: 6px"><label for="f-dur" style="font-size: 14px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>Duration</label><sc-if value="{{durUsed}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="From the D4i" style="flex: none; color: var(--accent-strong)"><path d="M6 9a3 3 0 0 1 3 -3h6a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-6a3 3 0 0 1 -3 -3v-6z M9 18v3h6v-3 M9 6v-3h6v3"></path></svg></sc-if></span>
+<sc-if value="{{durOpen}}" hint-placeholder-val="{{true}}"><div class="tn" role="group" aria-label="The D4i recorded a different duration" style="margin-left: auto; display: flex; align-items: center; gap: 2px; font-size: 13px; color: var(--muted-foreground)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 3px; color: var(--accent-strong)"><path d="M6 9a3 3 0 0 1 3 -3h6a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-6a3 3 0 0 1 -3 -3v-6z M9 18v3h6v-3 M9 6v-3h6v3"></path></svg><span>44 min</span><button type="button" onClick="{{useDur}}" aria-label="Use D4i value" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-left: 4px; border: 0; background: none; color: var(--accent); cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"></path></svg></button><button type="button" onClick="{{keepDur}}" aria-label="Keep mine" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; background: none; color: var(--muted-foreground); cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg></button><span aria-hidden="true" style="width: 1px; height: 18px; margin-left: 4px; background: var(--hairline)"></span></div></sc-if>
+<sc-if value="{{durUsed}}" hint-placeholder-val="{{false}}"><input id="f-dur" class="fin" type="text" inputmode="decimal" value="44"></sc-if>
+<sc-if value="{{durMine}}" hint-placeholder-val="{{true}}"><input id="f-dur" class="{{durFin}}" type="text" inputmode="decimal" value="{{nv.dur}}" placeholder="—"></sc-if>
+<span class="unit">min</span>
+</div>
+
+<div class="frow"><label for="f-max"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>Max depth</label><input id="f-max" class="fin" type="text" inputmode="decimal" value="{{nv.max}}" placeholder="—"><span class="unit">m</span></div>
+<div class="frow"><span style="flex: none; display: inline-flex; align-items: center; gap: 6px"><label for="f-avg" style="font-size: 14px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v10 M8 10l4 4l4 -4 M4 20h3 M10.5 20h3 M17 20h3"></path></svg>Average depth</label><sc-if value="{{fAvg.auto}}" hint-placeholder-val="{{true}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="From the D4i" style="flex: none; color: var(--accent-strong)"><path d="M6 9a3 3 0 0 1 3 -3h6a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-6a3 3 0 0 1 -3 -3v-6z M9 18v3h6v-3 M9 6v-3h6v3"></path></svg></sc-if><sc-if value="{{fAvg.over}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{fAvg.reset}}" aria-label="Reset to the D4i value" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin: -6px 0; border: 0; background: none; color: var(--accent); cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l-4 -4l4 -4"></path><path d="M5 10h11a4 4 0 1 1 0 8h-1"></path></svg></button></sc-if></span><input id="f-avg" class="fin" type="text" inputmode="decimal" value="{{fAvg.val}}" onChange="{{fAvg.change}}"><span class="unit">m</span></div>
+<div class="frow"><span style="flex: none; display: inline-flex; align-items: center; gap: 6px"><label for="f-si" style="font-size: 14px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.942 13.018a9 9 0 1 0 -7.909 7.922 M12 7v5l2 2 M17 17v5 M21 17v5"></path></svg>Surface interval</label><sc-if value="{{fSi.auto}}" hint-placeholder-val="{{true}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Calculated" style="flex: none; color: var(--accent-strong)"><path d="M4 3m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M8 7m0 1a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v1a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1z M8 14l0 .01 M12 14l0 .01 M16 14l0 .01 M8 17l0 .01 M12 17l0 .01 M16 17l0 .01"></path></svg></sc-if><sc-if value="{{fSi.over}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{fSi.reset}}" aria-label="Reset to the calculated value" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin: -6px 0; border: 0; background: none; color: var(--accent); cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l-4 -4l4 -4"></path><path d="M5 10h11a4 4 0 1 1 0 8h-1"></path></svg></button></sc-if></span><sc-if value="{{fSi.editing}}" hint-placeholder-val="{{false}}"><input id="f-si" class="fin" type="text" autoFocus="{{true}}" value="{{fSi.text}}" onChange="{{fSi.change}}" onBlur="{{fSi.done}}"></sc-if><sc-if value="{{fSi.showing}}" hint-placeholder-val="{{true}}"><button type="button" id="f-si" onClick="{{fSi.edit}}" aria-label="Surface interval {{fSi.text}}" style="flex: 1; min-width: 0; height: 46px; border: 0; padding: 0; background: none; text-align: right; font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; cursor: text; white-space: pre"><sc-for list="{{fSi.parts}}" as="pt" hint-placeholder-count="4"><span style="color: {{pt.color}}">{{pt.t}}</span></sc-for></button></sc-if></div>
+<div class="frow"><label for="f-wt"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0 M6.835 9h10.33a1 1 0 0 1 .984 .821l1.637 9a1 1 0 0 1 -.984 1.179h-13.604a1 1 0 0 1 -.984 -1.179l1.637 -9a1 1 0 0 1 .984 -.821z"></path></svg>Weight</label><input id="f-wt" class="fin" type="text" inputmode="decimal" value="{{nv.wt}}" placeholder="—"><span class="unit">kg</span></div>
+</div>
+</section>
+
+<section aria-labelledby="dive-h">
+<h2 id="dive-h" class="sec">Dive</h2>
+<div class="card fl">
+<div class="frow"><span class="lbl"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6h-6z M14 4h6v6h-6z M4 14h6v6h-6z M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path></svg>Type</span><button type="button" class="pick" style="color: {{nv.pc}}">{{nv.type}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+<div class="frow"><span class="lbl"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z M9 6v-1a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v1 M6 10h12 M6 16h12 M9 20v1 M15 20v1"></path></svg>Trip</span><button type="button" class="pick" style="color: {{nv.pc}}">{{nv.trip}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+<div class="fblock">
+<span class="lbl" id="tags-l"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3z"></path></svg>Tags</span>
+<div class="chips" role="group" aria-labelledby="tags-l">
+<sc-for list="{{tags}}" as="tg" hint-placeholder-count="12">
+<button type="button" class="chip" aria-pressed="{{tg.on}}" onClick="{{tg.toggle}}">{{tg.label}}</button>
+</sc-for>
+</div>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="gas-h">
+<h2 id="gas-h" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 11a4 4 0 1 1 8 0v5h-8z M8 16v3a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-3 M9 4h6 M12 7v-3 M8 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg>Cylinder and gas</h2>
+<div class="card fl">
+<div class="fblock" role="group" aria-labelledby="cyl-l">
+<span class="lbl" id="cyl-l"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 11a4 4 0 1 1 8 0v5h-8z M8 16v3a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-3 M9 4h6 M12 7v-3 M8 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg>Cylinder</span>
+<div style="display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: end">
+<div style="display: flex; flex-direction: column; gap: 4px; padding-right: 12px">
+<span id="mat-l" style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 11a4 4 0 1 1 8 0v5h-8z M8 16v3a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-3 M9 4h6 M12 7v-3 M8 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg>Material</span>
+<div class="seg" role="group" aria-labelledby="mat-l" style="grid-template-columns: repeat(2, minmax(0, 1fr))">
+<button type="button" aria-pressed="{{nv.steel}}" style="height: 30px; font-size: 13px">Steel</button><button type="button" aria-pressed="{{nv.alu}}" style="height: 30px; font-size: 13px">Aluminium</button>
+</div>
+</div>
+<label style="display: flex; flex-direction: column; gap: 2px; padding: 2px 0 2px 16px; border-left: 1px solid var(--hairline); cursor: text">
+<span style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 11a4 4 0 1 1 8 0v5h-8z M8 16v3a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-3 M9 4h6 M12 7v-3 M8 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg>Volume</span>
+<span style="display: flex; align-items: baseline; gap: 4px"><input id="f-vol" class="fin" type="text" inputmode="decimal" value="{{nv.vol}}" placeholder="—" style="height: 26px; text-align: left"><span class="unit" style="min-width: 0">L</span></span>
+</label>
+</div>
+</div>
+<div class="fblock" style="gap: 6px">
+<div style="display: flex; align-items: center; justify-content: space-between; min-height: 34px">
+<span class="lbl" id="nx-l" style="font-size: 14px; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5a4.5 5.5 0 1 0 9 0a4.5 5.5 0 1 0 -9 0 M15 15a2 2 0 1 1 4 0c0 1 -.7 1.6 -1.5 2.3l-2.5 2.7h4"></path></svg>Nitrox</span>
+<button type="button" role="switch" aria-checked="{{nitroxStr}}" aria-labelledby="nx-l" onClick="{{toggleNitrox}}" style="position: relative; width: 51px; height: 31px; border: 0; border-radius: 16px; background: {{switchBg}}; cursor: pointer; transition: background .15s ease"><span style="position: absolute; top: 2px; left: {{knobLeft}}; width: 27px; height: 27px; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / 0.2); transition: left .15s ease"></span></button>
+</div>
+<sc-if value="{{nitrox}}" hint-placeholder-val="{{true}}">
+<label style="display: flex; flex-direction: column; gap: 2px; padding: 2px 0; cursor: text">
+<span style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5a4.5 5.5 0 1 0 9 0a4.5 5.5 0 1 0 -9 0 M15 15a2 2 0 1 1 4 0c0 1 -.7 1.6 -1.5 2.3l-2.5 2.7h4"></path></svg>Oxygen</span>
+<span style="display: flex; align-items: baseline; gap: 4px"><input id="f-o2" class="fin" type="text" inputmode="decimal" value="{{nv.o2}}" placeholder="—" style="height: 26px; text-align: left"><span class="unit" style="min-width: 0">%</span></span>
+</label>
+</sc-if>
+</div>
+<div class="fblock" role="group" aria-labelledby="pr-l">
+<span class="lbl" id="pr-l"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M13.41 10.59l2.59 -2.59 M7 12a5 5 0 0 1 5 -5"></path></svg>Pressure</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr))">
+<label style="display: flex; flex-direction: column; gap: 2px; padding: 2px 12px 2px 0; cursor: text">
+<span style="font-size: 12px; color: var(--muted-foreground)">Start</span>
+<span style="display: flex; align-items: baseline; gap: 4px"><input class="fin" type="text" inputmode="decimal" value="{{nv.pstart}}" placeholder="—" style="height: 26px; text-align: left"><span class="unit" style="min-width: 0">bar</span></span>
+</label>
+<label style="display: flex; flex-direction: column; gap: 2px; padding: 2px 0 2px 16px; border-left: 1px solid var(--hairline); cursor: text">
+<span style="font-size: 12px; color: var(--muted-foreground)">End</span>
+<span style="display: flex; align-items: baseline; gap: 4px"><input class="fin" type="text" inputmode="decimal" value="{{nv.pend}}" placeholder="—" style="height: 26px; text-align: left"><span class="unit" style="min-width: 0">bar</span></span>
+</label>
+</div>
+</div>
+<div class="fblock">
+<span class="lbl" id="calc-l"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M4 3m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z M8 7m0 1a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v1a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1z M8 14l0 .01 M12 14l0 .01 M16 14l0 .01 M8 17l0 .01 M12 17l0 .01 M16 17l0 .01"></path></svg>Calculated</span>
+<dl aria-labelledby="calc-l" style="margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr))">
+<div class="calc" style="padding: 2px 12px 2px 0"><dt><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.081 20c1.612 0 2.919 -1.335 2.919 -2.98v-9.763c0 -.694 -.552 -1.257 -1.232 -1.257c-.205 0 -.405 .052 -.584 .15l-.13 .083c-1.46 1.059 -2.432 2.647 -3.404 5.824c-.42 1.37 -.636 2.962 -.648 4.775c-.012 1.675 1.261 3.054 2.877 3.161l.203 .007z M17.92 20c-1.613 0 -2.92 -1.335 -2.92 -2.98v-9.763c0 -.694 .552 -1.257 1.233 -1.257c.204 0 .405 .052 .584 .15l.13 .083c1.46 1.059 2.432 2.647 3.405 5.824c.42 1.37 .636 2.962 .648 4.775c.012 1.675 -1.261 3.054 -2.878 3.161l-.202 .007z M9 12a3 3 0 0 0 3 -3a3 3 0 0 0 3 3 M12 4v5"></path></svg>SAC rate</dt><dd>{{nv.sac}}<span class="u">L/min</span></dd></div>
+<div class="calc" style="padding: 2px 12px 2px 16px; border-left: 1px solid var(--hairline)"><dt><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12v.01 M19.071 4.929c-1.562 -1.562 -6 .337 -9.9 4.243c-3.905 3.905 -5.804 8.337 -4.242 9.9c1.562 1.561 6 -.338 9.9 -4.244c3.905 -3.905 5.804 -8.337 4.242 -9.9 M4.929 4.929c-1.562 1.562 .337 6 4.243 9.9c3.905 3.905 8.337 5.804 9.9 4.242c1.561 -1.562 -.338 -6 -4.244 -9.9c-3.905 -3.905 -8.337 -5.804 -9.9 -4.242"></path></svg>Max PO₂</dt><dd>{{po2}}<span class="u">bar</span></dd></div>
+<div class="calc" style="padding: 2px 0 2px 16px; border-left: 1px solid var(--hairline)"><dt><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v9 M8 8l4 4l4 -4 M4 17h16 M4 15v4 M20 15v4 M8 21h8"></path></svg>MOD</dt><dd>{{mod}}<span class="u">m</span></dd></div>
+</dl>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="cond-h">
+<h2 id="cond-h" class="sec">Conditions</h2>
+<div class="card fl">
+<div class="fblock">
+<span class="lbl" id="wx-l"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.468 10a4 4 0 1 0 -5.466 5.46 M2 12h1 M11 3v1 M11 20v1 M4.6 5.6l.7 .7 M17.4 5.6l-.7 .7 M5.3 17.7l-.7 .7 M15 13h5a2 2 0 1 0 0 -4 M12 16h5.714l.253 0a2 2 0 0 1 2.033 2a2 2 0 0 1 -2 2h-.286"></path></svg>Weather</span>
+<div class="seg" role="group" aria-labelledby="wx-l" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+<button type="button" aria-pressed="{{nv.wx1}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"></path></svg>Cloudless</button>
+<button type="button" aria-pressed="{{nv.wx2}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878"></path></svg>Cloudy</button>
+<button type="button" aria-pressed="{{nv.wx3}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7"></path><path d="M11 13v2m0 3v2m4 -5v2m0 3v2"></path></svg>Rainy</button>
+</div>
+</div>
+<div class="fblock">
+<span class="lbl" id="sf-l"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 10l0 10 M12 10l4 4 M12 10l-4 4 M4 4l16 0"></path></svg>Surface</span>
+<div class="seg" role="group" aria-labelledby="sf-l" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+<button type="button" aria-pressed="{{nv.sf1}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12c3 -1.5 6 -1.5 9 0s6 1.5 9 0"></path></svg>Calm</button>
+<button type="button" aria-pressed="{{nv.sf2}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7c3 -2 6 -2 9 0s6 2 9 0"></path><path d="M3 17c3 -2 6 -2 9 0s6 2 9 0"></path><path d="M3 12c3 -2 6 -2 9 0s6 2 9 0"></path></svg>Moving</button>
+<button type="button" aria-pressed="{{nv.sf3}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19c3 -2 6 -2 9 0s6 2 9 0"></path><path d="M3 14c1.5 -5.5 6.5 -9.5 11.5 -8.5c2.6 .5 4 2.6 3 4.6c-.9 1.8 -3.6 1.6 -3.8 -.3"></path></svg>Stormy</button>
+</div>
+</div>
+<div class="fblock">
+<span class="lbl" id="vis-l"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>Visibility</span>
+<div class="seg" role="group" aria-labelledby="vis-l" style="grid-template-columns: repeat(4, minmax(0, 1fr))">
+<sc-for list="{{visOpts}}" as="vo" hint-placeholder-count="4"><button type="button" aria-pressed="{{vo.on}}" onClick="{{vo.pick}}" style="gap: 5px; font-size: 13px">
+<sc-if value="{{vo.isMetres}}" hint-placeholder-val="{{false}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-7a1 1 0 0 0 -1 1v7a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1"></path><path d="M4 8l2 0"></path><path d="M4 12l3 0"></path><path d="M4 16l2 0"></path><path d="M8 4l0 2"></path><path d="M12 4l0 3"></path><path d="M16 4l0 2"></path></svg></sc-if>
+<sc-if value="{{vo.isLevel}}" hint-placeholder-val="{{true}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 19v-5" opacity="{{vo.o1}}"></path><path d="M12 19v-9" opacity="{{vo.o2}}"></path><path d="M18 19v-13" opacity="{{vo.o3}}"></path></svg></sc-if>
+{{vo.label}}</button></sc-for>
+</div>
+<sc-if value="{{visMetres}}" hint-placeholder-val="{{true}}">
+<label style="display: flex; flex-direction: column; gap: 2px; padding: 4px 0 2px; cursor: text">
+<span style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14a1 1 0 0 1 1 1v5a1 1 0 0 1 -1 1h-7a1 1 0 0 0 -1 1v7a1 1 0 0 1 -1 1h-5a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1 M4 8l2 0 M4 12l3 0 M4 16l2 0 M8 4l0 2 M12 4l0 3 M16 4l0 2"></path></svg>Distance</span>
+<span style="display: flex; align-items: baseline; gap: 4px"><input id="f-vis" class="fin" type="text" inputmode="decimal" value="{{nv.visd}}" placeholder="—" style="height: 26px; text-align: left"><span class="unit" style="min-width: 0">m</span></span>
+</label>
+</sc-if>
+</div>
+<div class="fblock" role="group" aria-labelledby="wt-l">
+<span class="lbl" id="wt-l"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5 M10 9l4 0"></path></svg>Water temperature</span>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr))">
+<label style="display: flex; flex-direction: column; gap: 2px; padding: 2px 12px 2px 0; cursor: text">
+<span style="font-size: 12px; color: var(--muted-foreground)">Min</span>
+<span style="display: flex; align-items: baseline; gap: 4px"><input class="fin" type="text" inputmode="decimal" value="{{nv.wmin}}" placeholder="—" style="height: 26px; text-align: left"><span class="unit" style="min-width: 0">°C</span></span>
+</label>
+<label style="display: flex; flex-direction: column; gap: 2px; padding: 2px 0 2px 16px; border-left: 1px solid var(--hairline); cursor: text">
+<span style="display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted-foreground)">Max<span style="align-self: center; display: inline-flex"><sc-if value="{{fWmax.auto}}" hint-placeholder-val="{{true}}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="From the D4i" style="flex: none; color: var(--accent-strong)"><path d="M6 9a3 3 0 0 1 3 -3h6a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-6a3 3 0 0 1 -3 -3v-6z M9 18v3h6v-3 M9 6v-3h6v3"></path></svg></sc-if><sc-if value="{{fWmax.over}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{fWmax.reset}}" aria-label="Reset to the D4i value" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin: -8px 0; border: 0; background: none; color: var(--accent); cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l-4 -4l4 -4"></path><path d="M5 10h11a4 4 0 1 1 0 8h-1"></path></svg></button></sc-if></span></span>
+<span style="display: flex; align-items: baseline; gap: 4px"><input class="fin" type="text" inputmode="decimal" value="{{fWmax.val}}" onChange="{{fWmax.change}}" style="height: 26px; text-align: left"><span class="unit" style="min-width: 0">°C</span></span>
+</label>
+</div>
+</div>
+<div class="frow"><span class="lbl"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1 M2 16a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1 M15 12v-7.5a1.5 1.5 0 0 1 3 0 M9 12v-7.5a1.5 1.5 0 0 0 -3 0 M15 5l-6 0 M9 10l6 0"></path></svg>Entry</span><button type="button" class="pick" style="color: {{nv.pc}}">{{nv.entry}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+<div class="frow"><span class="lbl"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 10h4v4 M3 12c.887 -1.284 2.48 -2.033 4 -2c1.52 -.033 3.113 .716 4 2s2.48 2.033 4 2c1.52 .033 3 -1 4 -2l2 -2"></path></svg>Current</span><button type="button" class="pick" style="color: {{nv.pc}}">{{nv.current}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+<div class="frow"><span class="lbl"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8l-4 4l4 4 M17 8l4 4l-4 4 M3 12l18 0"></path></svg>Surge</span><button type="button" class="pick" style="color: {{nv.pc}}">{{nv.surge}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+<div class="frow"><span class="lbl"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h1 M6 8h-2a1 1 0 0 0 -1 1v6a1 1 0 0 0 1 1h2 M6 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1z M9 12h6 M15 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1z M18 8h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2 M22 12h-1"></path></svg>Workload</span><button type="button" class="pick" style="color: {{nv.pc}}">{{nv.work}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+<div class="frow"><span class="lbl"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 1 0 -4 0v8.5 M4 9h4 M14.75 4l1 2h2.25 M17 4l-3 5l2 3 M20.25 10l-1.25 2l1.25 2 M22 12h-6l-2 3 M18 18h-2.25l-1 2 M17 20l-3 -5h-1 M12 9l2.088 .008"></path></svg>Thermal comfort</span><button type="button" class="pick" style="color: {{nv.pc}}">{{nv.thermal}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+</div>
+</section>
+
+<section aria-labelledby="ppl-h">
+<h2 id="ppl-h" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z M10 16h6 M13 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 8h3 M4 12h3 M4 16h3"></path></svg>People</h2>
+<div class="card fl">
+<div class="fblock" style="gap: 10px">
+<div style="display: flex; align-items: center; justify-content: space-between; min-height: 20px">
+<label for="f-b" style="font-size: 14px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2 M16 3.13a4 4 0 0 1 0 7.75 M21 21v-2a4 4 0 0 0 -3 -3.85"></path></svg>Buddies</label>
+<sc-if value="{{b.open}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{b.close}}" style="height: 28px; margin: -4px -8px; padding: 0 8px; border: 0; background: none; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer">Done</button></sc-if>
+</div>
+<div class="chips" style="align-items: center">
+<sc-for list="{{b.chips}}" as="c" hint-placeholder-count="2"><span class="chip" style="cursor: default">{{c.name}}<button type="button" onClick="{{c.remove}}" aria-label="{{c.removeLabel}}" style="display: inline-flex; margin-right: -6px; padding: 4px; border: 0; background: none; color: var(--muted-foreground); cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg></button></span></sc-for>
+<sc-if value="{{b.showPlus}}" hint-placeholder-val="{{false}}"><button type="button" class="chip" onClick="{{b.focus}}" aria-label="{{b.ph}}" style="width: 34px; padding: 0; justify-content: center; background: none; box-shadow: inset 0 0 0 1px var(--hairline); color: var(--accent)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg></button></sc-if><sc-if value="{{b.showInput}}" hint-placeholder-val="{{true}}"><input id="f-b" class="cin" type="text" value="{{b.q}}" onChange="{{b.change}}" onFocus="{{b.focus}}" placeholder="{{b.ph2}}" aria-label="{{b.ph}}" autoFocus="{{b.open}}" autocomplete="off"></sc-if>
+</div>
+<sc-if value="{{b.open}}" hint-placeholder-val="{{false}}">
+<div role="listbox" aria-label="Suggestions" style="margin: 2px -16px -12px; border-top: 1px solid var(--hairline)">
+<sc-if value="{{b.hasTitle}}" hint-placeholder-val="{{true}}"><div style="padding: 10px 16px 0; font-size: 12px; color: var(--muted-foreground)">{{b.title}}</div></sc-if>
+<sc-for list="{{b.sugs}}" as="r" hint-placeholder-count="3"><button type="button" role="option" class="sug" onClick="{{r.pick}}"><span class="av" aria-hidden="true"><sc-if value="{{r.person}}" hint-placeholder-val="{{true}}">{{r.ini}}</sc-if><sc-if value="{{r.place}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l18 0 M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4 M5 21l0 -10.15 M19 21l0 -10.15 M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"></path></svg></sc-if></span><span class="st"><span class="sn"><sc-for list="{{r.parts}}" as="pt" hint-placeholder-count="1"><span style="font-weight: {{pt.w}}">{{pt.t}}</span></sc-for></span><span class="sp">{{r.sub}}</span></span></button></sc-for>
+<sc-if value="{{b.canAdd}}" hint-placeholder-val="{{false}}"><button type="button" class="sug" onClick="{{b.add}}" style="color: var(--accent)"><span class="av" aria-hidden="true" style="background: var(--accent-soft); color: var(--accent)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg></span><span class="sn" style="font-weight: 500">{{b.addLabel}}</span></button></sc-if>
+<sc-if value="{{b.none}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 14px 16px; font-size: 14px; color: var(--muted-foreground)">{{b.noneText}}</p></sc-if>
+</div>
+</sc-if>
+</div>
+<div class="fblock" style="gap: 10px">
+<div style="display: flex; align-items: center; justify-content: space-between; min-height: 20px">
+<label for="f-l" style="font-size: 14px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0 M6 21v-2a4 4 0 0 1 4 -4h.5 M17.8 20.817l-2.172 1.138a.392 .392 0 0 1 -.568 -.41l.415 -2.411l-1.757 -1.707a.389 .389 0 0 1 .217 -.665l2.428 -.352l1.086 -2.193a.392 .392 0 0 1 .702 0l1.086 2.193l2.428 .352a.39 .39 0 0 1 .217 .665l-1.757 1.707l.414 2.41a.39 .39 0 0 1 -.567 .411l-2.172 -1.138z"></path></svg>Instructor or divemaster</label>
+<sc-if value="{{l.open}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{l.close}}" style="height: 28px; margin: -4px -8px; padding: 0 8px; border: 0; background: none; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer">Done</button></sc-if>
+</div>
+<div class="chips" style="align-items: center">
+<sc-for list="{{l.chips}}" as="c" hint-placeholder-count="2"><span class="chip" style="cursor: default">{{c.name}}<button type="button" onClick="{{c.remove}}" aria-label="{{c.removeLabel}}" style="display: inline-flex; margin-right: -6px; padding: 4px; border: 0; background: none; color: var(--muted-foreground); cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg></button></span></sc-for>
+<sc-if value="{{l.showPlus}}" hint-placeholder-val="{{false}}"><button type="button" class="chip" onClick="{{l.focus}}" aria-label="{{l.ph}}" style="width: 34px; padding: 0; justify-content: center; background: none; box-shadow: inset 0 0 0 1px var(--hairline); color: var(--accent)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg></button></sc-if><sc-if value="{{l.showInput}}" hint-placeholder-val="{{true}}"><input id="f-l" class="cin" type="text" value="{{l.q}}" onChange="{{l.change}}" onFocus="{{l.focus}}" placeholder="{{l.ph2}}" aria-label="{{l.ph}}" autoFocus="{{l.open}}" autocomplete="off"></sc-if>
+</div>
+<sc-if value="{{l.open}}" hint-placeholder-val="{{false}}">
+<div role="listbox" aria-label="Suggestions" style="margin: 2px -16px -12px; border-top: 1px solid var(--hairline)">
+<sc-if value="{{l.hasTitle}}" hint-placeholder-val="{{true}}"><div style="padding: 10px 16px 0; font-size: 12px; color: var(--muted-foreground)">{{l.title}}</div></sc-if>
+<sc-for list="{{l.sugs}}" as="r" hint-placeholder-count="3"><button type="button" role="option" class="sug" onClick="{{r.pick}}"><span class="av" aria-hidden="true"><sc-if value="{{r.person}}" hint-placeholder-val="{{true}}">{{r.ini}}</sc-if><sc-if value="{{r.place}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l18 0 M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4 M5 21l0 -10.15 M19 21l0 -10.15 M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"></path></svg></sc-if></span><span class="st"><span class="sn"><sc-for list="{{r.parts}}" as="pt" hint-placeholder-count="1"><span style="font-weight: {{pt.w}}">{{pt.t}}</span></sc-for></span><span class="sp">{{r.sub}}</span></span></button></sc-for>
+<sc-if value="{{l.canAdd}}" hint-placeholder-val="{{false}}"><button type="button" class="sug" onClick="{{l.add}}" style="color: var(--accent)"><span class="av" aria-hidden="true" style="background: var(--accent-soft); color: var(--accent)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg></span><span class="sn" style="font-weight: 500">{{l.addLabel}}</span></button></sc-if>
+<sc-if value="{{l.none}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 14px 16px; font-size: 14px; color: var(--muted-foreground)">{{l.noneText}}</p></sc-if>
+</div>
+</sc-if>
+</div>
+<div class="fblock" style="gap: 10px">
+<div style="display: flex; align-items: center; justify-content: space-between; min-height: 20px">
+<label for="f-c" style="font-size: 14px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21l18 0 M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4 M5 21l0 -10.15 M19 21l0 -10.15 M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"></path></svg>Dive centre</label>
+<sc-if value="{{c.open}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{c.close}}" style="height: 28px; margin: -4px -8px; padding: 0 8px; border: 0; background: none; font-size: 14px; font-weight: 600; color: var(--accent); cursor: pointer">Done</button></sc-if>
+</div>
+<div class="chips" style="align-items: center">
+<sc-for list="{{c.chips}}" as="c" hint-placeholder-count="2"><span class="chip" style="cursor: default">{{c.name}}<button type="button" onClick="{{c.remove}}" aria-label="{{c.removeLabel}}" style="display: inline-flex; margin-right: -6px; padding: 4px; border: 0; background: none; color: var(--muted-foreground); cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg></button></span></sc-for>
+<sc-if value="{{c.showPlus}}" hint-placeholder-val="{{false}}"><button type="button" class="chip" onClick="{{c.focus}}" aria-label="{{c.ph}}" style="width: 34px; padding: 0; justify-content: center; background: none; box-shadow: inset 0 0 0 1px var(--hairline); color: var(--accent)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg></button></sc-if><sc-if value="{{c.showInput}}" hint-placeholder-val="{{true}}"><input id="f-c" class="cin" type="text" value="{{c.q}}" onChange="{{c.change}}" onFocus="{{c.focus}}" placeholder="{{c.ph2}}" aria-label="{{c.ph}}" autoFocus="{{c.open}}" autocomplete="off"></sc-if>
+</div>
+<sc-if value="{{c.open}}" hint-placeholder-val="{{false}}">
+<div role="listbox" aria-label="Suggestions" style="margin: 2px -16px -12px; border-top: 1px solid var(--hairline)">
+<sc-if value="{{c.hasTitle}}" hint-placeholder-val="{{true}}"><div style="padding: 10px 16px 0; font-size: 12px; color: var(--muted-foreground)">{{c.title}}</div></sc-if>
+<sc-for list="{{c.sugs}}" as="r" hint-placeholder-count="3"><button type="button" role="option" class="sug" onClick="{{r.pick}}"><span class="av" aria-hidden="true"><sc-if value="{{r.person}}" hint-placeholder-val="{{true}}">{{r.ini}}</sc-if><sc-if value="{{r.place}}" hint-placeholder-val="{{false}}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21l18 0 M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4 M5 21l0 -10.15 M19 21l0 -10.15 M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"></path></svg></sc-if></span><span class="st"><span class="sn"><sc-for list="{{r.parts}}" as="pt" hint-placeholder-count="1"><span style="font-weight: {{pt.w}}">{{pt.t}}</span></sc-for></span><span class="sp">{{r.sub}}</span></span></button></sc-for>
+<sc-if value="{{c.canAdd}}" hint-placeholder-val="{{false}}"><button type="button" class="sug" onClick="{{c.add}}" style="color: var(--accent)"><span class="av" aria-hidden="true" style="background: var(--accent-soft); color: var(--accent)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg></span><span class="sn" style="font-weight: 500">{{c.addLabel}}</span></button></sc-if>
+<sc-if value="{{c.none}}" hint-placeholder-val="{{false}}"><p style="margin: 0; padding: 14px 16px; font-size: 14px; color: var(--muted-foreground)">{{c.noneText}}</p></sc-if>
+</div>
+</sc-if>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="notes-h">
+<h2 id="notes-h" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z M9 7l6 0 M9 11l6 0 M9 15l4 0"></path></svg>Notes</h2>
+<div class="card fl">
+<div class="fblock"><label class="lbl" for="f-an" style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.69 7.44a6.973 6.973 0 0 0 -1.69 4.56c0 1.747 .64 3.345 1.699 4.571 M2 9.504c7.715 8.647 14.75 10.265 20 2.498c-5.25 -7.761 -12.285 -6.142 -20 2.504 M18 11v.01 M11.5 10.5c-.667 1 -.667 2 0 3"></path></svg>Notable animals</label><sc-if value="{{existing}}" hint-placeholder-val="{{true}}"><textarea id="f-an" class="ta" placeholder="What did you see?">Potato bass, two green turtles, a school of yellowfin goatfish.</textarea></sc-if><sc-if value="{{isNew}}" hint-placeholder-val="{{false}}"><textarea id="f-an" class="ta" placeholder="What did you see?"></textarea></sc-if></div>
+<div class="fblock"><label class="lbl" for="f-gear" style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h12a1 1 0 0 1 1 1v4.5a2.5 2.5 0 0 1 -2.5 2.5h-.5a2 2 0 0 1 -2 -2a2 2 0 1 0 -4 0a2 2 0 0 1 -2 2h-.5a2.5 2.5 0 0 1 -2.5 -2.5v-4.5a1 1 0 0 1 1 -1z M10 17a2 2 0 0 0 2 2h3.5a5.5 5.5 0 0 0 5.5 -5.5v-9.5"></path></svg>Gear</label><sc-if value="{{existing}}" hint-placeholder-val="{{true}}"><textarea id="f-gear" class="ta" style="min-height: 48px" placeholder="Suit, BCD, rental kit">5 mm suit, rental BCD.</textarea></sc-if><sc-if value="{{isNew}}" hint-placeholder-val="{{false}}"><textarea id="f-gear" class="ta" style="min-height: 48px" placeholder="Suit, BCD, rental kit"></textarea></sc-if></div>
+<div class="fblock"><label class="lbl" for="f-notes" style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z M9 7l6 0 M9 11l6 0 M9 15l4 0"></path></svg>General</label><sc-if value="{{existing}}" hint-placeholder-val="{{true}}"><textarea id="f-notes" class="ta" style="min-height: 96px" placeholder="Anything else">Strong drift north along the reef edge. Ascended a little fast from 10 m; slower next time.</textarea></sc-if><sc-if value="{{isNew}}" hint-placeholder-val="{{false}}"><textarea id="f-notes" class="ta" style="min-height: 96px" placeholder="Anything else"></textarea></sc-if></div>
+</div>
+</section>
+
+<sc-if value="{{existing}}" hint-placeholder-val="{{true}}"><button type="button" style="align-self: center; height: 44px; padding: 0 16px; border: 0; background: none; font-size: 15px; font-weight: 500; color: var(--danger); cursor: pointer"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M4 7l16 0 M10 11l0 6 M14 11l0 6 M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12 M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg>Delete dive</button></sc-if>
+
+</form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Edit existing&quot;,&quot;New dive&quot;],&quot;default&quot;:&quot;Edit existing&quot;},&quot;people&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Idle&quot;,&quot;Buddies focused&quot;,&quot;Buddies typing&quot;,&quot;Buddies new name&quot;],&quot;default&quot;:&quot;Idle&quot;},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:3160}}">
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { time: null, dur: null };
+}
+renderVals() {
+var self = this;
+var s = this.state || {};
+var nb = (this.props.mode ?? 'Edit existing') === 'New dive';
+var mst = nb ? 'n' : 'e';
+var fresh = s.mStamp === mst;
+var visVal = fresh && s.vis ? s.vis : (nb ? null : 'Metres');
+var on = s.mStamp === (nb ? 'n' : 'e') && s.tags ? s.tags : (nb ? {} : { drift: true, pelagic: true });
+var tagList = [['altitude', 'Altitude'], ['cave', 'Cave'], ['cavern', 'Cavern'], ['cleanup', 'Clean-up'], ['drift', 'Drift'], ['drysuit', 'Dry suit'], ['ice', 'Ice'], ['night', 'Night'], ['pelagic', 'Pelagic'], ['photo', 'Photo/video'], ['sar', 'Search and recovery'], ['wreck', 'Wreck']];
+var nitrox = s.mStamp === (nb ? 'n' : 'e') && s.nitrox != null ? s.nitrox : !nb;
+var fo2 = nitrox ? 0.32 : 0.21;
+var po2 = fo2 * (1.013 + 32.7 / 10);
+var mod = (1.4 / fo2 - 1.013) * 10;
+var field = function (k, autoVal) {
+var v = s[k];
+var over = v != null;
+if (nb) autoVal = '';
+return { val: over ? v : autoVal, auto: !over && !nb, over: over, change: function (e) { var o = {}; o[k] = e.target.value; self.setState(o); }, reset: function () { var o = {}; o[k] = null; self.setState(o); } };
+};
+
+var pTweak = (this.props.people ?? 'Idle') + '|' + mst;
+var pf = s.pf === pTweak;
+var pInit = { 'Idle': [false, ''], 'Buddies focused': [true, ''], 'Buddies typing': [true, 'sa'], 'Buddies new name': [true, 'kate ellis'] }[this.props.people ?? 'Idle'] || [false, ''];
+var ps = {
+bOpen: pf && s.bOpen != null ? s.bOpen : pInit[0], bq: pf && s.bq != null ? s.bq : pInit[1], bSel: pf && s.bSel ? s.bSel : (nb ? [] : ['p1', 'p2']),
+lOpen: pf && s.lOpen != null ? s.lOpen : false, lq: pf && s.lq != null ? s.lq : '', lSel: pf && s.lSel ? s.lSel : (nb ? [] : ['p3']),
+cOpen: pf && s.cOpen != null ? s.cOpen : false, cq: pf && s.cq != null ? s.cq : '', cSel: pf && s.cSel ? s.cSel : (nb ? [] : ['c1']),
+addedC: pf && s.addedC ? s.addedC : [],
+added: pf && s.added ? s.added : []
+};
+var pset = function (o) { var n = Object.assign({}, ps, { pf: pTweak }); Object.keys(o).forEach(function (k) { n[k] = o[k]; }); self.setState(n); };
+var people = [['p1', 'Sam Naidoo', 23, 0], ['p2', 'Lerato Mokoena', 17, 0], ['p3', 'Josh van Wyk', 2, 12], ['p4', 'Anna Keller', 8, 0], ['p5', 'Thabo Nkosi', 0, 6], ['p6', 'Megan Fourie', 4, 0], ['p7', 'Nguyễn Minh', 0, 3], ['p8', 'Sam Pillay', 2, 0], ['p9', 'Chris Botha', 1, 0]]
+.map(function (r) { return { id: r[0], name: r[1], b: r[2], l: r[3] }; }).concat(ps.added);
+var fold = function (ch) { return ch.normalize('NFD').replace(/[̀-ͯ]/g, '').replace('đ', 'd').replace('Đ', 'd').toLowerCase(); };
+var pkey = function (str) { return Array.from(str.trim().replace(/\s+/g, ' ')).map(fold).join(''); };
+var tidy = function (t) { t = t.trim().replace(/\s+/g, ' '); return t.split(' ').map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join(' '); };
+var ini = function (n) { var w = n.trim().split(/\s+/); return ((w[0] || '').charAt(0) + (w.length > 1 ? w[w.length - 1].charAt(0) : '')).toUpperCase(); };
+var together = function (x) { var d = x.b + x.l; return d === 0 ? 'New' : d + (d === 1 ? ' dive together' : ' dives together'); };
+var centres = [['c1', 'Coral Edge Diving', 14], ['c2', 'Kelp Coast Scuba', 9], ['c3', 'Blue Fin Divers', 6], ['c4', 'Hoi An Dive Co.', 3], ['c5', 'Deep End Dive School', 2]]
+.map(function (r) { return { id: r[0], name: r[1], n: r[2] }; }).concat(ps.addedC);
+var personField = function (X, multi, ph) {
+var sel = ps[X + 'Sel'], q = ps[X + 'q'], open = ps[X + 'Open'], nq = pkey(q);
+var isPerson = X !== 'c';
+var list = isPerson ? people : centres;
+var byId = function (id) { return list.filter(function (x) { return x.id === id; })[0]; };
+var used = function (x) { return X === 'b' ? x.b : X === 'l' ? x.l : x.n; };
+var subOf = function (x) { return isPerson ? together(x) : (x.n === 0 ? 'New' : x.n + (x.n === 1 ? ' dive' : ' dives')); };
+var choose = function (id) { var o = {}; o[X + 'Sel'] = multi ? sel.concat([id]) : [id]; o[X + 'q'] = ''; o[X + 'Open'] = multi; pset(o); };
+var pool = list.filter(function (x) { return sel.indexOf(x.id) < 0; });
+var sugs, title = '';
+if (nq) {
+sugs = pool.map(function (x) {
+var chars = Array.from(x.name), folded = chars.map(fold), at = folded.join('').indexOf(nq);
+if (at < 0) return null;
+var pos = 0, i = 0; while (pos < at) { pos += folded[i].length; i++; }
+var e = i, len = 0; while (len < nq.length && e < chars.length) { len += folded[e].length; e++; }
+return { x: x, rank: at === 0 ? 0 : 1, parts: [{ t: chars.slice(0, i).join(''), w: '400' }, { t: chars.slice(i, e).join(''), w: '600' }, { t: chars.slice(e).join(''), w: '400' }].filter(function (z) { return z.t !== ''; }) };
+}).filter(Boolean).sort(function (a, b) { return a.rank - b.rank || used(b.x) - used(a.x); }).slice(0, 4);
+} else {
+title = 'Frequent';
+sugs = pool.filter(function (x) { return used(x) > 0; }).sort(function (a, b) { return used(b) - used(a); }).slice(0, 4).map(function (x) { return { x: x, parts: [{ t: x.name, w: '500' }] }; });
+}
+var exists = nq && list.some(function (x) { return pkey(x.name) === nq; });
+var canAdd = !!nq && !exists;
+var o = function (k, v) { var r = {}; r[k] = v; return r; };
+return {
+open: open, q: q, ph: ph,
+chips: sel.map(function (id) { var x = byId(id); return { name: x.name, removeLabel: 'Remove ' + x.name, remove: function () { pset(o(X + 'Sel', sel.filter(function (i) { return i !== id; }))); } }; }),
+showInput: multi ? open : sel.length === 0,
+showPlus: multi && !open,
+ph2: multi ? 'Name' : ph,
+change: function (e) { var r = o(X + 'q', e.target.value); r[X + 'Open'] = true; pset(r); },
+focus: function () { if (!open) pset(o(X + 'Open', true)); },
+close: function () { var r = o(X + 'Open', false); r[X + 'q'] = ''; pset(r); },
+hasTitle: !!title && sugs.length > 0, title: title,
+sugs: sugs.map(function (r) { return { ini: ini(r.x.name), person: isPerson, place: !isPerson, parts: r.parts, sub: subOf(r.x), pick: function () { choose(r.x.id); } }; }),
+canAdd: canAdd, addLabel: 'Add “' + tidy(q) + '”',
+add: function () { var r = {}, id; if (isPerson) { id = 'n' + (ps.added.length + 1); r.added = ps.added.concat([{ id: id, name: tidy(q), b: 0, l: 0 }]); } else { id = 'nc' + (ps.addedC.length + 1); r.addedC = ps.addedC.concat([{ id: id, name: tidy(q), n: 0 }]); } r[X + 'Sel'] = multi ? sel.concat([id]) : [id]; r[X + 'q'] = ''; r[X + 'Open'] = multi; pset(r); },
+none: sugs.length === 0 && !canAdd, noneText: nq ? 'Already on this dive' : (isPerson ? 'Type a name to add someone' : 'Type a name to add a dive centre')
+};
+};
+return {
+b: personField('b', true, 'Add buddy'),
+l: personField('l', true, 'Add instructor or divemaster'),
+c: personField('c', false, 'Add dive centre'),
+fAvg: field('avg', '19.8'),
+fSi: (function () {
+var over = s.si != null;
+var text = over ? s.si : (nb ? '' : '2 h 10 min');
+return { text: text, auto: !over && !nb, over: over, editing: !!s.siEdit, showing: !s.siEdit,
+parts: text === '' ? [{ t: '—', color: 'var(--faint)' }] : text.split(/(\d+(?:[.,]\d+)?)/).filter(function (t) { return t !== ''; }).map(function (t) { return { t: t, color: /^\d/.test(t) ? 'var(--foreground)' : 'var(--muted-foreground)' }; }),
+change: function (e) { self.setState({ si: e.target.value }); },
+edit: function () { self.setState({ siEdit: true }); },
+done: function () { self.setState({ siEdit: false }); },
+reset: function () { self.setState({ si: null, siEdit: false }); } };
+})(),
+fWmax: field('wmax', '24'),
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (this.props.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[this.props.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[this.props.font ?? 'Geist'] || ''),
+noSubmit: function (e) { e.preventDefault(); },
+timeOpen: !s.time && !nb, timeFin: (s.time || nb) ? 'fin' : 'fin fit-t', timeUsed: s.time === 'use', timeMine: s.time !== 'use',
+durOpen: !s.dur && !nb, durFin: (s.dur || nb) ? 'fin' : 'fin fit-d', durUsed: s.dur === 'use', durMine: s.dur !== 'use',
+useTime: function () { self.setState({ time: 'use' }); },
+keepTime: function () { self.setState({ time: 'keep' }); },
+useDur: function () { self.setState({ dur: 'use' }); },
+keepDur: function () { self.setState({ dur: 'keep' }); },
+tags: tagList.map(function (t) {
+return { label: t[1], on: on[t[0]] ? 'true' : 'false', toggle: function () { var n = Object.assign({}, on); n[t[0]] = !n[t[0]]; self.setState({ tags: n, mStamp: mst, nitrox: nitrox, vis: visVal }); } };
+}),
+visMetres: visVal === 'Metres',
+visOpts: ['Metres', 'Low', 'Average', 'High'].map(function (r, i) {
+return { label: r, isMetres: i === 0, isLevel: i > 0, o1: '1', o2: i >= 2 ? '1' : '0.3', o3: i >= 3 ? '1' : '0.3', on: visVal === r ? 'true' : 'false', pick: function () { self.setState({ vis: r, mStamp: mst, tags: on, nitrox: nitrox }); } };
+}),
+nitrox: nitrox,
+nitroxStr: nitrox ? 'true' : 'false',
+toggleNitrox: function () { self.setState({ nitrox: !nitrox, mStamp: mst, tags: on, vis: visVal }); },
+switchBg: nitrox ? 'var(--accent)' : 'var(--hairline)',
+knobLeft: nitrox ? '22px' : '2px',
+po2: nb ? '—' : po2.toFixed(2),
+mod: nb ? '—' : mod.toFixed(1),
+existing: !nb, isNew: nb,
+title: nb ? 'New dive' : 'Edit dive',
+backHref: nb ? 'LogHifi2.dc.html' : 'DiveDetailHifi.dc.html',
+nv: (function () {
+var E = { date: 'Sat 25 Jul 2026', time: '09:12', dur: '45', max: '32.7', wt: '6', vol: '11.1', o2: '32.0', pstart: '200', pend: '60', visd: '20', wmin: '22',
+site: 'Two Mile Reef', type: 'Recreation', trip: 'Sodwana, July 2026', entry: 'Small boat', current: 'Moderate', surge: 'Mild', work: 'Light', thermal: 'Comfortable',
+steel: 'false', alu: 'true', wx1: 'true', wx2: 'false', wx3: 'false', sf1: 'false', sf2: 'true', sf3: 'false', sac: '11.8', pc: 'inherit' };
+if (!nb) return E;
+var N = {};
+Object.keys(E).forEach(function (k) { N[k] = ''; });
+['site', 'type', 'trip', 'entry', 'current', 'surge', 'work', 'thermal'].forEach(function (k) { N[k] = 'Choose'; });
+['steel', 'alu', 'wx1', 'wx2', 'wx3', 'sf1', 'sf2', 'sf3'].forEach(function (k) { N[k] = 'false'; });
+N.sac = '—'; N.pc = 'var(--faint)';
+return N;
+})()
+};
+}
+}
+</script>
+</body>
+</html>

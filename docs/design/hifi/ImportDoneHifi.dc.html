@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Import complete (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.sl{--warn:oklch(0.553 0.195 38.402);--danger:oklch(0.577 0.245 27.325)}
+.sl.dark{--warn:oklch(0.75 0.183 55.934);--danger:oklch(0.704 0.191 22.216)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 20px;border:0;border-radius:14px;font-size:16px;font-weight:600;text-decoration:none;cursor:pointer}
+.btn-p{background:var(--accent);color:var(--accent-foreground)}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:10px 16px;box-sizing:border-box;font-size:15px}
+.row .v{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:500}
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+</style>
+</helmet>
+<div class="{{mode}}" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+<main style="flex: 1; display: flex; flex-direction: column; gap: 28px; padding: 72px 16px 24px">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+<span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: var(--accent-soft); color: var(--accent)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"></path></svg></span>
+<h1 style="margin: 4px 0 0; font-size: 24px; line-height: 30px; font-weight: 600; letter-spacing: -0.025em">Import complete</h1>
+<p class="tn" style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19l4 -6l4 2l4 -5l4 4l0 5l-16 0 M4 12l3 -4l4 2l5 -6l4 4"></path></svg>9 dives now have their D4i profile.</p>
+</div>
+<dl class="card fl" style="margin: 0">
+<div class="row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--accent)"><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z M3 21l2.5 -2.5 M18.5 5.5l2.5 -2.5 M10 11l-2 2 M13 14l-2 2"></path></svg><dt>Paired with your dives</dt><dd class="v" style="margin-left: auto">7</dd></div>
+<div class="row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--accent)"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M5 13v-8a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-5.5m-9.5 -2h7m-3 -3l3 3l-3 3"></path></svg><dt>Added as new dives</dt><dd class="v" style="margin-left: auto">2</dd></div>
+<div class="row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--muted-foreground)"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z M9 15l2 2l4 -4"></path></svg><dt style="color: var(--muted-foreground)">Already imported, skipped</dt><dd class="v" style="margin-left: auto; color: var(--muted-foreground)">14</dd></div>
+<div class="row"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--muted-foreground)"><path d="M16 9m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path><path d="M6 11l4 -2l3.5 3l-1.5 2"></path><path d="M3 16.75a2.4 2.4 0 0 0 1 .25a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 1 -.25"></path></svg><dt style="color: var(--muted-foreground)">Freedives left out</dt><dd class="v" style="margin-left: auto; color: var(--muted-foreground)">26</dd></div>
+</dl>
+<a href="DiveDetailHifi.dc.html" class="card" style="display: flex; align-items: center; gap: 12px; padding: 14px 12px 14px 16px; text-decoration: none; color: inherit">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--warn)"><path d="M11 16h10 M11 16l4 4 M11 16l4 -4 M13 8h-10 M13 8l-4 4 M13 8l-4 -4"></path></svg>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px">2 dives differ from the D4i</span><span style="font-size: 13px; color: var(--muted-foreground)">Your values were kept. Review them on each dive.</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
+</a>
+</main>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 0 16px 32px">
+<a href="LogHifi2.dc.html" class="btn btn-p"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18 M13 8l2 0 M13 12l2 0"></path></svg>View in log</a>
+<a href="ImportHifi.dc.html" class="btn" style="background: none; color: var(--accent)">Done</a>
+</div>
+</div>
+</x-dc>
+
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+renderVals() {
+var p = this.props || {};
+return { mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || '') };
+}
+}
+</script>
+</body>
+</html>

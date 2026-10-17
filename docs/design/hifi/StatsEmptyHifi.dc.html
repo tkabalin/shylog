@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Statistics, early days (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.sl{--warn:oklch(0.553 0.195 38.402);--danger:oklch(0.577 0.245 27.325)}
+.sl.dark{--warn:oklch(0.75 0.183 55.934);--danger:oklch(0.704 0.191 22.216)}
+.hbtn{display:inline-flex;align-items:center;height:44px;padding:0 8px;border:0;background:none;text-decoration:none;font-size:16px;font-weight:500;color:var(--accent);cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 20px;border:0;border-radius:14px;font-size:16px;font-weight:600;text-decoration:none;cursor:pointer}
+.btn-p{background:var(--accent);color:var(--accent-foreground)}
+.nudge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:50%;background:var(--muted);color:var(--foreground);cursor:pointer}
+.tlink{flex:none;border:0;padding:4px 0;background:none;font-size:13px;font-weight:500;color:var(--accent);cursor:pointer}
+.pair{display:flex;flex-direction:column;width:100%;border:0;padding:0;text-align:left;color:inherit;cursor:pointer}
+.pr{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px}
+.d4{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-top:1px solid var(--hairline);font-size:13px;color:var(--muted-foreground)}
+.scr > *{flex-shrink:0}
+.rmain{display:flex;align-items:center;gap:12px;width:100%;padding:12px 12px 12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit}
+button.rmain{cursor:pointer}
+.rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rn{font-size:16px;font-weight:500;letter-spacing:-0.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm{font-size:13px;color:var(--muted-foreground)}
+.rnote{display:flex;align-items:center;gap:10px;margin-top:-6px;padding:0 12px 12px 16px;font-size:13px}
+.hl{border-top:1px solid var(--hairline)}
+.seg.sm{border-radius:9px}.seg.sm button{height:28px;padding:0 12px;border-radius:7px;font-size:13px}
+.xrow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:10px 12px 10px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font-size:15px;cursor:pointer}
+
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.opt.hl{border-top:1px solid var(--hairline)}
+.rad{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--faint)}
+.opt[aria-checked="true"] .rad{box-shadow:inset 0 0 0 2px var(--accent)}
+.rad > span{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+a.rmain{text-decoration:none;color:inherit}
+.srch{box-sizing:border-box;width:100%;height:44px;padding:0 14px 0 38px;border:0;border-radius:12px;background:var(--muted);color:var(--foreground);font-size:16px;outline:none}
+.srch::placeholder{color:var(--muted-foreground)}
+.sheet{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:16px;padding:10px 20px 28px;border-radius:16px 16px 0 0;background:var(--background);box-shadow:0 0 0 1px var(--edge)}
+.grab{align-self:center;width:36px;height:5px;border-radius:3px;background:var(--faint);opacity:.5}
+
+.fig{display:flex;flex-direction:column-reverse;gap:2px;padding:14px 16px;min-width:0}
+.fig dd{margin-bottom:0!important;line-height:22px!important}
+.fig .cap{margin-top:4px}
+.fig dt{font-size:12px;color:var(--muted-foreground)}
+.fig dd{margin:0;font-size:18px;line-height:24px;font-weight:600;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+.fig dd .u{margin-left:2px;font-size:13px;font-weight:500;letter-spacing:0;color:var(--muted-foreground)}
+.fig .cap{font-size:12px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+</style>
+</helmet>
+<div class="{{mode}}" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+<header style="flex: none; display: flex; flex-direction: column; padding: 24px 16px 0">
+<h1 class="sr">Statistics</h1>
+<p class="tn" style="margin: 0; display: flex; align-items: baseline; gap: 8px"><span style="font-size: 52px; line-height: 56px; font-weight: 600; letter-spacing: -0.05em">{{n}}</span><span style="font-size: 17px; font-weight: 500; color: var(--muted-foreground)">{{nLead}}</span></p>
+<sc-if value="{{some}}" hint-placeholder-val="{{true}}"><p class="tn" style="margin: 2px 0 0; font-size: 16px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>1.5 hours underwater</p></sc-if>
+</header>
+<main class="scr" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 28px; padding: 24px 16px 120px">
+<sc-if value="{{some}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="se-fig">
+<h2 id="se-fig" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21l8 0 M12 17l0 4 M7 4l10 0 M17 4v8a5 5 0 0 1 -10 0v-8 M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path></svg>Records and averages</h2>
+<dl class="card" style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr))">
+<div class="fig"><a href="DiveDetailHifi.dc.html" class="cap">Partridge Point</a><dt><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>Deepest</dt><dd>18.6<span class="u">m</span></dd></div>
+<div class="fig" style="border-left: 1px solid var(--hairline)"><a href="DiveDetailHifi.dc.html" class="cap">Long Beach</a><dt><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>Longest</dt><dd>48<span class="u">min</span></dd></div>
+<div class="fig" style="border-top: 1px solid var(--hairline)"><dt><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>Average max depth</dt><dd>16.4<span class="u">m</span></dd></div>
+<div class="fig" style="border-top: 1px solid var(--hairline); border-left: 1px solid var(--hairline)"><dt><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>Average duration</dt><dd>45<span class="u">min</span></dd></div>
+</dl>
+</section>
+<section aria-labelledby="se-more" class="card" style="display: flex; flex-direction: column; gap: 12px; padding: 16px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+<h2 id="se-more" style="margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z M4 20h14"></path></svg>More after 5 dives</h2>
+<span class="tn" style="font-size: 13px; color: var(--muted-foreground)">2 of 5</span>
+</div>
+<span role="progressbar" aria-valuenow="2" aria-valuemin="0" aria-valuemax="5" aria-label="Dives logged towards more stats" style="display: block; height: 6px; border-radius: 3px; background: var(--muted); overflow: hidden"><span style="display: block; width: 40%; height: 100%; border-radius: 3px; background: var(--accent)"></span></span>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted-foreground)">SAC trend, conditions, time of day and patterns need a few more dives to say anything useful.</p>
+</section>
+</sc-if>
+<sc-if value="{{none}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin: auto 0; padding: 0 20px 40px; text-align: center">
+<span aria-hidden="true" style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent)"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M4 20h14"></path></svg></span>
+<span style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 18px; font-weight: 600; letter-spacing: -0.015em">No stats yet</span>
+<span style="font-size: 14px; line-height: 1.5; color: var(--muted-foreground)">Records show up after your first dive. Charts and patterns follow from five.</span>
+</span>
+<a href="EditDiveHifi.dc.html" style="display: flex; align-items: center; justify-content: center; width: 100%; height: 48px; margin-top: 8px; border-radius: 14px; background: var(--accent); color: var(--accent-foreground); font-size: 16px; font-weight: 600; text-decoration: none"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M12 5l0 14 M5 12l14 0"></path></svg>Log a dive</a>
+</div>
+</sc-if>
+</main>
+<nav aria-label="Main" style="position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 8px 16px; border-top: 1px solid var(--hairline); background: var(--nav); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px)">
+<a href="LogHifi2.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18"></path><path d="M13 8l2 0"></path><path d="M13 12l2 0"></path></svg>Log</a>
+<a href="StatsHifi.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 600; color: var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M4 20h14"></path></svg>Stats</a>
+<a href="ImportHifi.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path><path d="M7 9l5 -5l5 5"></path><path d="M12 4l0 12"></path></svg>Import</a>
+<a href="SettingsHifi.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 6l8 0 M16 6l4 0 M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 12l2 0 M10 12l10 0 M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 18l11 0 M19 18l1 0"></path></svg>Settings</a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;dives&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;2 dives&quot;,&quot;No dives&quot;],&quot;default&quot;:&quot;2 dives&quot;},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+renderVals() {
+var p = this.props || {};
+var none = (p.dives ?? '2 dives') === 'No dives';
+return {
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || ''),
+some: !none, none: none,
+n: none ? '0' : '2',
+nLead: none ? 'dives logged' : 'dives logged'
+};
+}
+}
+</script>
+</body>
+</html>

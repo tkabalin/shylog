@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Import review (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.sl{--warn:oklch(0.553 0.195 38.402);--danger:oklch(0.577 0.245 27.325)}
+.sl.dark{--warn:oklch(0.75 0.183 55.934);--danger:oklch(0.704 0.191 22.216)}
+.hbtn{display:inline-flex;align-items:center;height:44px;padding:0 8px;border:0;background:none;text-decoration:none;font-size:16px;font-weight:500;color:var(--accent);cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 20px;border:0;border-radius:14px;font-size:16px;font-weight:600;text-decoration:none;cursor:pointer}
+.btn-p{background:var(--accent);color:var(--accent-foreground)}
+.nudge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:50%;background:var(--muted);color:var(--foreground);cursor:pointer}
+.tlink{flex:none;border:0;padding:4px 0;background:none;font-size:13px;font-weight:500;color:var(--accent);cursor:pointer}
+.pair{display:flex;flex-direction:column;width:100%;border:0;padding:0;text-align:left;color:inherit;cursor:pointer}
+.pr{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px}
+.d4{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-top:1px solid var(--hairline);font-size:13px;color:var(--muted-foreground)}
+.scr > *{flex-shrink:0}
+.rmain{display:flex;align-items:center;gap:12px;width:100%;padding:12px 12px 12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit}
+button.rmain{cursor:pointer}
+a.rmain{text-decoration:none;color:inherit}
+.rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rn{font-size:16px;font-weight:500;letter-spacing:-0.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm{font-size:13px;color:var(--muted-foreground)}
+.rnote{display:flex;align-items:center;gap:10px;margin-top:-6px;padding:0 12px 12px 16px;font-size:13px}
+.hl{border-top:1px solid var(--hairline)}
+.xrow.hl{border-top:1px solid var(--hairline)}
+.nrow{display:flex;align-items:center}
+.cbx{flex:none;display:inline-flex;align-items:center;justify-content:center;width:48px;height:56px;margin-right:2px;padding:0 0 0 4px;border:0;background:none;cursor:pointer}
+.cbx .box{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;box-sizing:border-box;border-radius:6px;border:1.5px solid var(--faint);color:transparent}
+.cbx[aria-checked="true"] .box{border-color:var(--accent);background:var(--accent);color:var(--accent-foreground)}
+.seg.sm{border-radius:9px}.seg.sm button{height:28px;padding:0 12px;border-radius:7px;font-size:13px}
+.xrow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:10px 12px 10px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font-size:15px;cursor:pointer}
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+</style>
+</helmet>
+<div class="{{mode}}" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+
+<header style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px">
+<a href="ImportHifi.dc.html" class="hbtn" style="justify-self: start; gap: 2px; padding-left: 2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"></path></svg>Import</a>
+<h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em">Review</h1>
+<span></span>
+</header>
+
+<main class="scr" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; padding: 8px 16px 32px">
+
+<sc-if value="{{hasUn}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="r-un">
+<h2 id="r-un" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16l-4 4 M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z M3 21l2.5 -2.5 M18.5 5.5l2.5 -2.5 M10 11l-2 2 M13 14l-2 2 M16 16l4 4"></path></svg>Not paired</h2>
+<div class="card">
+<sc-for list="{{un}}" as="x" hint-placeholder-count="1">
+<a href="ChangePairingHifi.dc.html" class="rmain {{x.cls}}" aria-label="{{x.aria}}">
+<span class="rt"><span class="rn">{{x.name}}</span><span class="rm tn">{{x.meta}}</span><span class="rm tn" style="color: var(--warn)">{{x.note}}</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
+</a>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{hasNew}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="r-new">
+<h2 id="r-new" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4 M5 13v-8a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-5.5m-9.5 -2h7m-3 -3l3 3l-3 3"></path></svg>New dives</h2>
+<div class="card">
+<sc-for list="{{nw}}" as="x" hint-placeholder-count="2">
+<div class="nrow {{x.cls}}">
+<button type="button" class="cbx" role="checkbox" aria-checked="{{x.on}}" aria-label="{{x.cbAria}}" onClick="{{x.toggle}}"><span class="box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10 -10"></path></svg></span></button>
+<a href="ChangePairingHifi.dc.html" class="rmain" style="padding-left: 0" aria-label="{{x.aria}}">
+<span class="rt"><span class="rn" style="color: {{x.fg}}">{{x.name}}</span><span class="rm tn" aria-label="{{x.meta}}"><span><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 0.3em"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>{{x.depth}}</span><span style="margin-left: 12px"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right: 0.3em"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>{{x.dur}}</span></span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
+</a>
+</div>
+</sc-for>
+</div>
+</section>
+</sc-if>
+
+<section aria-labelledby="r-also">
+<h2 id="r-also" class="sec">Also in this file</h2>
+<div class="card">
+<a href="PairedHifi.dc.html" class="xrow" style="text-decoration: none" aria-label="{{pairedAria}}">
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z M3 21l2.5 -2.5 M18.5 5.5l2.5 -2.5 M10 11l-2 2 M13 14l-2 2"></path></svg>Paired</span><span class="tn" style="font-size: 13px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><sc-if value="{{hasDiff}}" hint-placeholder-val="{{true}}"><span aria-hidden="true" style="display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 3px; background: var(--warn); vertical-align: 0.1em"></span></sc-if>{{pairedSub}}</span></span>
+<span class="tn" style="font-size: 15px; color: var(--muted-foreground)">{{pairedCount}}</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
+</a>
+<div class="xrow hl" style="cursor: default">
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z M9 15l2 2l4 -4"></path></svg>From earlier imports</span><span class="tn" style="font-size: 13px; color: var(--muted-foreground)">14 imported · 180 freedives left out</span></span>
+<span class="tn" style="font-size: 15px; color: var(--muted-foreground)">194</span>
+</div>
+<sc-if value="{{hasFree}}" hint-placeholder-val="{{true}}">
+<button type="button" class="xrow hl" onClick="{{toggleFree}}" aria-expanded="{{freeOpen}}">
+<span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 9m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M6 11l4 -2l3.5 3l-1.5 2 M3 16.75a2.4 2.4 0 0 0 1 .25a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 1 -.25"></path></svg>Freedives</span><span style="font-size: 13px; color: var(--muted-foreground)">New since your last import</span></span>
+<span class="tn" style="font-size: 15px; color: var(--muted-foreground)">{{freeCount}}</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint); transform: rotate({{freeRot}})"><path d="M6 9l6 6l6 -6"></path></svg>
+</button>
+<sc-if value="{{showFree}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{fdays}}" as="d" hint-placeholder-count="1">
+<div class="hl" style="display: flex; flex-direction: column; padding: 12px 0 4px">
+<span class="sec tn" style="margin: 0; padding: 0 16px 2px">{{d.date}}</span>
+<sc-for list="{{d.rows}}" as="f" hint-placeholder-count="6">
+<div class="tn" style="display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px 0 16px; font-size: 15px">
+<span style="flex: 1; min-width: 0; color: {{f.fg}}">{{f.label}}</span>
+<button type="button" onClick="{{f.toggle}}" aria-pressed="{{f.on}}" aria-label="{{f.aria}}" style="flex: none; height: 30px; padding: 0 12px; border: 0; border-radius: 15px; background: {{f.bg}}; color: {{f.btnFg}}; font-size: 13px; font-weight: 500; cursor: pointer">{{f.btn}}</button>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</sc-if>
+</div>
+</section>
+<p class="tn" style="margin: -8px 4px 0; font-size: 13px; line-height: 1.5; color: var(--muted-foreground)">Times off by an hour or more? <button type="button" class="tlink" onClick="{{openAnyClock}}" style="padding: 0">Adjust the D4i clock</button></p>
+</main>
+
+<div style="flex: none; display: flex; flex-direction: column; gap: 10px; padding: 12px 16px 20px; border-top: 1px solid var(--hairline); background: var(--nav); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px)">
+<span class="tn" style="text-align: center; font-size: 13px; color: var(--muted-foreground)">{{summary}}</span>
+<a href="ImportDoneHifi.dc.html" class="btn btn-p"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2 M7 9l5 -5l5 5 M12 4l0 12"></path></svg>{{cta}}</a>
+</div>
+
+<sc-if value="{{clockOpen}}" hint-placeholder-val="{{false}}">
+<div aria-hidden="true" onClick="{{closeClock}}" style="position: absolute; inset: 0; background: {{scrim}}"></div>
+<section role="dialog" aria-modal="true" aria-labelledby="clk-h" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 20px; padding: 10px 20px 28px; border-radius: 16px 16px 0 0; background: var(--background); box-shadow: 0 0 0 1px var(--edge)">
+<span aria-hidden="true" style="align-self: center; width: 36px; height: 5px; border-radius: 3px; background: var(--faint); opacity: 0.5"></span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 id="clk-h" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.015em"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 0 -9.972 8.948c.32 .034 .644 .052 .972 .052 M12 7v5l2 2 M18.42 15.61a2.1 2.1 0 0 1 2.97 2.97l-3.39 3.42h-3v-3l3.42 -3.39z"></path></svg>D4i clock</h2>
+<p class="tn" style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted-foreground)">Shift the D4i’s times on one day so they line up with your log. Other days don’t change.</p>
+</div>
+<label class="card tn" style="position: relative; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px 0 16px; font-size: 15px"><span style="flex: 1; color: var(--muted-foreground)">Day</span><span aria-hidden="true" style="font-weight: 500">{{ck.date}}</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M8 9l4 -4l4 4 M16 15l-4 4l-4 -4"></path></svg><select value="{{ck.id}}" onChange="{{ck.pickDay}}" aria-label="Day" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; font-size: 16px; cursor: pointer"><sc-for list="{{ckDays}}" as="o" hint-placeholder-count="5"><option value="{{o.id}}">{{o.label}}</option></sc-for></select></label>
+<div role="group" aria-label="{{ck.aria}}" style="display: flex; align-items: center; justify-content: center; gap: 20px">
+<button type="button" class="nudge" onClick="{{ck.minus}}" aria-label="Back 15 minutes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M5 12l14 0"></path></svg></button>
+<span class="tn" style="min-width: 96px; text-align: center; font-size: 32px; line-height: 40px; font-weight: 600; letter-spacing: -0.03em">{{ck.off}}</span>
+<button type="button" class="nudge" onClick="{{ck.plus}}" aria-label="Forward 15 minutes"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" aria-hidden="true"><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg></button>
+</div>
+<div class="card tn" style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; font-size: 14px">
+<span style="flex: 1; color: {{ck.pairColor}}"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z M3 21l2.5 -2.5 M18.5 5.5l2.5 -2.5 M10 11l-2 2 M13 14l-2 2"></path></svg>{{ck.pairLine}}</span>
+<sc-if value="{{ck.canReset}}" hint-placeholder-val="{{false}}"><button type="button" class="tlink" style="font-size: 14px" onClick="{{ck.reset}}">{{ck.resetLabel}}</button></sc-if>
+</div>
+<button type="button" class="btn btn-p" onClick="{{closeClock}}">Done</button>
+</section>
+</sc-if>
+
+<sc-if value="{{changed}}" hint-placeholder-val="{{false}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; background: {{scrim}}"></div>
+<section role="dialog" aria-modal="true" aria-labelledby="chg-h" style="position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 16px; padding: 10px 20px 28px; border-radius: 16px 16px 0 0; background: var(--background); box-shadow: 0 0 0 1px var(--edge)">
+<span aria-hidden="true" style="align-self: center; width: 36px; height: 5px; border-radius: 3px; background: var(--faint); opacity: 0.5"></span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 id="chg-h" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.015em">1 dive changed since this preview</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted-foreground)">You edited Two Mile Reef on Sat 25 Jul after this preview was made. Check its pairing before importing.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<button type="button" class="btn btn-p">Check it</button>
+<button type="button" class="btn" style="background: none; color: var(--accent)">Import anyway</button>
+</div>
+</section>
+</sc-if>
+</div>
+</x-dc>
+
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Off&quot;, &quot;Essential&quot;, &quot;All&quot;], &quot;default&quot;: &quot;Essential&quot;}, &quot;clockSheet&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false}, &quot;changed&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false}, &quot;freedives&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;New this import&quot;, &quot;None&quot;], &quot;default&quot;: &quot;New this import&quot;}, &quot;font&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Geist&quot;, &quot;Inter&quot;, &quot;System (SF)&quot;, &quot;Windows (Segoe UI)&quot;], &quot;default&quot;: &quot;Geist&quot;}, &quot;accent&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;Teal&quot;, &quot;Sky 700&quot;, &quot;Cyan 700&quot;, &quot;Emerald 700&quot;], &quot;default&quot;: &quot;Cyan 700&quot;}, &quot;dark&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false}, &quot;$preview&quot;: {&quot;width&quot;: 390, &quot;height&quot;: 844}}">
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { offsets: {}, choice: {}, free: {} };
+}
+renderVals() {
+var self = this;
+var s = this.state || {};
+var p = this.props || {};
+var offsets = s.offsets || {}, choice = s.choice || {}, free = s.free || {};
+var P = function (site, mine, depth, dur, raw, cdepth, cdur, diff) { return { kind: 'p', site: site, mineT: mine, depth: depth, dur: dur, raw: raw, cdepth: cdepth, cdur: cdur, diff: diff || [] }; };
+var U = function (id, raw, cdepth, cdur) { return { kind: 'u', id: id, raw: raw, cdepth: cdepth, cdur: cdur }; };
+var days = [
+{ id: 'a', date: 'Sat 3 Jan 2026', est: 300, items: [P('Hòn Dài', '09:00', 16.2, 48, '04:02', 16.4, 47), P('Hòn Tai', '11:20', 14.8, 52, '06:21', 14.8, 52)] },
+{ id: 'b', date: 'Sat 25 Jul 2026', est: 0, items: [P('Two Mile Reef', '09:12', 32.7, 45, '09:14', 32.4, 44, ['d', 't']), P('Seven Mile Reef', '12:38', 21.4, 52, '12:40', 21.6, 51)] },
+{ id: 'c', date: 'Sun 26 Jul 2026', est: 0, items: [P('Stringer', '08:50', 18.2, 48, '08:51', 18.0, 48), U('u1', '11:35', 14.6, 41)] },
+{ id: 'd', date: 'Mon 27 Jul 2026', est: 0, items: [P('Pinnacles', '09:05', 27.9, 42, '09:06', 29.6, 41, ['d'])] },
+{ id: 'e', date: 'Sat 10 Oct 2026', est: 0, items: [P('Partridge Point', '14:10', 18.6, 41, '14:12', 18.5, 41), U('u2', '16:20', 9.8, 35)] }
+];
+var toMin = function (t) { var a = t.split(':'); return +a[0] * 60 + +a[1]; };
+var fmt = function (m) { m = ((m % 1440) + 1440) % 1440; var h = Math.floor(m / 60), mm = m % 60; return (h < 10 ? '0' : '') + h + ':' + (mm < 10 ? '0' : '') + mm; };
+var fmtOff = function (o) { if (o === 0) return '0:00'; var a = Math.abs(o); return (o < 0 ? '−' : '+') + Math.floor(a / 60) + ':' + (a % 60 < 10 ? '0' : '') + (a % 60); };
+var paired = 0, added = 0, skipped = 0, shiftedDays = [];
+var un = [], nw = [], pdays = [], diffCount = 0, firstIssue = null;
+var outDays = days.map(function (d) {
+var off = offsets[d.id] != null ? offsets[d.id] : d.est;
+var setOff = function (v) { var n = Object.assign({}, offsets); n[d.id] = v; self.setState({ offsets: n }); };
+var openClock = function () { self.setState({ sheet: d.id }); };
+var short = d.date.replace(/ \d{4}$/, '');
+if (off !== 0) shiftedDays.push(short);
+var dayOk = 0, dayLogged = 0, rows = [];
+d.items.forEach(function (it) {
+var t = fmt(toMin(it.raw) + off);
+if (it.kind === 'p') {
+dayLogged++;
+var gap = Math.abs(toMin(t) - toMin(it.mineT));
+var ok = gap <= Math.max(1, Math.max(it.dur, it.cdur) / 2);
+var meta = it.mineT + ' · ' + it.depth.toFixed(1) + ' m · ' + it.dur + ' min';
+if (ok) {
+paired++; dayOk++;
+var vals = it.diff.map(function (k) { return k === 'd' ? it.cdepth.toFixed(1) + ' m' : it.cdur + ' min'; }).join(', ');
+var big = it.diff.some(function (k) { return k === 'd' ? Math.abs(it.cdepth - it.depth) > 1 : Math.abs(it.cdur - it.dur) > 3; });
+if (big) diffCount++;
+rows.push({ cls: rows.length ? 'hl' : '', site: it.site, meta: meta, hasDiff: !!it.diff.length, diffNote: 'D4i: ' + vals, aria: it.site + ', ' + meta + ', paired' + (it.diff.length ? ', D4i values differ, yours kept' : '') + '. Change pairing' });
+return;
+}
+var gapTxt = gap >= 60 ? Math.floor(gap / 60) + ' h' + (gap % 60 ? ' ' + (gap % 60) + ' min' : '') : gap + ' min';
+if (!firstIssue) firstIssue = d.id;
+un.push({ name: it.site, meta: short + ' · ' + meta, note: 'D4i starts ' + gapTxt + ' apart', aria: it.site + ', ' + short + ', not paired, D4i starts ' + gapTxt + ' apart. Change pairing' });
+return;
+}
+var c = choice[it.id] || 'add';
+if (c === 'add') added++; else skipped++;
+var setC = function (v) { var n = Object.assign({}, choice); n[it.id] = v; self.setState({ choice: n }); };
+if (!firstIssue) firstIssue = d.id;
+var on = c === 'add';
+nw.push({ name: short + ' · ' + t, meta: it.cdepth.toFixed(1) + ' m · ' + it.cdur + ' min', depth: it.cdepth.toFixed(1) + ' m', dur: it.cdur + ' min', on: on ? 'true' : 'false', fg: on ? 'var(--foreground)' : 'var(--muted-foreground)',
+toggle: function () { setC(on ? 'skip' : 'add'); }, cbAria: 'Add the D4i dive on ' + short + ' at ' + t + ' as a new dive',
+aria: 'D4i dive, ' + short + ' at ' + t + ', ' + it.cdepth.toFixed(1) + ' metres, ' + it.cdur + ' minutes. Pair with a logged dive instead' });
+});
+var out = {
+id: d.id, date: d.date, off: fmtOff(off), est: d.est, offMin: off,
+showClock: off !== 0 || d.est !== 0,
+clockLine: off === 0 ? 'D4i clock not moved' : 'D4i clock moved ' + fmtOff(off),
+clockAria: 'Change D4i clock for ' + d.date + ', now ' + fmtOff(off),
+openClock: openClock,
+minus: function () { setOff(off - 15); },
+plus: function () { setOff(off + 15); },
+reset: function () { setOff(d.est); },
+rows: rows, dayOk: dayOk, dayLogged: dayLogged
+};
+if (rows.length) pdays.push(out);
+return out;
+});
+un.forEach(function (x, i) { x.cls = i ? 'hl' : ''; }); nw.forEach(function (x, i) { x.cls = i ? 'hl' : ''; });
+var cleanCount = pdays.reduce(function (n, d) { return n + d.rows.length; }, 0);
+var pOpen = s.pOpen !== undefined ? s.pOpen : !!p.pairedOpen;
+var sheetId = s.sheet !== undefined ? s.sheet : (p.clockSheet ? 'a' : null);
+var sd = null;
+outDays.forEach(function (d) { if (d.id === sheetId) sd = d; });
+var ck = sd ? { id: sd.id, pickDay: function (e) { self.setState({ sheet: e.target.value }); }, date: sd.date, off: sd.off, aria: 'D4i clock offset ' + sd.off, minus: sd.minus, plus: sd.plus, reset: sd.reset,
+pairLine: sd.dayLogged ? sd.dayOk + ' of ' + sd.dayLogged + ' logged ' + (sd.dayLogged === 1 ? 'dive' : 'dives') + ' paired' : 'No logged dives this day',
+pairColor: sd.dayOk === sd.dayLogged ? 'var(--foreground)' : 'var(--warn)',
+canReset: sd.offMin !== sd.est, resetLabel: sd.est ? 'Use ' + fmtOff(sd.est) : 'Reset' } : { id: '', pickDay: function () {}, date: '', off: '', aria: '', minus: function () {}, plus: function () {}, reset: function () {}, pairLine: '', pairColor: '', canReset: false, resetLabel: '' };
+var FD = (p.freedives ?? 'New this import') === 'None' ? [] : [['Sat 3 Oct 2026', [['10:02', 4.1, 52], ['10:06', 3.6, 41], ['10:11', 4.6, 58], ['10:15', 3.9, 47], ['10:20', 4.4, 55], ['10:26', 3.2, 38]]]];
+var included = 0, fTotal = 0;
+var fmtS = function (sec) { return Math.floor(sec / 60) + ':' + (sec % 60 < 10 ? '0' : '') + (sec % 60); };
+var fdays = FD.map(function (d, di) {
+return { date: d[0], rows: d[1].map(function (f, i) {
+var key = di + '-' + i; var on = !!free[key]; fTotal++; if (on) included++;
+var label = f[0] + ' · ' + f[1].toFixed(1) + ' m · ' + fmtS(f[2]);
+return { label: label, on: on ? 'true' : 'false', btn: on ? 'Included' : 'Include', aria: 'Include freedive at ' + f[0] + ' on ' + d[0],
+bg: on ? 'var(--accent-soft)' : 'var(--muted)', btnFg: on ? 'var(--accent)' : 'var(--foreground)', fg: on ? 'var(--foreground)' : 'var(--muted-foreground)',
+toggle: function () { var n = Object.assign({}, free); n[key] = !on; self.setState({ free: n }); } };
+}) };
+});
+var total = paired + added + included;
+return {
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || ''),
+days: outDays,
+un: un, hasUn: un.length > 0, nw: nw, hasNew: nw.length > 0, pdays: pdays, hasDiff: diffCount > 0,
+ckDays: outDays.map(function (d) { return { id: d.id, label: d.date + (d.offMin ? ' · ' + d.off : '') }; }),
+openAnyClock: function () { self.setState({ sheet: firstIssue || outDays[0].id }); },
+pairedCount: String(paired),
+pairedSub: diffCount ? diffCount + (diffCount === 1 ? ' differs' : ' differ') + ' from the D4i' : shiftedDays.length === 1 ? 'Clock moved ' + shiftedDays[0] : shiftedDays.length ? 'Clock moved on ' + shiftedDays.length + ' days' : 'All matched',
+pairedAria: 'Paired, ' + paired + ' dives. See all',
+showPaired: pOpen, pOpen: pOpen ? 'true' : 'false', pRot: pOpen ? '180deg' : '0deg',
+togglePaired: function () { self.setState({ pOpen: !pOpen }); },
+summary: paired + ' paired · ' + (added + included) + ' new' + (skipped ? ' · ' + skipped + ' skipped' : ''),
+cta: 'Import ' + total + ' dives',
+showDone: !!s.doneOpen, doneOpen: s.doneOpen ? 'true' : 'false', doneRot: s.doneOpen ? '180deg' : '0deg',
+toggleDone: function () { self.setState({ doneOpen: !s.doneOpen }); },
+showFree: !!s.freeOpen, freeOpen: s.freeOpen ? 'true' : 'false', freeRot: s.freeOpen ? '180deg' : '0deg',
+toggleFree: function () { self.setState({ freeOpen: !s.freeOpen }); },
+freeCount: String(fTotal - included),
+fdays: fdays, hasFree: fdays.length > 0,
+changed: !!p.changed,
+clockOpen: !!sd, ck: ck, closeClock: function () { self.setState({ sheet: null }); },
+scrim: p.dark ? 'rgb(0 0 0 / 0.55)' : 'rgb(0 0 0 / 0.32)'
+};
+}
+}
+</script>
+</body>
+</html>

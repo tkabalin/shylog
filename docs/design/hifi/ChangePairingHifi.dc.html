@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Change pairing (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.sl{--warn:oklch(0.553 0.195 38.402);--danger:oklch(0.577 0.245 27.325)}
+.sl.dark{--warn:oklch(0.75 0.183 55.934);--danger:oklch(0.704 0.191 22.216)}
+.hbtn{display:inline-flex;align-items:center;height:44px;padding:0 8px;border:0;background:none;text-decoration:none;font-size:16px;font-weight:500;color:var(--accent);cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 20px;border:0;border-radius:14px;font-size:16px;font-weight:600;text-decoration:none;cursor:pointer}
+.btn-p{background:var(--accent);color:var(--accent-foreground)}
+.nudge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:50%;background:var(--muted);color:var(--foreground);cursor:pointer}
+.tlink{flex:none;border:0;padding:4px 0;background:none;font-size:13px;font-weight:500;color:var(--accent);cursor:pointer}
+.pair{display:flex;flex-direction:column;width:100%;border:0;padding:0;text-align:left;color:inherit;cursor:pointer}
+.pr{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px}
+.d4{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-top:1px solid var(--hairline);font-size:13px;color:var(--muted-foreground)}
+.scr > *{flex-shrink:0}
+.rmain{display:flex;align-items:center;gap:12px;width:100%;padding:12px 12px 12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit}
+button.rmain{cursor:pointer}
+.rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rn{font-size:16px;font-weight:500;letter-spacing:-0.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm{font-size:13px;color:var(--muted-foreground)}
+.rnote{display:flex;align-items:center;gap:10px;margin-top:-6px;padding:0 12px 12px 16px;font-size:13px}
+.hl{border-top:1px solid var(--hairline)}
+.seg.sm{border-radius:9px}.seg.sm button{height:28px;padding:0 12px;border-radius:7px;font-size:13px}
+.xrow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:10px 12px 10px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font-size:15px;cursor:pointer}
+
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.opt.hl{border-top:1px solid var(--hairline)}
+.rad{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--faint)}
+.opt[aria-checked="true"] .rad{box-shadow:inset 0 0 0 2px var(--accent)}
+.rad > span{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+a.rmain{text-decoration:none;color:inherit}
+.srch{box-sizing:border-box;width:100%;height:44px;padding:0 14px 0 38px;border:0;border-radius:12px;background:var(--muted);color:var(--foreground);font-size:16px;outline:none}
+.srch::placeholder{color:var(--muted-foreground)}
+.sheet{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:16px;padding:10px 20px 28px;border-radius:16px 16px 0 0;background:var(--background);box-shadow:0 0 0 1px var(--edge)}
+.grab{align-self:center;width:36px;height:5px;border-radius:3px;background:var(--faint);opacity:.5}
+
+.cmp{display:grid;grid-template-columns:minmax(0,1fr) 80px 80px;align-items:center;min-height:44px;padding:0 16px;font-size:15px}
+.cmp > :nth-child(n+2){text-align:right}
+.cmp .k{font-size:14px;color:var(--muted-foreground)}
+.cmph{min-height:34px;padding-top:4px;font-size:12px;font-weight:500;color:var(--muted-foreground)}
+
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+</style>
+</helmet>
+<div class="{{mode}}" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+<header style="flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px">
+<a href="ImportReviewHifi.dc.html" class="hbtn" style="justify-self: start; gap: 2px; padding-left: 2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"></path></svg>Review</a>
+<h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em">Pairing</h1>
+<span></span>
+</header>
+<main class="scr" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; padding: 8px 16px 32px">
+
+<section aria-labelledby="cp-d4">
+<h2 id="cp-d4" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a3 3 0 0 1 3 -3h6a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-6a3 3 0 0 1 -3 -3v-6z M9 18v3h6v-3 M9 6v-3h6v3"></path></svg>From your D4i</h2>
+<div class="card" style="display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span class="tn" style="font-size: 16px; font-weight: 500; letter-spacing: -0.015em; white-space: nowrap"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z M16 3v4 M8 3v4 M4 11h16 M11 15h1 M12 15v3"></path></svg>Sat 25 Jul · 09:14</span>
+<span class="tn" style="font-size: 13px; color: var(--muted-foreground)">32.4 m · 44 min · 22–24 °C</span>
+</div>
+<svg width="326" height="64" viewBox="0 0 326 64" role="img" aria-label="D4i depth profile to 32.4 metres over 44 minutes" style="display: block">
+<path d="{{area}}" fill="var(--accent-soft)"></path>
+<path d="{{line}}" fill="none" stroke="var(--accent)" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round"></path>
+<path d="{{tail}}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"></path>
+</svg>
+</div>
+</section>
+
+<section aria-labelledby="cp-with">
+<h2 id="cp-with" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z M3 21l2.5 -2.5 M18.5 5.5l2.5 -2.5 M10 11l-2 2 M13 14l-2 2"></path></svg>Pair with</h2>
+<div role="radiogroup" aria-labelledby="cp-with" style="display: flex; flex-direction: column; gap: 12px">
+<div class="card">
+<span class="tn" style="display: block; padding: 12px 16px 0; font-size: 12px; font-weight: 500; color: var(--muted-foreground)">Your dives on Sat 25 Jul</span>
+<sc-for list="{{logged}}" as="o" hint-placeholder-count="2">
+<button type="button" role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" class="opt {{o.cls}}">
+<span class="rad" aria-hidden="true"><span style="opacity: {{o.dot}}"></span></span>
+<span class="rt"><span class="rn"><svg class="xi {{o.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{o.ic}}"></path></svg>{{o.name}}</span><span class="rm tn">{{o.meta}}</span><sc-if value="{{o.hasNote}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: var(--warn)">{{o.note}}</span></sc-if></span>
+<sc-if value="{{o.current}}" hint-placeholder-val="{{false}}"><span style="flex: none; font-size: 12px; font-weight: 500; color: var(--muted-foreground)">Current</span></sc-if>
+</button>
+</sc-for>
+</div>
+<div class="card">
+<sc-for list="{{alts}}" as="o" hint-placeholder-count="2">
+<button type="button" role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" class="opt {{o.cls}}">
+<span class="rad" aria-hidden="true"><span style="opacity: {{o.dot}}"></span></span>
+<span class="rt"><span class="rn"><svg class="xi {{o.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{o.ic}}"></path></svg>{{o.name}}</span><span class="rm tn">{{o.meta}}</span><sc-if value="{{o.hasNote}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: var(--warn)">{{o.note}}</span></sc-if></span>
+<sc-if value="{{o.current}}" hint-placeholder-val="{{false}}"><span style="flex: none; font-size: 12px; font-weight: 500; color: var(--muted-foreground)">Current</span></sc-if>
+</button>
+</sc-for>
+</div>
+</div>
+<button type="button" class="tlink" style="margin: 10px 4px 0"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z M16 3v4 M8 3v4 M4 11h16 M11 15h1 M12 15v3"></path></svg>Show dives from other days</button>
+</section>
+
+<sc-if value="{{showCmp}}" hint-placeholder-val="{{true}}">
+<section aria-labelledby="cp-cmp">
+<h2 id="cp-cmp" class="sec">Compare</h2>
+<div class="card">
+<div class="cmph cmp" aria-hidden="true"><span></span><span>Yours</span><span>D4i</span></div>
+<sc-for list="{{cmp}}" as="c" hint-placeholder-count="4">
+<div class="cmp hl tn"><span class="k"><svg class="xi {{c.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{c.ic}}"></path></svg>{{c.k}}</span><span>{{c.a}}</span><span style="color: {{c.col}}; font-weight: {{c.w}}">{{c.b}}</span></div>
+</sc-for>
+</div>
+<p style="margin: 10px 4px 0; font-size: 13px; line-height: 1.5; color: {{cmpNoteColor}}">{{cmpNote}}</p>
+</section>
+</sc-if>
+<sc-if value="{{showAlt}}" hint-placeholder-val="{{false}}">
+<p style="margin: -8px 4px 0; font-size: 14px; line-height: 1.5; color: var(--muted-foreground)">{{altNote}}</p>
+</sc-if>
+
+</main>
+<div style="flex: none; padding: 12px 16px 20px; border-top: 1px solid var(--hairline); background: var(--nav)">
+<a href="ImportReviewHifi.dc.html" class="btn btn-p" style="display: flex"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M5 12l5 5l10 -10"></path></svg>Done</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;choice&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Two Mile Reef&quot;,&quot;Seven Mile Reef&quot;,&quot;Add as new dive&quot;,&quot;Skip&quot;],&quot;default&quot;:&quot;Two Mile Reef&quot;},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+renderVals() {
+var self = this;
+var p = this.props || {};
+var s = this.state || {};
+var init = { 'Two Mile Reef': 'tm', 'Seven Mile Reef': 'sm', 'Add as new dive': 'new', 'Skip': 'skip' }[p.choice ?? 'Two Mile Reef'] || 'tm';
+var ch = s.ch || init;
+var pick = function (v) { return function () { self.setState({ ch: v }); }; };
+var X = function (t) { return (t / 48 * 326).toFixed(1); };
+var Y = function (d) { return (2 + d / 35 * 60).toFixed(1); };
+// Same profile and scale as the dive detail chart (0–48 min, 0–35 m), at sparkline height
+var pr = [[0,0],[1,4],[2,14],[3.5,22],[5,30],[7,32.4],[9,31.2],[12,29.7],[14,27.7],[16,25.8],[18,23.8],[20,21.8],[22,19.8],[24,17.8],[26,16.8],[28,15.9],[30,14.9],[32,13.9],[34,11.9],[36,10.9],[37,9.9],[37.5,7.9],[37.8,5],[39,5],[41,5],[42,5],[43,2.5],[43.4,0],[44,0]];
+var line = pr.map(function (q, i) { return (i ? 'L' : 'M') + X(q[0]) + ' ' + Y(q[1]); }).join(' ');
+var area = line + ' L' + X(44) + ' 2 L0 2 Z';
+var tail = 'M' + X(44) + ' 2 L' + X(46) + ' 2';
+var OI = { tm: "M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z", sm: "M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z", 'new': "M14 3v4a1 1 0 0 0 1 1h4 M5 13v-8a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-5.5m-9.5 -2h7m-3 -3l3 3l-3 3", skip: "M4 5v14l12 -7z M20 5l0 14" };
+var mk = function (id, name, meta, note, current, i) { var on = ch === id; return { ic: OI[id], icc: '', name: name, meta: meta, note: note, hasNote: !!note && on, current: current, on: on ? 'true' : 'false', dot: on ? '1' : '0', pick: pick(id), cls: i ? 'hl' : '' }; };
+var logged = [mk('tm', 'Two Mile Reef', '09:12 · 32.7 m · 45 min', '', true, 0), mk('sm', 'Seven Mile Reef', '12:38 · 21.4 m · 52 min', 'Now paired with the 12:40 D4i dive, which will be left unpaired', false, 1)];
+var alts = [mk('new', 'Add as a new dive', 'Uses the D4i’s time, depth and profile', '', false, 0), mk('skip', 'Don’t import', 'Leave this D4i dive out', '', false, 1)];
+var W = 'var(--warn)', N = 'var(--foreground)';
+var CI = { 'Start': "M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 7v5l3 3", 'Max depth': "M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4", 'Duration': "M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z", 'Water': "M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5 M10 9l4 0" };
+var r = function (k, a, b, diff) { return { ic: CI[k], icc: '', k: k, a: a, b: b, col: diff ? W : N, w: diff ? '600' : '400' }; };
+var cmp = ch === 'sm'
+? [r('Start', '12:38', '09:14', true), r('Max depth', '21.4 m', '32.4 m', true), r('Duration', '52 min', '44 min', true), r('Water', '—', '22–24 °C', false)]
+: [r('Start', '09:12', '09:14', false), r('Max depth', '32.7 m', '32.4 m', true), r('Duration', '45 min', '44 min', true), r('Water', '—', '22–24 °C', false)];
+return {
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || ''),
+area: area, line: line, tail: tail,
+logged: logged, alts: alts,
+showCmp: ch === 'tm' || ch === 'sm',
+cmp: cmp,
+cmpNote: ch === 'sm' ? 'These start 3 h 24 min apart and look like different dives. Your values are kept either way.' : 'Your values are kept. The D4i adds its profile, temperatures and alarms.',
+cmpNoteColor: ch === 'sm' ? 'var(--warn)' : 'var(--muted-foreground)',
+showAlt: ch === 'new' || ch === 'skip',
+altNote: ch === 'new' ? 'A new dive is added on Sat 25 Jul at 09:14 with the D4i’s values. Add the site and other details afterwards.' : 'This D4i dive won’t be imported. It’ll show up again if it’s in a later export.'
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Choose site (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.srow{display:flex;align-items:center;gap:12px;min-height:58px;padding:8px 16px;box-sizing:border-box;text-decoration:none;color:inherit}
+.srow + .srow{border-top:1px solid var(--hairline)}
+.srow .st{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.srow .sn{font-size:16px;font-weight:500;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .sp{font-size:13px;color:var(--muted-foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srow .sd{flex:none;font-size:13px;color:var(--muted-foreground);font-variant-numeric:tabular-nums}
+.srow .ck{flex:none;width:18px;height:18px;color:var(--accent)}
+.hbtn{display:inline-flex;align-items:center;height:44px;padding:0 8px;border:0;background:none;text-decoration:none;font-size:16px;font-weight:500;color:var(--accent);cursor:pointer}
+.addrow{display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;border:0;width:100%;background:none;text-align:left;font-size:16px;font-weight:500;color:var(--accent);cursor:pointer}
+.addrow svg{flex:none}
+.addrow span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+</style>
+</helmet>
+<div class="{{mode}}" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; -webkit-font-smoothing: antialiased">
+
+<section aria-labelledby="sp-h" style="position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--background)">
+
+<sc-if value="{{isList}}" hint-placeholder-val="{{true}}">
+<header style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px">
+<a href="EditDiveHifi.dc.html" class="hbtn" style="justify-self: start; gap: 2px; padding-left: 2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"></path></svg>Edit dive</a>
+<h1 id="sp-h" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em">Site</h1>
+<span></span>
+</header>
+<div style="padding: 4px 16px 12px">
+<label style="position: relative; display: block">
+<span class="sr">Search or add a site</span>
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; left: 13px; top: 13.5px; color: var(--muted-foreground)"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0 M21 21l-6 -6"></path></svg>
+<input type="text" value="{{q}}" onChange="{{setQ}}" placeholder="Search or add a site" autocomplete="off" style="box-sizing: border-box; width: 100%; height: 44px; padding: 0 40px 0 38px; border: 0; border-radius: 12px; background: var(--muted); color: var(--foreground); font-size: 16px; outline: none">
+<sc-if value="{{hasQ}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{clearQ}}" aria-label="Clear search" style="position: absolute; right: 4px; top: 4px; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 0; background: none; color: var(--muted-foreground); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="opacity: 0.55"><path d="M18 6l-12 12 M6 6l12 12"></path></svg></button></sc-if>
+</label>
+</div>
+<div style="padding: 0 16px 8px"><div class="card"><button type="button" class="addrow" onClick="{{startNew}}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg><span>{{addLabel}}</span></button></div></div>
+
+<div style="flex: 1; min-height: 0; overflow-y: auto; padding: 16px 16px 40px; display: flex; flex-direction: column; gap: 24px">
+
+<sc-if value="{{browsing}}" hint-placeholder-val="{{true}}">
+
+<section aria-labelledby="sp-recent">
+<h2 id="sp-recent" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8l0 4l2 2 M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path></svg>Recent</h2>
+<div class="card">
+<sc-for list="{{recent}}" as="r" hint-placeholder-count="3">
+<a href="EditDiveHifi.dc.html" class="srow" aria-current="{{r.current}}">
+<span class="st"><span class="sn">{{r.name}}</span><span class="sp"><svg class="xi xi2" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13 M9 4v13 M15 7v13"></path></svg>{{r.place}}</span></span>
+<span class="sd">{{r.count}}</span>
+<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: {{r.ckOpacity}}"><path d="M5 12l5 5l10 -10"></path></svg>
+</a>
+</sc-for>
+</div>
+</section>
+
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<section>
+<h2 class="sec">{{g.country}}</h2>
+<div class="card">
+<sc-for list="{{g.sites}}" as="r" hint-placeholder-count="5">
+<a href="EditDiveHifi.dc.html" class="srow" aria-current="{{r.current}}">
+<span class="st"><span class="sn">{{r.name}}</span><span class="sp">{{r.region}}</span></span>
+<span class="sd">{{r.count}}</span>
+<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: {{r.ckOpacity}}"><path d="M5 12l5 5l10 -10"></path></svg>
+</a>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</sc-if>
+
+<sc-if value="{{searching}}" hint-placeholder-val="{{false}}">
+<sc-if value="{{hasResults}}" hint-placeholder-val="{{true}}">
+<div class="card">
+<sc-for list="{{results}}" as="r" hint-placeholder-count="2">
+<a href="EditDiveHifi.dc.html" class="srow" aria-current="{{r.current}}">
+<span class="st"><span class="sn"><sc-for list="{{r.parts}}" as="p" hint-placeholder-count="2"><span style="font-weight: {{p.w}}; color: {{p.c}}">{{p.t}}</span></sc-for></span><span class="sp"><svg class="xi xi2" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13 M9 4v13 M15 7v13"></path></svg>{{r.place}}</span></span>
+<span class="sd">{{r.count}}</span>
+<svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: {{r.ckOpacity}}"><path d="M5 12l5 5l10 -10"></path></svg>
+</a>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{noResults}}" hint-placeholder-val="{{false}}">
+<p style="margin: 8px 4px 0; font-size: 14px; color: var(--muted-foreground)">No sites match.</p>
+</sc-if>
+</sc-if>
+
+</div>
+</sc-if>
+
+<sc-if value="{{isCreate}}" hint-placeholder-val="{{false}}">
+<header style="display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px">
+<button type="button" class="hbtn" onClick="{{backToList}}" style="justify-self: start; gap: 2px; padding-left: 2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"></path></svg><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg>Sites</button>
+<h1 id="sp-h" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5l0 14 M5 12l14 0"></path></svg>New site</h1>
+<sc-if value="{{canAdd}}" hint-placeholder-val="{{true}}"><a href="EditDiveHifi.dc.html" class="hbtn" style="justify-self: end; font-weight: 600">Add</a></sc-if>
+<sc-if value="{{cantAdd}}" hint-placeholder-val="{{false}}"><span class="hbtn" aria-disabled="true" style="justify-self: end; font-weight: 600; color: var(--faint); cursor: default">Add</span></sc-if>
+</header>
+
+<form onSubmit="{{noSubmit}}" style="flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px 40px; display: flex; flex-direction: column; gap: 24px">
+
+<div class="card fl">
+<div class="frow"><label for="ns-name">Name</label><input id="ns-name" class="fin" type="text" value="{{name}}" onChange="{{setName}}" placeholder="Required" autocomplete="off"></div>
+<sc-if value="{{dup}}" hint-placeholder-val="{{false}}">
+<div style="display: flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 8px 0 16px; font-size: 14px; color: var(--muted-foreground)">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z M12 16h.01"></path></svg>
+<span style="flex: 1; min-width: 0">{{dupName}} already exists in {{country}}</span>
+<a href="EditDiveHifi.dc.html" class="hbtn" style="flex: none; font-size: 14px; height: 36px">Use it</a>
+</div>
+</sc-if>
+</div>
+
+<section aria-labelledby="ns-loc">
+<h2 id="ns-loc" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg>Location</h2>
+<div class="card fl">
+<div class="frow"><span class="lbl"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9z M5 21v-7"></path></svg>Country</span><button type="button" class="pick">{{country}}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"></path></svg></button></div>
+<div class="frow"><label for="ns-region"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13 M9 4v13 M15 7v13"></path></svg>Region</label><input id="ns-region" class="fin" type="text" value="{{region}}" onChange="{{setRegion}}" placeholder="Optional" autocomplete="off"></div>
+</div>
+</section>
+
+<section aria-labelledby="ns-water">
+<h2 id="ns-water" class="sec">Water</h2>
+<div class="card fl">
+<div class="frow"><label for="ns-body"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1 M4 18l-1 -3h18l-1 3 M11 12h7l-7 -9v9 M8 7l-2 5"></path></svg>Body of water</label><span style="position: relative; flex: 1; min-width: 0; display: flex"><select id="ns-body" value="{{body}}" onChange="{{setBody}}" style="flex: 1; min-width: 0; height: 46px; padding: 0 24px 0 0; border: 0; background: none; appearance: none; -webkit-appearance: none; text-align: right; text-align-last: right; direction: rtl; font-size: 16px; font-weight: 500; color: var(--foreground); outline: none; cursor: pointer"><option value="Ocean or sea">Ocean or sea</option><option value="Lake or quarry">Lake or quarry</option><option value="River or spring">River or spring</option><option value="Cave or cavern">Cave or cavern</option><option value="Pool">Pool</option><option value="Hyperbaric chamber">Hyperbaric chamber</option><option value="Under ice">Under ice</option><option value="Other">Other</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; right: 0; top: 15px; color: var(--faint); pointer-events: none"><path d="M8 9l4 -4l4 4"></path><path d="M16 15l-4 4l-4 -4"></path></svg></span></div>
+<div class="fblock">
+<span class="lbl" id="ns-type">Water type</span>
+<div class="seg" role="group" aria-labelledby="ns-type" style="grid-template-columns: repeat(2, minmax(0, 1fr))">
+<sc-for list="{{waters}}" as="w" hint-placeholder-count="2"><button type="button" aria-pressed="{{w.on}}" onClick="{{w.pick}}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 13v.01 M10 16v.01 M14 16v.01 M7.5 8h9l-.281 -2.248a2 2 0 0 0 -1.985 -1.752h-4.468a2 2 0 0 0 -1.986 1.752l-.28 2.248z M7.5 8l-1.612 9.671a2 2 0 0 0 1.973 2.329h8.278a2 2 0 0 0 1.973 -2.329l-1.612 -9.671" display="{{w.salt}}"></path><path d="M7.502 19.423c2.602 2.105 6.395 2.105 8.996 0c2.602 -2.105 3.262 -5.708 1.566 -8.546l-4.89 -7.26c-.42 -.625 -1.287 -.803 -1.936 -.397a1.376 1.376 0 0 0 -.41 .397l-4.893 7.26c-1.695 2.838 -1.035 6.441 1.567 8.546z" display="{{w.fresh}}"></path></svg>{{w.label}}</button></sc-for>
+</div>
+</div>
+</div>
+</section>
+
+<sc-if value="{{offline}}" hint-placeholder-val="{{false}}">
+<p style="display: flex; gap: 8px; margin: -8px 4px 0; font-size: 13px; line-height: 1.45; color: var(--muted-foreground)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M9.58 5.548c.24 -.11 .492 -.207 .752 -.286c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 .957 -.383 1.824 -1.003 2.454m-2.997 1.033h-11.343c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.13 -.582 .37 -1.128 .7 -1.62"></path><path d="M3 3l18 18"></path></svg><span>You're offline. The site is saved on this phone and matched with your existing sites when it syncs.</span></p>
+</sc-if>
+
+</form>
+</sc-if>
+</section>
+</div>
+</x-dc>
+
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Browse&quot;,&quot;Search&quot;,&quot;New site&quot;,&quot;New site (duplicate)&quot;],&quot;default&quot;:&quot;Browse&quot;},&quot;offline&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = {};
+}
+renderVals() {
+var self = this;
+var s = this.state || {};
+var p = this.props || {};
+var tweak = p.view ?? 'Browse';
+var fresh = s.from === tweak;
+var presetQ = { 'Browse': '', 'Search': 'long b', 'New site': 'Long Beach Jetty', 'New site (duplicate)': 'long beach ' }[tweak] ?? '';
+var view = fresh && s.view ? s.view : (tweak.indexOf('New site') === 0 ? 'create' : 'list');
+var q = fresh && s.q != null ? s.q : (view === 'list' ? presetQ : '');
+var name = fresh && s.name != null ? s.name : (tweak.indexOf('New site') === 0 ? presetQ : '');
+var body = fresh && s.body ? s.body : 'Ocean or sea';
+var set = function (o) { o.from = tweak; o.view = o.view || view; if (o.q == null) o.q = q; if (o.name == null) o.name = name; if (!o.body) o.body = body; if (o.water === undefined) o.water = fresh ? s.water : null; self.setState(o); };
+
+var current = 'Two Mile Reef';
+var sites = [
+['A-Frame', "Simon's Town", 'South Africa', 9],
+['Bass Lake', 'Johannesburg', 'South Africa', 4],
+['Bellows Rock', 'Cape Point', 'South Africa', 1],
+['Castle Rocks', "Simon's Town", 'South Africa', 3],
+['Long Beach', "Simon's Town", 'South Africa', 14],
+['Maori wreck', 'Llandudno', 'South Africa', 2],
+['Pinnacles', 'Sodwana', 'South Africa', 3],
+['Seven Mile Reef', 'Sodwana', 'South Africa', 6],
+['Stringer', 'Sodwana', 'South Africa', 4],
+['Two Mile Reef', 'Sodwana', 'South Africa', 18],
+['Windmill Beach', "Simon's Town", 'South Africa', 5],
+['Hòn Dài', 'Hội An', 'Vietnam', 3],
+['Hòn Tai', 'Hội An', 'Vietnam', 2],
+['Long Beach', 'Phú Quốc', 'Vietnam', 2]
+].map(function (r) {
+var cur = r[0] === current && r[2] === 'South Africa';
+return { name: r[0], region: r[1], country: r[2], place: r[1] + ' · ' + r[2], count: r[3] + (r[3] === 1 ? ' dive' : ' dives'), dives: r[3], current: cur ? 'true' : 'false', ckOpacity: cur ? '1' : '0' };
+});
+
+var fold = function (ch) { return ch.normalize('NFD').replace(/[̀-ͯ]/g, '').replace('đ', 'd').replace('Đ', 'd').toLowerCase(); };
+var key = function (str) { return Array.from(str.trim().replace(/\s+/g, ' ')).map(fold).join(''); };
+var nq = key(q);
+
+var results = [];
+if (nq) {
+sites.forEach(function (st) {
+var chars = Array.from(st.name);
+var folded = chars.map(fold);
+var joined = folded.join('');
+var at = joined.indexOf(nq);
+var rank;
+var parts;
+if (at >= 0) {
+var start = 0, pos = 0, i = 0;
+while (pos < at) { pos += folded[i].length; i++; }
+start = i;
+var end = start, len = 0;
+while (len < nq.length && end < chars.length) { len += folded[end].length; end++; }
+parts = [
+{ t: chars.slice(0, start).join(''), w: '400', c: 'var(--foreground)' },
+{ t: chars.slice(start, end).join(''), w: '600', c: 'var(--foreground)' },
+{ t: chars.slice(end).join(''), w: '400', c: 'var(--foreground)' }
+].filter(function (x) { return x.t !== ''; });
+rank = at === 0 ? 0 : 1;
+} else if (key(st.region).indexOf(nq) >= 0 || key(st.country).indexOf(nq) >= 0) {
+parts = [{ t: st.name, w: '400', c: 'var(--foreground)' }];
+rank = 2;
+} else { return; }
+results.push(Object.assign({}, st, { parts: parts, rank: rank }));
+});
+results.sort(function (a, b) { return a.rank - b.rank || b.dives - a.dives; });
+}
+
+var groups = ['South Africa', 'Vietnam'].map(function (c) {
+return { country: c, sites: sites.filter(function (x) { return x.country === c; }) };
+});
+var recent = ['Two Mile Reef', 'Seven Mile Reef', 'Long Beach'].map(function (n) {
+return sites.filter(function (x) { return x.name === n && x.country === 'South Africa'; })[0];
+});
+
+var country = 'South Africa';
+var nName = key(name);
+var dupSite = nName ? sites.filter(function (x) { return x.country === country && key(x.name) === nName; })[0] : null;
+var freshBodies = ['Lake or quarry', 'River or spring', 'Pool'];
+var water = (fresh && s.water) || (freshBodies.indexOf(body) >= 0 ? 'Fresh' : 'Salt');
+
+return {
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || ''),
+scrim: p.dark ? 'rgb(0 0 0 / 0.55)' : 'rgb(0 0 0 / 0.32)',
+isList: view === 'list',
+isCreate: view === 'create',
+q: q,
+hasQ: q !== '',
+qShow: q.trim().replace(/\s+/g, ' '),
+addLabel: nq ? 'Add “' + q.trim().replace(/\s+/g, ' ') + '”' : 'New site',
+body: body,
+setBody: function (e) { set({ body: e.target.value, water: null }); },
+browsing: view === 'list' && !nq,
+searching: view === 'list' && !!nq,
+results: results,
+hasResults: results.length > 0,
+noResults: results.length === 0,
+groups: groups,
+recent: recent,
+setQ: function (e) { set({ q: e.target.value }); },
+clearQ: function () { set({ q: '' }); },
+startNew: function () { var t = q.trim().replace(/\s+/g, ' '); set({ view: 'create', name: t ? t.charAt(0).toUpperCase() + t.slice(1) : '' }); },
+backToList: function () { set({ view: 'list' }); },
+name: name,
+setName: function (e) { set({ name: e.target.value }); },
+dup: !!dupSite,
+dupName: dupSite ? dupSite.name : '',
+canAdd: !!nName && !dupSite,
+cantAdd: !nName || !!dupSite,
+country: country,
+region: fresh && s.region != null ? s.region : "Simon's Town",
+setRegion: function (e) { set({ region: e.target.value }); },
+bodies: ['Ocean or sea', 'Lake or quarry', 'River or spring', 'Cave or cavern', 'Pool', 'Hyperbaric chamber', 'Under ice', 'Other'].map(function (b) {
+return { label: b, on: b === body ? 'true' : 'false', pick: function () { set({ body: b, water: null }); } };
+}),
+waters: ['Salt', 'Fresh'].map(function (w) {
+return { label: w, on: w === water ? 'true' : 'false', salt: w === 'Salt' ? 'inline' : 'none', fresh: w === 'Fresh' ? 'inline' : 'none', pick: function () { set({ water: w }); } };
+}),
+offline: !!p.offline,
+noSubmit: function (e) { e.preventDefault(); }
+};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Site, person or trip (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.sl{--warn:oklch(0.553 0.195 38.402);--danger:oklch(0.577 0.245 27.325)}
+.sl.dark{--warn:oklch(0.75 0.183 55.934);--danger:oklch(0.704 0.191 22.216)}
+.hbtn{display:inline-flex;align-items:center;height:44px;padding:0 8px;border:0;background:none;text-decoration:none;font-size:16px;font-weight:500;color:var(--accent);cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 20px;border:0;border-radius:14px;font-size:16px;font-weight:600;text-decoration:none;cursor:pointer}
+.btn-p{background:var(--accent);color:var(--accent-foreground)}
+.nudge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:50%;background:var(--muted);color:var(--foreground);cursor:pointer}
+.tlink{flex:none;border:0;padding:4px 0;background:none;font-size:13px;font-weight:500;color:var(--accent);cursor:pointer}
+.pair{display:flex;flex-direction:column;width:100%;border:0;padding:0;text-align:left;color:inherit;cursor:pointer}
+.pr{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px}
+.d4{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-top:1px solid var(--hairline);font-size:13px;color:var(--muted-foreground)}
+.scr > *{flex-shrink:0}
+.rmain{display:flex;align-items:center;gap:12px;width:100%;padding:12px 12px 12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit}
+button.rmain{cursor:pointer}
+.rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rn{font-size:16px;font-weight:500;letter-spacing:-0.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm{font-size:13px;color:var(--muted-foreground)}
+.rnote{display:flex;align-items:center;gap:10px;margin-top:-6px;padding:0 12px 12px 16px;font-size:13px}
+.hl{border-top:1px solid var(--hairline)}
+.seg.sm{border-radius:9px}.seg.sm button{height:28px;padding:0 12px;border-radius:7px;font-size:13px}
+.xrow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:10px 12px 10px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font-size:15px;cursor:pointer}
+
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.opt.hl{border-top:1px solid var(--hairline)}
+.rad{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--faint)}
+.opt[aria-checked="true"] .rad{box-shadow:inset 0 0 0 2px var(--accent)}
+.rad > span{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+a.rmain{text-decoration:none;color:inherit}
+.srch{box-sizing:border-box;width:100%;height:44px;padding:0 14px 0 38px;border:0;border-radius:12px;background:var(--muted);color:var(--foreground);font-size:16px;outline:none}
+.srch::placeholder{color:var(--muted-foreground)}
+.sheet{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:16px;padding:10px 20px 28px;border-radius:16px 16px 0 0;background:var(--background);box-shadow:0 0 0 1px var(--edge)}
+.grab{align-self:center;width:36px;height:5px;border-radius:3px;background:var(--faint);opacity:.5}
+
+.act{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:0 16px;box-sizing:border-box;border:0;background:none;text-align:left;font:inherit;font-size:15px;font-weight:500;cursor:pointer}
+.act.hl{border-top:1px solid var(--hairline)}
+
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+.mp{white-space:nowrap}.mp + .mp{margin-left:12px}.noxi .mp + .mp{margin-left:0}.noxi .mp + .mp::before{content:"\00b7\00a0";margin-left:0.25em}
+.mp .xi{margin-right:0.3em}
+</style>
+</helmet>
+<div class="{{mode}}" style="position: relative; width: 390px; min-height: {{minH}}; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+<header style="flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px">
+<a href="EntitiesHifi.dc.html" class="hbtn" style="justify-self: start; gap: 2px; padding-left: 2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"></path></svg>{{backLabel}}</a>
+<span></span><span></span>
+</header>
+<main style="display: flex; flex-direction: column; gap: 24px; padding: 12px 16px 40px">
+<section style="display: flex; flex-direction: column; gap: 4px; padding: 0 4px">
+<h1 style="margin: 0; font-size: 30px; line-height: 36px; font-weight: 600; letter-spacing: -0.035em">{{name}}</h1>
+<p class="tn" style="margin: 0; font-size: 15px; color: var(--muted-foreground)">{{sub}}</p>
+</section>
+<dl aria-label="Summary" style="margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0 4px">
+<sc-for list="{{stats}}" as="f" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column-reverse; gap: 1px; padding: {{f.pad}}; border-left: {{f.rule}}">
+<dt style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi {{f.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{f.ic}}"></path></svg>{{f.k}}</dt>
+<dd class="tn" style="margin: 0; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.03em">{{f.v}}</dd>
+</div>
+</sc-for>
+</dl>
+
+<section aria-labelledby="ed-det">
+<h2 id="ed-det" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4 M13.5 6.5l4 4"></path></svg>Details</h2>
+<div class="card">
+<sc-for list="{{fields}}" as="x" hint-placeholder-count="2">
+<div class="{{x.cls}}">
+<sc-if value="{{x.isInput}}" hint-placeholder-val="{{true}}"><div class="frow"><label><svg class="xi {{x.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{x.ic}}"></path></svg>{{x.label}}</label><input class="fin" value="{{x.value}}" aria-label="{{x.label}}"></div></sc-if>
+<sc-if value="{{x.isPick}}" hint-placeholder-val="{{false}}"><div class="frow"><span class="lbl"><svg class="xi {{x.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{x.ic}}"></path></svg>{{x.label}}</span><button type="button" class="pick">{{x.value}}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 9l4 -4l4 4"></path><path d="M16 15l-4 4l-4 -4"></path></svg></button></div></sc-if>
+<sc-if value="{{x.isSeg}}" hint-placeholder-val="{{false}}"><div class="frow"><span class="lbl"><svg class="xi {{x.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{x.ic}}"></path></svg>{{x.label}}</span><span style="flex: 1"></span><div class="seg sm" role="group" aria-label="{{x.label}}" style="grid-template-columns: auto auto"><button type="button" aria-pressed="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 13v.01 M10 16v.01 M14 16v.01 M7.5 8h9l-.281 -2.248a2 2 0 0 0 -1.985 -1.752h-4.468a2 2 0 0 0 -1.986 1.752l-.28 2.248z M7.5 8l-1.612 9.671a2 2 0 0 0 1.973 2.329h8.278a2 2 0 0 0 1.973 -2.329l-1.612 -9.671"></path></svg>Salt</button><button type="button" aria-pressed="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.502 19.423c2.602 2.105 6.395 2.105 8.996 0c2.602 -2.105 3.262 -5.708 1.566 -8.546l-4.89 -7.26c-.42 -.625 -1.287 -.803 -1.936 -.397a1.376 1.376 0 0 0 -.41 .397l-4.893 7.26c-1.695 2.838 -1.035 6.441 1.567 8.546z"></path></svg>Fresh</button></div></div></sc-if>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{hasFieldNote}}" hint-placeholder-val="{{false}}"><p style="margin: 8px 4px 0; font-size: 13px; color: var(--muted-foreground)">{{fieldNote}}</p></sc-if>
+</section>
+
+<section aria-labelledby="ed-dives">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><h2 id="ed-dives" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18 M13 8l2 0 M13 12l2 0"></path></svg>Dives</h2><span class="tn" style="padding: 0 4px; font-size: 12px; color: var(--muted-foreground)">{{count}}</span></div>
+<div class="card">
+<sc-for list="{{dives}}" as="d" hint-placeholder-count="3">
+<a href="DiveDetailHifi.dc.html" class="rmain {{d.cls}}">
+<span class="rt"><span class="rn" style="font-size: 15px">{{d.name}}</span><span class="rm tn" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><sc-for list="{{d.parts}}" as="m" hint-placeholder-count="2"><span class="mp"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.ic}}"></path></svg><span>{{m.t}}</span></span></sc-for></span></span>
+<span class="tn" style="flex: none; font-size: 14px; font-weight: 500">{{d.depth}}</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
+</a>
+</sc-for>
+<a href="LogHifi2.dc.html" class="rmain hl" style="min-height: 48px; padding-top: 0; padding-bottom: 0"><span style="flex: 1; font-size: 15px; font-weight: 500; color: var(--accent)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18 M13 8l2 0 M13 12l2 0"></path></svg>{{allLabel}}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg></a>
+</div>
+</section>
+
+<section aria-label="Actions">
+<div class="card">
+<button type="button" class="act" onClick="{{openMerge}}" style="color: var(--accent)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M8 7l4 -4l4 4"></path><path d="M12 3v5.394a6.737 6.737 0 0 1 -3 5.606a6.737 6.737 0 0 0 -3 5.606v1.394"></path><path d="M12 3v5.394a6.737 6.737 0 0 0 3 5.606a6.737 6.737 0 0 1 3 5.606v1.394"></path></svg>Merge a duplicate into this</button>
+<button type="button" class="act hl" disabled="{{delDisabled}}" style="color: {{delColor}}; cursor: {{delCursor}}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M4 7l16 0"></path><path d="M10 11l0 6"></path><path d="M14 11l0 6"></path><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"></path></svg>{{delLabel}}</button>
+</div>
+<p style="margin: 8px 4px 0; font-size: 13px; line-height: 1.5; color: var(--muted-foreground)">{{delNote}}</p>
+</section>
+</main>
+
+<sc-if value="{{mergeOpen}}" hint-placeholder-val="{{false}}">
+<div aria-hidden="true" onClick="{{closeMerge}}" style="position: absolute; inset: 0; background: {{scrim}}"></div>
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="mg-h">
+<span class="grab" aria-hidden="true"></span>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 id="mg-h" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.015em">Merge into {{name}}</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--muted-foreground)">Pick the duplicate. Its dives move here and it’s removed.</p>
+</div>
+<label style="position: relative; display: block"><span class="sr">{{searchPh}}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; left: 12px; top: 13px; color: var(--muted-foreground)"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg><input type="search" class="srch" placeholder="{{searchPh}}"></label>
+<div class="card" role="radiogroup" aria-label="Duplicate to merge">
+<sc-for list="{{cands}}" as="o" hint-placeholder-count="3">
+<button type="button" role="radio" aria-checked="{{o.on}}" onClick="{{o.pick}}" class="opt {{o.cls}}">
+<span class="rad" aria-hidden="true"><span style="opacity: {{o.dot}}"></span></span>
+<span class="rt"><span class="rn" style="font-size: 15px">{{o.name}}</span><span class="rm tn">{{o.meta}}</span></span>
+<sc-if value="{{o.likely}}" hint-placeholder-val="{{false}}"><span style="flex: none; font-size: 12px; font-weight: 500; color: var(--warn)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z M12 16h.01"></path></svg>Likely duplicate</span></sc-if>
+</button>
+</sc-for>
+</div>
+<p class="tn" style="margin: -4px 4px 0; min-height: 20px; font-size: 13px; line-height: 1.5; color: var(--muted-foreground)">{{mergeLine}}</p>
+<button type="button" onClick="{{closeMerge}}" class="btn" style="background: {{mBg}}; color: {{mFg}}; cursor: {{mCursor}}">{{mergeCta}}</button>
+</section>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;type&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Site&quot;,&quot;Person&quot;,&quot;Dive centre&quot;,&quot;Trip&quot;],&quot;default&quot;:&quot;Site&quot;},&quot;merge&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:990}}">
+class Component extends DCLogic {
+renderVals() {
+var MIC = {"date": "M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z M16 3v4 M8 3v4 M4 11h16 M11 15h1 M12 15v3", "time": "M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 7v5l3 3", "duration": "M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z", "person": "M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0 M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"};
+var self = this;
+var p = this.props || {};
+var s = this.state || {};
+var PROPKEY = { 'Site': 'site', 'Person': 'person', 'Dive centre': 'centre', 'Trip': 'trip' };
+var k = PROPKEY[p.type ?? 'Site'] || 'site';
+var IN = function (l, v) { return { label: l, value: v, kind: 'in' }; };
+var D = {
+site: { back: 'Sites', name: 'Two Mile Reef', sub: 'Sodwana, South Africa', n: 18,
+stats: [['18', 'Dives'], ['32.7 m', 'Deepest'], ['25 Jul', 'Last dive']],
+fields: [IN('Name', 'Two Mile Reef'), IN('Country', 'South Africa'), IN('Region', 'Sodwana'), { label: 'Body of water', value: 'Indian Ocean', kind: 'pick' }, { label: 'Water', kind: 'seg' }], note: '',
+dives: [['Sat 25 Jul 2026', '09:12 · 44 min', '32.7 m'], ['Fri 24 Jul 2026', '11:05 · 47 min', '29.8 m'], ['Sun 6 Apr 2026', '08:40 · 51 min', '27.1 m']],
+cands: [['2 Mile Reef', 'Sodwana · 1 dive', true], ['Seven Mile Reef', 'Sodwana · 9 dives'], ['Stringer', 'Sodwana · 6 dives'], ['Pinnacles', 'Sodwana · 4 dives']], unit: 'site' },
+person: { back: 'People', name: 'Sam Naidoo', sub: 'Buddy since Mar 2024', n: 22,
+stats: [['22', 'Dives together'], ['22', 'As buddy'], ['25 Jul', 'Last dive']],
+fields: [IN('Name', 'Sam Naidoo')], note: 'Names are unique, so two people can’t share one.',
+dives: [['Two Mile Reef', 'Sat 25 Jul 2026 · 44 min', '32.7 m'], ['Seven Mile Reef', 'Sun 27 Jul 2026 · 52 min', '24.1 m'], ['Stringer', 'Sat 25 Jul 2026 · 55 min', '17.9 m']],
+cands: [['Sam N', 'Buddy · 1 dive', true], ['Lerato Mokoena', 'Buddy · 14 dives'], ['Thandi Dlamini', 'Buddy · 6 dives']], unit: 'person' },
+centre: { back: 'Dive centres', name: 'Coral Edge Diving', sub: 'Sodwana', n: 21,
+stats: [['21', 'Dives'], ['5', 'Sites'], ['25 Jul', 'Last dive']],
+fields: [IN('Name', 'Coral Edge Diving'), IN('Region', 'Sodwana')], note: '',
+dives: [['Two Mile Reef', 'Sat 25 Jul 2026 · 44 min', '32.7 m'], ['Seven Mile Reef', 'Sun 27 Jul 2026 · 52 min', '24.1 m'], ['Pinnacles', 'Mon 27 Jul 2026 · 42 min', '27.9 m']],
+cands: [['Coral Edge', 'Sodwana · 2 dives', true], ['Pisces Divers', 'False Bay · 11 dives'], ['Rainbow Divers', 'Nha Trang · 4 dives']], unit: 'dive centre' },
+trip: { back: 'Trips', name: 'Sodwana, July 2026', sub: '18 – 27 Jul 2026', n: 14,
+stats: [['14', 'Dives'], ['10', 'Days'], ['32.7 m', 'Deepest']],
+fields: [IN('Name', 'Sodwana, July 2026')], note: 'Dates come from the dives in the trip.',
+dives: [['Seven Mile Reef', 'Mon 27 Jul 2026 · 52 min', '24.1 m'], ['Pinnacles', 'Mon 27 Jul 2026 · 42 min', '27.9 m'], ['Two Mile Reef', 'Sat 25 Jul 2026 · 44 min', '32.7 m']],
+cands: [['Sodwana trip', '24 – 27 Jul 2026 · 3 dives', true], ['Mozambique', '12 – 19 Sep 2025 · 10 dives'], ['Sodwana, Easter', '3 – 6 Apr 2026 · 8 dives']], unit: 'trip' }
+}[k];
+var mOpen = s.m !== undefined ? s.m : !!p.merge;
+var sel = s.sel != null ? s.sel : -1;
+var chosen = sel >= 0 ? D.cands[sel] : null;
+var cn = chosen ? +(chosen[1].match(/(\d+) dives?$/) || [0, 0])[1] : 0;
+var hasDives = k !== 'trip';
+return {
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || ''),
+minH: '990px',
+backLabel: D.back, name: D.name, sub: D.sub,
+stats: D.stats.map(function (f, i) { var SI = { 'Dives': "M5 9l14 0 M5 15l14 0 M11 4l-4 16 M17 4l-4 16", 'Deepest': "M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4", 'Last dive': "M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z M16 3v4 M8 3v4 M4 11h16 M11 15h1 M12 15v3", 'Dives together': "M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2 M16 3.13a4 4 0 0 1 0 7.75 M21 21v-2a4 4 0 0 0 -3 -3.85", 'As buddy': "M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2 M16 3.13a4 4 0 0 1 0 7.75 M21 21v-2a4 4 0 0 0 -3 -3.85", 'Sites': "M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z", 'Days': "M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z M16 3v4 M8 3v4 M4 11h16 M11 15h1 M12 15v3" }; return { ic: SI[f[1]] || '', icc: SI[f[1]] ? (f[1] === 'Dives' ? 'xi2' : '') : 'none', v: f[0], k: f[1], pad: i === 0 ? '0 12px 0 0' : (i === 2 ? '0 0 0 12px' : '0 12px'), rule: i ? '1px solid var(--hairline)' : '0' }; }),
+fields: D.fields.map(function (f, i) { var FI = { 'Country': "M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9z M5 21v-7", 'Region': "M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13 M9 4v13 M15 7v13", 'Body of water': "M2 20a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1 M4 18l-1 -3h18l-1 3 M11 12h7l-7 -9v9 M8 7l-2 5" }; return { ic: FI[f.label] || '', icc: FI[f.label] ? (['Body of water', 'Country', 'Region'].indexOf(f.label) >= 0 ? 'xi2' : '') : 'none', label: f.label, value: f.value || '', isInput: f.kind === 'in', isPick: f.kind === 'pick', isSeg: f.kind === 'seg', cls: i ? 'hl' : '' }; }),
+hasFieldNote: !!D.note, fieldNote: D.note,
+count: String(D.n),
+dives: D.dives.map(function (d, i) { var parts = d[1].split(' · ').map(function (b) { var k = /^\d{2}:\d{2}$/.test(b) ? 'time' : / min$/.test(b) ? 'duration' : /\d{4}$/.test(b) ? 'date' : 'person'; return { t: b, ic: MIC[k] }; }); return { name: d[0], meta: d[1], parts: parts, depth: d[2], cls: i ? 'hl' : '' }; }),
+allLabel: 'All ' + D.n + ' dives',
+delLabel: 'Delete ' + D.unit,
+delDisabled: hasDives, delColor: hasDives ? 'var(--faint)' : 'var(--danger)', delCursor: hasDives ? 'default' : 'pointer',
+delNote: hasDives ? 'Used by ' + D.n + ' dives, so it can’t be deleted. To remove it, open the one to keep and merge this into it.' : 'Deleting the trip keeps its dives in your log.',
+mergeOpen: mOpen,
+openMerge: function () { self.setState({ m: true }); },
+closeMerge: function () { self.setState({ m: false, sel: -1 }); },
+searchPh: 'Search ' + (k === 'person' ? 'people' : D.unit + 's'),
+cands: D.cands.map(function (c, i) { var on = i === sel; return { name: c[0], meta: c[1], likely: !!c[2], on: on ? 'true' : 'false', dot: on ? '1' : '0', cls: i ? 'hl' : '', pick: function () { self.setState({ sel: i }); } }; }),
+mergeLine: chosen ? cn + (cn === 1 ? ' dive moves' : ' dives move') + ' to ' + D.name + ' and “' + chosen[0] + '” is removed. This can’t be undone.' : '',
+mergeCta: chosen ? 'Merge “' + chosen[0] + '”' : 'Merge',
+mBg: chosen ? 'var(--accent)' : 'var(--muted)', mFg: chosen ? 'var(--accent-foreground)' : 'var(--faint)', mCursor: chosen ? 'pointer' : 'default',
+scrim: p.dark ? 'rgb(0 0 0 / 0.55)' : 'rgb(0 0 0 / 0.32)'
+};
+}
+}
+</script>
+</body>
+</html>

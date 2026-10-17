@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Sites, people and trips (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.sl{--warn:oklch(0.553 0.195 38.402);--danger:oklch(0.577 0.245 27.325)}
+.sl.dark{--warn:oklch(0.75 0.183 55.934);--danger:oklch(0.704 0.191 22.216)}
+.hbtn{display:inline-flex;align-items:center;height:44px;padding:0 8px;border:0;background:none;text-decoration:none;font-size:16px;font-weight:500;color:var(--accent);cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 20px;border:0;border-radius:14px;font-size:16px;font-weight:600;text-decoration:none;cursor:pointer}
+.btn-p{background:var(--accent);color:var(--accent-foreground)}
+.nudge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border:0;border-radius:50%;background:var(--muted);color:var(--foreground);cursor:pointer}
+.tlink{flex:none;border:0;padding:4px 0;background:none;font-size:13px;font-weight:500;color:var(--accent);cursor:pointer}
+.pair{display:flex;flex-direction:column;width:100%;border:0;padding:0;text-align:left;color:inherit;cursor:pointer}
+.pr{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px}
+.d4{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 16px;border-top:1px solid var(--hairline);font-size:13px;color:var(--muted-foreground)}
+.scr > *{flex-shrink:0}
+.rmain{display:flex;align-items:center;gap:12px;width:100%;padding:12px 12px 12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit}
+button.rmain{cursor:pointer}
+.rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rn{font-size:16px;font-weight:500;letter-spacing:-0.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rm{font-size:13px;color:var(--muted-foreground)}
+.rnote{display:flex;align-items:center;gap:10px;margin-top:-6px;padding:0 12px 12px 16px;font-size:13px}
+.hl{border-top:1px solid var(--hairline)}
+.seg.sm{border-radius:9px}.seg.sm button{height:28px;padding:0 12px;border-radius:7px;font-size:13px}
+.xrow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;padding:10px 12px 10px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font-size:15px;cursor:pointer}
+
+.opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px 16px;box-sizing:border-box;border:0;background:none;text-align:left;color:inherit;font:inherit;cursor:pointer}
+.opt.hl{border-top:1px solid var(--hairline)}
+.rad{flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 2px var(--faint)}
+.opt[aria-checked="true"] .rad{box-shadow:inset 0 0 0 2px var(--accent)}
+.rad > span{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+a.rmain{text-decoration:none;color:inherit}
+.srch{box-sizing:border-box;width:100%;height:44px;padding:0 14px 0 38px;border:0;border-radius:12px;background:var(--muted);color:var(--foreground);font-size:16px;outline:none}
+.srch::placeholder{color:var(--muted-foreground)}
+.sheet{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:16px;padding:10px 20px 28px;border-radius:16px 16px 0 0;background:var(--background);box-shadow:0 0 0 1px var(--edge)}
+.grab{align-self:center;width:36px;height:5px;border-radius:3px;background:var(--faint);opacity:.5}
+
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+.mp{white-space:nowrap}.mp + .mp{margin-left:12px}.noxi .mp + .mp{margin-left:0}.noxi .mp + .mp::before{content:"\00b7\00a0";margin-left:0.25em}
+.mp .xi{margin-right:0.3em}
+</style>
+</helmet>
+<div class="{{mode}}" style="position: relative; width: 390px; height: 844px; overflow: hidden; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+<header style="flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; height: 52px; padding: 0 8px">
+<a href="SettingsHifi.dc.html" class="hbtn" style="justify-self: start; gap: 2px; padding-left: 2px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"></path></svg>Settings</a>
+<h1 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.015em">{{title}}</h1>
+<span></span>
+</header>
+<div style="flex: none; display: flex; flex-direction: column; gap: 10px; padding: 4px 16px 12px">
+<div class="seg" role="tablist" aria-label="What to manage" style="grid-template-columns: repeat(4, minmax(0, 1fr))">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="4"><button type="button" role="tab" aria-selected="{{t.on}}" aria-pressed="{{t.on}}" onClick="{{t.go}}"><svg class="xi {{t.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor; margin-right: 0.3em"><path d="{{t.ic}}"></path></svg>{{t.label}}</button></sc-for>
+</div>
+<label style="position: relative; display: block"><span class="sr">{{ph}}</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position: absolute; left: 12px; top: 13px; color: var(--muted-foreground)"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg><input type="search" class="srch" placeholder="{{ph}}"></label>
+</div>
+<main class="scr" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 0 16px 32px">
+<div class="card">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<a href="EntityDetailHifi.dc.html" class="rmain {{r.cls}}" aria-label="{{r.aria}}">
+<span class="rt"><span class="rn">{{r.name}}</span><span class="rm tn" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><sc-for list="{{r.parts}}" as="m" hint-placeholder-count="2"><span class="mp"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.ic}}"></path></svg>{{m.t}}</span></sc-for></span><sc-if value="{{r.dup}}" hint-placeholder-val="{{false}}"><span style="font-size: 13px; color: var(--warn)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor"><path d="M12 9v4 M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z M12 16h.01"></path></svg>Looks like {{r.dupOf}}</span></sc-if></span>
+<span class="tn" style="flex: none; font-size: 15px; color: var(--muted-foreground)">{{r.n}}</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
+</a>
+</sc-for>
+</div>
+<p style="margin: 0 4px; font-size: 13px; line-height: 1.5; color: var(--muted-foreground)">{{foot}}</p>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;type&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Sites&quot;,&quot;People&quot;,&quot;Dive centres&quot;,&quot;Trips&quot;],&quot;default&quot;:&quot;Sites&quot;},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+renderVals() {
+var MIC = {"region": "M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13 M9 4v13 M15 7v13", "country": "M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9z M5 21v-7", "date": "M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z M16 3v4 M8 3v4 M4 11h16 M11 15h1 M12 15v3"};
+var self = this;
+var p = this.props || {};
+var s = this.state || {};
+var T = {
+site: { tab: 'Sites', one: 'site', ph: 'Search sites', rows: [
+['Two Mile Reef', 'Sodwana · South Africa', 18], ['Seven Mile Reef', 'Sodwana · South Africa', 9], ['A-Frame', 'False Bay · South Africa', 8], ['Partridge Point', 'False Bay · South Africa', 7], ['Stringer', 'Sodwana · South Africa', 6], ['Long Beach', 'False Bay · South Africa', 5], ['Pinnacles', 'Sodwana · South Africa', 4], ['Hòn Dài', 'Nha Trang · Vietnam', 2], ['Hòn Tai', 'Nha Trang · Vietnam', 2], ['2 Mile Reef', 'Sodwana · South Africa', 1, 'Two Mile Reef']] },
+person: { tab: 'People', one: 'person', ph: 'Search people', rows: [
+['Sam Naidoo', 'Buddy', 22], ['Lerato Mokoena', 'Buddy', 14], ['Josh van Wyk', 'Divemaster', 9], ['Thandi Dlamini', 'Buddy', 6], ['Pieter Botha', 'Buddy and instructor', 4], ['Mai Nguyen', 'Instructor', 2], ['Sam N', 'Buddy', 1, 'Sam Naidoo']] },
+centre: { tab: 'Centres', one: 'dive centre', ph: 'Search dive centres', rows: [
+['Coral Edge Diving', 'Sodwana', 21], ['Pisces Divers', 'False Bay', 11], ['Rainbow Divers', 'Nha Trang', 4], ['Coral Edge', 'Sodwana', 2, 'Coral Edge Diving'], ['Dive Simon’s Town', 'False Bay', 2]] },
+trip: { tab: 'Trips', one: 'trip', ph: 'Search trips', rows: [
+['Sodwana, July 2026', '18 – 27 Jul 2026', 14], ['Mozambique', '12 – 19 Sep 2025', 10], ['Sodwana, Easter', '3 – 6 Apr 2026', 8], ['Nha Trang, New Year', '28 Dec 2025 – 3 Jan 2026', 6]] }
+};
+var KEYS = ['site', 'person', 'centre', 'trip'];
+var PROPKEY = { 'Sites': 'site', 'People': 'person', 'Dive centres': 'centre', 'Trips': 'trip', 'Site': 'site', 'Person': 'person', 'Dive centre': 'centre', 'Trip': 'trip' };
+var k = s.k || PROPKEY[p.type ?? 'Sites'] || 'site';
+var t = T[k];
+return {
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || ''),
+title: t.tab === 'Centres' ? 'Dive centres' : t.tab,
+ph: t.ph,
+tabs: KEYS.map(function (kk) { return { ic: { site: "M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z", person: "M20 6v12a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2z M10 16h6 M13 11m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 8h3 M4 12h3 M4 16h3", centre: "M3 21l18 0 M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4 M5 21l0 -10.15 M19 21l0 -10.15 M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4", trip: "M6 6m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z M9 6v-1a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v1 M6 10h12 M6 16h12 M9 20v1 M15 20v1" }[kk], icc: '', label: T[kk].tab, on: kk === k ? 'true' : 'false', go: function () { self.setState({ k: kk }); } }; }),
+rows: t.rows.map(function (r, i) { var bits = String(r[1]).split(' · '); var kinds = { Sites: ['region', 'country'], Centres: ['region'], Trips: ['date'], People: [null] }[t.tab] || [];
+var parts = bits.map(function (b, j) { var k = kinds[j]; return { t: b, ic: k ? MIC[k] : '' }; });
+return { cls: i ? 'hl' : '', name: r[0], meta: r[1], parts: parts, n: String(r[2]), dup: !!r[3], dupOf: r[3] || '', aria: r[0] + ', ' + r[2] + (r[2] === 1 ? ' dive' : ' dives') + (r[3] ? ', looks like ' + r[3] : '') }; }),
+foot: k === 'trip' ? 'Sorted by number of dives. Deleting a trip keeps its dives.' : 'Sorted by number of dives. Open one to rename it, or merge a duplicate into it.'
+};
+}
+}
+</script>
+</body>
+</html>

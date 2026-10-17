@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Shylog — Statistics (hi-fi)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@500&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+.sl{--font:Geist,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-inter{--font:Inter,ui-sans-serif,system-ui,sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+.sl.f-windows{--font:'Segoe UI Variable Text','Segoe UI',sans-serif;--mono:'Cascadia Mono',Consolas,monospace}
+.sl.f-system{--font:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'SF Mono',Menlo,monospace}
+.sl{
+--background:oklch(1 0 0);--foreground:oklch(0.17 0.006 228);
+--muted:oklch(0.966 0.003 210);--muted-foreground:oklch(0.54 0.018 215);
+--faint:oklch(0.7 0.012 215);
+--hairline:oklch(0.92 0.005 214);
+--accent:oklch(0.48 0.09 200);--accent-foreground:oklch(0.99 0.005 200);
+--accent-soft:oklch(0.48 0.09 200 / 9%);
+--nav:oklch(1 0 0 / 85%);
+--card:oklch(1 0 0);--edge:oklch(0.17 0.006 228 / 9%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+.sl.dark{
+--background:oklch(0.155 0.006 228);--foreground:oklch(0.97 0.003 200);
+--muted:oklch(0.23 0.008 225);--muted-foreground:oklch(0.7 0.014 214);
+--faint:oklch(0.5 0.014 214);
+--hairline:oklch(1 0 0 / 9%);
+--accent:oklch(0.76 0.11 192);--accent-foreground:oklch(0.2 0.03 205);
+--accent-soft:oklch(0.76 0.11 192 / 12%);
+--nav:oklch(0.155 0.006 228 / 85%);
+--card:oklch(0.205 0.008 225);--edge:oklch(1 0 0 / 8%);--shadow-xs:0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+.sl.sky{--accent:oklch(0.5 0.134 242.749);--accent-foreground:oklch(0.977 0.013 236.62);--accent-soft:oklch(0.5 0.134 242.749 / 9%)}
+.sl.dark.sky{--accent:oklch(0.746 0.16 232.661);--accent-foreground:oklch(0.293 0.066 243.157);--accent-soft:oklch(0.746 0.16 232.661 / 14%)}
+.sl.emerald{--accent:oklch(0.508 0.118 165.612);--accent-foreground:oklch(0.979 0.021 166.113);--accent-soft:oklch(0.508 0.118 165.612 / 9%)}
+.sl.dark.emerald{--accent:oklch(0.765 0.177 163.223);--accent-foreground:oklch(0.262 0.051 172.552);--accent-soft:oklch(0.765 0.177 163.223 / 14%)}
+.sl.cyan{--accent:oklch(0.52 0.105 223.128);--accent-foreground:oklch(0.984 0.019 200.873);--accent-soft:oklch(0.52 0.105 223.128 / 9%)}
+.sl.dark.cyan{--accent:oklch(0.789 0.154 211.53);--accent-foreground:oklch(0.302 0.056 229.695);--accent-soft:oklch(0.789 0.154 211.53 / 14%)}
+.tn{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.card{background:var(--card);border-radius:14px;box-shadow:0 0 0 1px var(--edge),var(--shadow-xs);overflow:hidden}
+.sec{margin:0 0 8px;padding:0 4px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.fl{display:flex;flex-direction:column}
+.fl > * + *{border-top:1px solid var(--hairline)}
+.frow{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 16px}
+.frow > label,.frow > .lbl{flex:none;font-size:14px;color:var(--muted-foreground)}
+.fin{flex:1;min-width:0;height:46px;border:0;padding:0;background:none;text-align:right;font-size:16px;font-weight:500;outline:none;font-variant-numeric:tabular-nums}
+.fin.fit-t{flex:none;width:46px}.fin.fit-d{flex:none;width:22px}
+.fin::placeholder{color:var(--faint);font-weight:400}
+.unit{flex:none;min-width:22px;font-size:14px;color:var(--muted-foreground)}
+.pick{flex:1;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:4px;height:46px;border:0;padding:0;background:none;font-size:16px;font-weight:500;text-align:right;cursor:pointer}
+.pick svg{flex:none;color:var(--faint)}
+.fblock{display:flex;flex-direction:column;gap:8px;padding:12px 16px}
+.fblock > .lbl{font-size:14px;color:var(--muted-foreground)}
+.seg{display:grid;gap:2px;padding:2px;border-radius:10px;background:var(--muted)}
+.seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;border-radius:8px;background:transparent;font-size:14px;font-weight:500;color:var(--muted-foreground);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--foreground);box-shadow:0 0 0 1px var(--edge),0 1px 2px rgb(0 0 0 / 0.06)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:34px;padding:0 12px;border:0;border-radius:17px;background:var(--muted);font-size:14px;font-weight:500;color:var(--foreground);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.ta{width:100%;box-sizing:border-box;min-height:72px;border:0;padding:0;background:none;resize:none;font-size:16px;line-height:1.45;outline:none}
+.ta::placeholder{color:var(--faint)}
+.fig{display:flex;flex-direction:column-reverse;gap:2px;padding:14px 16px;min-width:0}
+.fig dd{margin-bottom:0!important;line-height:22px!important}
+.fig .cap{margin-top:4px}
+.fig dt{font-size:12px;color:var(--muted-foreground)}
+.fig dd{margin:0;font-size:18px;line-height:24px;font-weight:600;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+.fig dd .u{margin-left:2px;font-size:13px;font-weight:500;letter-spacing:0;color:var(--muted-foreground)}
+.fig .cap{font-size:12px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+.cond{display:flex;flex-direction:column;gap:8px;padding:14px 0}
+.cond + .cond{border-top:1px solid var(--hairline)}
+.trow{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+.trow + .trow{border-top:1px solid var(--hairline)}
+.tile{display:flex;flex-direction:column;align-items:center;gap:3px;padding:14px 4px 12px;text-align:center}
+.tile + .tile{border-left:1px solid var(--hairline)}
+.ins{display:flex;gap:12px;align-items:flex-start;padding:14px 16px}
+.ins + .ins{border-top:1px solid var(--hairline)}
+.brow{display:flex;align-items:center;gap:12px;padding:12px 16px}
+.brow + .brow{border-top:1px solid var(--hairline)}
+.sl{--t-vcold:oklch(0.5 0.1 238);--t-cold:oklch(0.77 0.07 232);--t-ok:oklch(0.72 0.14 152);--g-air:oklch(0.78 0.08 232);--g-nx:oklch(0.85 0.17 112);--t-hot:oklch(0.7 0.16 50);--d1:oklch(0.88 0.04 225);--d2:oklch(0.75 0.075 230);--d3:oklch(0.61 0.1 235);--d4:oklch(0.47 0.095 240)}
+.sl.dark{--t-vcold:oklch(0.72 0.11 236);--t-cold:oklch(0.54 0.07 232);--t-ok:oklch(0.66 0.13 152);--g-air:oklch(0.62 0.09 232);--g-nx:oklch(0.83 0.16 112);--t-hot:oklch(0.74 0.15 55);--d1:oklch(0.38 0.05 228);--d2:oklch(0.5 0.075 232);--d3:oklch(0.64 0.095 235);--d4:oklch(0.78 0.09 238)}
+.site{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:12px;row-gap:7px;padding:12px 16px}
+.site + .site{border-top:1px solid var(--hairline)}
+.tag{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:44px;padding:0 16px;font-size:14px}
+.xiess .xi2{display:none!important}
+.xi{flex:none;display:inline-block;vertical-align:-0.2em;margin-right:0.4em;color:var(--muted-foreground)}
+.noxi .xi{display:none!important}
+.xdot{display:none!important}
+.noxi .xdot{display:inline-block!important}
+.xi.none{display:none}
+</style>
+</helmet>
+<div class="{{mode}}" style="width: 390px; min-height: 4180px; box-sizing: border-box; background: var(--background); color: var(--foreground); font-family: var(--font); font-size: 14px; line-height: 1.4; display: flex; flex-direction: column; -webkit-font-smoothing: antialiased">
+
+<header style="display: flex; flex-direction: column; padding: 24px 16px 0">
+<h1 class="sr">Statistics</h1>
+<div>
+<p class="tn" style="margin: 0; display: flex; align-items: baseline; gap: 8px"><span style="font-size: 52px; line-height: 56px; font-weight: 600; letter-spacing: -0.05em">{{n}}</span><span style="font-size: 17px; font-weight: 500; color: var(--muted-foreground)">{{nLead}}</span><button type="button" onClick="{{nextYear}}" aria-label="{{yearAria}}" aria-haspopup="listbox" style="align-self: baseline; display: inline-flex; align-items: center; gap: 2px; margin-left: -2px; padding: 1px 6px 1px 8px; border: 0; border-radius: 999px; background: var(--accent-soft); font-size: 17px; font-weight: 500; color: var(--accent); cursor: pointer"><svg class="xi" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: currentColor; margin-right: 0.3em"><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z M16 3v4 M8 3v4 M4 11h16 M11 15h1 M12 15v3"></path></svg>{{yearChip}}<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="opacity: .75"><path d="M8 9l4 -4l4 4 M16 15l-4 4l-4 -4"></path></svg></button></p>
+<p class="tn" style="margin: 2px 0 0; font-size: 16px; color: var(--muted-foreground)"><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>{{h}} hours underwater</p>
+</div>
+</header>
+
+<main style="display: flex; flex-direction: column; gap: 28px; padding: 24px 16px 40px">
+
+<section aria-label="{{scope}}">
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 8px">
+<figcaption style="font-size: 13px; color: var(--muted-foreground)">{{barTitle}}</figcaption>
+<div role="img" aria-label="{{barAria}}" style="display: grid; grid-template-columns: repeat({{barCols}}, minmax(0, 1fr)); gap: {{barGap}}; align-items: end; height: 96px">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="12">
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%">
+<span class="tn" style="font-size: 11px; font-weight: 500; color: var(--muted-foreground); opacity: {{b.numOp}}">{{b.n}}</span>
+<span style="width: 100%; height: {{b.h}}; border-radius: 4px 4px 2px 2px; background: {{b.bg}}"></span>
+</div>
+</sc-for>
+</div>
+<div aria-hidden="true" style="display: grid; grid-template-columns: repeat({{barCols}}, minmax(0, 1fr)); gap: {{barGap}}; margin-top: -2px">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="12"><span class="tn" style="font-size: 11px; text-align: center; color: var(--muted-foreground)">{{b.label}}</span></sc-for>
+</div>
+</figure>
+</section>
+
+<section aria-labelledby="st-fig">
+<h2 id="st-fig" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21l8 0 M12 17l0 4 M7 4l10 0 M17 4v8a5 5 0 0 1 -10 0v-8 M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path></svg>Records and averages</h2>
+<dl class="card" style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr))">
+<div class="fig"><a href="DiveDetailHifi.dc.html" class="cap">{{deepWhere}}</a><dt><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>Deepest</dt><dd>{{deep}}<span class="u">m</span></dd></div>
+<div class="fig" style="border-left: 1px solid var(--hairline)"><a href="DiveDetailHifi.dc.html" class="cap">{{longWhere}}</a><dt><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>Longest</dt><dd>{{long}}<span class="u">min</span></dd></div>
+<div class="fig" style="border-top: 1px solid var(--hairline)"><dt><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>Average max depth</dt><dd>{{avgDepth}}<span class="u">m</span></dd></div>
+<div class="fig" style="border-top: 1px solid var(--hairline); border-left: 1px solid var(--hairline)"><dt><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z"></path></svg>Average duration</dt><dd>{{avgDur}}<span class="u">min</span></dd></div>
+<div class="fig" style="grid-column: 1 / -1; border-top: 1px solid var(--hairline); gap: 2px">
+<div aria-hidden="true" style="position: relative; height: 6px; margin-top: 10px; border-radius: 3px; background: var(--muted)"><span style="position: absolute; top: 0; bottom: 0; left: {{tLeft}}; width: {{tWidth}}; border-radius: 3px; background: linear-gradient(90deg, oklch(0.62 0.12 235), oklch(0.72 0.15 60))"></span></div>
+<dt><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5 M10 9l4 0"></path></svg>Water temperature, coldest to warmest</dt>
+<dd>{{tMin}}–{{tMax}}<span class="u">°C</span></dd>
+</div>
+</dl>
+</section>
+
+<section aria-labelledby="st-sac">
+<h2 id="st-sac" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.081 20c1.612 0 2.919 -1.335 2.919 -2.98v-9.763c0 -.694 -.552 -1.257 -1.232 -1.257c-.205 0 -.405 .052 -.584 .15l-.13 .083c-1.46 1.059 -2.432 2.647 -3.404 5.824c-.42 1.37 -.636 2.962 -.648 4.775c-.012 1.675 1.261 3.054 2.877 3.161l.203 .007z M17.92 20c-1.613 0 -2.92 -1.335 -2.92 -2.98v-9.763c0 -.694 .552 -1.257 1.233 -1.257c.204 0 .405 .052 .584 .15l.13 .083c1.46 1.059 2.432 2.647 3.405 5.824c.42 1.37 .636 2.962 .648 4.775c.012 1.675 -1.261 3.054 -2.878 3.161l-.202 .007z M9 12a3 3 0 0 0 3 -3a3 3 0 0 0 3 3 M12 4v5"></path></svg>Air consumption</h2>
+<div class="card" style="display: flex; flex-direction: column; gap: 14px; padding: 16px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 12px">
+<dl style="margin: 0; display: flex; flex-direction: column-reverse; gap: 1px">
+<dt style="font-size: 12px; color: var(--muted-foreground)"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.081 20c1.612 0 2.919 -1.335 2.919 -2.98v-9.763c0 -.694 -.552 -1.257 -1.232 -1.257c-.205 0 -.405 .052 -.584 .15l-.13 .083c-1.46 1.059 -2.432 2.647 -3.404 5.824c-.42 1.37 -.636 2.962 -.648 4.775c-.012 1.675 1.261 3.054 2.877 3.161l.203 .007z M17.92 20c-1.613 0 -2.92 -1.335 -2.92 -2.98v-9.763c0 -.694 .552 -1.257 1.233 -1.257c.204 0 .405 .052 .584 .15l.13 .083c1.46 1.059 2.432 2.647 3.405 5.824c.42 1.37 .636 2.962 .648 4.775c.012 1.675 -1.261 3.054 -2.878 3.161l-.202 .007z M9 12a3 3 0 0 0 3 -3a3 3 0 0 0 3 3 M12 4v5"></path></svg>Average SAC rate</dt>
+<dd class="tn" style="margin: 0; font-size: 26px; line-height: 32px; font-weight: 600; letter-spacing: -0.035em">{{sac}}<span style="margin-left: 3px; font-size: 14px; font-weight: 500; letter-spacing: 0; color: var(--muted-foreground)">L/min</span></dd>
+</dl>
+<p class="tn" style="margin: 0 0 4px; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; color: var(--accent)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6 6l4 -4l8 8"></path><path d="M21 10l0 7l-7 0"></path></svg>{{delta}} L/min <span style="font-weight: 400; color: var(--muted-foreground)">{{since}}</span></p>
+</div>
+<div style="position: relative; width: 326px; height: 168px">
+<svg viewBox="0 0 326 168" width="326" height="168" role="img" aria-label="{{sacAria}}" style="display: block; width: 100%; height: auto; overflow: visible; font-family: var(--font)">
+<path d="{{gridPath}}" stroke="var(--hairline)" stroke-width="1" fill="none"></path>
+<path d="{{dotPath}}" fill="var(--muted-foreground)" fill-opacity="0.35" stroke="none"></path>
+<polyline points="{{avgLine}}" fill="none" stroke="var(--accent)" stroke-width="2.25" stroke-linejoin="round" stroke-linecap="round"></polyline>
+<circle cx="{{lastX}}" cy="{{lastY}}" r="4.5" fill="var(--accent)" stroke="var(--card)" stroke-width="2"></circle>
+</svg>
+<div aria-hidden="true" class="tn" style="position: absolute; inset: 0; pointer-events: none; font-size: 11px; line-height: 14px; color: var(--muted-foreground)">
+<sc-for list="{{yLabels}}" as="yl" hint-placeholder-count="3"><span style="position: absolute; left: 0; width: 21px; top: {{yl.top}}; text-align: right">{{yl.label}}</span></sc-for>
+<sc-for list="{{xLabels}}" as="xl" hint-placeholder-count="12"><span style="position: absolute; top: 152px; left: {{xl.left}}; transform: translateX(-50%)">{{xl.label}}</span></sc-for>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-size: 12px; color: var(--muted-foreground)">
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="3" fill="var(--muted-foreground)" fill-opacity="0.45"></circle></svg>Each dive</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><svg width="16" height="8" viewBox="0 0 16 8" aria-hidden="true"><path d="M1 4h14" stroke="var(--accent)" stroke-width="2.25" stroke-linecap="round"></path></svg>Average of last 5</span>
+<span class="tn" style="margin-left: auto">{{sacCount}}</span>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="st-depth">
+<h2 id="st-depth" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4"></path></svg>Depth</h2>
+<div class="card" style="display: flex; flex-direction: column; gap: 8px; padding: 16px">
+<div role="img" aria-label="{{depthAria}}" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; align-items: end; height: 104px">
+<sc-for list="{{depth}}" as="b" hint-placeholder-count="4">
+<div title="{{b.tip}}" style="display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%">
+<span class="tn" style="font-size: 12px; font-weight: 500; color: var(--muted-foreground)">{{b.n}}</span>
+<span style="width: 100%; height: {{b.h}}; border-radius: 4px 4px 2px 2px; background: {{b.bg}}"></span>
+</div>
+</sc-for>
+</div>
+<div aria-hidden="true" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px">
+<sc-for list="{{depth}}" as="b" hint-placeholder-count="4"><span class="tn" style="font-size: 12px; text-align: center; color: var(--muted-foreground)">{{b.label}}</span></sc-for>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="st-cond">
+<h2 id="st-cond" class="sec">Conditions</h2>
+<div class="card" style="padding: 0 16px">
+<sc-for list="{{conds}}" as="c" hint-placeholder-count="5">
+<div class="cond">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px"><span style="display: inline-flex; align-items: center; gap: 2px"><span style="font-size: 14px; font-weight: 500"><svg class="xi {{c.icc}}" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{c.ic}}"></path></svg>{{c.label}}</span><sc-if value="{{c.hasInfo}}" hint-placeholder-val="{{false}}"><button type="button" onClick="{{c.toggleInfo}}" aria-label="How visibility is grouped" aria-expanded="{{c.infoOpen}}" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin: -6px 0; border: 0; background: none; color: {{c.infoColor}}; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"></path><path d="M12 9h.01"></path><path d="M11 12h1v4h1"></path></svg></button></sc-if></span><span style="font-size: 12px; color: var(--muted-foreground)">{{c.top}}</span></div>
+<sc-if value="{{c.showInfo}}" hint-placeholder-val="{{false}}"><p style="margin: -2px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted-foreground)">{{c.info}}</p></sc-if>
+<div role="img" aria-label="{{c.aria}}" style="display: flex; gap: 2px; height: 12px">
+<sc-for list="{{c.segs}}" as="g" hint-placeholder-count="4"><span title="{{g.tip}}" style="flex: {{g.n}} 1 0px; min-width: 3px; background: {{g.bg}}; border-radius: {{g.r}}"></span></sc-for>
+</div>
+<div aria-hidden="true" style="display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted-foreground)">
+<sc-for list="{{c.segs}}" as="k" hint-placeholder-count="4"><span style="display: inline-flex; align-items: center; gap: 5px; white-space: nowrap"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{k.bg}}"></span>{{k.label}} <span class="tn" style="color: var(--foreground)">{{k.pct}}</span></span></sc-for>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="st-wx">
+<h2 id="st-wx" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.468 10a4 4 0 1 0 -5.466 5.46 M2 12h1 M11 3v1 M11 20v1 M4.6 5.6l.7 .7 M17.4 5.6l-.7 .7 M5.3 17.7l-.7 .7 M15 13h5a2 2 0 1 0 0 -4 M12 16h5.714l.253 0a2 2 0 0 1 2.033 2a2 2 0 0 1 -2 2h-.286"></path></svg>Weather and surface</h2>
+<div class="card">
+<sc-for list="{{tileRows}}" as="row" hint-placeholder-count="2">
+<div class="trow" role="list" aria-label="{{row.label}}">
+<sc-for list="{{row.tiles}}" as="t" hint-placeholder-count="3">
+<div class="tile" role="listitem" title="{{t.tip}}">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: {{t.color}}"><path d="{{t.d1}}"></path><path d="{{t.d2}}"></path><path d="{{t.d3}}"></path></svg>
+<span class="tn" style="font-size: 18px; line-height: 24px; font-weight: 600; letter-spacing: -0.02em">{{t.pct}}</span>
+<span style="font-size: 12px; color: var(--muted-foreground)">{{t.label}}</span>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="st-pat">
+<h2 id="st-pat" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7 M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3 M9.7 17l4.6 0"></path></svg>Patterns</h2>
+<div class="card">
+<sc-for list="{{insights}}" as="i" hint-placeholder-count="3">
+<div class="ins">
+<span aria-hidden="true" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{i.d1}}"></path><path d="{{i.d2}}"></path><path d="{{i.d3}}"></path></svg></span>
+<p class="tn" style="margin: 0; padding-top: 5px; font-size: 14px; line-height: 1.45; color: var(--muted-foreground)">{{i.a}}<span style="font-weight: 600; color: var(--foreground)">{{i.b}}</span>{{i.c}}</p>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section aria-labelledby="st-tod">
+<h2 id="st-tod" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 7v5l3 3"></path></svg>Time of day</h2>
+<div class="card">
+<div class="trow" role="list" aria-label="Time of day">
+<sc-for list="{{tod}}" as="t" hint-placeholder-count="4">
+<div class="tile" role="listitem" title="{{t.tip}}">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color: {{t.color}}"><path d="{{t.d1}}"></path><path d="{{t.d2}}"></path><path d="{{t.d3}}"></path></svg>
+<span class="tn" style="font-size: 18px; line-height: 24px; font-weight: 600; letter-spacing: -0.02em">{{t.pct}}</span>
+<span style="font-size: 12px; color: var(--muted-foreground)">{{t.label}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="st-gas">
+<h2 id="st-gas" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5a4.5 5.5 0 1 0 9 0a4.5 5.5 0 1 0 -9 0 M15 15a2 2 0 1 1 4 0c0 1 -.7 1.6 -1.5 2.3l-2.5 2.7h4"></path></svg>Gas</h2>
+<div class="card" style="display: flex; flex-direction: column; gap: 10px; padding: 16px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px"><span class="tn" style="font-size: 14px; font-weight: 500">{{gasHead}}</span><span class="tn" style="font-size: 12px; color: var(--muted-foreground)">{{gasO2}}</span></div>
+<div role="img" aria-label="{{gas.aria}}" style="display: flex; gap: 2px; height: 12px">
+<sc-for list="{{gas.segs}}" as="g" hint-placeholder-count="2"><span title="{{g.tip}}" style="flex: {{g.n}} 1 0px; min-width: 3px; background: {{g.bg}}; border-radius: {{g.r}}"></span></sc-for>
+</div>
+<div aria-hidden="true" style="display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted-foreground)">
+<sc-for list="{{gas.segs}}" as="k" hint-placeholder-count="2"><span style="display: inline-flex; align-items: center; gap: 5px"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{k.bg}}"></span>{{k.label}} <span class="tn" style="color: var(--foreground)">{{k.pct}}</span></span></sc-for>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="st-entry">
+<h2 id="st-entry" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1 M2 16a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1 M15 12v-7.5a1.5 1.5 0 0 1 3 0 M9 12v-7.5a1.5 1.5 0 0 0 -3 0 M15 5l-6 0 M9 10l6 0"></path></svg>Entry</h2>
+<div class="card" style="display: flex; flex-direction: column; gap: 10px; padding: 16px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px"><span class="tn" style="font-size: 14px; font-weight: 500">{{entryBar.head}}</span><span class="tn" style="font-size: 12px; color: var(--muted-foreground)">{{entryBar.total}}</span></div>
+<div role="img" aria-label="{{entryBar.aria}}" style="display: flex; gap: 2px; height: 12px">
+<sc-for list="{{entryBar.segs}}" as="g" hint-placeholder-count="4"><span title="{{g.tip}}" style="flex: {{g.n}} 1 0px; min-width: 3px; background: {{g.bg}}; border-radius: {{g.r}}"></span></sc-for>
+</div>
+<div aria-hidden="true" style="display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted-foreground)">
+<sc-for list="{{entryBar.segs}}" as="k" hint-placeholder-count="4"><span style="display: inline-flex; align-items: center; gap: 5px; white-space: nowrap"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{k.bg}}"></span>{{k.label}} <span class="tn" style="color: var(--foreground)">{{k.pct}}</span></span></sc-for>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="st-sites">
+<h2 id="st-sites" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg>Most-dived sites</h2>
+<ol class="card" style="margin: 0; padding: 0; list-style: none">
+<sc-for list="{{sites}}" as="s" hint-placeholder-count="5">
+<li class="site">
+<span style="min-width: 0; display: flex; align-items: baseline; gap: 8px"><span style="font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.name}}</span><span style="font-size: 13px; color: var(--muted-foreground); white-space: nowrap">{{s.place}}</span></span>
+<span class="tn" style="font-size: 14px; font-weight: 500">{{s.n}}</span>
+<span aria-hidden="true" style="grid-column: 1 / -1; display: block; height: 4px; border-radius: 2px; background: {{s.bg}}; width: {{s.w}}"></span>
+</li>
+</sc-for>
+</ol>
+</section>
+
+<section aria-labelledby="st-bud">
+<h2 id="st-bud" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2 M16 3.13a4 4 0 0 1 0 7.75 M21 21v-2a4 4 0 0 0 -3 -3.85"></path></svg>Buddies</h2>
+<ol class="card" style="margin: 0; padding: 0; list-style: none">
+<sc-for list="{{buddies}}" as="b" hint-placeholder-count="4">
+<li class="brow">
+<span aria-hidden="true" style="flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: {{b.avBg}}; color: {{b.avFg}}; font-size: 12px; font-weight: 600">{{b.ini}}</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+<span style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px"><span style="font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{b.name}}</span><span class="tn" style="font-size: 14px; font-weight: 500">{{b.n}}</span></span>
+<span aria-hidden="true" style="display: block; height: 4px; border-radius: 2px; background: {{b.bg}}; width: {{b.w}}"></span>
+</span>
+</li>
+</sc-for>
+</ol>
+</section>
+
+<section aria-labelledby="st-where">
+<h2 id="st-where" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13 M9 4v13 M15 7v13"></path></svg>Regions</h2>
+<ol class="card" style="margin: 0; padding: 0; list-style: none">
+<sc-for list="{{regions}}" as="s" hint-placeholder-count="5">
+<li class="site">
+<span style="min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 500">{{s.name}}</span><span class="tn" style="font-size: 13px; color: var(--muted-foreground)">{{s.country}}</span></span>
+<span class="tn" style="align-self: start; font-size: 14px; font-weight: 500">{{s.n}}</span>
+<span aria-hidden="true" style="grid-column: 1 / -1; display: block; height: 4px; border-radius: 2px; background: {{s.bg}}; width: {{s.w}}"></span>
+</li>
+</sc-for>
+</ol>
+</section>
+
+<section aria-labelledby="st-tags">
+<h2 id="st-tags" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0 M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3z"></path></svg>Tags</h2>
+<div class="card" style="display: flex; flex-direction: column; gap: 12px; padding: 16px">
+<div role="list" aria-label="Tags by number of dives" style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{tagChips}}" as="t" hint-placeholder-count="7"><a role="listitem" href="LogHifi2.dc.html" aria-label="{{t.aria}}" style="display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 17px; background: {{t.bg}}; color: var(--foreground); font-size: 14px; font-weight: 500; text-decoration: none">{{t.label}}<span class="tn" style="font-size: 13px; font-weight: 500; color: var(--muted-foreground)">{{t.n}}</span></a></sc-for>
+</div>
+<sc-if value="{{hasUnusedTags}}" hint-placeholder-val="{{true}}"><p style="margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted-foreground)">Never used: {{unusedTags}}</p></sc-if>
+</div>
+</section>
+
+</main>
+
+<nav aria-label="Main" style="position: sticky; bottom: 0; margin-top: auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 8px 16px; border-top: 1px solid var(--hairline); background: var(--nav); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px)">
+<a href="LogHifi2.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18"></path><path d="M13 8l2 0"></path><path d="M13 12l2 0"></path></svg>Log</a>
+<a href="StatsHifi.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 600; color: var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"></path><path d="M4 20h14"></path></svg>Stats</a>
+<a href="ImportHifi.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path><path d="M7 9l5 -5l5 5"></path><path d="M12 4l0 12"></path></svg>Import</a>
+<a href="SettingsHifi.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 52px; text-decoration: none; font-size: 11px; font-weight: 500; color: var(--muted-foreground)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 6l8 0 M16 6l4 0 M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 12l2 0 M10 12l10 0 M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 18l11 0 M19 18l1 0"></path></svg>Settings</a>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;icons&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Off&quot;,&quot;Essential&quot;,&quot;All&quot;],&quot;default&quot;:&quot;Essential&quot;},&quot;year&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;All years&quot;,&quot;2026&quot;,&quot;2025&quot;,&quot;2024&quot;],&quot;default&quot;:&quot;2026&quot;},&quot;font&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Geist&quot;,&quot;Inter&quot;,&quot;System (SF)&quot;,&quot;Windows (Segoe UI)&quot;],&quot;default&quot;:&quot;Geist&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Teal&quot;,&quot;Sky 700&quot;,&quot;Cyan 700&quot;,&quot;Emerald 700&quot;],&quot;default&quot;:&quot;Cyan 700&quot;},&quot;dark&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false},&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:4180}}">
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = {};
+}
+renderVals() {
+var self = this;
+var s = this.state || {};
+var p = this.props || {};
+var years = ['All years', '2026', '2025', '2024'];
+var propYear = p.year ?? '2026';
+var year = s.from === propYear && s.year ? s.year : propYear;
+var all = year === 'All years';
+
+var data = {
+'2026': { n: 23, h: 18, months: [2, 0, 3, 1, 0, 0, 12, 0, 2, 3, 0, 0], deep: '32.7', deepWhere: 'Two Mile Reef · Dive 70', long: 62, longWhere: 'Long Beach · Dive 58', avgDepth: '17.9', avgDur: 47, tMin: 13, tMax: 25, sac: [18.2, 13.0],
+sites: [['Two Mile Reef', 'Sodwana', 6], ['Long Beach', "Simon's Town", 5], ['Seven Mile Reef', 'Sodwana', 4], ['A-Frame', "Simon's Town", 3], ['Stringer', 'Sodwana', 2]],
+tags: { 'Drift': 9, 'Photo/video': 6, 'Pelagic': 4, 'Wreck': 3, 'Clean-up': 2, 'Night': 2, 'Cavern': 1 } },
+'2025': { n: 31, h: 24, months: [3, 2, 4, 2, 1, 0, 3, 6, 2, 4, 2, 2], deep: '28.4', deepWhere: 'Pinnacles · Dive 44', long: 58, longWhere: 'Windmill Beach · Dive 33', avgDepth: '16.2', avgDur: 46, tMin: 11, tMax: 24, sac: [19.4, 16.1],
+sites: [['Long Beach', "Simon's Town", 8], ['A-Frame', "Simon's Town", 6], ['Windmill Beach', "Simon's Town", 5], ['Castle Rocks', "Simon's Town", 3], ['Maori wreck', 'Llandudno', 2]],
+tags: { 'Photo/video': 5, 'Night': 4, 'Wreck': 3, 'Clean-up': 3, 'Drift': 2, 'Dry suit': 1 } },
+'2024': { n: 18, h: 16, months: [0, 0, 0, 1, 2, 3, 2, 4, 1, 3, 2, 0], deep: '22.0', deepWhere: 'Aliwal Shoal · Dive 17', long: 68, longWhere: 'Long Beach · Dive 9', avgDepth: '14.1', avgDur: 53, tMin: 12, tMax: 23, sac: [21.0, 18.6],
+sites: [['Long Beach', "Simon's Town", 6], ['Windmill Beach', "Simon's Town", 4], ['Aliwal Shoal', 'Umkomaas', 3], ['A-Frame', "Simon's Town", 2], ['Bass Lake', 'Johannesburg', 2]],
+tags: { 'Clean-up': 2, 'Night': 2, 'Photo/video': 1, 'Pelagic': 1 } }
+};
+var tagList = ['Altitude', 'Cave', 'Cavern', 'Clean-up', 'Drift', 'Dry suit', 'Ice', 'Night', 'Pelagic', 'Photo/video', 'Search and recovery', 'Wreck'];
+var order = ['2024', '2025', '2026'];
+
+// dives as points in time with a SAC rate (roughly 4 in 5 dives have one)
+var points = [];
+var noise = function (i) { var x = Math.sin(i * 12.9898 + 4.1) * 43758.5453; return (x - Math.floor(x)) * 2 - 1; };
+order.forEach(function (y, yi) {
+if (!all && y !== year) return;
+var dy = data[y], k = 0;
+dy.months.forEach(function (c, m) {
+for (var j = 0; j < c; j++) {
+k++;
+var f = (m + (j + 0.5) / c) / 12;
+if (k % 5 === 3) continue;
+var v = dy.sac[0] + (dy.sac[1] - dy.sac[0]) * f + noise(yi * 100 + k) * 1.4;
+points.push({ t: all ? (yi + f) / 3 : f, v: Math.round(v * 10) / 10 });
+}
+});
+});
+var avg = points.map(function (pt, i) { var w = points.slice(Math.max(0, i - 4), i + 1); return w.reduce(function (a, b) { return a + b.v; }, 0) / w.length; });
+var lo = Math.floor(Math.min.apply(null, points.map(function (q) { return q.v; })) / 2) * 2 - 1;
+var hi = Math.ceil(Math.max.apply(null, points.map(function (q) { return q.v; })) / 2) * 2 + 1;
+var X = function (t) { return 30 + t * 290; };
+var Y = function (v) { return 8 + (hi - v) / (hi - lo) * 136; };
+var f1 = function (n) { return (Math.round(n * 10) / 10).toFixed(1); };
+var dotPath = points.map(function (q) { var x = X(q.t), y = Y(q.v); return 'M' + (x - 2.75).toFixed(1) + ' ' + y.toFixed(1) + 'a2.75 2.75 0 1 0 5.5 0a2.75 2.75 0 1 0 -5.5 0'; }).join('');
+var avgLine = avg.map(function (v, i) { return X(points[i].t).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ');
+var gv = [hi - 1, (hi + lo) / 2, lo + 1].map(function (v) { return Math.round(v); });
+var g = gv.map(function (v) { return { ty: (Y(v) + 4).toFixed(1), label: String(v), y: Y(v) }; });
+var gridPath = g.map(function (r) { return 'M26 ' + r.y.toFixed(1) + 'H326'; }).join('');
+var tickDefs = all ? [[0, '2024'], [1 / 3, '2025'], [2 / 3, '2026'], [1, '']] : [[0, 'Jan'], [0.25, 'Apr'], [0.5, 'Jul'], [0.75, 'Oct']];
+var t = tickDefs.map(function (d) { return { x: X(d[0]).toFixed(1), anchor: 'start', label: d[1] }; });
+var yLabels = g.map(function (r) { return { label: r.label, top: (r.y - 7).toFixed(1) + 'px' }; });
+var xLabels = all ? order.map(function (y, i) { return { label: y, left: X((i + 0.5) / 3).toFixed(1) + 'px' }; }) : ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'].map(function (m, i) { return { label: m, left: X((i + 0.5) / 12).toFixed(1) + 'px' }; });
+var first = avg[Math.min(4, avg.length - 1)], last = avg[avg.length - 1];
+var mean = points.reduce(function (a, b) { return a + b.v; }, 0) / points.length;
+
+var mix = function (pct) { return 'color-mix(in oklab, var(--accent) ' + pct + '%, var(--card))'; };
+var tint = mix(42);
+var bars, barTitle, barAria;
+if (all) {
+var counts = order.map(function (y) { return data[y].n; });
+var mx = Math.max.apply(null, counts);
+bars = order.map(function (y, i) { return { label: y, n: counts[i], numOp: '1', h: Math.max(4, counts[i] / mx * 72) + 'px', bg: counts[i] === mx ? 'var(--accent)' : tint }; });
+barTitle = 'Dives per year';
+barAria = 'Dives per year: ' + order.map(function (y, i) { return y + ' ' + counts[i]; }).join(', ');
+} else {
+var ms = data[year].months, mmax = Math.max.apply(null, ms), names = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'], full = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+bars = ms.map(function (c, i) { return { label: names[i], n: c, numOp: c ? '1' : '0', h: c ? Math.max(6, c / mmax * 72) + 'px' : '2px', bg: !c ? 'var(--hairline)' : (c === mmax ? 'var(--accent)' : tint) }; });
+barTitle = 'Dives per month';
+barAria = 'Dives per month in ' + year + ': ' + ms.map(function (c, i) { return full[i] + ' ' + c; }).join(', ');
+}
+
+var pick = function (key) { return all ? null : data[year][key]; };
+var sites = all ? [['Two Mile Reef', 'Sodwana', 18], ['Long Beach', "Simon's Town", 14], ['A-Frame', "Simon's Town", 9], ['Seven Mile Reef', 'Sodwana', 6], ['Windmill Beach', "Simon's Town", 5]] : data[year].sites;
+var smax = sites[0][2];
+var tagCounts = {};
+tagList.forEach(function (n) { tagCounts[n] = 0; });
+order.forEach(function (y) { if (all || y === year) Object.keys(data[y].tags).forEach(function (k) { tagCounts[k] += data[y].tags[k]; }); });
+var tags = tagList.slice().sort(function (a, b) { return tagCounts[b] - tagCounts[a] || a.localeCompare(b); }).map(function (n, i) {
+var c = tagCounts[n];
+return { label: n, n: c, fg: c ? 'var(--foreground)' : 'var(--faint)', bt: i >= 2 ? '1px solid var(--hairline)' : '0', bl: i % 2 ? '1px solid var(--hairline)' : '0' };
+});
+var tMin = all ? 11 : pick('tMin'), tMax = all ? 25 : pick('tMax');
+var n = all ? 72 : pick('n');
+
+// ---- breakdowns (counts per year; All years is the sum) ----
+var ramp = function (k) { var lo = 22; return Array.from({ length: k }, function (_, i) { return k === 1 ? 'var(--accent)' : mix(Math.round(lo + (100 - lo) * i / (k - 1))); }); };
+var notLogged = 'repeating-linear-gradient(135deg, var(--hairline) 0 2px, transparent 2px 5px)';
+var B = {
+current: { '2026': [4, 4, 6, 5, 3, 1, 0], '2025': [8, 6, 8, 5, 2, 0, 2], '2024': [5, 4, 3, 2, 0, 0, 4] },
+surge: { '2026': [6, 7, 5, 3, 2, 0, 0], '2025': [5, 6, 9, 6, 3, 0, 2], '2024': [3, 3, 4, 3, 1, 0, 4] },
+vis: { '2026': [3, 8, 12, 0], '2025': [9, 14, 7, 1], '2024': [6, 6, 3, 3] },
+work: { '2026': [2, 12, 7, 2, 0, 0], '2025': [4, 16, 8, 1, 0, 2], '2024': [2, 8, 3, 1, 0, 4] },
+thermal: { '2026': [1, 4, 17, 1, 0], '2025': [3, 9, 16, 1, 2], '2024': [2, 5, 6, 1, 4] },
+weather: { '2026': [14, 7, 2], '2025': [15, 12, 4], '2024': [9, 7, 2] },
+surface: { '2026': [9, 12, 2], '2025': [12, 16, 3], '2024': [8, 9, 1] },
+tod: { '2026': [14, 5, 2, 2], '2025': [17, 6, 4, 4], '2024': [10, 4, 2, 2] },
+depth: { '2026': [3, 8, 10, 2], '2025': [6, 12, 12, 1], '2024': [5, 9, 4, 0] },
+gas: { '2026': [11, 12], '2025': [21, 10], '2024': [18, 0] },
+entry: { '2026': [12, 7, 3, 1], '2025': [9, 15, 5, 2], '2024': [4, 11, 2, 1] },
+buddy: { '2026': [9, 6, 3, 1], '2025': [9, 8, 3, 2], '2024': [5, 3, 2, 1] },
+sacDelta: { '2026': 3.9, '2025': 3.1, '2024': 2.6, 'All years': 3.4 },
+o2: { '2026': 32, '2025': 31, '2024': null, 'All years': 32 }
+};
+var get = function (key) { if (!all) return B[key][year]; return order.reduce(function (acc, y) { return acc.map(function (v, i) { return v + B[key][y][i]; }); }, B[key]['2024'].map(function () { return 0; })); };
+var pct = function (c, tot) { return Math.round(c / tot * 100) + '%'; };
+var stacked = function (label, levels, counts, colours, unit) {
+var tot = counts.reduce(function (a, b) { return a + b; }, 0);
+var logged = counts.slice(0, levels.length);
+var segs = [];
+counts.forEach(function (c, i) {
+if (!c) return;
+var isNL = i >= levels.length;
+segs.push({ n: c, label: isNL ? 'Not logged' : levels[i], bg: isNL ? notLogged : colours[i], pct: pct(c, tot), tip: (isNL ? 'Not logged' : levels[i]) + ': ' + c + (c === 1 ? ' dive' : ' dives') + ', ' + pct(c, tot) });
+});
+segs.forEach(function (g, i) { g.r = (i === 0 ? '4px ' : '1px ') + (i === segs.length - 1 ? '4px 4px ' : '1px 1px ') + (i === 0 ? '4px' : '1px'); });
+var top = levels[logged.indexOf(Math.max.apply(null, logged))];
+return { label: label, segs: segs, top: 'Mostly ' + top.toLowerCase(), aria: label + ': ' + segs.map(function (g) { return g.label + ' ' + g.pct; }).join(', ') };
+};
+var lv6 = ['None', 'Very mild', 'Mild', 'Moderate', 'Hard', 'Very hard'];
+var conds = [
+stacked('Current', lv6, get('current'), ramp(6)),
+stacked('Surge', lv6, get('surge'), ramp(6)),
+Object.assign(stacked('Visibility', ['Low', 'Average', 'High'], get('vis'), ramp(3)), { hasInfo: true, showInfo: !!s.visInfo, infoOpen: s.visInfo ? 'true' : 'false', infoColor: s.visInfo ? 'var(--accent)' : 'var(--faint)', info: 'Dives logged in metres are grouped: under 5 m low, 5–10 m average, over 10 m high.', toggleInfo: function () { self.setState({ visInfo: !s.visInfo }); } }),
+stacked('Workload', ['Resting', 'Light', 'Moderate', 'Severe', 'Exhausting'], get('work'), ramp(5)),
+stacked('Thermal comfort', ['Very cold', 'Cold', 'Comfortable', 'Hot'], get('thermal'), ['var(--t-vcold)', 'var(--t-cold)', 'var(--t-ok)', 'var(--t-hot)'])
+];
+var XI = { 'Current': "M17 10h4v4 M3 12c.887 -1.284 2.48 -2.033 4 -2c1.52 -.033 3.113 .716 4 2s2.48 2.033 4 2c1.52 .033 3 -1 4 -2l2 -2", 'Surge': "M7 8l-4 4l4 4 M17 8l4 4l-4 4 M3 12l18 0", 'Visibility': "M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0 M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6", 'Workload': "M2 12h1 M6 8h-2a1 1 0 0 0 -1 1v6a1 1 0 0 0 1 1h2 M6 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1z M9 12h6 M15 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1z M18 8h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2 M22 12h-1", 'Thermal comfort': "M4 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 1 0 -4 0v8.5 M4 9h4 M14.75 4l1 2h2.25 M17 4l-3 5l2 3 M20.25 10l-1.25 2l1.25 2 M22 12h-6l-2 3 M18 18h-2.25l-1 2 M17 20l-3 -5h-1 M12 9l2.088 .008" };
+conds.forEach(function (c) { c.ic = XI[c.label] || ''; c.icc = XI[c.label] ? '' : 'none'; });
+var ICON = {
+sun: ["M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7", '', ''],
+cloud: ['M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878', '', ''],
+rain: ['M7 18a4.6 4.4 0 0 1 0 -9a5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7', 'M11 13v2m0 3v2m4 -5v2m0 3v2', ''],
+calm: ['M3 12c3 -1.5 6 -1.5 9 0s6 1.5 9 0', '', ''],
+moving: ['M3 7c3 -2 6 -2 9 0s6 2 9 0', 'M3 17c3 -2 6 -2 9 0s6 2 9 0', 'M3 12c3 -2 6 -2 9 0s6 2 9 0'],
+stormy: ['M3 19c3 -2 6 -2 9 0s6 2 9 0', 'M3 14c1.5 -5.5 6.5 -9.5 11.5 -8.5c2.6 .5 4 2.6 3 4.6c-.9 1.8 -3.6 1.6 -3.8 -.3', ''],
+sunrise: ['M3 17h1m16 0h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7m-9.7 5.7a4 4 0 0 1 8 0', 'M3 21l18 0', 'M12 9v-6l3 3m-6 0l3 -3'],
+sunset: ['M3 17h1m16 0h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7m-9.7 5.7a4 4 0 0 1 8 0', 'M3 21l18 0', 'M12 3v6l3 -3m-6 0l3 3'],
+moon: ['M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z', '', ''],
+thermo: ['M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5', 'M10 9l4 0', ''],
+flask: ['M9 3l6 0', 'M10 9l4 0', 'M10 3v6l-4 11a.7 .7 0 0 0 .5 1h11a.7 .7 0 0 0 .5 -1l-4 -11v-6']
+};
+var tiles = function (labels, icons, counts) {
+var tot = counts.reduce(function (a, b) { return a + b; }, 0), mx = Math.max.apply(null, counts);
+return labels.map(function (l, i) { var ic = ICON[icons[i]]; return { label: l, pct: pct(counts[i], tot), d1: ic[0], d2: ic[1], d3: ic[2], color: counts[i] === mx ? 'var(--accent)' : 'var(--muted-foreground)', tip: l + ': ' + counts[i] + (counts[i] === 1 ? ' dive' : ' dives') }; });
+};
+var tileRows = [
+{ label: 'Weather', tiles: tiles(['Cloudless', 'Cloudy', 'Rainy'], ['sun', 'cloud', 'rain'], get('weather')) },
+{ label: 'Surface', tiles: tiles(['Calm', 'Moving', 'Stormy'], ['calm', 'moving', 'stormy'], get('surface')) }
+];
+ICON.sunhigh = ["M3 20h18 M8 12a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M12 3v1.5 M5.6 5.6l1 1 M18.4 5.6l-1 1 M3.5 12h1.5 M19 12h1.5", '', ''];
+var tod = tiles(['Morning', 'Midday', 'Afternoon', 'Night'], ['sunrise', 'sunhigh', 'sunset', 'moon'], get('tod'));
+var dc = get('depth'), dmax = Math.max.apply(null, dc), dl = ['0–10 m', '10–18 m', '18–30 m', '30+ m'];
+var depth = dc.map(function (c, i) { return { n: c, label: dl[i], h: c ? Math.max(6, c / dmax * 78) + 'px' : '2px', bg: c ? 'var(--d' + (i + 1) + ')' : 'var(--hairline)', tip: dl[i] + ': ' + c + (c === 1 ? ' dive' : ' dives') }; });
+var depthAria = 'Dives by maximum depth: ' + dc.map(function (c, i) { return dl[i] + ' ' + c; }).join(', ');
+var gc = get('gas'), gtot = gc[0] + gc[1];
+var gasSegs = [['Air', gc[0], 'var(--g-air)'], ['Nitrox', gc[1], 'var(--g-nx)']].filter(function (r) { return r[1] > 0; })
+.map(function (r) { return { n: r[1], label: r[0], bg: r[2], pct: pct(r[1], gtot), tip: r[0] + ': ' + r[1] + ' dives' }; });
+gasSegs.forEach(function (g, i) { g.r = gasSegs.length === 1 ? '4px' : (i === 0 ? '4px 1px 1px 4px' : '1px 4px 4px 1px'); });
+var ec = get('entry'), el = ['Small boat', 'Beach or shore', 'Charter boat', 'Pier'];
+var eRows = el.map(function (l, i) { return [l, ec[i]]; }).sort(function (a, b) { return b[1] - a[1]; });
+var bc = get('buddy'), bl = ['Sam Naidoo', 'Lerato Mokoena', 'Anna Keller', 'Megan Fourie'];
+var bRows = bl.map(function (l, i) { return [l, bc[i]]; }).sort(function (a, b) { return b[1] - a[1]; });
+var initials = function (n) { var w = n.split(' '); return (w[0].charAt(0) + w[w.length - 1].charAt(0)).toUpperCase(); };
+var C = {
+'2026': [['Sodwana', 'South Africa', 12], ["Simon's Town", 'South Africa', 8], ['Hội An', 'Vietnam', 3]],
+'2025': [["Simon's Town", 'South Africa', 19], ['Phú Quốc', 'Vietnam', 5], ['Llandudno', 'South Africa', 4], ['Sodwana', 'South Africa', 3]],
+'2024': [["Simon's Town", 'South Africa', 11], ['Johannesburg', 'South Africa', 4], ['Umkomaas', 'South Africa', 3]],
+'All years': [["Simon's Town", 'South Africa', 38], ['Sodwana', 'South Africa', 15], ['Phú Quốc', 'Vietnam', 5], ['Llandudno', 'South Africa', 4], ['Johannesburg', 'South Africa', 4], ['Umkomaas', 'South Africa', 3], ['Hội An', 'Vietnam', 3]]
+}[year];
+var th = get('thermal'), coldN = th[0] + th[1];
+var nitroxPct = Math.round(gc[1] / gtot * 100);
+ICON.moving2 = ["M17 10h4v4 M3 12c.887 -1.284 2.48 -2.033 4 -2c1.52 -.033 3.113 .716 4 2s2.48 2.033 4 2c1.52 .033 3 -1 4 -2l2 -2", '', '']; ICON.thermo2 = ["M4 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 1 0 -4 0v8.5 M4 9h4 M14.75 4l1 2h2.25 M17 4l-3 5l2 3 M20.25 10l-1.25 2l1.25 2 M22 12h-6l-2 3 M18 18h-2.25l-1 2 M17 20l-3 -5h-1 M12 9l2.088 .008", '', '']; ICON.flask2 = ["M3 10.5a4.5 5.5 0 1 0 9 0a4.5 5.5 0 1 0 -9 0 M15 15a2 2 0 1 1 4 0c0 1 -.7 1.6 -1.5 2.3l-2.5 2.7h4", '', ''];
+var insights = [
+{ d1: ICON.moving2[0], d2: '', d3: '', a: 'Your SAC rate is ', b: B.sacDelta[year].toFixed(1) + ' L/min higher', c: ' in moderate or stronger current.' },
+{ d1: ICON.thermo2[0], d2: '', d3: '', a: 'You felt cold on ', b: 'all ' + coldN + ' dives', c: ' below 16 °C, and on none above 20 °C.' },
+gc[1] ? { d1: ICON.flask2[0], d2: '', d3: '', a: 'Nitrox on ', b: nitroxPct + '% of dives', c: all ? ', up from none in 2024.' : '.' }
+: { d1: ICON.flask2[0], d2: '', d3: '', a: 'Air on ', b: 'every dive', c: ' in ' + year + '.' }
+];
+
+return {
+mode: ({ 'Off': 'noxi ', 'All': '' }[(this.props || {}).icons] ?? ((this.props || {}).icons === false ? 'noxi ' : 'xiess ')) + 'sl' + (p.dark ? ' dark' : '') + ({ 'Sky 700': ' sky', 'Emerald 700': ' emerald', 'Cyan 700': ' cyan' }[p.accent ?? 'Cyan 700'] || '') + ({ 'Inter': ' f-inter', 'System (SF)': ' f-system', 'Windows (Segoe UI)': ' f-windows' }[p.font ?? 'Geist'] || ''),
+years: years.map(function (y) { return { label: y === 'All years' ? 'All' : y, on: y === year ? 'true' : 'false', pick: function () { self.setState({ from: propYear, year: y }); } }; }),
+scope: all ? 'All time' : year,
+n: n,
+nLead: all ? 'dives' : 'dives in',
+yearChip: all ? 'all time' : year,
+yearAria: 'Year: ' + (all ? 'all time' : year) + '. Change year',
+nextYear: function () { var cyc = ['2026', '2025', '2024', 'All years']; self.setState({ from: propYear, year: cyc[(cyc.indexOf(year) + 1) % cyc.length] }); },
+h: all ? 58 : pick('h'),
+barTitle: barTitle, barAria: barAria, bars: bars,
+barCols: bars.length, barGap: all ? '24px' : '6px',
+deep: all ? '32.7' : pick('deep'), deepWhere: all ? 'Two Mile Reef · Dive 70' : pick('deepWhere'),
+long: all ? 68 : pick('long'), longWhere: all ? 'Long Beach · Dive 9' : pick('longWhere'),
+avgDepth: all ? '16.1' : pick('avgDepth'), avgDur: all ? 48 : pick('avgDur'),
+tMin: tMin, tMax: tMax, tLeft: (tMin / 30 * 100) + '%', tWidth: ((tMax - tMin) / 30 * 100) + '%',
+sac: f1(mean),
+delta: (last <= first ? '−' : '+') + f1(Math.abs(last - first)),
+since: all ? 'since 2024' : 'since January',
+sacCount: points.length + ' of ' + n + ' dives',
+sacAria: 'SAC rate per dive, with a five-dive average falling from ' + f1(first) + ' to ' + f1(last) + ' litres per minute.',
+gridPath: gridPath, g0: g[0], g1: g[1], g2: g[2], t0: t[0], t1: t[1], t2: t[2], t3: t[3],
+dotPath: dotPath, avgLine: avgLine, yLabels: yLabels, xLabels: xLabels,
+lastX: X(points[points.length - 1].t).toFixed(1), lastY: Y(last).toFixed(1),
+sites: sites.map(function (r, i) { return { name: r[0], place: r[1], n: r[2], w: (r[2] / smax * 100) + '%', bg: i === 0 ? 'var(--accent)' : tint }; }),
+conds: conds, tileRows: tileRows, tod: tod, depth: depth, depthAria: depthAria,
+gas: { segs: gasSegs, aria: 'Gas: ' + gasSegs.map(function (g) { return g.label + ' ' + g.pct; }).join(', ') },
+gasHead: gc[1] ? 'Nitrox on ' + nitroxPct + '% of dives' : 'Air on every dive',
+gasO2: B.o2[year] ? 'Average nitrox ' + B.o2[year] + '% O₂' : '',
+entryBar: (function () {
+var tot = eRows.reduce(function (a, r) { return a + r[1]; }, 0);
+var live = eRows.filter(function (r) { return r[1] > 0; });
+var cols = ramp(live.length).reverse();
+var segs = live.map(function (r, i) { return { n: r[1], label: r[0], bg: cols[i], pct: pct(r[1], tot), tip: r[0] + ': ' + r[1] + (r[1] === 1 ? ' dive' : ' dives') + ', ' + pct(r[1], tot) }; });
+segs.forEach(function (g, i) { g.r = segs.length === 1 ? '4px' : (i === 0 ? '4px 1px 1px 4px' : (i === segs.length - 1 ? '1px 4px 4px 1px' : '1px')); });
+return { segs: segs, head: 'Mostly ' + live[0][0].toLowerCase(), total: tot + (tot === 1 ? ' dive' : ' dives'), aria: 'Entry: ' + segs.map(function (g) { return g.label + ' ' + g.pct; }).join(', ') };
+})(),
+entry: eRows.map(function (r, i) { return { name: r[0], n: r[1], w: (r[1] / eRows[0][1] * 100) + '%', bg: i === 0 ? 'var(--accent)' : tint, tip: r[0] + ': ' + pct(r[1], n) }; }),
+buddies: bRows.map(function (r, i) { return { name: r[0], n: r[1], ini: initials(r[0]), w: (r[1] / bRows[0][1] * 100) + '%', bg: i === 0 ? 'var(--accent)' : tint, avBg: i === 0 ? 'var(--accent-soft)' : 'var(--muted)', avFg: i === 0 ? 'var(--accent)' : 'var(--muted-foreground)' }; }),
+regions: C.map(function (r, i) { return { name: r[0], country: r[1], n: r[2], w: (r[2] / C[0][2] * 100) + '%', bg: i === 0 ? 'var(--accent)' : tint }; }),
+insights: insights,
+tags: tags,
+tagChips: (function () { var used = tags.filter(function (t) { return t.n > 0; }); var mx = used.length ? used[0].n : 1; return used.map(function (t) { var sh = t.n / mx; var strong = sh > 0.8; return { label: t.label, n: String(t.n), bg: mix(Math.round(6 + 24 * sh)), fg: strong ? 'var(--accent-foreground)' : 'var(--foreground)', nbg: strong ? 'rgb(255 255 255 / 0.22)' : 'color-mix(in oklab, var(--card) 70%, transparent)', aria: t.label + ', ' + t.n + (t.n === 1 ? ' dive' : ' dives') + '. Show in log' }; }); })(),
+hasUnusedTags: tags.some(function (t) { return !t.n; }),
+unusedTags: tags.filter(function (t) { return !t.n; }).map(function (t) { return t.label; }).join(', ')
+};
+}
+}
+</script>
+</body>
+</html>
