@@ -20,7 +20,7 @@ The Claude Design hi-fi wireframes in `docs/design/hifi/` are the source of trut
 - Everything under **Not in v1** and **Later** is out of scope. Do not scaffold for it beyond what **Instance configuration** requires.
 - If the spec contradicts itself, or a design screen contradicts the spec, stop and ask. The spec wins over the design for behaviour; the design wins for layout.
 
-## Stack (all decided, do not substitute)
+## Stack (all decided)
 
 - pnpm workspace: `apps/web`, `apps/server`, `packages/core`
 - Web: React, Vite, TanStack Router, vite-plugin-pwa, shadcn/ui with preset `b1sAmWaNW` (cyan accent and chart colour), Geist font, shadcn charts (Recharts), Dexie
