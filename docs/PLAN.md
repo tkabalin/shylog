@@ -615,7 +615,7 @@ Root `package.json`:
   "scripts": {
     "dev": "pnpm -r --parallel run dev",
     "build": "pnpm -r run build",
-    "typecheck": "pnpm -r run typecheck",
+    "typecheck": "tsc -p . && pnpm -r run typecheck",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "test": "vitest run",
@@ -630,12 +630,12 @@ Root `package.json`:
 }
 ```
 
-`vitest.config.ts` at the root defines three projects: `core` (node), `server` (node, in-memory better-sqlite3 helper), `web` (jsdom with `fake-indexeddb/auto` in `setupFiles`). `vitest run --project core` scopes a run, and a file path scopes it further.
+`vitest.config.ts` at the root defines three projects: `core` (node), `server` (node, in-memory better-sqlite3 helper), `web` (jsdom with `fake-indexeddb/auto` in `setupFiles`). `vitest run --project core` scopes a run, and a file path scopes it further. The root `tsconfig.json` covers the root `*.config.ts` files, which no package typechecks.
 
 `packages/core`:
 
 ```json
-{ "scripts": { "typecheck": "tsc --noEmit", "test": "vitest run --project core" } }
+{ "scripts": { "typecheck": "tsc --noEmit", "test": "vitest run --root ../.. --project core" } }
 ```
 
 `apps/server`:
@@ -643,11 +643,11 @@ Root `package.json`:
 ```json
 {
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "NODE_ENV=development tsx watch --env-file-if-exists=../../.env src/index.ts",
     "build": "tsup",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --project server",
+    "test": "vitest run --root ../.. --project server",
     "seed": "tsx scripts/seed.ts"
   }
 }
@@ -662,13 +662,13 @@ Root `package.json`:
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest run --project web",
-    "test:e2e": "playwright test"
+    "test": "vitest run --root ../.. --project web",
+    "test:e2e": "playwright test -c ../../playwright.config.ts"
   }
 }
 ```
 
-`apps/server/tsup.config.ts` holds the entry, `esm` format and the Node target, read from `engines.node` in its `package.json`, so a Node LTS bump is one edit. `check` runs the whole Vitest suite and is for CI and milestone sign-off; day to day, scope a run with `vitest run --project core` or a file path. `restore-drill` needs `sqlite3` and `sqldiff` on the host and never runs in CI.
+Vitest and Playwright only find their config in the working directory, so the package scripts point back at the root configs. The server's `dev` loads the root `.env` and sets `NODE_ENV`, since an unset `NODE_ENV` counts as production and refuses `SHYLOG_DEV_LOGIN`. `apps/server/tsup.config.ts` holds the entry, `esm` format and the Node target, read from `engines.node` in its `package.json`, so a Node LTS bump is one edit. `check` runs the whole Vitest suite and is for CI and milestone sign-off; day to day, scope a run with `vitest run --project core` or a file path. `restore-drill` needs `sqlite3` and `sqldiff` on the host and never runs in CI.
 
 `playwright.config.ts` runs Chromium and WebKit at a 390 × 844 viewport with a `webServer` that starts the server on a temp `SHYLOG_DATA_DIR` with `SHYLOG_DEV_LOGIN` set and seeds the fixture. `scripts/validate-uddf.sh` strips `<shylog>` elements with a short Node script and runs `xmllint --noout --schema fixtures/uddf/uddf_v321.xsd` over the files given; CI installs `libxml2-utils` (it is not installed in the local WSL today).
 
