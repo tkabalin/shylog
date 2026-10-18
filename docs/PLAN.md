@@ -509,6 +509,7 @@ Deferred, or to watch:
 **Not in this milestone**: the update flow and queue export (milestone 17).
 
 - [ ] Service worker precache and manifest
+- [ ] iOS install details: `apple-touch-icon` PNGs, `apple-mobile-web-app-title`, and a status bar style checked on a phone in both themes (`black-translucent` puts white text over the light theme's white header)
 - [ ] Sync states, retry, pill, banner
 - [ ] Draft indicators and provisional numbers
 - [ ] Offline guards on synced-data controls
