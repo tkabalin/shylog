@@ -3,6 +3,7 @@
 [![CI](https://github.com/tkabalin/shylog/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tkabalin/shylog/actions/workflows/ci.yml)
 [![Licence: GPL-3.0-or-later](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue)](LICENSE)
 [![Node 24](https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white)](.nvmrc)
+[![pnpm 12](https://img.shields.io/badge/pnpm-12-F69220?logo=pnpm&logoColor=white)](package.json)
 
 A self-hosted, mobile-first web app for logging scuba dives. It runs on a home server, is reached only over Tailscale, and keeps its data in SQLite, with a plain UDDF export so the log is never locked in. Dive computer data arrives as Subsurface UDDF exports.
 
