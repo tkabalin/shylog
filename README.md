@@ -1,4 +1,4 @@
-<h1><img src="docs/design/shylog-icon.svg" alt="" width="40" align="top"> Shylog</h1>
+<h1><img src="apps/web/public/favicon.svg" alt="" width="40" align="top"> Shylog</h1>
 
 [![CI](https://github.com/tkabalin/shylog/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tkabalin/shylog/actions/workflows/ci.yml)
 [![Licence: GPL-3.0-or-later](https://img.shields.io/badge/licence-GPL--3.0--or--later-blue)](LICENSE)
