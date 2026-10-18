@@ -1,0 +1,9 @@
+# Source material that is not ours to reformat
+docs/
+fixtures/
+planning/
+.claude/skills/
+LICENSE
+
+pnpm-lock.yaml
+apps/web/src/routeTree.gen.ts

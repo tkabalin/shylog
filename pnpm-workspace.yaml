@@ -1,0 +1,16 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Supply-chain guards. Setting the age explicitly makes it strict: install
+# fails rather than taking a release younger than three days, the window in
+# which most hijacked publishes have been caught.
+minimumReleaseAge: 4320
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  # npm's official 6.x backport of the CVE-2022-25883 fix, published after
+  # 7.5.4 without provenance, so the date-based check reads it as a downgrade.
+  - semver@6.3.1
+
+allowBuilds:
+  esbuild: true
