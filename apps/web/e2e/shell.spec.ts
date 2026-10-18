@@ -14,7 +14,15 @@ test.describe("at phone width", () => {
     await page.goto("/")
     const nav = page.getByRole("navigation", { name: "Main" })
     await expect(nav).toHaveCount(1)
-    await expect(nav.getByRole("link")).toHaveText(tabs)
+    // Icons only: each tab is named by its aria-label, with no visible text.
+    await expect(nav.getByRole("link")).toHaveCount(tabs.length)
+    for (const tab of tabs) {
+      await expect(nav.getByRole("link", { name: tab })).toBeVisible()
+    }
+    await expect(nav).toHaveText("")
+    expect(await height(nav.getByRole("link").first())).toBeGreaterThanOrEqual(
+      44
+    )
     await expect(page.locator("[data-slot=sidebar]")).toBeHidden()
 
     const box = await nav.boundingBox()
