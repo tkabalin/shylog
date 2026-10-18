@@ -77,6 +77,32 @@ test.describe("at phone width", () => {
     await expect.poll(() => main.evaluate((el) => el.scrollTop)).toBe(0)
   })
 
+  test("shows the bottom nav's top line only while content is under it", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    const nav = page.getByRole("navigation", { name: "Main" })
+    const main = page.locator("main")
+    const line = () => nav.evaluate((el) => getComputedStyle(el).borderTopColor)
+    // Any colour space, so long as the alpha is zero
+    const none = /[/,] 0\)$/
+
+    // Too short to scroll
+    await expect.poll(line).toMatch(none)
+
+    await main.evaluate((el) => {
+      el.append(
+        Object.assign(document.createElement("div"), {
+          style: "height: 3000px; flex: none",
+        })
+      )
+    })
+    await expect.poll(line).not.toMatch(none)
+
+    await main.evaluate((el) => (el.scrollTop = el.scrollHeight))
+    await expect.poll(line).toMatch(none)
+  })
+
   test("sizes controls for touch and inputs at 16px", async ({ page }) => {
     await page.goto("/dev/ui")
     const controls = [
