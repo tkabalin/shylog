@@ -32,6 +32,15 @@ test.describe("at phone width", () => {
     )
   })
 
+  // Find what is too wide instead of hiding it behind overflow-x: clip.
+  test("does not scroll sideways", async ({ page }) => {
+    await page.goto("/")
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth
+    )
+    expect(overflow).toBeLessThanOrEqual(0)
+  })
+
   test("sizes controls for touch and inputs at 16px", async ({ page }) => {
     await page.goto("/dev/ui")
     const controls = [
