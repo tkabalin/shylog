@@ -85,12 +85,16 @@ test("follows the system dark setting", async ({ page }) => {
     .locator("body")
     .evaluate((body) => getComputedStyle(body).backgroundColor)
 
+  const themeColor = page.locator('meta[name="theme-color"]')
+  await expect(themeColor).toHaveAttribute("content", light)
+
   await page.emulateMedia({ colorScheme: "dark" })
   await expect(page.locator("html")).toHaveClass(/dark/)
   const dark = await page
     .locator("body")
     .evaluate((body) => getComputedStyle(body).backgroundColor)
   expect(dark).not.toBe(light)
+  await expect(themeColor).toHaveAttribute("content", dark)
 })
 
 // Evidence for review, not baselines: the folder is gitignored.

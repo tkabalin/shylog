@@ -6,6 +6,16 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
+    <!-- A personal log: keep it out of search results if it is ever exposed. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <meta
+      name="description"
+      content="A self-hosted, mobile-first web app for logging scuba dives, with dive computer profiles, statistics and certification cards."
+    />
+    <!-- Browser and status bar colour; set below and kept in step by
+         ThemeProvider, so it always matches the page background. -->
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Shylog</title>
     <script>
       // Set the theme before first paint so a dark phone does not flash white
@@ -21,6 +31,10 @@
           (theme !== "light" &&
             matchMedia("(prefers-color-scheme: dark)").matches)
         document.documentElement.classList.add(dark ? "dark" : "light")
+        // --background of each theme (white, mist-950); CSS isn't loaded yet.
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute("content", dark ? "#090b0c" : "#ffffff")
       }
     </script>
   </head>
