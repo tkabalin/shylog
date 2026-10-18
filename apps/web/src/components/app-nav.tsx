@@ -34,7 +34,7 @@ export function BottomNav() {
         <Link
           key={to}
           to={to}
-          className="group flex min-h-13 flex-col items-center justify-center gap-0.75 text-[11px] font-medium text-muted-foreground data-[status=active]:font-semibold data-[status=active]:text-primary"
+          className="group flex min-h-13 flex-col items-center justify-center gap-0.75 text-[11px] font-medium text-muted-foreground select-none [-webkit-touch-callout:none] data-[status=active]:font-semibold data-[status=active]:text-primary"
         >
           <Icon
             aria-hidden
