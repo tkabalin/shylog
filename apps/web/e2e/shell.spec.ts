@@ -35,10 +35,38 @@ test.describe("at phone width", () => {
   // Find what is too wide instead of hiding it behind overflow-x: clip.
   test("does not scroll sideways", async ({ page }) => {
     await page.goto("/")
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - window.innerWidth
+    const main = page.locator("main")
+    const overflow = await main.evaluate(
+      (el) => el.scrollWidth - el.clientWidth
     )
     expect(overflow).toBeLessThanOrEqual(0)
+  })
+
+  test("scrolls the content, not the page, and resets it on navigation", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    const main = page.locator("main")
+    await main.evaluate((el) => {
+      el.append(
+        Object.assign(document.createElement("div"), {
+          style: "height: 3000px; flex: none",
+        })
+      )
+      el.scrollTop = 500
+    })
+    expect(await main.evaluate((el) => el.scrollTop)).toBe(500)
+    expect(await page.evaluate(() => document.documentElement.scrollTop)).toBe(
+      0
+    )
+
+    const nav = page.getByRole("navigation", { name: "Main" })
+    const box = await nav.boundingBox()
+    expect(box!.y + box!.height).toBeCloseTo(844, 0)
+
+    await nav.getByRole("link", { name: "Stats" }).click()
+    await expect(page).toHaveURL("/stats")
+    await expect.poll(() => main.evaluate((el) => el.scrollTop)).toBe(0)
   })
 
   test("sizes controls for touch and inputs at 16px", async ({ page }) => {

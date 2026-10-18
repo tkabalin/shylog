@@ -6,7 +6,8 @@ import "./index.css"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { routeTree } from "./routeTree.gen.ts"
 
-const router = createRouter({ routeTree })
+// Content scrolls in <main>, not the window, so reset that on navigation.
+const router = createRouter({ routeTree, scrollToTopSelectors: ["#main"] })
 
 declare module "@tanstack/react-router" {
   interface Register {
