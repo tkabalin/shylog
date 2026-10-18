@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ImportRouteImport } from './routes/import'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
+import { Route as DevUiRouteImport } from './routes/dev.ui'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const StatsRoute = StatsRouteImport.update({
   path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevUiRoute = DevUiRouteImport.update({
+  id: '/dev/ui',
+  path: '/dev/ui',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/dev/ui': typeof DevUiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/dev/ui': typeof DevUiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/dev/ui': typeof DevUiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/import' | '/settings' | '/stats'
+  fullPaths: '/' | '/import' | '/settings' | '/stats' | '/dev/ui'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/import' | '/settings' | '/stats'
-  id: '__root__' | '/' | '/import' | '/settings' | '/stats'
+  to: '/' | '/import' | '/settings' | '/stats' | '/dev/ui'
+  id: '__root__' | '/' | '/import' | '/settings' | '/stats' | '/dev/ui'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   ImportRoute: typeof ImportRoute
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
+  DevUiRoute: typeof DevUiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dev/ui': {
+      id: '/dev/ui'
+      path: '/dev/ui'
+      fullPath: '/dev/ui'
+      preLoaderRoute: typeof DevUiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImportRoute: ImportRoute,
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
+  DevUiRoute: DevUiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

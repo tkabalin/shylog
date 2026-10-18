@@ -60,3 +60,6 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Playwright screenshots are evidence for review, not baselines
+apps/web/e2e/__screenshots__/
