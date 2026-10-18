@@ -33,7 +33,7 @@ Everything is TypeScript, so one core package (draft upload and edit schemas, na
 
 | Layer | Choice | Notes |
 | --- | --- | --- |
-| UI components | React with shadcn/ui, preset `b1sAmWXiM`, with cyan as the theme and chart colour | Touch-size overrides on mobile, compact sizes from `md:` up. A thin Shylog theme layer overrides the preset's CSS variables only where needed (surfaces, and the font: Geist) |
+| UI components | React with shadcn/ui, preset `b1sAmWaNW`, with cyan as the theme and chart colour | Touch-size overrides on mobile, compact sizes from `md:` up. A thin Shylog theme layer overrides the preset's CSS variables only where needed (surfaces, and Geist Mono; the preset brings Geist) |
 | Build and PWA | Vite with vite-plugin-pwa | Precaches the app shell; installable |
 | Charts | shadcn charts (Recharts) | Matches the theme; switch the profile chart to uPlot if long dives feel slow |
 | Local storage | IndexedDB via Dexie | Read-only JSON copy of the log (without samples) plus unsynced draft dives, and the samples and card images fetched so far, cached for offline viewing |
@@ -520,7 +520,7 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
 ### Visual direction
 
 - Sleek, modern, and minimal, but recognisably Shylog rather than a stock shadcn app. The distinctiveness comes from layout, typography, and the dive data itself, not from decoration or strong colour.
-- The shadcn preset `b1sAmWXiM` sets the base, including cyan as the accent and chart colour. A thin Shylog theme layer overrides the preset's CSS variables only where needed: surfaces, and the font.
+- The shadcn preset `b1sAmWaNW` sets the base, including cyan as the accent and chart colour. A thin Shylog theme layer overrides the preset's CSS variables only where needed: surfaces, and Geist Mono (the preset brings Geist itself).
 - Font: Geist, with Geist Mono where mono is used.
 - No serif fonts. Mono only in a few carefully chosen places; other figures use tabular numerals.
 - Headings use sentence case, never all caps.
@@ -652,7 +652,7 @@ Source: `core/profile.cpp` and `profile-widget/` (`profilescene.cpp`, `divecarte
 
 Each step ends with something usable, and the core package comes first because everything else depends on it.
 
-1. **Scaffold**: pnpm workspace, Vite and React app, `shadcn init` with preset `b1sAmWXiM` (the updated preset, set before the repo is initialised), touch-size overrides.
+1. **Scaffold**: pnpm workspace, Vite and React app, `shadcn init` with preset `b1sAmWaNW` (the updated preset, set before the repo is initialised), touch-size overrides.
 2. **Core package**: draft upload and edit schemas, name normalisation, unit conversion, and calculations, with the calculation tests under Testing.
 3. **Server**: SQLite schema and migrations, the draft upload and edit endpoints, integrity checks, the security headers, and a dev-only seed script that loads dives, samples, and alarms from the fixture through a small UDDF reader the Import step later grows into the Suunto module.
 4. **Deploy**: Docker Compose with the Tailscale sidecar on the home server, plus nightly snapshots, so you test on your phone early and backups run from day one. Includes the second instance on a shared node, with a smoke test of its identity check.
