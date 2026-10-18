@@ -88,14 +88,41 @@ Where a board shows something the spec does not and no decision above covers it,
 
 **Not in this milestone**: vite-plugin-pwa configuration and the service worker (milestone 16), any data, any screen content, Docker.
 
-- [ ] Workspace, base tsconfig, ESLint flat config, Prettier
-- [ ] `apps/web` with Vite, React, shadcn preset, Geist, theme layer, touch-size overrides
-- [ ] Bottom navigation and `md:` sidebar with four routes
-- [ ] `apps/server` Hono stub and env parsing
-- [ ] `packages/core` stub
-- [ ] Vitest workspace config, Playwright config with Chromium and WebKit
-- [ ] CI workflow
-- [ ] Screenshots at 390 px and 1024 px, light and dark
+- [x] Workspace, base tsconfig, ESLint flat config, Prettier
+- [x] `apps/web` with Vite, React, shadcn preset, Geist, theme layer, touch-size overrides
+- [x] Bottom navigation and `md:` sidebar with four routes
+- [x] `apps/server` Hono stub and env parsing
+- [x] `packages/core` stub
+- [x] Vitest workspace config, Playwright config with Chromium and WebKit
+- [x] CI workflow
+- [x] Screenshots at 390 px and 1024 px, light and dark
+
+**Notes for the next session** (written 18 October 2026, branch `feat/scaffold`)
+
+Decisions taken while building:
+
+- Preset `b1sAmWaNW` (Geist), TanStack Router with file-based routes (`src/routeTree.gen.ts` is generated and committed), Node 24, pnpm 12.14. TypeScript stays on 6.0 because typescript-eslint supports only up to 6.0.
+- The theme layer adds Geist Mono and lifts the dark `--primary` to cyan-400 with cyan-950 text, as the boards do.
+- Touch sizes are edited into the shadcn components' variants (`h-11 md:h-8` and so on), and `sidebar.tsx` has its Ctrl/Cmd+B toggle removed (the sidebar never collapses). Re-adding a component with `shadcn add --overwrite` drops these edits.
+- `react-refresh/only-export-components` is off, as in shadcn's Vite template. Prettier ignores `docs/` (it would reflow the plan and spec) and the vendored `.claude/skills/`.
+- An unset `NODE_ENV` counts as production, so `SHYLOG_DEV_LOGIN` is refused unless `NODE_ENV` is `development` or `test`. The server's `dev` script sets it and loads the root `.env`. `SHYLOG_ORIGIN` must be http(s) and is reduced to scheme and host. Empty env values count as unset, so a Compose `${VAR:-}` falls back to the default.
+- Package `test` scripts pass `--root ../..`, and the web `test:e2e` passes `-c ../../playwright.config.ts`, because neither tool finds the root config from a package folder.
+- Screenshots in `apps/web/e2e/__screenshots__/` are gitignored evidence, uploaded as a CI artifact.
+- `viewport-fit=cover` is set, so the main area and bottom nav pad for the safe-area insets on all sides.
+- The root `tsconfig.json` typechecks the root `*.config.ts` files, and ESLint gives Node globals to everything except `apps/web/src`.
+- `.claude/skills/implement-milestone` records this workflow; run `/implement-milestone <n>` for the next step.
+- The shadcn agent skill is installed in `.claude/skills/shadcn` (`skills-lock.json`). Its context step runs `shadcn info` in the working directory, so run shadcn commands from `apps/web`.
+
+Deferred, or to watch:
+
+- Playwright's webServer is Vite's dev server. The touch-size check uses the development-only `/dev/ui` route, so it has to move when the webServer switches to the seeded Node server (milestone 4 or 8).
+- After adding a route file, run `vite` (dev or build) once before `tsc -b`, since the router plugin regenerates the route tree.
+- On `/mnt/c`, a cold Vite dependency optimisation takes more than 30 s and the first e2e run times out. Run it again once `node_modules/.vite` is warm. CI on Linux is not affected.
+- `test:xsd`, `seed` and `restore-drill` point at scripts that later milestones write.
+- `index.html` has an inline script that applies the theme before first paint, using `ThemeProvider`'s `theme` storage key. Keep the two in step when Settings gets the appearance override (milestone 11). The page title is still a fixed "Shylog" until the server serves it from `SHYLOG_APP_NAME`.
+- Supply chain: `pnpm-workspace.yaml` refuses releases under three days old and trust downgrades (`semver@6.3.1` excluded, with the reason beside it), `packageManager` pins pnpm by hash, and every GitHub Action is pinned to a commit SHA. A brand-new release fails the install, so lower the range rather than excluding it. Raise `minimumReleaseAge` to seven days once that costs no downgrades.
+- CI runs as two jobs, `check` and `e2e`; shard Playwright only once the browser tests take minutes.
+- The main JS chunk is about 450 kB (150 kB gzipped) with React, TanStack Router and Base UI. Revisit with the PWA work.
 
 ## Milestone 2: Core, schemas and normalisation
 
