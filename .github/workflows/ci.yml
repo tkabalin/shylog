@@ -33,7 +33,16 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
-      - run: pnpm test
+      - run: pnpm test --coverage
+      - name: Add coverage to the job summary
+        if: ${{ !cancelled() && hashFiles('coverage/coverage.txt') != '' }}
+        run: |
+          {
+            echo "## Coverage"
+            echo '```'
+            cat coverage/coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
       - run: pnpm build
       # xmllint, for UDDF schema validation once the export exists
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libxml2-utils
