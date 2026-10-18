@@ -33,11 +33,12 @@ Everything is TypeScript, so one core package (draft upload and edit schemas, na
 
 | Layer | Choice | Notes |
 | --- | --- | --- |
-| UI components | React with shadcn/ui, preset `b1sAmWaNW`, with cyan as the theme and chart colour | Touch-size overrides on mobile, compact sizes from `md:` up. A thin Shylog theme layer overrides the preset's CSS variables only where needed (surfaces, and Geist Mono; the preset brings Geist) |
+| UI components | React with shadcn/ui, preset `b1sAmWaNW`, with cyan as the theme and chart colour | Touch-size overrides on mobile, compact sizes from `md:` up. A thin Shylog theme layer overrides the preset's CSS variables only where needed (surfaces, the dark-mode accent, and Geist Mono; the preset brings Geist) |
+| Routing | TanStack Router | File-based routes with typed links and search params |
 | Build and PWA | Vite with vite-plugin-pwa | Precaches the app shell; installable |
 | Charts | shadcn charts (Recharts) | Matches the theme; switch the profile chart to uPlot if long dives feel slow |
 | Local storage | IndexedDB via Dexie | Read-only JSON copy of the log (without samples) plus unsynced draft dives, and the samples and card images fetched so far, cached for offline viewing |
-| Server | Node LTS with TypeScript and Hono | Applies draft uploads and edits, serves the app, handles imports and the UDDF export |
+| Server | Node 24 (LTS) with TypeScript and Hono | Applies draft uploads and edits, serves the app, handles imports and the UDDF export |
 | Database | SQLite in WAL mode via better-sqlite3 (not Node's built-in `node:sqlite`) | Source of truth: one file, `shylog.db` |
 | UDDF | @xmldom/xmldom on the server | Reads Subsurface imports and writes the nightly UDDF export |
 | Repo layout | pnpm workspace: `apps/web`, `apps/server`, `packages/core` | Shared types, draft upload and edit schemas, name normalisation, and calculations |
@@ -306,7 +307,7 @@ The service worker precaches the app shell and lazy chunks, so the app opens wit
 
 One Node process running Hono serves the app, hands out the log, and is the only thing that ever writes the database.
 
-- **Runtime**: Node LTS; TypeScript bundled to JavaScript with tsup during the Docker build.
+- **Runtime**: Node 24 (LTS); TypeScript bundled to JavaScript with tsup during the Docker build.
 - **Framework**: Hono, with its typed RPC client imported by `apps/web`, so API mismatches show up at build time. Installed copies of the app running older code are covered by op versioning.
 - **Validation**: op and edit schemas written once in Zod inside `packages/core`, used by the client to build requests and by the server to reject malformed ones.
 - **Database**: `shylog.db` on a bind mount, opened with `journal_mode=WAL`, `synchronous=FULL`, `foreign_keys=ON` (all foreign keys immediate, never deferrable), and `busy_timeout=5000`, leaving SQLite's automatic checkpoints on. The Node process is the only writer.
@@ -520,7 +521,7 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
 ### Visual direction
 
 - Sleek, modern, and minimal, but recognisably Shylog rather than a stock shadcn app. The distinctiveness comes from layout, typography, and the dive data itself, not from decoration or strong colour.
-- The shadcn preset `b1sAmWaNW` sets the base, including cyan as the accent and chart colour. A thin Shylog theme layer overrides the preset's CSS variables only where needed: surfaces, and Geist Mono (the preset brings Geist itself).
+- The shadcn preset `b1sAmWaNW` sets the base, including cyan as the accent and chart colour. A thin Shylog theme layer overrides the preset's CSS variables only where needed: surfaces, Geist Mono (the preset brings Geist itself), and the dark-mode accent, which the preset sets to cyan-800 and the layer lifts to cyan-400 so accent text stays readable on a dark background.
 - Font: Geist, with Geist Mono where mono is used.
 - No serif fonts. Mono only in a few carefully chosen places; other figures use tabular numerals.
 - Headings use sentence case, never all caps.
