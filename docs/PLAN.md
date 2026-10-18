@@ -236,7 +236,7 @@ Where a board shows something the spec does not and no decision above covers it,
 
 **Implements**: Stack and deployment (Deployment, Data, Access), Instance configuration, Server (Network, Serving), Restores, Backups and durability (Built into the server items 1 to 4, Checklist), Testing (Migrations, Restore drill), decision D18.
 
-**Touches**: `Dockerfile` (multi-stage: pnpm install, build web and server with tsup, runtime image on Node LTS), `compose.yml` (app with `network_mode: service:tailscale`, Tailscale sidecar with `TS_SERVE_CONFIG`, bind mounts under `${SHYLOG_DATA_DIR}`, no `container_name`, ports or named volumes), `.env.example`, `apps/server/src/jobs/nightly.ts` (snapshot with `VACUUM INTO`, compress, prune to daily 90 days, weekly two years, monthly forever), `scripts/backup.sh`, `scripts/restore.sh <instance> <snapshot>`, `scripts/restore-drill.sh <instance>`, `scripts/replay.ts` (journal replay after a sequence number, bypassing the age rule), `README.md` (run, restore guide).
+**Touches**: `Dockerfile` (multi-stage: pnpm install, build web and server with tsup, runtime image on Node 24), `compose.yml` (app with `network_mode: service:tailscale`, Tailscale sidecar with `TS_SERVE_CONFIG`, bind mounts under `${SHYLOG_DATA_DIR}`, no `container_name`, ports or named volumes), `.env.example`, `apps/server/src/jobs/nightly.ts` (snapshot with `VACUUM INTO`, compress, prune to daily 90 days, weekly two years, monthly forever), `scripts/backup.sh`, `scripts/restore.sh <instance> <snapshot>`, `scripts/restore-drill.sh <instance>`, `scripts/replay.ts` (journal replay after a sequence number, bypassing the age rule), `README.md` (run, restore guide).
 
 **Acceptance**
 
