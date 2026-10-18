@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>Shylog</title>
+    <script>
+      // Set the theme before first paint so a dark phone does not flash white
+      // while React loads. Mirrors ThemeProvider's storage key and values, and
+      // falls back to the system setting when storage is blocked.
+      {
+        let theme = null
+        try {
+          theme = localStorage.getItem("theme")
+        } catch {}
+        const dark =
+          theme === "dark" ||
+          (theme !== "light" &&
+            matchMedia("(prefers-color-scheme: dark)").matches)
+        document.documentElement.classList.add(dark ? "dark" : "light")
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
