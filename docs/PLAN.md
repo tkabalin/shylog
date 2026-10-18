@@ -75,7 +75,7 @@ Where a board shows something the spec does not and no decision above covers it,
 
 **Implements**: Stack and deployment (table), Build order step 1, UI and mobile design (Visual direction, Mobile rules), Testing (tooling only). Screens: the shell of `LogHifi2` (bottom navigation with Log, Stats, Import, Settings), no content.
 
-**Touches**: `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `eslint.config.js`, `.prettierrc`, `vitest.config.ts` (workspace projects), `playwright.config.ts`, `.github/workflows/ci.yml`, `apps/web/` (Vite, React, shadcn init with preset `b1sAmWXiM`, Geist, theme layer, touch overrides, routes, bottom nav, sidebar from `md:`), `apps/server/` (Hono hello world on 127.0.0.1 with `SHYLOG_*` env parsing stub), `packages/core/` (empty package with one exported type), `.env.example`.
+**Touches**: `package.json`, `pnpm-workspace.yaml`, `tsconfig.base.json`, `eslint.config.js`, `.prettierrc`, `vitest.config.ts` (workspace projects), `playwright.config.ts`, `.github/workflows/ci.yml`, `apps/web/` (Vite, React, shadcn init with preset `b1sAmWaNW`, Geist, theme layer, touch overrides, routes, bottom nav, sidebar from `md:`), `apps/server/` (Hono hello world on 127.0.0.1 with `SHYLOG_*` env parsing stub), `packages/core/` (empty package with one exported type), `.env.example`.
 
 **Acceptance**
 
