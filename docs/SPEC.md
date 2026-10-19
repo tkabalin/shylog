@@ -431,7 +431,10 @@ The chart library is the heavy part, not the maths, so the dive detail's profile
 | Statistic | Built from |
 | --- | --- |
 | Total dives and total bottom time | Dive count, durations |
-| Deepest and longest dive | Max depth, duration |
+| Records: deepest, longest, coldest, and warmest dive | Max depth, duration, water temperature |
+| Total depth descended, against a ladder of landmarks | Max depths |
+| Longest streaks: consecutive diving days and weeks | Start times |
+| Diving anniversary | Start time of the first dive |
 | Average max depth and average duration | Max depths, durations |
 | Dives per year and per month | Start times |
 | Most-dived sites | Site references |
@@ -448,6 +451,42 @@ The chart library is the heavy part, not the maths, so the dive detail's profile
 | Entry | Entry field |
 
 **Early days**: below five dives, the screen shows the totals and records it has, with a note that charts and patterns follow from five dives. From five on, each pattern still needs the minimums under The bar a pattern must clear.
+
+**Records and milestones**: these sit in the Records and averages card and count as records for Early days, so they show from the first dive.
+
+- **Records** each name and link to their dive. Coldest and warmest use the dive's water temperature, the same effective minimum the patterns use (hand value where set, otherwise the computer's), so warmest is the warmest water you dived in, not the warmest reading. The maximum would make a short shallow dive the warmest, because the computer's first samples read near-surface or air temperature; in the first real export that is a 3-minute, 3.9 m dive peaking at 34 °C. A dive with no water temperature drops out of those two. On a tie the earlier dive holds the record.
+- **Total depth descended** is the sum of every dive's max depth, measured against a ladder of landmarks. The figure names the tallest landmark the total has passed, in whole times rounded down ("You've descended Lion's Head", then "… twice", "… 3 times"), and a second line gives progress to the next rung ("92% of the way to the Burj Khalifa"). Below the first rung it is a share of that one alone. A single landmark gives either a figure that sits on "0.7 times" for a year or one that runs into the dozens, so the ladder is spaced to pass a new rung every few dozen dives early on and keep something ahead however big the log gets. It mixes Cape Town, Western Cape and South African landmarks with world ones, and descending to the bottom of the Mariana Trench is a deliberate rung for a diving app. Heights are fixed in one list in the code, ascending, so a rung can be added without touching the logic:
+
+  | Landmark | Height |
+  | --- | --- |
+  | Leaning Tower of Pisa | 56 m |
+  | Statue of Liberty (ground to torch) | 93 m |
+  | Great Pyramid of Giza | 139 m |
+  | Eiffel Tower | 330 m |
+  | Lion's Head | 669 m |
+  | Burj Khalifa | 828 m |
+  | Table Mountain | 1,085 m |
+  | Boskloof Pinnacle | 1,159 m |
+  | Middelberg-Noord | 1,516 m |
+  | Klein Krakadouw | 1,619 m |
+  | Middle Krakadouw | 1,650 m |
+  | Groot Krakadouw | 1,744 m |
+  | Sneeukop | 1,929 m |
+  | Tafelberg | 1,969 m |
+  | Sneeuberg, the Cederberg's highest peak | 2,026 m |
+  | Matroosberg | 2,249 m |
+  | Seweweekspoort Peak, the Western Cape's highest | 2,325 m |
+  | Mafadi, South Africa's highest peak | 3,450 m |
+  | Kilimanjaro | 5,895 m |
+  | Mount Everest | 8,849 m |
+  | Challenger Deep, the bottom of the Mariana Trench | 10,935 m |
+  | Olympus Mons, on Mars | 21,900 m |
+  | The Kármán line, the edge of space | 100,000 m |
+
+- **Longest streaks** come in two lengths, since a dive trip and steady local diving build different kinds: most consecutive diving days, and most consecutive weeks with at least one dive (Monday to Sunday), both by local start date, so several dives on one day count once. Each shows its length and the dates of its first and last dive, and a streak still running says so.
+- **Diving anniversary** is the whole years since the first logged dive, with its date ("7 years diving, since 10 February 2019"); under a year it is months. It ignores the year filter, since it is about the whole log, and on the day itself it reads "7 years diving today".
+
+Ignored dives are left out of all of these, including the first dive the anniversary counts from. Freedives left out at import are not dives, so they never count; an included freedive counts like any other dive.
 
 **Averages** follow Subsurface's statistics (`process_dive` in `core/statistics.cpp`). Average SAC rate is weighted by each dive's duration and leaves out rates of 0.1 L/min or less as bogus. Average duration and average max depth are plain means over the dives. The water temperature range runs from the lowest dive minimum to the highest dive maximum.
 
