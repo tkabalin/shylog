@@ -36,6 +36,9 @@ const required = {
 export const defaultedDiveFields = {
   diveType: choice(diveTypes),
   nitrox: z.boolean(),
+  // Set by hand only: an ignored dive has no number and stays out of totals
+  // and statistics, but still counts for surface intervals and CNS.
+  ignored: z.boolean(),
 }
 
 export const optionalDiveFields = {
@@ -162,6 +165,7 @@ export const diveFieldsSchema = nitroxOxygen(
       ...z.object(optionalDiveFields).partial().shape,
       diveType: defaultedDiveFields.diveType.default("recreation"),
       nitrox: defaultedDiveFields.nitrox.default(false),
+      ignored: defaultedDiveFields.ignored.default(false),
     })
     .superRefine(checkDive)
 ).transform((fields) => {
