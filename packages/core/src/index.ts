@@ -1,5 +1,6 @@
 export * from "./calc/average-depth.ts"
 export * from "./calc/gas.ts"
+export * from "./calc/mod.ts"
 export * from "./calc/pressure.ts"
 export * from "./calc/sac.ts"
 export * from "./calc/samples.ts"
