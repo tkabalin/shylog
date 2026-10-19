@@ -41,6 +41,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 ## Statistics, Recently deleted and Certifications
 
 - Surge has five levels; `StatsHifi` adds "Very mild".
+- The Records and averages card in `StatsHifi` and `StatsEmptyHifi` shows only deepest and longest. It also needs coldest and warmest dive, total depth descended with progress to the next landmark, the day and week streaks and the diving anniversary (see Records and milestones in the spec), in the card's existing row style.
 - Patterns need the "All patterns" list and a tap through to the groups behind each one. The board shows static findings.
 - Recently deleted keeps the board's restore note and adds that deleted dives keep blocking re-imports.
 - Adding and editing a card both need a connection. The board only disables the list's add button.

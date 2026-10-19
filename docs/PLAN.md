@@ -40,6 +40,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D21 | Long lists in the import review | "Already imported" is a plain count row that never expands. Freedives are listed as the board draws them: one row per freedive under a day heading, each with its own Include. |
 | D22 | Labels fixed in review | The free-text notes field is labelled "General" (the section stays "Notes"); maximum PO₂ is a plain decimal input with no preset list. A site's region is typed with existing regions in that country offered as you type (this supersedes the review's free-text-only choice). |
 | D23 | Ignored dives (added 19 October 2026) | A hand-set `ignored` flag on each dive, false by default, for pool sessions, aborted dives, chamber runs or any other reason. An ignored dive has no number and is left out of the Log's counts, Statistics and entity figures, but still counts for surface intervals, CNS carry-over, the health dive count and the export (see Ignored dives in the spec). |
+| D24 | Records and milestones (added 19 October 2026) | The Records and averages card adds coldest and warmest dive (by the dive's effective minimum water temperature, since the maximum picks up near-surface readings), total depth descended against a ladder of landmarks from the Leaning Tower of Pisa to the Kármán line, longest streaks in consecutive days and weeks, and a diving anniversary that ignores the year filter (see Records and milestones in the spec). |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -547,13 +548,14 @@ Deferred, or to watch:
 
 **Goal**: the Statistics screen shows every figure and chart in the spec's table for the chosen year, lazily loaded, cached until the log changes, with the early-days states.
 
-**Implements**: Statistics (table, Early days, Averages, SAC rate trend), the lazy chunk rule. Screens: `StatsHifi` (all cards except Patterns), `StatsEmptyHifi` (2 dives and no dives).
+**Implements**: Statistics (table, Records and milestones, Early days, Averages, SAC rate trend), the lazy chunk rule, decision D24. Screens: `StatsHifi` (all cards except Patterns), `StatsEmptyHifi` (2 dives and no dives).
 
 **Touches**: `apps/web/src/stats/` (lazy chunk: `figures.ts`, `charts/` on shadcn charts, `StatsScreen.tsx`, table alternatives), `apps/web/src/stats/cache.ts` (keyed by log version and year), tests.
 
 **Acceptance**
 
 - `figures.test.ts`: on the seeded fixture (46 scuba dives), totals, deepest (dive 54, 42.3 m), longest (dive 50, 72 min), plain-mean average depth and duration, dives per month for 2026 and per year, depth bands (0 to 10, 10 to 18, 18 to 30, over 30), time of day (before 11:00, 11:00 to 14:00, 14:00 to 18:00, after 18:00), water range from min and max fields; average SAC is duration-weighted and drops 0.1 L/min or less; nitrox share and average nitrox oxygen (four of the 46 dives, average 32.3%); marking a dive ignored removes it from every figure and chart (D23).
+- `records.test.ts` (D24), all time on the seeded fixture unless stated: coldest dive 72 (12 °C), warmest dive 7 (30 °C, not dive 6, whose maximum is 34 °C on a 3.9 m dive); a tie goes to the earlier dive; total depth descended 759.1 m, worded "You've descended Lion's Head" with "92% of the way to the Burj Khalifa"; synthetic totals for below the first rung (a share of the Leaning Tower of Pisa), exactly on a rung, "twice" and "3 times", and past the last rung; the landmark list is strictly ascending; longest streaks of 6 days (17 to 22 July 2026) and 4 weeks (4 to 25 April 2026), two dives on one day counting once, and a running streak marked as such; anniversary "7 years diving, since 10 February 2019" with the clock at 19 October 2026, the "today" wording on 10 February, months under a year, unchanged by the year filter; an ignored first dive moves the anniversary to the next dive.
 - `trend.test.ts`: the rolling average of the last five dives, only dives with a SAC and not ignored, in date order.
 - `stats.spec.ts`: the year chip switches every figure; below five dives the screen shows totals, records and the "More after 5 dives" progress; with no dives the empty state and "Log a dive"; each chart has a table alternative; the chunk is separate in `dist`, not loaded on the Log, and precached for offline later; `pointerdown` on the Stats tab starts loading the chunk (`preload="intent"`), so a tap doesn't wait on it.
 - Tap-to-content time for Statistics on the owner's phone, first visit and cached, is recorded in the notes against the performance target.
@@ -562,6 +564,7 @@ Deferred, or to watch:
 **Not in this milestone**: patterns (milestone 15).
 
 - [ ] Figures with the Subsurface averaging rules
+- [ ] Records and milestones: coldest and warmest, depth descended against the landmark ladder, day and week streaks, anniversary (D24)
 - [ ] Charts: dives per month or year, SAC trend, depth bands, conditions bars, weather and surface, time of day, gas, entry, sites, buddies, regions, tags
 - [ ] Early-days and empty states
 - [ ] Cache keyed by version and year
