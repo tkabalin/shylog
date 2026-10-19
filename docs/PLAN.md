@@ -256,15 +256,45 @@ Deferred, or to watch:
 
 **Not in this milestone**: any write endpoint (milestone 5), export and snapshot jobs (milestones 7 and 13), Docker.
 
-- [ ] Config from env, dev bypass refused in production
-- [ ] Database open, pragmas, migrations with snapshot, ISO 3166 seed
-- [ ] Schema with constraints, `field_meta`, `fingerprints`, `samples`, `events`, `ops`, `aliases`, `import_previews`, `import_raw`, `meta`, and the dives' `ignored` column defaulting to false (D23)
-- [ ] Journal helper and version id per commit
-- [ ] Security middleware
-- [ ] `/api/version`, `/api/log` with ETag, `/api/dives/:id/samples`, `/api/health`
-- [ ] Static serving and manifest from `SHYLOG_APP_NAME`
-- [ ] Sample reader, derived-field pass and `seed` script
-- [ ] Tests listed above
+- [x] Config from env, dev bypass refused in production
+- [x] Database open, pragmas, migrations with snapshot, ISO 3166 seed
+- [x] Schema with constraints, `field_meta`, `fingerprints`, `samples`, `events`, `ops`, `aliases`, `import_previews`, `import_raw`, `meta`, and the dives' `ignored` column defaulting to false (D23)
+- [x] Journal helper and version id per commit
+- [x] Security middleware
+- [x] `/api/version`, `/api/log` with ETag, `/api/dives/:id/samples`, `/api/health`
+- [x] Static serving and manifest from `SHYLOG_APP_NAME`
+- [x] Sample reader, derived-field pass and `seed` script
+- [x] Tests listed above
+
+**Notes for the next session** (written 19 October 2026, branch `feat/server-reads`, stacked on `feat/core-calculations`)
+
+Decisions taken while building:
+
+- The fixture has no sites, so the seed puts the dives of 17 to 22 July 2026 on a Sodwana site and the rest on one Unnamed site, both South Africa. `derived.ts` holds one whole-log pass (numbers, surface intervals, average depth and temperatures from samples where no `field_meta` row exists, CNS with carry-over, OTU), run by the seed; milestone 5 runs it after every write. Its CNS and OTU match Subsurface's figures for the fixture.
+- The sparkline is the deepest sample in each of 24 equal slices of the dive (0 to its end), the depth at a slice's middle where none falls in it, to the centimetre, stored as JSON on the dive with the ascent-alarm count when samples are written.
+- Migrations are TypeScript modules (`db/migrations/001-initial.ts`), not `.sql` files, since neither tsx nor tsup imports `.sql`. Each is preceded by a `VACUUM INTO` snapshot at `snapshots/pre-migration-<n>-<time>.db` (skipped for an empty database), runs with foreign keys off as SQLite's rebuilds need, and is rolled back by a failing `foreign_key_check`. A schema newer than the code refuses to start. The milestone 7 retention pruning must leave `pre-migration-*` files alone.
+- The schema is `STRICT`, snake_case, with the cross-field rules as checks; dives have an integer `seq` for write order (VACUUM may renumber a rowid). Name keys (`placeKey` or `normaliseName`) are written by the server into a unique `key` column. `field_meta.field` holds core's camelCase field name. Settings are one row; `meta` holds `version`, `schema_version` and later `last_snapshot_at` and `last_export_at`.
+- Every write goes through `write(db, change)` in `journal.ts`, which journals in `ops` and stores a new random version in the same transaction.
+- `/api/log` uses core's field names; `surfaceInterval` is seconds or `"none"`, `links` is one row per link (`{ diveId, type: buddy | professional | tag, target, position }`), `countries` is the list of codes, `cards` is `{ id, name, images }`. Its ETag is the version read with the data; weak and listed `If-None-Match` values match. `schemaVersion` is the database's own.
+- Security: `X-Shylog` (any value) and an allowed login on every `/api` request; for writes, the exact `SHYLOG_ORIGIN`, and when the request has a body, its route's content type: JSON, except `multipart/form-data` for `PUT /api/cards/:id` and the three XML types for `POST /api/import`. A bodiless delete or restore needs only the Origin. The dev login stands in only when the Tailscale header is absent, and must also be in `SHYLOG_ALLOWED_LOGINS`. `/api/health` is no exception (owner's call), so milestone 7's phone smoke test sends the header.
+- Integrity runs at startup and daily. A failure skips migration and pauses every write with a 503 until a restart after restore. A file too damaged to open (bad header) stops startup with an error instead, the spec's "Database unreadable" restore case (owner's call). `/api/health`'s dive count is live dives, ignored ones included, deleted ones not.
+- The server serves `apps/web/dist`, found two folders up from both `src/` and `dist/`, so the Docker image must keep that layout. The page title and `/manifest.webmanifest` come from `SHYLOG_APP_NAME`; the manifest link is in `apps/web/index.html`, and `apps/web/public/icon.svg` is the full-bleed icon from `docs/design/`. Hashed assets are cached for a year, everything else `no-cache`.
+- better-sqlite3 13 ships prebuilt binaries (glibc and musl), so it needs no `allowBuilds` entry. It stays external to the tsup bundle, so the runtime image needs its `node_modules`; `@shylog/core` is bundled in.
+- Server tests sit beside the code; helpers and a checked-in web stand-in are in `apps/server/test/`. `pnpm seed [file]` loads the root `.env`, resolves the file from where it was typed, and refuses a log that has dives.
+
+Deferred, or to watch:
+
+- The derived pass reparses and re-sorts every dive per call to `cnsWithCarryOver` and `surfaceInterval` (O(n² log n)). Fine at hundreds of dives; milestone 5 runs it after every write, so pass a pre-sorted list if edits ever feel slow.
+- Statements in the routes, `storeProfile` and the derived pass are prepared per call; negligible today.
+- Vite's dev server has no proxy, so `/manifest.webmanifest` (and `/api`) 404 under `pnpm dev`. Milestone 8 adds the proxy.
+- iOS ignores SVG manifest icons; the apple-touch PNGs are in milestone 16.
+- UDDF `surfacepressure` is not read or stored; the import (milestone 18) adds a column if an export carries it.
+- The seed's journal entry is `{ source, dives }`, so a replay can't rebuild seeded data. Dev only.
+- Coverage over the server alone fails core's 100 % threshold, since server tests import core; CI's whole-repo run is fine.
+- Playwright's webServer is still Vite's dev server; switch it to the seeded Node server in milestone 8 (the `/dev/ui` touch-size route moves then).
+- Carried over from milestone 3: one sorted pass for carry-over (above); `mod` can go negative for a limit below the surface PO₂, so show no MOD then; check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`.
+- Carried over from milestone 2: the server must check the rules that depend on stored values (see its notes, milestone 5 and 6); site coordinates are left out; the import types are placeholders until milestone 19; free-text fields reject an empty string. The ISO 3166 list is now seeded from core's `countryCodes`.
+- Carried over from the scaffold: run Vite once after adding a route before `tsc -b`; `test:xsd` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 5: Server, draft uploads, dive edits and derived fields
 
@@ -321,7 +351,7 @@ Deferred, or to watch:
 **Acceptance**
 
 - `docker compose --env-file instances/<name>.env up` starts the app and sidecar for each of two instances with different `COMPOSE_PROJECT_NAME`, `TS_HOSTNAME` and `SHYLOG_DATA_DIR`; `docker compose config` shows no published ports, no `container_name`, no named volume.
-- From the owner's phone, `https://shylog.<tailnet>.ts.net/api/health` returns JSON and the manifest's name is the instance's `SHYLOG_APP_NAME`; from the second diver's account on the shared node, the identity check passes for their login and fails for an unknown one (smoke test recorded in the README with the commands used).
+- From the owner's phone, `https://shylog.<tailnet>.ts.net/api/health` sent with the `X-Shylog` header (an iOS Shortcut, since a browser can't add it) returns JSON and the manifest's name is the instance's `SHYLOG_APP_NAME`; from the second diver's account on the shared node, the identity check passes for their login and fails for an unknown one (smoke test recorded in the README with the commands used).
 - `nightly.test.ts`: the job writes `snapshots/shylog-<date>.db.gz` from a temp file renamed when complete, never a symlink; retention pruning keeps the right set for a synthetic three-year run of dates; a failed snapshot is logged and `/api/health` shows the previous time.
 - `scripts/restore-drill.sh` restores last night's snapshot to a scratch path, replays the journal from the live database after the snapshot's sequence number, and reports no difference from the live database (compared with `sqldiff` or a table-by-table dump); run once against the real instance and the output pasted into the milestone notes.
 - `migrations.test.ts`: every migration runs against a copy of the real database (a snapshot the owner provides, gitignored) followed by `foreign_key_check`.
