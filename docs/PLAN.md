@@ -202,15 +202,38 @@ Deferred, or to watch:
 
 **Not in this milestone**: statistics (milestones 14 and 15), pattern rules, anything touching XML in production code.
 
-- [ ] Depth to pressure, surface threshold, water density
-- [ ] Z factor and SAC
-- [ ] MOD and max PO₂ with the 0.1 m step rule
-- [ ] CNS and OTU per dive, carry-over chain
-- [ ] Surface interval with the 48-hour cap and override
-- [ ] Average depth from samples
-- [ ] Sample merging, dive end, interpolation, velocity bands
-- [ ] `likely_same`
-- [ ] Subsurface comparison values recorded for four dives
+- [x] Depth to pressure, surface threshold, water density
+- [x] Z factor and SAC
+- [x] MOD and max PO₂ with the 0.1 m step rule
+- [x] CNS and OTU per dive, carry-over chain
+- [x] Surface interval with the 48-hour cap and override
+- [x] Average depth from samples
+- [x] Sample merging, dive end, interpolation, velocity bands
+- [x] `likely_same`
+- [x] Subsurface comparison values recorded for four dives
+
+**Notes for the next session** (written 19 October 2026, branch `feat/core-calculations`)
+
+Decisions taken while building:
+
+- Every calculation was checked against Subsurface's own arithmetic: its functions were copied line for line into a small C program and run on the fixture's samples. `packages/core/test/subsurface.ts` holds the results for all 46 scuba dives (own CNS, OTU, carried CNS, time under water, average depth, last sample below 0.75 m), and the tests compare every dive with them. The owner's figures from Subsurface for dives 63, 54, 61 and 36 (CNS 15, 4, 18 and 1 %; OTU 41, 12, 48 and 0) match.
+- Fixture dive 6 ends at 440 s, its last sample below 0.75 m, not 502 s; the plan was corrected. Subsurface counts a sample of exactly 0.75 m as underwater for the dive's end but as surface for time under water and average depth, and Shylog mirrors each function (now in the spec).
+- Public functions take database units (metres, seconds, bar, ml, tenths of a per cent) and work internally in whole mm and mbar with C's rounding (`lrint`, halves to even) and integer truncation (`intDiv`). Air is 209 tenths in every calculation (`diveOxygen`).
+- `maxPo2` returns bar to the mbar, so dive 54 gives 1.105 bar. Subsurface shows its unrounded 1.1046 as 1.10. `toFixed(2)` also gives "1.10", but a half-up rounding would give 1.11, so the display (milestone 8) must format with `toFixed(2)` or from the unrounded value.
+- SAC uses the hand duration and average depth when typed, otherwise the samples' figures (Subsurface's `fixup_dc_duration`), and only then the stored values (`sacDurationAndDepth`). An imported dive's SAC therefore uses the samples' average depth, not the computer's `averagedepth`.
+- Carry-over and surface interval take every dive that isn't deleted, ignored ones included, in the order written. Of two dives with the same start, the later-written one is the previous dive.
+- Chart points follow `populate_plot_entries` in full: the line starts at the surface at 0 s and ends with Subsurface's two closing surface points at 1 and 2 s after the last entry, which carry no temperature. Events after the last sample sit at the surface. The `maxtime` cut-off is not applied here; it belongs to the time axis (milestone 9).
+- Core has a 100 % coverage threshold on every metric in `vitest.config.ts`. Core's `test` script is now `cd ../.. && vitest run packages/core`, since a `--project` run checks the threshold against no files and Vitest reads a path filter from the working directory. Coverage on a single test file always fails the threshold; run it over `packages/core`.
+- Tests read the fixture with `@xmldom/xmldom` (dev dependency) through Vite's `?raw`, declared in `packages/core/test/raw.d.ts`. A lint rule keeps `?raw` and imports from `test/` out of core's own code.
+
+Deferred, or to watch:
+
+- `cnsWithCarryOver` and `surfaceInterval` parse and sort the dives on each call. When the server recalculates every later dive after an edit (milestone 5), one sorted, pre-parsed pass may be worth it; review found it harmless at hundreds of dives.
+- `mod` gives a negative depth when the limit is below the gas's PO₂ at the surface (100 % oxygen at a 1.0 bar limit), as Subsurface does. The display should show no MOD in that case.
+- iOS haptics: shadcn's Switch here is Base UI's `role="switch"` element, which plays no haptic. For the dive form's switches (milestone 10), editing `components/ui/switch.tsx` to render a native `<input type="checkbox" switch>` would get Safari's system haptic; check on a phone that it survives the restyle.
+- The server's and web's `test` scripts still use `--project`; that is fine while neither has a coverage threshold.
+- Carried over from milestone 2: the server must check the rules that depend on stored values (see its notes); site coordinates are left out; the ISO 3166 list should move into core when milestones 4 and 10 need it; the import types are placeholders until milestone 19; free-text fields reject an empty string.
+- Carried over from the scaffold: the touch-size check's `/dev/ui` route moves when the Playwright webServer switches to the seeded server (milestone 4 or 8); run Vite once after adding a route before `tsc -b`; `test:xsd`, `seed` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 4: Server, database and reads
 
@@ -732,8 +755,8 @@ Vitest and Playwright only find their config in the working directory, so the pa
 
 ## Still open
 
-Everything else that was under-specified has been decided and written into the spec. Three items remain:
+Everything else that was under-specified has been decided and written into the spec. Two items remain, and one is now closed:
 
 1. **UDDF elements for site data**: the exact elements for region, country and body of water are settled against the vendored XSD in milestone 13 and written into the spec then. The `environment` values were checked against the UDDF 3.2.1 documentation in milestone 2 and are in the spec.
-2. **Subsurface comparison figures**: the owner records Subsurface's CNS and OTU for fixture dives 63, 54, 61 and 36 (salt water, 1013 mbar) before milestone 3; the comparison test is `todo` until then.
+2. **Subsurface comparison figures**: recorded on 19 October 2026 and checked in `cns-otu.test.ts` (milestone 3); no longer open.
 3. **Sync pill colours**: the wireframe review thread on the Log's sync pill is still open. Milestone 16 builds the pill as drawn until a choice is made.
