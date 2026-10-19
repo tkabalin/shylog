@@ -24,6 +24,30 @@ export default defineConfig([
     ignores: ["apps/web/src/**"],
     languageOptions: { globals: globals.node },
   },
+  // Core's tests read the fixture with Vite's ?raw, which the server build
+  // can't resolve, so core's own code must not use it or the test helpers.
+  {
+    files: ["packages/core/src/**/*.ts"],
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            { regex: "[?&]raw(&|$)", message: "Only tests can use ?raw." },
+            { regex: "^(\\.\\./)+test/", message: "Only tests use test/." },
+          ],
+        },
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "ImportExpression[source.value=/[?&]raw(&|$)/]",
+          message: "Only tests can use ?raw.",
+        },
+      ],
+    },
+  },
   {
     files: ["apps/web/src/**/*.{ts,tsx}"],
     extends: [reactHooks.configs.flat.recommended, reactRefresh.configs.vite],
