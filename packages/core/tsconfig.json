@@ -4,5 +4,7 @@
     "lib": ["ES2023"],
     "types": []
   },
-  "include": ["src", "test"]
+  "include": ["src", "test"],
+  // The reference tests run Node; core itself must not see its types.
+  "exclude": ["test/reference"]
 }
