@@ -220,6 +220,9 @@ importers:
       '@shylog/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@xmldom/xmldom':
+        specifier: ^0.9.12
+        version: 0.9.12
       better-sqlite3:
         specifier: ^13.0.3
         version: 13.0.3
