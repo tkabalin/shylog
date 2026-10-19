@@ -18,6 +18,13 @@ describe("diveFieldsSchema", () => {
       ...dive,
       diveType: "recreation",
       nitrox: false,
+      ignored: false,
+    })
+  })
+
+  it("takes an ignored dive", () => {
+    expect(diveFieldsSchema.parse({ ...dive, ignored: true })).toMatchObject({
+      ignored: true,
     })
   })
 
@@ -148,6 +155,8 @@ describe("diveFieldsPatch", () => {
     expect(diveFieldsPatch.parse({ weight: null })).toEqual({ weight: null })
     expect(diveFieldsPatch.safeParse({ maxDepth: null }).success).toBe(false)
     expect(diveFieldsPatch.safeParse({ diveType: null }).success).toBe(false)
+    expect(diveFieldsPatch.safeParse({ ignored: null }).success).toBe(false)
+    expect(diveFieldsPatch.parse({ ignored: true })).toEqual({ ignored: true })
   })
 
   it("clears an emptied text field", () => {
