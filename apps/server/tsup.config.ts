@@ -12,4 +12,7 @@ export default defineConfig({
   format: "esm",
   target: `node${nodeMajor}`,
   clean: true,
+  // Core is TypeScript source in the workspace, which Node won't run from
+  // node_modules, so it is bundled in.
+  noExternal: ["@shylog/core"],
 })
