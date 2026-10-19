@@ -24,10 +24,10 @@ export default defineConfig([
     ignores: ["apps/web/src/**"],
     languageOptions: { globals: globals.node },
   },
-  // Core's tests read the fixture with Vite's ?raw, which the server build
-  // can't resolve, so core's own code must not use it or the test helpers.
+  // Tests read fixtures with Vite's ?raw and use helpers in test/, which the
+  // server build would bundle or fail on, so code outside tests must not.
   {
-    files: ["packages/core/src/**/*.ts"],
+    files: ["packages/core/src/**/*.ts", "apps/server/src/**/*.ts"],
     ignores: ["**/*.test.ts"],
     rules: {
       "no-restricted-imports": [
