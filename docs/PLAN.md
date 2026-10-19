@@ -688,12 +688,12 @@ Root `package.json`:
 }
 ```
 
-`vitest.config.ts` at the root defines three projects: `core` (node), `server` (node, in-memory better-sqlite3 helper), `web` (jsdom with `fake-indexeddb/auto` in `setupFiles`). `vitest run --project core` scopes a run, and a file path scopes it further. The root `tsconfig.json` covers the root `*.config.ts` files, which no package typechecks.
+`vitest.config.ts` at the root defines three projects: `core` (node), `server` (node, in-memory better-sqlite3 helper), `web` (jsdom with `fake-indexeddb/auto` in `setupFiles`). `vitest run packages/core` scopes a run to core, and a file path scopes it further. Core's script runs from the root with a path filter rather than `--project`: a `--project` run matches coverage paths inside the project, so it checks core's 100 % coverage threshold against no files, and Vitest reads a path filter from the working directory. The root `tsconfig.json` covers the root `*.config.ts` files, which no package typechecks.
 
 `packages/core`:
 
 ```json
-{ "scripts": { "typecheck": "tsc --noEmit", "test": "vitest run --root ../.. --project core" } }
+{ "scripts": { "typecheck": "tsc --noEmit", "test": "cd ../.. && vitest run packages/core" } }
 ```
 
 `apps/server`:
@@ -726,7 +726,7 @@ Root `package.json`:
 }
 ```
 
-Vitest and Playwright only find their config in the working directory, so the package scripts point back at the root configs. The server's `dev` loads the root `.env` and sets `NODE_ENV`, since an unset `NODE_ENV` counts as production and refuses `SHYLOG_DEV_LOGIN`. `apps/server/tsup.config.ts` holds the entry, `esm` format and the Node target, read from `engines.node` in its `package.json`, so a Node LTS bump is one edit. `check` runs the whole Vitest suite and is for CI only. Locally, including at sign-off, run `typecheck` and `lint` in full and only the test files the milestone names, with `vitest run <paths>` or `--project core`. `restore-drill` needs `sqlite3` and `sqldiff` on the host and never runs in CI.
+Vitest and Playwright only find their config in the working directory, so the package scripts point back at the root configs. The server's `dev` loads the root `.env` and sets `NODE_ENV`, since an unset `NODE_ENV` counts as production and refuses `SHYLOG_DEV_LOGIN`. `apps/server/tsup.config.ts` holds the entry, `esm` format and the Node target, read from `engines.node` in its `package.json`, so a Node LTS bump is one edit. `check` runs the whole Vitest suite and is for CI only. Locally, including at sign-off, run `typecheck` and `lint` in full and only the test files the milestone names, with `vitest run <paths>` (`packages/core` for all of core). `restore-drill` needs `sqlite3` and `sqldiff` on the host and never runs in CI.
 
 `playwright.config.ts` runs Chromium and WebKit at a 390 × 844 viewport with a `webServer` that starts the server on a temp `SHYLOG_DATA_DIR` with `SHYLOG_DEV_LOGIN` set and seeds the fixture. `scripts/validate-uddf.sh` strips `<shylog>` elements with a short Node script and runs `xmllint --noout --schema fixtures/uddf/uddf_v321.xsd` over the files given; CI installs `libxml2-utils` (it is not installed in the local WSL today).
 
