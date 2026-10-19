@@ -38,6 +38,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D20 | Person figures | "Dives together", "As buddy" and "Buddy since" are kept, derived on the client from the link tables. |
 | D21 | Long lists in the import review | "Already imported" is a plain count row that never expands. Freedives are listed as the board draws them: one row per freedive under a day heading, each with its own Include. |
 | D22 | Labels fixed in review | The free-text notes field is labelled "General" (the section stays "Notes"); maximum PO₂ is a plain decimal input with no preset list. A site's region is typed with existing regions in that country offered as you type (this supersedes the review's free-text-only choice). |
+| D23 | Ignored dives (added 19 October 2026) | A hand-set `ignored` flag on each dive, false by default, for pool sessions, aborted dives, chamber runs or any other reason. An ignored dive has no number and is left out of the Log's counts, Statistics and entity figures, but still counts for surface intervals, CNS carry-over, the health dive count and the export (see Ignored dives in the spec). |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -129,7 +130,7 @@ Deferred, or to watch:
 
 **Goal**: the shared package holds every Zod schema, name-normalisation rule and unit conversion the client and server will use, with tests.
 
-**Implements**: Data model (v1 fields, Units, Rules for edits), Operations and offline sync (the `Op` types), Edits to synced data (request schemas), the site and person deduplication rules, tag list.
+**Implements**: Data model (v1 fields, Units, Rules for edits), Operations and offline sync (the `Op` types), Edits to synced data (request schemas), the site and person deduplication rules, tag list, decision D23 (the `ignored` field).
 
 **Touches**: `packages/core/src/schemas/` (dive fields, entity fields per kind, ops, edit requests per endpoint, settings, cards, import preview and apply payloads), `packages/core/src/normalise.ts`, `packages/core/src/units.ts`, `packages/core/src/tags.ts`, `packages/core/src/ids.ts`, `packages/core/src/enums.ts` (dive type, entry, current, surge, surface, weather, workload, thermal comfort, body of water, water type, with their UDDF values), tests beside each.
 
@@ -206,7 +207,7 @@ Deferred, or to watch:
 
 - [ ] Config from env, dev bypass refused in production
 - [ ] Database open, pragmas, migrations with snapshot, ISO 3166 seed
-- [ ] Schema with constraints, `field_meta`, `fingerprints`, `samples`, `events`, `ops`, `aliases`, `import_previews`, `import_raw`, `meta`
+- [ ] Schema with constraints, `field_meta`, `fingerprints`, `samples`, `events`, `ops`, `aliases`, `import_previews`, `import_raw`, `meta`, and the dives' `ignored` column defaulting to false (D23)
 - [ ] Journal helper and version id per commit
 - [ ] Security middleware
 - [ ] `/api/version`, `/api/log` with ETag, `/api/dives/:id/samples`, `/api/health`
@@ -226,7 +227,7 @@ Deferred, or to watch:
 
 - `ops.test.ts`: a draft with one `upsertDive` and two `upsertEntity` ops creates the dive and entities and journals three entries; re-sending the same draft changes nothing and replies "already applied"; a draft whose site matches an existing site by key records an alias and uses the survivor; a draft pointing at a merged-away id resolves through the alias chain; a draft pointing at a deleted entity is rejected whole; an unsupported `opVersion` is rejected, the previous version accepted; an op older than two years is rejected; a failing op rolls back the whole draft and records no op ids; every filled-in field gets `field_meta` source `hand`.
 - `dives.test.ts`: `PATCH` with only changed fields updates them, replies with the new version, journals; a hand edit of a computer-filled field sets its source to `hand` and keeps `computer_value`; dismissing sets `dismissed`; adopting copies the computer value and clears the flag; delete sets `deleted_at` and the dive leaves `/api/log`'s live set; restore clears it; both are safe to repeat.
-- `derived.test.ts`: dive numbers follow local start time across all live dives and renumber after an insert in the middle, a delete and a restore; surface intervals recompute for the next dive, except where overridden; average depth is computed only for dives with samples and no imported or hand value; CNS carry-over recalculates later dives in the 12-hour chain; moving a dive into a trip recalculates its chain.
+- `derived.test.ts`: dive numbers follow local start time across all live dives and renumber after an insert in the middle, a delete and a restore; an ignored dive gets no number and the dives after it close up, and un-ignoring it renumbers them (D23); an ignored dive still counts for the next dive's surface interval and CNS carry-over; surface intervals recompute for the next dive, except where overridden; average depth is computed only for dives with samples and no imported or hand value; CNS carry-over recalculates later dives in the 12-hour chain; moving a dive into a trip recalculates its chain.
 - The version id changes on every commit and `GET /api/version` reflects it.
 
 **Not in this milestone**: entity, settings and card endpoints (milestone 6), import, export.
@@ -288,7 +289,7 @@ Deferred, or to watch:
 
 **Goal**: the phone shows the seeded log as cards grouped by month and a dive's full detail without the chart, read from a Dexie mirror of `/api/log`.
 
-**Implements**: Screens (Log, Dive detail minus the Profile chart), Mobile rules (header pill placeholder, date and number formats), Client data (`/api/log` mirror in Dexie), Architecture (read side), decisions D2, D13, D15. Screens: `LogHifi2` (Hero count header, cards, month groups, search, filters, empty state), `DiveDetailHifi` (title block, headline figures, Figures, Dive, Cylinder and gas, Conditions in Summary + list layout, People, Notes; the Profile card shows the no-profile note for now).
+**Implements**: Screens (Log, Dive detail minus the Profile chart), Mobile rules (header pill placeholder, date and number formats), Client data (`/api/log` mirror in Dexie), Architecture (read side), decisions D2, D13, D15, D23. Screens: `LogHifi2` (Hero count header, cards, month groups, search, filters, empty state), `DiveDetailHifi` (title block, headline figures, Figures, Dive, Cylinder and gas, Conditions in Summary + list layout, People, Notes; the Profile card shows the no-profile note for now).
 
 **Touches**: `apps/web/src/data/db.ts` (Dexie tables mirroring the log, schema version), `apps/web/src/data/sync.ts` (fetch `/api/log` with ETag, write in one Dexie transaction), `apps/web/src/api/` (Hono RPC client with the `X-Shylog` header), `apps/web/src/routes/log/`, `apps/web/src/routes/dive/`, `apps/web/src/format/` (dates "Sat 10", "Sat 25 Jul 2026", durations, depths, tabular numerals), `apps/web/src/components/` (DiveCard, Sparkline, MonthGroup, FilterPills, SyncPill stub), tests with `fake-indexeddb`.
 
@@ -296,7 +297,7 @@ Deferred, or to watch:
 
 - `sync.test.ts`: a log payload lands in Dexie in one transaction; a 304 leaves it untouched; a newer `schemaVersion` stops syncing and sets a flag the UI shows.
 - `format.test.ts`: card date is weekday and day only, month header is "July 2026" with the month's count; depth one decimal, duration whole minutes; a long place is shortened before the date.
-- `log.spec.ts` (Playwright, server seeded from the fixture with `SHYLOG_DEV_LOGIN`): the Log shows "46 dives logged" and the hours and deepest strip, 46 cards in month groups with the right counts (e.g. July 2026 has 15), each with a sparkline; search "Sodwana" after the owner names a seeded site; the year filter narrows the header figures; scrolling collapses the header to "46 dives · N h".
+- `log.spec.ts` (Playwright, server seeded from the fixture with `SHYLOG_DEV_LOGIN`): the Log shows "46 dives logged" and the hours and deepest strip, 46 cards in month groups with the right counts (e.g. July 2026 has 15), each with a sparkline; search "Sodwana" after the owner names a seeded site; the year filter narrows the header figures; scrolling collapses the header to "46 dives · N h"; with one seeded dive marked ignored, the header and its month count drop by one and its card and detail show the eye-off icon, read as "Ignored" by screen readers, in place of the number (D23).
 - `dive.spec.ts`: fixture dive 63's detail shows max depth 32.7 m, duration 42 min, avg depth 21.0 m, water temperature range, SAC blank (no pressures), EANx32, max PO₂ 1.38 bar, MOD at 1.4 bar 33.2 m, CNS and OTU; a dive with no samples shows the figures and the no-profile note; the header title appears on scroll.
 - Screenshots at 390 px of the Log and the detail, side by side with `LogHifi2` and `DiveDetailHifi`, in both themes.
 - Every figure is computed by `packages/core` on the client, never duplicated in the web app.
@@ -345,14 +346,14 @@ Deferred, or to watch:
 
 **Goal**: a dive can be added or edited on the phone with every v1 field, new dives are saved as drafts in Dexie and uploaded at once, and edits to synced dives go through `PATCH`.
 
-**Implements**: v1 fields (both tables, new-dive defaults), Screens (Add or edit, Site picker), Mobile rules (native pickers, inputmode rules, comma decimals), Conflict rules (hand beats computer, in the form), For a matched dive (adopt and dismiss), Operations and offline sync (Flow steps 1 and 3 to 6 without retry), decisions D6, D13, D14. Screens: `EditDiveHifi` (plus the Training fields and native date and time inputs from NOTES), `SitePickerHifi` (with a country list), the people and dive-centre token inputs, a trip picker and the option sheets for Type, Entry, Current, Surge, Workload, Thermal comfort (no board; shadcn Select or Drawer in the board's row style).
+**Implements**: v1 fields (both tables, new-dive defaults), Screens (Add or edit, Site picker), Mobile rules (native pickers, inputmode rules, comma decimals), Conflict rules (hand beats computer, in the form), For a matched dive (adopt and dismiss), Operations and offline sync (Flow steps 1 and 3 to 6 without retry), decisions D6, D13, D14, D23. Screens: `EditDiveHifi` (plus the Training fields, native date and time inputs and the Ignore this dive switch from NOTES), `SitePickerHifi` (with a country list), the people and dive-centre token inputs, a trip picker and the option sheets for Type, Entry, Current, Surge, Workload, Thermal comfort (no board; shadcn Select or Drawer in the board's row style).
 
 **Touches**: `apps/web/src/routes/dive/edit/` (form sections, calculated block, Copy from last dive), `apps/web/src/components/pickers/` (SitePicker with create view, CountrySelect from the ISO list, PeopleInput, DiveCentreInput, TripPicker, OptionSheet), `apps/web/src/data/drafts.ts` (draft and queued ops in one Dexie transaction, rewrite on edit, remove on delete), `apps/web/src/data/upload.ts` (one draft per request, oldest first, drop on accept), `apps/web/src/data/edits.ts` (PATCH with only changed fields, keep values and offer retry on failure), tests.
 
 **Acceptance**
 
 - `drafts.test.ts` (fake-indexeddb): saving a new dive writes the dive, its `upsertDive` op and an `upsertEntity` op for a new site in one transaction; editing the draft rewrites the ops with new op ids; deleting removes them; a rejected draft keeps its reason; accepted ops are dropped; the queue has its own schema version.
-- `form.test.ts`: the free-text field is labelled "General" under the "Notes" heading (D22); computer and calculated values render in the normal text colour, with only the marker and reset affordance of D14; required fields are date, time, site, duration, max depth; a comma decimal parses; training agency and course are shown only for Training and saved only then; visibility is metres or a rating; Nitrox off saves no oxygen; the calculated block shows SAC, MOD and max PO₂ live (dive 63's values once its pressures are typed) and highlights max PO₂ over the setting; new-dive defaults fill in and count as hand values; date is prefilled with today and shown as text until tapped; Copy from last dive fills the listed fields and leaves number, date and time, depths, duration, pressures, temperatures, animals and notes.
+- `form.test.ts`: the free-text field is labelled "General" under the "Notes" heading (D22); computer and calculated values render in the normal text colour, with only the marker and reset affordance of D14; required fields are date, time, site, duration, max depth; a comma decimal parses; training agency and course are shown only for Training and saved only then; visibility is metres or a rating; Nitrox off saves no oxygen; the calculated block shows SAC, MOD and max PO₂ live (dive 63's values once its pressures are typed) and highlights max PO₂ over the setting; new-dive defaults fill in and count as hand values; date is prefilled with today and shown as text until tapped; Copy from last dive fills the listed fields and leaves number, date and time, depths, duration, pressures, temperatures, animals and notes; the Ignore this dive switch is off on a new dive, whatever the defaults or the copied dive, and turning it on for a synced dive sends `ignored` in the `PATCH` (D23).
 - `adopt.test.ts`: a field with a differing computer value shows the ✓/✕ group; ✓ adopts and marks it from the computer; ✕ dismisses and hides the group; a computer-filled field shows the marker and gains a reset once edited (D14); the detail's banner count matches the number of undismissed differences.
 - `sitepicker.test.ts`: "long beach " flags the existing Long Beach in South Africa with "Use it" and not the one in Vietnam; the country is picked from the ISO list; water type defaults by body of water and can be overridden; regions are offered from existing ones in that country as you type, and "sodwana " resolves to the existing Sodwana region on save (D22).
 - `edit.spec.ts` (Playwright): add a dive with a new site and buddy, see it uploaded and numbered; edit a seeded dive's notes and see the version change; a save with the server stopped keeps the form values and shows "Try again".
@@ -367,7 +368,7 @@ Deferred, or to watch:
 - [ ] Adopt, dismiss, marker and reset
 - [ ] Site picker with country list, region reuse, water type
 - [ ] People, dive-centre and trip pickers, option sheets
-- [ ] Copy from last dive, new-dive defaults, Training fields
+- [ ] Copy from last dive, new-dive defaults, Training fields, Ignore this dive switch
 - [ ] Tests and screenshots listed above
 
 ## Milestone 11: Editing, delete and restore, Settings, entities
@@ -381,9 +382,9 @@ Deferred, or to watch:
 **Acceptance**
 
 - `delete.spec.ts`: deleting a synced dive shows the sheet, moves it to Recently deleted grouped by "Deleted today", the detail shows "Not in your log, stats or export" with Restore, restoring shows the toast with a link and the dive gets its number back; deleting a draft removes it for good with the draft wording.
-- `entities.test.ts`: duplicate suggestions flag "2 Mile Reef" for "Two Mile Reef" and "Sam N" for "Sam Naidoo" (rule: number words, initials and normalised prefixes); person figures are dives together, as buddy and buddy since (D20); site figures are dives, deepest, last dive; trip dates come from its dives; delete is disabled with the explanation when used, counting deleted dives.
+- `entities.test.ts`: duplicate suggestions flag "2 Mile Reef" for "Two Mile Reef" and "Sam N" for "Sam Naidoo" (rule: number words, initials and normalised prefixes); person figures are dives together, as buddy and buddy since (D20); site figures are dives, deepest, last dive; every entity figure leaves out ignored dives (D23); trip dates come from its dives; delete is disabled with the explanation when used, counting deleted dives.
 - `entities.spec.ts`: rename a site with Save; a colliding rename shows the error with "Merge instead"; merge moves the dives and the merged name disappears; the Regions tab lists regions with their sites count.
-- `settings.spec.ts`: diver name and max PO₂ save with Save; new-dive defaults use the form's controls and fill a new dive; appearance override applies at once; About shows version and `TS_HOSTNAME`.
+- `settings.spec.ts`: diver name and max PO₂ save with Save; new-dive defaults use the form's controls and fill a new dive; appearance override applies at once; About shows version and `TS_HOSTNAME`; the Your log dive count includes ignored dives.
 - Screenshots of Settings, each entities tab, an entity detail with the merge sheet, and Recently deleted at 390 px against the boards.
 
 **Not in this milestone**: cards (milestone 12), downloads and the export alert (milestone 13), sync states (milestone 16).
@@ -427,7 +428,7 @@ Deferred, or to watch:
 
 **Acceptance**
 
-- `writer.test.ts`: a log with hand dives on 32.4% and 32% nitrox produces two mixes; two dives with Aluminium 11100 ml share one tank; every id is the Shylog id and the export is byte-identical on two runs with no change; dive 63 maps to `informationbeforedive/datetime` without an offset, `greatestdepth` 32.66, temperatures in kelvin, duration in seconds; the per-dive `<shylog>` block carries surge, surface, weather, rating, max temperature, gear, tags, dive centre and trip id; a dive with no earlier dive writes `<infinity/>`; a hand value that differs from the computer's goes in the standard element; tags, people and professionals export as the spec says.
+- `writer.test.ts`: a log with hand dives on 32.4% and 32% nitrox produces two mixes; two dives with Aluminium 11100 ml share one tank; every id is the Shylog id and the export is byte-identical on two runs with no change; dive 63 maps to `informationbeforedive/datetime` without an offset, `greatestdepth` 32.66, temperatures in kelvin, duration in seconds; the per-dive `<shylog>` block carries surge, surface, weather, rating, max temperature, gear, tags, dive centre and trip id; a dive with no earlier dive writes `<infinity/>`; an ignored dive has no `divenumber` and its `<shylog>` block says it is ignored (D23); a hand value that differs from the computer's goes in the standard element; tags, people and professionals export as the spec says.
 - `pnpm test:xsd` validates the generated export of the seeded log and a hand-only log; the only allowed failure is the removed `<shylog>` element (the script strips it first).
 - `nightly.test.ts` (extended): the export is written after the snapshot through a temp file and re-parse; a failed export leaves the previous file, logs, and `/api/health` reports it; the next night retries.
 - `export.test.ts`: `GET /api/export/uddf` rewrites the file and streams it; `GET /api/export/snapshot` streams a `VACUUM INTO` copy; `POST /api/export/run` rewrites without a body and clears the failure.
@@ -455,8 +456,8 @@ Deferred, or to watch:
 
 **Acceptance**
 
-- `figures.test.ts`: on the seeded fixture (46 scuba dives), totals, deepest (dive 54, 42.3 m), longest (dive 50, 72 min), plain-mean average depth and duration, dives per month for 2026 and per year, depth bands (0 to 10, 10 to 18, 18 to 30, over 30), time of day (before 11:00, 11:00 to 14:00, 14:00 to 18:00, after 18:00), water range from min and max fields; average SAC is duration-weighted and drops 0.1 L/min or less; nitrox share and average nitrox oxygen (four of the 46 dives, average 32.3%).
-- `trend.test.ts`: the rolling average of the last five dives, only dives with a SAC, in date order.
+- `figures.test.ts`: on the seeded fixture (46 scuba dives), totals, deepest (dive 54, 42.3 m), longest (dive 50, 72 min), plain-mean average depth and duration, dives per month for 2026 and per year, depth bands (0 to 10, 10 to 18, 18 to 30, over 30), time of day (before 11:00, 11:00 to 14:00, 14:00 to 18:00, after 18:00), water range from min and max fields; average SAC is duration-weighted and drops 0.1 L/min or less; nitrox share and average nitrox oxygen (four of the 46 dives, average 32.3%); marking a dive ignored removes it from every figure and chart (D23).
+- `trend.test.ts`: the rolling average of the last five dives, only dives with a SAC and not ignored, in date order.
 - `stats.spec.ts`: the year chip switches every figure; below five dives the screen shows totals, records and the "More after 5 dives" progress; with no dives the empty state and "Log a dive"; each chart has a table alternative; the chunk is separate in `dist`, not loaded on the Log, and precached for offline later.
 - Screenshots of Statistics (2026 and all time), the 2-dive and 0-dive states at 390 px against the boards.
 
@@ -478,7 +479,7 @@ Deferred, or to watch:
 
 **Acceptance**
 
-- `rules.test.ts`: a Difference rule needs five dives per group and finds the best adjacent-level split; a Threshold rule scans whole-number cut-offs and words "4 of 5 dives" when not all match; Change compares with the previous year or the two halves of the log; Trend uses a linear fit; Habit needs 60% over ten dives; Season needs a region and month; Records always qualify; minimum effect sizes per measure as listed.
+- `rules.test.ts`: a Difference rule needs five dives per group and finds the best adjacent-level split; a Threshold rule scans whole-number cut-offs and words "4 of 5 dives" when not all match; Change compares with the previous year or the two halves of the log; Trend uses a linear fit; Habit needs 60% over ten dives; Season needs a region and month; Records always qualify; minimum effect sizes per measure as listed; ignored dives never enter a group or a record (D23).
 - `score.test.ts`: score is effect over minimum times √(smallest group); ties break by rule id; the top three has at most one per measure and one per field and never a record.
 - `wording.test.ts`: describes rather than explains ("is higher in", never "because of"); numbers rounded as elsewhere.
 - `patterns.spec.ts`: a seeded log that supports two patterns shows exactly those two; All patterns groups by measure; tapping shows the groups and opens those dives in the Log; with none qualifying the section is hidden.
@@ -596,7 +597,7 @@ Deferred, or to watch:
 
 **Acceptance**
 
-- `apply.test.ts`: a paired dive keeps every hand value, gets samples and events, fills empty fields as computer values (average depth, min and max temperature), records `computer_value` for each of start time, max depth, average depth, duration and temperatures that differ, by any amount; an added dive carries the computer's values with source computer; a skipped dive gets no fingerprint; a freedive left out gets one with reason `freedive`; an included freedive becomes a dive; a second apply with the same import id changes nothing; a 120-dive synthetic export commits in three chunks with three journal entries, and a failure in chunk two leaves chunk one applied and reports it; a hand dive edited after the preview is returned as changed before anything commits; the summary counts match D19.
+- `apply.test.ts`: a paired dive keeps every hand value (an ignored dive stays ignored), gets samples and events, fills empty fields as computer values (average depth, min and max temperature), records `computer_value` for each of start time, max depth, average depth, duration and temperatures that differ, by any amount; an added dive carries the computer's values with source computer; a skipped dive gets no fingerprint; a freedive left out gets one with reason `freedive`; an included freedive becomes a dive; a second apply with the same import id changes nothing; a 120-dive synthetic export commits in three chunks with three journal entries, and a failure in chunk two leaves chunk one applied and reports it; a hand dive edited after the preview is returned as changed before anything commits; the summary counts match D19.
 - `reimport.test.ts`: importing the same export twice skips every dive as already imported; deleting a dive and importing again still skips it.
 - `passthrough.test.ts`: import the D4i fixture, export, and compare each dive's standard elements before and after, allowing only remapped ids, hand values and Shylog's own additions to differ; the result validates with `test:xsd`; `<he>`, alarms and extra sample channels in a synthetic fixture survive in place.
 - `sync-import.test.ts`: a hand-logged dive uploaded from a draft, then matched by an import, ends with the same data whether the draft arrived before or after the preview was made.

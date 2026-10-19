@@ -139,7 +139,7 @@ Four fields are required, as is the oxygen percentage when Nitrox is yes, and th
 
 | Field | Input | Notes | UDDF export |
 | --- | --- | --- | --- |
-| Dive number | Shown only, never edited | Chronological position across all dives by local start time, recalculated by the server after every change; two dives with the same start time keep the order they were written in | `informationbeforedive/divenumber` |
+| Dive number | Shown only, never edited | Chronological position across all dives that aren't ignored, by local start time, recalculated by the server after every change; two dives with the same start time keep the order they were written in. An ignored dive has no number | `informationbeforedive/divenumber`, left out for an ignored dive |
 | Date and time | Date and time pickers | Local time at the site, stored as one field, `YYYY-MM-DDTHH:mm:ss` with no offset (a hand-logged time gets `:00` seconds) | `informationbeforedive/datetime`, local time with no UTC offset |
 | Site | Pick or create | Matched ignoring case, spacing, and accents within the same country, so "Long Beach" and "long beach " are one site but a Long Beach elsewhere is not. Curly quotes and apostrophes match straight ones, since iOS types ’ by default, so "Simon’s Town" and "Simon's Town" are one site; the stored name keeps what was typed. Rename and merge in Settings | `informationbeforedive/link` to `divesite/site` |
 | Duration | Minutes |  | `informationafterdive/diveduration` |
@@ -190,8 +190,11 @@ Tags are a fixed list in the app code, not editable in the app. Each dive stores
 | Notable animals | Free text |  |  | `informationafterdive/observations/notes` |
 | Gear details | Free text |  |  | `<shylog>` |
 | Notes (labelled General in the app, under the Notes heading) | Free text |  |  | `informationafterdive/notes` |
+| Ignored (labelled Ignore this dive) | Yes or no | For a dive that shouldn't count towards the log, such as a pool session, an aborted dive, or a hyperbaric chamber run; any reason will do | No | `<shylog>` |
 
 **New-dive defaults**: Settings holds log-wide defaults for cylinder material and volume, start pressure, gas, weight, dive type, and how visibility is entered (metres or rating), filled into every new dive. They use the same controls as the dive form (material, volume in litres, and Nitrox with its oxygen percentage), not a fixed list. A filled-in default counts as a hand value, like anything typed.
+
+**Ignored dives**: an ignored dive has no dive number, so the dives after it are numbered as if it weren't there, and it is left out of the Log's header and month counts, every Statistics figure, chart, and pattern, and the figures on sites, people, dive centres, and trips. Otherwise it is an ordinary logged dive: it shows in the Log and search, can be edited, is exported, and still counts for surface intervals and CNS carry-over, since the body doesn't know the dive was ignored. The dive count in `/api/health` and Settings includes it, as that count guards against lost data. Only a hand edit sets it: new-dive defaults, Copy from last dive, and imports never do.
 
 ### Calculations
 
@@ -421,7 +424,7 @@ After confirming, the app shows a short summary: dives paired, dives added, dive
 
 ## Statistics
 
-The Statistics screen is lazy loaded: its code and charts are split into their own chunk, fetched only when you open it, and figures are computed on first visit then cached until the log changes. The service worker still precaches that chunk, so statistics work offline. A year filter applies to every figure.
+The Statistics screen is lazy loaded: its code and charts are split into their own chunk, fetched only when you open it, and figures are computed on first visit then cached until the log changes. The service worker still precaches that chunk, so statistics work offline. A year filter applies to every figure. Ignored dives are left out of every figure, chart, and pattern (see Ignored dives).
 
 The chart library is the heavy part, not the maths, so the dive detail's profile chart is lazy loaded the same way. That keeps the log list, the screen you open most, as light as possible.
 
@@ -530,17 +533,18 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
 
 ### Screens
 
-- **Log**: dives as cards, newest first, grouped by month under a heading that shows the month's dive count.
-  - Each card shows the dive number, site, date and place, max depth, and duration, with an icon on each of max depth and duration, and a small sparkline of the depth profile when the dive has one.
+- **Log**: dives as cards, newest first, grouped by month under a heading that shows the month's dive count, leaving out ignored dives.
+  - Each card shows the dive number, site, date and place, max depth, and duration, with an icon on each of max depth and duration, and a small sparkline of the depth profile when the dive has one. An ignored dive's card shows an eye-off icon where the number would be, with "Ignored" as screen-reader text.
   - The date comes before the place and leaves out the month, which the heading already gives (for example "Sat 10 · Simon's Town"); if the line is too long, only the place is shortened.
   - A dive still on the device has a coloured outline and a cloud-off icon, with screen-reader text, instead of a visible Not synced label.
-  - The header shows the dive count, the hours underwater (the sum of durations), and the deepest dive, which follow the active filters (a year filter shows that year's figures) and collapse into a compact line when the list scrolls. Sync status sits in the header too (see Mobile rules).
+  - The header shows the dive count, the hours underwater (the sum of durations), and the deepest dive. They leave out ignored dives, follow the active filters (a year filter shows that year's figures), and collapse into a compact line when the list scrolls. Sync status sits in the header too (see Mobile rules).
   - Search across site, buddy, animals, and notes, with filters for year, tag, and region.
-- **Dive detail**: the time series profile chart (see Profile chart) with the computer's alarms listed below it, the key figures (max depth, duration, average depth), then all fields. A banner shows when values differ from the computer (see For a matched dive).
+- **Dive detail**: the time series profile chart (see Profile chart) with the computer's alarms listed below it, the key figures (max depth, duration, average depth), then all fields. A banner shows when values differ from the computer (see For a matched dive). An ignored dive shows the eye-off icon in place of its number, as on its card.
 - **Add or edit**: one form, grouped into sections; save works offline.
   - A new dive starts blank apart from the new-dive defaults from Settings, except the date, which is pre-filled with today and shown as plain text until it is tapped, which opens the native date picker.
   - The calculated block shows SAC rate, MOD, and max PO₂; CNS and OTU appear only on the dive detail.
   - An optional Copy from last dive action fills most fields (site, trip, buddies, dive professionals, dive centre, entry, weight, cylinder, gas, gear details, current, surge, surface, weather, visibility, and tags), leaving the number, date and time, depths, duration, pressures, temperatures, animals, and notes to fill.
+  - An Ignore this dive switch at the end of the form, off by default, says that an ignored dive gets no number and is left out of totals and statistics.
 - **Statistics**: headline figures and charts, filtered by year (see Statistics).
 - **Import**: upload a Subsurface UDDF export, review the pairings, then see the summary (see Subsurface import).
 - **Settings**, in sections:
@@ -553,7 +557,7 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - This phone: storage protection with help for keeping data safe, and appearance (system, light, dark)
   - About: version and server
   - Alerts for a failed export or paused saving
-- **Sites, people and trips** (from Settings): sites, regions, people, dive centres, and trips with search (people are listed by name only), and suggested likely duplicates (such as "2 Mile Reef" for Two Mile Reef) to merge: two names are likely duplicates when their normalised keys match after number words become digits, when one is an initialled form of the other such as "Sam N" for Sam Naidoo, or when they share a prefix of at least five characters. New sites, regions, people, dive centres, and trips are created from the dive form's pickers, not here. Each one's detail shows its fields and its own figures (dives, deepest, last dive; dives together for a person; dives, sites, and last dive for a dive centre; dives, days, and deepest for a trip, whose dates come from its dives), with rename, merge a duplicate into it, and delete where allowed (see Rules for edits). Changes save with an explicit Save action, and a rename that collides shows the error under the field with a Merge instead action.
+- **Sites, people and trips** (from Settings): sites, regions, people, dive centres, and trips with search (people are listed by name only), and suggested likely duplicates (such as "2 Mile Reef" for Two Mile Reef) to merge: two names are likely duplicates when their normalised keys match after number words become digits, when one is an initialled form of the other such as "Sam N" for Sam Naidoo, or when they share a prefix of at least five characters. New sites, regions, people, dive centres, and trips are created from the dive form's pickers, not here. Each one's detail shows its fields and its own figures, leaving out ignored dives (dives, deepest, last dive; dives together for a person; dives, sites, and last dive for a dive centre; dives, days, and deepest for a trip, whose dates come from its dives), with rename, merge a duplicate into it, and delete where allowed (see Rules for edits). Changes save with an explicit Save action, and a rename that collides shows the error under the field with a Merge instead action.
 - **Recently deleted** (from Settings): deleted dives grouped by when they were deleted, each viewable and restorable. Restoring needs a connection and offers a link to the restored dive. A note says deleted dives keep blocking re-imports of the same computer dive.
 - **Certifications** (from Settings): each card is a name and one or more images (such as screenshots of an agency eCard, front and back), shown full screen with pinch to zoom, keeping the screen on while shown where the browser supports the Screen Wake Lock API. Adding several images at once offers one card with several pages or separate cards, and a card's images can be reordered. Adding, editing, and deleting need a connection; cards are cached on the phone so they open with no signal. Cards are not part of the UDDF export.
 
