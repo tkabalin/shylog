@@ -705,6 +705,6 @@ Vitest and Playwright only find their config in the working directory, so the pa
 
 Everything else that was under-specified has been decided and written into the spec. Three items remain:
 
-1. **UDDF elements for site data**: the exact elements for region, country, body of water and the "environment" values are settled against the vendored XSD in milestone 13 and written into the spec then.
+1. **UDDF elements for site data**: the exact elements for region, country and body of water are settled against the vendored XSD in milestone 13 and written into the spec then. The `environment` values were checked against the UDDF 3.2.1 documentation in milestone 2 and are in the spec.
 2. **Subsurface comparison figures**: the owner records Subsurface's CNS and OTU for fixture dives 63, 54, 61 and 36 (salt water, 1013 mbar) before milestone 3; the comparison test is `todo` until then.
 3. **Sync pill colours**: the wireframe review thread on the Log's sync pill is still open. Milestone 16 builds the pill as drawn until a choice is made.
