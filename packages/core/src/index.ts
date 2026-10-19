@@ -1,4 +1,6 @@
+export * from "./calc/average-depth.ts"
 export * from "./calc/pressure.ts"
+export * from "./calc/samples.ts"
 export * from "./countries.ts"
 export * from "./enums.ts"
 export * from "./ids.ts"
