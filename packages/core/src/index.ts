@@ -1,6 +1,7 @@
 export * from "./calc/average-depth.ts"
 export * from "./calc/cns-otu.ts"
 export * from "./calc/gas.ts"
+export * from "./calc/likely-same.ts"
 export * from "./calc/mod.ts"
 export * from "./calc/pressure.ts"
 export * from "./calc/sac.ts"
