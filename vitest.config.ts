@@ -15,6 +15,17 @@ export default defineConfig({
         ["text", { file: "coverage.txt", skipFull: false }],
         "text-summary",
       ],
+      // Core holds the schemas and the calculations every figure comes
+      // from, all pure functions, so every line and branch is tested. Run it
+      // over packages/core or the whole repo: a --project run counts no files.
+      thresholds: {
+        "packages/core/src/**": {
+          statements: 100,
+          branches: 100,
+          functions: 100,
+          lines: 100,
+        },
+      },
     },
     projects: [
       {
