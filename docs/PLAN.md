@@ -143,13 +143,41 @@ Deferred, or to watch:
 
 **Not in this milestone**: calculations (milestone 3), any server or client code.
 
-- [ ] Enums with UDDF values
-- [ ] Normalisation
-- [ ] Units and decimal-comma parsing
-- [ ] Dive, entity, settings and card schemas
-- [ ] Op schemas and edit-request schemas
-- [ ] Import preview and apply schemas (types only; validated later)
-- [ ] Tests listed above
+- [x] Enums with UDDF values
+- [x] Normalisation
+- [x] Units and decimal-comma parsing
+- [x] Dive, entity, settings and card schemas
+- [x] Op schemas and edit-request schemas
+- [x] Import preview and apply schemas (types only; validated later)
+- [x] Tests listed above
+
+**Notes for the next session** (written 19 October 2026, branch `feat/core-schemas`)
+
+Decisions taken while building:
+
+- A dive's date and time is one `startTime` field, `YYYY-MM-DDTHH:mm:ss` with no zone; the form joins its two native inputs and hand dives get `:00` seconds. It is one `field_meta` entry.
+- Choice fields store camelCase app keys (`veryMild`, `charterBoat`); each enum in `enums.ts` carries its label and, where UDDF has the field, its UDDF string, pinned by `enums.test.ts` to the UDDF 3.2.1 lists. Body of water (`environment`) and cylinder material (`tankmaterial`) are mapped now; where the site elements sit in the export is still open for milestone 13.
+- Name keys ignore case, spacing and the combining accents (U+0300 to U+036F) on Latin letters only, fold đ, ł, ø, ı and ß, and treat curly quotes as straight ones. Marks in other scripts are kept, since they change the word. Sites and regions use `placeKey(name, country)`; people, dive centres and trips use `normaliseName`. Country codes are checked against the 249 ISO 3166-1 alpha-2 codes in `countries.ts`, which also seed `countries`; names come from `Intl.DisplayNames`.
+- Ids carry a kind prefix (`dive-`, `site-`, `region-`, `person-`, `centre-`, `trip-`, `card-`, `op-`, `device-`) checked by `idSchema(kind)`. `newId` builds the UUID from `getRandomValues`, which works on plain-HTTP dev pages where `randomUUID` doesn't.
+- Schemas are strict: unknown or calculated fields are rejected. Each field set is split into required, defaulted (always set, so an edit can change but not clear it: dive type, nitrox, a site's water type) and optional (cleared with null in an edit). Create schemas delete stripped keys rather than setting them to undefined, so a present key is a value that was sent.
+- Training details are saved only on a Training dive and oxygen only with nitrox; a patch that changes the type or turns nitrox off drops any it carries, and the server clears the stored ones. Oxygen is 211 to 1000 tenths (21% or less is air, entered as Nitrox no, as an import reads 0.21) and is required with nitrox (owner's decision, now in the spec), so every nitrox dive has a known gas mix; the same applies to the new-dive defaults.
+- A site patch that sets a new body of water re-derives the water type unless it sends one; clearing the body of water leaves it.
+- `putEntityRequests[kind]` validates a rename; when the id is new the server must validate with `entityFields[kind]` instead. `mergeEntityRequests[kind]` merges the path id into `into`. Settings PUT replaces `newDiveDefaults` as a whole.
+- `uploadDraftRequest` needs exactly one `upsertDive` and unique op ids. `opVersion` is 1.
+- A surface interval override is seconds or `"none"` for no previous dive (UDDF `<infinity/>`); null clears it back to the calculated value.
+- Free text (notes, animals, gear, training details) that is empty after trimming parses as null, so a form can send the box as it is and an edit clears the field.
+- `maxPo2` is limited to 1 to 2 bar in 0.1 bar steps, as dive computers offer it, names to 120 characters, and average depth to no deeper than max depth (limits the spec doesn't give, agreed in review).
+- The `ignored` flag (D23) is a defaulted dive field, false unless set by hand.
+
+Deferred, or to watch:
+
+- The server (milestones 5 and 6) must check the rules that depend on stored values: a training field or oxygen sent without the type or nitrox, clearing stored training details or oxygen when a patch changes the type from Training or turns nitrox off, nitrox turned on with no stored oxygen or oxygen cleared on a nitrox dive, temperature order and average against max depth against the stored partner, visibility against a stored rating, a buddy who is a stored professional, a region in the site's country, the op version and the two-year age rule.
+- The spec's Units table lists latitude and longitude, but no v1 field, board or schema has site coordinates. Left out by agreement; add them if a later screen needs them.
+- The ISO 3166 country list is not in core yet: `countryCode` only checks two capital letters. Milestone 4 seeds the list and milestone 10 needs it on the client, so it probably belongs in core then.
+- The import types in `schemas/import.ts` are placeholders until milestone 19 builds previews.
+- Free-text fields reject an empty string; the form sends null (or omits the field) for an empty input.
+- Add the core coverage threshold once the calculation tests land in milestone 3.
+- Carried over from the scaffold: the touch-size check's `/dev/ui` route moves when the Playwright webServer switches to the seeded server (milestone 4 or 8); run Vite once after adding a route before `tsc -b`; `test:xsd`, `seed` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 3: Core, calculations
 
