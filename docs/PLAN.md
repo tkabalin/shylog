@@ -9,6 +9,7 @@ Conventions used throughout:
 - **Separators**: where an icon follows, facts are separated by a gap, never a dot. The " · " dot is used only between plain text, as on the Log card's "Sat 10 · Simon's Town".
 - **Design screens** are the boards in `docs/design/hifi/`. The spec wins for behaviour, the board for layout, and `docs/design/NOTES.md` lists the places the boards are wrong. Decisions taken for this plan are listed under Decisions and should be folded into the spec.
 - **Scoped checks**: each milestone names the test files it adds. Run those files and the static checks for the milestone rather than the whole suite.
+- **Performance target** (added 19 October 2026): a dive's detail and the Statistics screen should feel instant, under about 100 ms from tap to content. Compute is not the bottleneck at Shylog's scale, so the work targets network, rendering and storage. It is measured on the owner's phone and recorded in the milestone notes, not asserted in CI, where timings are too noisy to gate on.
 
 ## Decisions taken while planning
 
@@ -317,6 +318,7 @@ Deferred, or to watch:
 - [ ] `PATCH /api/dives/:id` with `field_meta` rules
 - [ ] Delete and restore
 - [ ] Derived-field recalculation after every write
+- [ ] Statements in the routes, `storeProfile` and the derived pass prepared once per connection and reused, since the derived pass now runs after every write (better-sqlite3 re-parses the SQL on every `prepare`)
 - [ ] Tests listed above
 
 ## Milestone 6: Server, entities, settings and cards
@@ -382,14 +384,24 @@ Deferred, or to watch:
 - `dive.spec.ts`: fixture dive 63's detail shows max depth 32.7 m, duration 42 min, avg depth 21.0 m, water temperature range, SAC blank (no pressures), EANx32, max PO₂ 1.38 bar, MOD at 1.4 bar 33.2 m, CNS and OTU; a dive with no samples shows the figures and the no-profile note; the header title appears on scroll.
 - Screenshots at 390 px of the Log and the detail, side by side with `LogHifi2` and `DiveDetailHifi`, in both themes.
 - Every figure is computed by `packages/core` on the client, never duplicated in the web app.
+- Performance: the detail renders from the Dexie mirror with no request of its own, so its figures appear on the first frame. Opening a card uses the View Transitions API (TanStack Router's `viewTransition`) to morph the card's date, site, depth and time into the detail's title block; it falls back to a plain navigation where unsupported and is skipped under `prefers-reduced-motion`. Tap-to-content time on the owner's phone is recorded in the notes.
+- `compress.test.ts` (server): `/api/log` and `/api/dives/:id/samples` are gzipped when the request accepts it, with `Vary: Accept-Encoding`, and the ETag and 304 still work; card images and snapshots are not compressed again (Hono's `compress` middleware, which skips non-text types and bodies under 1 KB).
+- `scroll.spec.ts`: going back from a dive's detail returns the Log to the same card, with the sticky month header and the collapsed header as they were (TanStack Router's `scrollRestoration`, checked because the collapsing header changes the page height).
+- Routes are code-split (TanStack Router's `autoCodeSplitting`), so a cold launch loads only the shell and the Log; the main chunk's size before and after is recorded in the notes. The service worker still precaches every chunk (milestone 16), so offline is unaffected.
+- Month groups use `content-visibility: auto` with a `contain-intrinsic-size`, so the browser skips laying out groups off screen; unlike virtualisation, this keeps find in page and the screen-reader order whole.
+- The size of `/api/log` for the seeded log, gzipped and not, is recorded in the notes, with an estimate for 500 dives. Every edit re-downloads the whole log, which is fine at this size; a delta sync would be a design change, worth raising only if the 500-dive figure is large.
 
-**Not in this milestone**: the profile chart (milestone 9), editing, sync states beyond a stub pill, service worker.
+**Not in this milestone**: the profile chart (milestone 9), editing, sync states beyond a stub pill, service worker, list virtualisation (only if scrolling a long log still feels slow on the phone with `content-visibility`, then with TanStack Virtual, keeping the sticky month headers).
 
 - [ ] Dexie schema and log mirror
 - [ ] API client with the `X-Shylog` header
 - [ ] Log screen with Hero count header, cards, groups, search and filters, empty state
 - [ ] Dive detail without chart
 - [ ] Formatting helpers
+- [ ] View transition from card to detail, with the reduced-motion and unsupported fallbacks
+- [ ] Response compression in Hono
+- [ ] Scroll restoration on the Log, route code splitting, `content-visibility` on month groups
+- [ ] `/api/log` size recorded
 - [ ] Tests and screenshots listed above
 
 ## Milestone 9: Profile chart
@@ -410,8 +422,9 @@ Deferred, or to watch:
 - The sparkline on Change pairing and the card sparklines use the same profile data and depth scale as the detail chart, as a single accent line (review decision on `ChangePairingHifi`).
 - `chart.spec.ts`: on dive 54 the chart shows five ascent bands with a label, the alarms list shows five entries with peak rates, tapping one moves the crosshair; the crosshair readout shows time, depth, temperature, rate; the table alternative lists every point and is reachable by screen reader; the chunk is a separate file in `dist` and is not loaded on the Log.
 - Screenshots of dive 63 (with MOD line) and dive 54 (alarms) at 390 px against `DiveDetailHifi`, both themes; the colours are the Tailwind shades from the spec's table, adjusted in dark mode.
+- `prefetch.spec.ts`: `pointerdown` on a Log card starts the dive's samples request and the chart chunk before the tap is released (the card's link uses TanStack Router's `preload="intent"` and the dive route's loader fills the Dexie cache); a dive whose samples are cached makes no request; the Profile card holds its final height while loading, so nothing below it moves, and the chart fades in, without the fade under `prefers-reduced-motion`.
 
-**Not in this milestone**: tank pressure, heart rate, ppO₂ (D8), zoom, differs banner behaviour (milestone 10).
+**Not in this milestone**: tank pressure, heart rate, ppO₂ (D8), zoom, differs banner behaviour (milestone 10), prefetching samples as cards scroll into view (a fast scroll through a long log would fetch dozens of profiles the diver never opens; add it only if prefetch on intent measurably falls short).
 
 - [ ] Sample fetch and Dexie cache
 - [ ] Chart points, interpolation, event points
@@ -421,6 +434,7 @@ Deferred, or to watch:
 - [ ] Temperature lane, event bands with labels, MOD line, crosshair
 - [ ] Alarms list under the chart
 - [ ] Table alternative
+- [ ] Prefetch of samples and the chart chunk on intent, fixed-height Profile card with fade-in
 - [ ] Tests and screenshots listed above
 
 ## Milestone 10: Editing, the dive form and pickers
@@ -438,6 +452,7 @@ Deferred, or to watch:
 - `adopt.test.ts`: a field with a differing computer value shows the ✓/✕ group; ✓ adopts and marks it from the computer; ✕ dismisses and hides the group; a computer-filled field shows the marker and gains a reset once edited (D14); the detail's banner count matches the number of undismissed differences.
 - `sitepicker.test.ts`: "long beach " flags the existing Long Beach in South Africa with "Use it" and not the one in Vietnam; the country is picked from the ISO list; water type defaults by body of water and can be overridden; regions are offered from existing ones in that country as you type, and "sodwana " resolves to the existing Sodwana region on save (D22).
 - `edit.spec.ts` (Playwright): add a dive with a new site and buddy, see it uploaded and numbered; edit a seeded dive's notes and see the version change; a save with the server stopped keeps the form values and shows "Try again".
+- `form-autosave.test.ts`: the form's unsaved values are written to Dexie as you type (debounced), one per dive being edited or one for a new dive, and restored when the form reopens, since iOS often kills a backgrounded home-screen app mid-entry; save and discard clear it. It is not a draft: it never uploads, gets no ops and has no number.
 - Screenshots of the form (new and existing), the site picker (browse, search, create, duplicate) at 390 px against the boards.
 
 **Not in this milestone**: deleting from the form (milestone 11), offline behaviour beyond a failed save (milestone 16), the profile banner's import side.
@@ -450,6 +465,7 @@ Deferred, or to watch:
 - [ ] Site picker with country list, region reuse, water type
 - [ ] People, dive-centre and trip pickers, option sheets
 - [ ] Copy from last dive, new-dive defaults, Training fields, Ignore this dive switch
+- [ ] Autosave of the unsaved form, restored on reopen
 - [ ] Tests and screenshots listed above
 
 ## Milestone 11: Editing, delete and restore, Settings, entities
@@ -539,7 +555,8 @@ Deferred, or to watch:
 
 - `figures.test.ts`: on the seeded fixture (46 scuba dives), totals, deepest (dive 54, 42.3 m), longest (dive 50, 72 min), plain-mean average depth and duration, dives per month for 2026 and per year, depth bands (0 to 10, 10 to 18, 18 to 30, over 30), time of day (before 11:00, 11:00 to 14:00, 14:00 to 18:00, after 18:00), water range from min and max fields; average SAC is duration-weighted and drops 0.1 L/min or less; nitrox share and average nitrox oxygen (four of the 46 dives, average 32.3%); marking a dive ignored removes it from every figure and chart (D23).
 - `trend.test.ts`: the rolling average of the last five dives, only dives with a SAC and not ignored, in date order.
-- `stats.spec.ts`: the year chip switches every figure; below five dives the screen shows totals, records and the "More after 5 dives" progress; with no dives the empty state and "Log a dive"; each chart has a table alternative; the chunk is separate in `dist`, not loaded on the Log, and precached for offline later.
+- `stats.spec.ts`: the year chip switches every figure; below five dives the screen shows totals, records and the "More after 5 dives" progress; with no dives the empty state and "Log a dive"; each chart has a table alternative; the chunk is separate in `dist`, not loaded on the Log, and precached for offline later; `pointerdown` on the Stats tab starts loading the chunk (`preload="intent"`), so a tap doesn't wait on it.
+- Tap-to-content time for Statistics on the owner's phone, first visit and cached, is recorded in the notes against the performance target.
 - Screenshots of Statistics (2026 and all time), the 2-dive and 0-dive states at 390 px against the boards.
 
 **Not in this milestone**: patterns (milestone 15).
@@ -595,7 +612,7 @@ Deferred, or to watch:
 - [ ] Sync states, retry, pill, banner
 - [ ] Draft indicators and provisional numbers
 - [ ] Offline guards on synced-data controls
-- [ ] Storage persistence and sheet
+- [ ] Storage persistence and sheet (`navigator.storage.persist()` also protects the Dexie log mirror and sample cache that make the detail instant, not only the drafts)
 - [ ] Tests and screenshots listed above
 
 ## Milestone 17: Offline, update flow, queue export, end-to-end sync tests
