@@ -241,7 +241,7 @@ Deferred, or to watch:
 
 **Implements**: Data model (Database, Rules for edits as schema constraints), Server (Runtime, Database, Journal, Integrity, Version, Health, Security, Serving), Instance configuration (env), Endpoints `GET /api/version`, `GET /api/log`, `GET /api/dives/:id/samples`, `GET /api/health`, decision D1 (seed), D2 (sparkline and alarm count columns).
 
-**Touches**: `apps/server/src/db/` (open, pragmas, migration runner with pre-migration snapshot, `001-initial.sql`, ISO 3166 seed), `apps/server/src/journal.ts`, `apps/server/src/integrity.ts`, `apps/server/src/config.ts` (`SHYLOG_ALLOWED_LOGINS`, `TS_HOSTNAME`, `SHYLOG_ORIGIN`, `SHYLOG_DATA_DIR`, `SHYLOG_APP_NAME`, `SHYLOG_DEV_LOGIN`), `apps/server/src/security.ts`, `apps/server/src/routes/version.ts`, `log.ts`, `samples.ts`, `health.ts`, `apps/server/src/static.ts` (PWA files, manifest from `SHYLOG_APP_NAME`), `apps/server/src/uddf/sample-reader.ts` (D1), `apps/server/scripts/seed.ts`, `apps/server/test/` with an in-memory database helper and Hono's test client.
+**Touches**: `apps/server/src/db/` (open, pragmas, migration runner with pre-migration snapshot, `001-initial.sql`, ISO 3166 seed), `apps/server/src/journal.ts`, `apps/server/src/integrity.ts`, `apps/server/src/config.ts` (`SHYLOG_ALLOWED_LOGINS`, `TS_HOSTNAME`, `SHYLOG_ORIGIN`, `SHYLOG_DATA_DIR`, `SHYLOG_APP_NAME`, `SHYLOG_DEV_LOGIN`), `apps/server/src/security.ts`, `apps/server/src/routes/version.ts`, `log.ts`, `samples.ts`, `health.ts`, `apps/server/src/static.ts` (PWA files, manifest from `SHYLOG_APP_NAME`), `apps/server/src/uddf/sample-reader.ts` (D1), `apps/server/src/derived.ts` (one pass that recalculates every dive's derived fields, run by the seed now and after every write from milestone 5), `apps/server/scripts/seed.ts`, `apps/server/test/` with an in-memory database helper and Hono's test client.
 
 **Acceptance**
 
@@ -250,7 +250,7 @@ Deferred, or to watch:
 - `security.test.ts`: `/api/*` without `X-Shylog` is 403; a mutating request without a matching `Origin` or with the wrong content type is 403; a `Tailscale-User-Login` not in `SHYLOG_ALLOWED_LOGINS` is 403, a Q-encoded login decodes and matches; a request with no identity header (tagged device) is 403; static files, the manifest and the service worker need none of this; with `NODE_ENV=production` and `SHYLOG_DEV_LOGIN` set the process exits at startup.
 - `log.test.ts`: `/api/log` returns the shape `{ schemaVersion, version, serverTime, dives, sites, countries, regions, people, diveCentres, trips, links, fieldMeta, settings, cards }` with an ETag, a matching `If-None-Match` gives 304, deleted dives are included with `deletedAt`, and each dive with samples carries a 24-point `sparkline` and `ascentAlarmCount` (fixture dive 54 has 5).
 - `samples.test.ts`: `/api/dives/:id/samples` for a seeded dive returns merged samples (time, depth, temperature carried forward, pressure null) and events (59 ascent events across the seeded scuba dives when all are seeded, each with start and end; surface events present with type `surface`).
-- `seed.test.ts`: seeding the fixture writes 46 scuba dives (freedives skipped by the reader's simple rule: no tankdata) with gas air for `o2 = 0.21` (D9), EANx32 for dives 52, 58 and 63, max depth from `greatestdepth`, average depth from `averagedepth`, min and max temperature from samples (D10), and journals one entry.
+- `seed.test.ts`: seeding the fixture writes 46 scuba dives (freedives skipped by the reader's simple rule: no tankdata) with gas air for `o2 = 0.21` (D9), EANx32 for dives 52, 58 and 63, max depth from `greatestdepth`, average depth from `averagedepth`, min and max temperature from samples (D10), dives from 17 to 22 July 2026 on a Sodwana site and the rest on one Unnamed site (both South Africa, since the fixture has no sites), dive numbers, surface intervals, CNS and OTU filled by the derived-field pass, and journals one entry.
 - `health.test.ts`: reports WAL size, integrity status, dive count and null last-snapshot and last-export times.
 - `integrity_check` runs at startup; a seeded corrupt copy flips writes to paused and `/api/health` reports it.
 
@@ -263,7 +263,7 @@ Deferred, or to watch:
 - [ ] Security middleware
 - [ ] `/api/version`, `/api/log` with ETag, `/api/dives/:id/samples`, `/api/health`
 - [ ] Static serving and manifest from `SHYLOG_APP_NAME`
-- [ ] Sample reader and `seed` script
+- [ ] Sample reader, derived-field pass and `seed` script
 - [ ] Tests listed above
 
 ## Milestone 5: Server, draft uploads, dive edits and derived fields
@@ -272,7 +272,7 @@ Deferred, or to watch:
 
 **Implements**: Operations and offline sync (Flow steps 3 to 7, Conflict rules), Edits to synced data, Server (Applying writes, Derived fields), Endpoints `POST /api/ops`, `PATCH /api/dives/:id`, `DELETE /api/dives/:id`, `POST /api/dives/:id/restore`.
 
-**Touches**: `apps/server/src/routes/ops.ts`, `dives.ts`, `apps/server/src/apply/` (upsert dive, upsert entity with alias matching, field_meta writes), `apps/server/src/derived.ts` (dive numbers, surface intervals, average depth from samples, max and min temperatures, CNS and OTU chain), `apps/server/test/`.
+**Touches**: `apps/server/src/routes/ops.ts`, `dives.ts`, `apps/server/src/apply/` (upsert dive, upsert entity with alias matching, field_meta writes), `apps/server/src/derived.ts` (milestone 4's whole-log pass, run after every write: dive numbers, surface intervals, average depth from samples, max and min temperatures, CNS and OTU chain), `apps/server/test/`.
 
 **Acceptance**
 
