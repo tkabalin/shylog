@@ -46,7 +46,7 @@ The Claude Design hi-fi wireframes in `docs/design/hifi/` are the source of trut
 - Phone first, used with wet hands: touch targets about 44px below `md:`, 16px input text, bottom navigation on phones, sidebar from `md:` up.
 - Sentence case headings, no serif fonts, tabular numerals for figures, one accent colour used sparingly.
 - Use Tailwind's colour palette everywhere (shadcn uses it too), unless something specific needs a colour Tailwind doesn't have.
-- Never re-add a shadcn component that is already in `apps/web/src/components/ui/`. Those files are edited once they're in the repo, and re-adding one overwrites the edits. Change it in place instead, never pass `--overwrite` to `shadcn add`, and decline the overwrite prompt when a new component depends on one that's already there.
+- shadcn components in `apps/web/src/components/ui/` are edited in place, never re-added; see `.claude/rules/shadcn.md`.
 - Native date and time inputs. `inputmode="decimal"` for decimals, `inputmode="numeric"` for whole numbers, `type="number" step="0.1"` for fields that can be negative. Accept a comma as the decimal separator.
 - Every chart has a table alternative for screen readers. Sync states use words and icons, not colour alone.
 - Statistics and the profile chart are lazy-loaded chunks.
