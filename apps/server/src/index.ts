@@ -1,9 +1,20 @@
 import { serve } from "@hono/node-server"
 
-import { app } from "./app.ts"
 import { parseEnv } from "./env.ts"
+import { checkIntegrity } from "./integrity.ts"
+import { boot } from "./server.ts"
 
 const env = parseEnv(process.env)
+const { app, db, state } = boot(env)
+
+// Daily as well as at startup. Once failed, writes stay paused until a
+// restore, even if a later check passes.
+setInterval(
+  () => {
+    if (checkIntegrity(db) === "failed") state.integrity = "failed"
+  },
+  24 * 60 * 60 * 1000
+)
 
 // Loopback only: the Tailscale sidecar shares this network namespace and is
 // the one way in.
