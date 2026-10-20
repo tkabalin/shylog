@@ -1,5 +1,6 @@
 import { statSync } from "node:fs"
 
+import { prepared } from "../db/prepared.ts"
 import { factory } from "../factory.ts"
 import { getMeta } from "../journal.ts"
 
@@ -14,8 +15,10 @@ export const health = factory.createApp().get("/health", (c) => {
     integrity: state.integrity,
     writesPaused: state.integrity === "failed",
     // Ignored dives count, since this guards against lost data.
-    diveCount: db
-      .prepare("SELECT count(*) FROM dives WHERE deleted_at IS NULL")
+    diveCount: prepared(
+      db,
+      "SELECT count(*) FROM dives WHERE deleted_at IS NULL"
+    )
       .pluck()
       .get() as number,
     lastSnapshotAt: getMeta(db, "last_snapshot_at"),

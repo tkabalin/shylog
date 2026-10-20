@@ -1,13 +1,15 @@
 import { diveEnd, type Sample } from "@shylog/core"
 
 import type { Db } from "./db/open.ts"
+import { prepared } from "./db/prepared.ts"
 import type { ProfileEvent } from "./uddf/sample-reader.ts"
 
 const points = 24
 
 // A dive's samples in time order, as stored.
 export const selectSamples = (db: Db) =>
-  db.prepare<[string], Sample>(
+  prepared<[string], Sample>(
+    db,
     "SELECT time, depth, temperature, pressure FROM samples WHERE dive_id = ? ORDER BY time"
   )
 
@@ -52,18 +54,21 @@ export function storeProfile(
   samples: readonly Sample[],
   events: readonly ProfileEvent[]
 ) {
-  const sample = db.prepare(
+  const sample = prepared(
+    db,
     "INSERT INTO samples (dive_id, time, depth, temperature, pressure) VALUES (?, ?, ?, ?, ?)"
   )
   for (const { time, depth, temperature, pressure } of samples) {
     sample.run(diveId, time, depth, temperature, pressure)
   }
-  const event = db.prepare(
+  const event = prepared(
+    db,
     "INSERT INTO events (dive_id, type, start_seconds, end_seconds) VALUES (?, ?, ?, ?)"
   )
   for (const { type, start, end } of events) event.run(diveId, type, start, end)
   const line = sparkline(samples, duration)
-  db.prepare(
+  prepared(
+    db,
     "UPDATE dives SET sparkline = ?, ascent_alarm_count = ? WHERE id = ?"
   ).run(
     line && JSON.stringify(line),
