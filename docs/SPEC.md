@@ -86,7 +86,7 @@ The SQLite database on the server is the source of truth. UDDF is the format dat
 ### Database
 
 - `dives`: one row per dive with every field in the tables below, in database units, plus the dive computer's model (from the import), the surface interval override flag, and `deleted_at`.
-- `field_meta`: one row per dive field with a recorded source, holding `(dive_id, field, source, computer_value, dismissed)`. `source` is hand or computer, `computer_value` holds the computer's reading where it differs from yours, and `dismissed` records that you chose to keep your value. This is what the import rules read.
+- `field_meta`: one row per dive field with a recorded source, holding `(dive_id, field, source, computer_value, dismissed)`. `source` is hand or computer, `computer_value` holds the computer's reading once a hand value replaces it, and `dismissed` records that you chose to keep your value. Both stay through later hand edits until the computer value is adopted, even when the hand value comes to match it. Clearing a field by hand stores an empty hand value when a computer value is kept, so an import never refills it; clearing one with no computer value removes its row, so average depth and temperatures are calculated from the samples again. This is what the import rules read.
 - `fingerprints`: one row per computer dive an import has seen, holding the fingerprint, the dive it belongs to (none for a freedive left out), and why it was recorded.
 - `samples`: profile samples per dive (time, depth, temperature, tank pressure), loaded on demand.
 - `events`: warnings and flags the dive computer recorded during the dive, each with its start time in the dive, an end time when it spans an interval, and its type, loaded on demand with the samples. From the D4i these are ascent-rate alarms and surfacings (see What the D4i export contains under Subsurface import); the Zoop Novo is assumed to match.
@@ -267,7 +267,7 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 ### Conflict rules
 
 - **Hand beats computer**: every field records whether its value was entered by hand or came from the dive computer. A hand value always beats a computer value, so an import never overwrites a hand value.
-- **Uploads**: `upsertDive` creates the draft's dive on the server; a re-sent upload of the same draft is recognised by its op id and dive id and changes nothing.
+- **Uploads**: `upsertDive` creates the draft's dive on the server; a re-sent upload of the same draft is recognised by its op id and changes nothing. A draft with new op ids for a dive that already exists (its first reply was lost, then it was edited offline) is applied as an edit of the fields it carries, under the same rules as a hand edit; for a dive in Recently deleted it is rejected. An `upsertEntity` for an id that already exists, or that is an alias, uses that entity as it is, since renames are made online.
 - **Entities**: a draft can create a new site, region, person, dive centre, or trip offline. On upload the server matches each by its deduplication key: a match records the draft's id as an alias of the existing entity, and otherwise the entity is created.
 - **Merges**: merges happen online only, in Settings. Aliases resolve transitively, so a draft pointing at a merged-away entity still lands on the survivor.
 - **Deletes**: an upload that points at a deleted entity is rejected like any failed draft, with the reason on its card.
