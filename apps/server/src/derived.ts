@@ -18,6 +18,7 @@ interface Row {
   id: string
   startTime: string
   duration: number
+  maxDepth: number
   ignored: number
   tripId: string | null
   nitrox: number
@@ -47,7 +48,8 @@ export function sampleTemperatures(samples: readonly Sample[]) {
 export function recalculate(db: Db) {
   const rows = prepared<[], Row>(
     db,
-    `SELECT d.id, d.start_time AS startTime, d.duration, d.ignored,
+    `SELECT d.id, d.start_time AS startTime, d.duration,
+         d.max_depth AS maxDepth, d.ignored,
          d.trip_id AS tripId, d.nitrox, d.oxygen,
          d.surface_interval_override AS override,
          d.surface_interval AS surfaceInterval,
@@ -123,9 +125,13 @@ export function recalculate(db: Db) {
       id: dive.id,
       number: numbers.get(dive.id) ?? null,
       surfaceInterval: interval === "none" ? null : interval,
+      // A hand max depth shallower than the samples' average leaves none.
       averageDepth: has("averageDepth")
         ? dive.averageDepth
-        : dive.sampledAverageDepth,
+        : dive.sampledAverageDepth != null &&
+            dive.sampledAverageDepth <= dive.maxDepth
+          ? dive.sampledAverageDepth
+          : null,
       minTemperature: calculateTemperatures
         ? dive.temperatures.min
         : dive.minTemperature,

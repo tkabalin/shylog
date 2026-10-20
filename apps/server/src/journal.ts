@@ -28,14 +28,17 @@ export const currentVersion = (db: Db) => getMeta(db, "version")
 
 // Runs `change` in one transaction with its journal entries, and gives the
 // commit a new random version id, so a restore can never bring back a
-// version a client has already seen.
+// version a client has already seen. A change that journals nothing wrote
+// nothing, so a repeated delete or edit keeps the version clients hold.
 export function write<T>(
   db: Db,
   change: (journal: (entry: Entry) => void) => T
 ): T {
   return db.transaction(() => {
+    let changed = false
     const result = change((entry) => {
       // Prepared on first use: the first migration creates the table.
+      changed = true
       prepared(
         db,
         "INSERT INTO ops (op_id, type, payload, applied_at) VALUES (?, ?, ?, ?)"
@@ -46,7 +49,7 @@ export function write<T>(
         new Date().toISOString()
       )
     })
-    setMeta(db, "version", randomUUID())
+    if (changed) setMeta(db, "version", randomUUID())
     return result
   })()
 }

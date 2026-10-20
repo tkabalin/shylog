@@ -35,3 +35,21 @@ export function testApp(
     state: { integrity: "ok" },
   })
 }
+
+// A JSON write from the app, which also carries the Origin.
+export function send(
+  app: ReturnType<typeof testApp>,
+  method: string,
+  path: string,
+  body?: unknown
+) {
+  return app.request(path, {
+    method,
+    headers: {
+      ...apiHeaders,
+      Origin: origin,
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+    },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+}
