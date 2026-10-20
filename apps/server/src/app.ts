@@ -2,6 +2,7 @@ import { HTTPException } from "hono/http-exception"
 
 import { Rejected } from "./apply/rejected.ts"
 import { factory, type Deps } from "./factory.ts"
+import { cards } from "./routes/cards.ts"
 import { dives } from "./routes/dives.ts"
 import { entities } from "./routes/entities.ts"
 import { health } from "./routes/health.ts"
@@ -39,6 +40,7 @@ export function createApp(deps: Deps) {
       .route("/api", dives)
       .route("/api", entities)
       .route("/api", settings)
+      .route("/api", cards)
       .route("/api", health)
       .route("/", web(deps.webRoot, deps.env.SHYLOG_APP_NAME))
       // A refused write has rolled back; the reason goes to the draft's
