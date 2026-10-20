@@ -351,13 +351,13 @@ Deferred, or to watch:
 
 **Implements**: Rules for edits (merges, deletes, aliases), Conflict rules (Merges, Renames), Endpoints `PUT /api/entities/:kind/:id`, `POST /api/entities/:kind/:id/merge`, `DELETE /api/entities/:kind/:id`, `GET`/`PUT /api/settings`, `GET /api/cards`, `PUT`/`DELETE /api/cards/:id`, `GET /api/cards/:id/images/:n`, decision D6.
 
-**Touches**: `apps/server/src/routes/entities.ts`, `settings.ts`, `cards.ts`, `apps/server/src/apply/merge.ts`, `apps/server/src/cards/` (files under `${SHYLOG_DATA_DIR}/cards/`), tests.
+**Touches**: `apps/server/src/routes/entities.ts`, `settings.ts`, `cards.ts`, `apps/server/src/apply/merge.ts`, `apps/server/src/cards/` (files under `${SHYLOG_DATA_DIR}/cards/`), `apps/server/src/db/migrations/002-*.ts` (the `deleted_entities` tombstones and each card image's hash), tests.
 
 **Acceptance**
 
 - `entities.test.ts`: `PUT` with a new id creates; a rename that collides with another key is refused with a structured error naming the survivor; merge moves every dive link, rewrites site and dive-centre regions for a region merge, records an alias, deletes the merged-away row, journals, and recalculates CNS for trip merges; deleting a site used by a dive in Recently deleted is refused; deleting a trip unlinks its dives and is allowed; deleting a region with sites is refused; every entity kind is covered.
 - `settings.test.ts`: defaults are the diver name empty, max PO₂ 1.4, new-dive defaults empty, visibility mode metres; `PUT` validates with the core schema; a new-dive default uses the same shapes as dive fields (material, volume in ml, oxygen in tenths).
-- `cards.test.ts`: `PUT /api/cards/:id` with multipart images stores files under `cards/<id>/<n>` and a row; re-`PUT` reorders or replaces images; `DELETE` removes row and files; images stream with a long cache header; a non-image upload is rejected.
+- `cards.test.ts`: `PUT /api/cards/:id` with multipart images stores files under `cards/<id>/<hash>` and a row; re-`PUT` reorders or replaces images; `DELETE` removes row and files; images stream with a long cache header; a non-image upload is rejected.
 
 **Not in this milestone**: the UI for any of this (milestones 11 and 12).
 

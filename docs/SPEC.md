@@ -91,10 +91,11 @@ The SQLite database on the server is the source of truth. UDDF is the format dat
 - `samples`: profile samples per dive (time, depth, temperature, tank pressure), loaded on demand.
 - `events`: warnings and flags the dive computer recorded during the dive, each with its start time in the dive, an end time when it spans an interval, and its type, loaded on demand with the samples. From the D4i these are ascent-rate alarms and surfacings (see What the D4i export contains under Subsurface import); the Zoop Novo is assumed to match.
 - `sites`, `countries` (seeded with the ISO 3166 list), `regions`, `people` (anyone who appears on a dive as a buddy or dive professional), `dive_centres`, and `trips`.
-- `certifications`: certification cards, each a name and its images, which are files in `cards/`.
+- `certifications`: certification cards, each a name and its images, which are files in `cards/`. Each image row keeps a short SHA-256 of its bytes, so the phone can tell a changed page from an unchanged one, and the file is named by it (`cards/<card id>/<hash>`), so a change writes its new files before committing and removes unused ones only after, and a crash never leaves the database naming a missing or wrong file.
 - `settings`: log-wide settings: the diver's name, the maximum PO₂ setting, and the new-dive defaults.
 - Link tables for multi-valued fields, such as `dive_buddies`, `dive_professionals`, and `dive_tags`.
 - `aliases`: ids left by merges, so a draft that still points at a merged-away site or person resolves; the merged-away row is deleted.
+- `deleted_entities`: the id and kind of every deleted site, region, person, dive centre, and trip, so a re-sent draft that still names one is rejected rather than bringing it back, and a repeated delete changes nothing.
 - `ops`: the journal of every write, with a server sequence number and apply time, which is also the record of applied op ids.
 - `import_previews` (stored previews awaiting confirmation, expiring after seven days) and `import_raw` (each imported dive's original UDDF fragment).
 - `meta`: the data version and schema version.
@@ -106,6 +107,8 @@ Foreign keys and unique constraints enforce integrity on every write. Unique key
 - Dives, sites, regions, people, dive centres, trips, and certification cards have stable ids generated on the client, such as `dive-<uuid>`. All ids start with a letter, so they are valid UDDF ids in the export too.
 - Deleting a dive sets `deleted_at`. Deleted dives appear only in Recently deleted, are left out of the log and the UDDF export, and are never purged, so any of them can be restored and their fingerprints keep blocking re-imports.
 - A trip can be deleted, which unlinks its dives. A site, region, person, or dive centre can be deleted only while nothing uses it, counting dives in Recently deleted (and, for a region, sites and dive centres); otherwise it is merged into another. Nothing is deleted automatically, and every delete is journalled.
+- Merging moves everything that uses the merged-away entity onto the survivor. Two regions merge only within one country. Where a dive has both people being merged, the survivor keeps the role and place it already had on that dive (buddy or dive professional), since one person can't be both on a dive.
+- Changing a region's country moves its sites to that country too, rechecking their names there, since a site's region is always in the site's country.
 - Cylinder material, cylinder volume, and oxygen percentage are plain columns on each dive, so changing one dive never affects another. The export groups dives with the same material and volume into one UDDF tank, and dives with the same oxygen fraction into one gas mix, so 32.4% nitrox never shares a mix with 32%.
 - Schema changes go through numbered migrations, each preceded by a database snapshot (skipped for a new, empty database) and journalled.
 
@@ -290,8 +293,8 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 | DELETE | `/api/entities/:kind/:id` | Delete a trip (unlinking its dives), or a site, region, person, or dive centre that nothing uses |
 | GET, PUT | `/api/settings` | Read or change the log-wide settings: diver name, maximum PO₂, and new-dive defaults |
 | GET | `/api/cards` | List certification cards |
-| PUT, DELETE | `/api/cards/:id` | Create or change a card, with its images (multipart PNG, JPEG, or WebP, up to 10 MB each), under a client-generated id, or delete it |
-| GET | `/api/cards/:id/images/:n` | One card image, fetched with the `X-Shylog` header and cached on the phone as a blob for offline viewing |
+| PUT, DELETE | `/api/cards/:id` | Create or change a card, with its images (multipart PNG, JPEG, or WebP, up to 10 MB each), under a client-generated id, or delete it. The pages are sent in order, each a new file or the hash of an image the card already has, so reordering uploads nothing |
+| GET | `/api/cards/:id/images/:n` | One card image, fetched with the `X-Shylog` header and `?v=<hash>`, so it can be cached for a year, and kept on the phone as a blob for offline viewing |
 | POST | `/api/import` | Upload a Subsurface export (`application/xml`, `text/xml`, or `application/octet-stream` with a `.uddf` or `.xml` name, up to 25 MB); stores and returns a preview without changing any dive data |
 | GET | `/api/import/pending` | The preview awaiting review, if any |
 | PATCH | `/api/import/:id` | Store a clock-offset override for one day and return that day's re-proposed pairs |
@@ -302,7 +305,7 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 | POST | `/api/export/run` | Rewrite `export/dives.uddf` without downloading, for Export now after a failed night |
 | GET | `/api/health` | WAL size, integrity status, dive count, and the times of the last snapshot and export, for Settings |
 
-**Client data**: `/api/log` returns `{ schemaVersion, version, serverTime, dives, sites, countries, regions, people, diveCentres, trips, links, fieldMeta, settings, cards }`. Each dive carries a 24-point downsampled depth profile for the Log's sparkline (the deepest sample in each of 24 equal slices of the dive's time, so the line always reaches the bottom) and its count of ascent alarms, both stored when its samples are written, so the list and the statistics never need the samples themselves; deleted dives are included with `deletedAt`, so Recently deleted works from the copy. Dexie keeps one table per collection, mirroring it, so the log can be read offline. An app that receives a newer `schemaVersion` than it understands stops syncing, keeps its queue, and offers to update.
+**Client data**: `/api/log` returns `{ schemaVersion, version, serverTime, dives, sites, countries, regions, people, diveCentres, trips, links, fieldMeta, settings, cards }`. Each dive carries a 24-point downsampled depth profile for the Log's sparkline (the deepest sample in each of 24 equal slices of the dive's time, so the line always reaches the bottom) and its count of ascent alarms, both stored when its samples are written, so the list and the statistics never need the samples themselves; deleted dives are included with `deletedAt`, so Recently deleted works from the copy. Each card carries its images as the list of their hashes in page order, so the phone fetches only pages it doesn't have. Dexie keeps one table per collection, mirroring it, so the log can be read offline. An app that receives a newer `schemaVersion` than it understands stops syncing, keeps its queue, and offers to update.
 
 The service worker precaches the app shell and lazy chunks, so the app opens with no signal. Certification card images are cached on the phone once fetched, so they open offline too. When a new version is available, it offers to reload once the queue has synced, or straight away if the only drafts left were rejected, so a bug fix can never be blocked by the draft it fixes.
 
