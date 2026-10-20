@@ -27,6 +27,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - A failed save keeps the form's values and offers to try again.
 - Dive type options are the spec's list. The Settings board's "Technical" and "Work" don't exist.
 - No board has ignored dives. `EditDiveHifi` needs the Ignore this dive switch at the end of the form, and `LogHifi2` cards and the `DiveDetailHifi` title show an eye-off icon in place of the dive number, with "Ignored" as screen-reader text.
+- `LogHifi2` has no depth or duration filter. Add Depth and Duration pills after the board's existing filter pills, styled the same, each opening a sheet with a range slider and Reset and Apply (see Log in the spec).
 
 ## Settings and people
 

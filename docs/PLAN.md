@@ -41,6 +41,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D22 | Labels fixed in review | The free-text notes field is labelled "General" (the section stays "Notes"); maximum PO₂ is a plain decimal input with no preset list. A site's region is typed with existing regions in that country offered as you type (this supersedes the review's free-text-only choice). |
 | D23 | Ignored dives (added 19 October 2026) | A hand-set `ignored` flag on each dive, false by default, for pool sessions, aborted dives, chamber runs or any other reason. An ignored dive has no number and is left out of the Log's counts, Statistics and entity figures, but still counts for surface intervals, CNS carry-over, the health dive count and the export (see Ignored dives in the spec). |
 | D24 | Records and milestones (added 19 October 2026) | The Records and averages card adds coldest and warmest dive (by the dive's effective minimum water temperature, since the maximum picks up near-surface readings), total depth descended against a ladder of landmarks from the Leaning Tower of Pisa to the Kármán line, longest streaks in consecutive days and weeks, and a diving anniversary that ignores the year filter (see Records and milestones in the spec). |
+| D25 | Depth and duration filters (added 20 October 2026) | The Log gets Depth and Duration pills beside year, tag and region. Each opens a sheet with a two-handle range slider (0 m to "> 40 m" in 1 m steps; 0 min to "> 90 min" in 5 min steps), the bounds shown above the handles, and Reset and Apply. The top handle at its end means no upper limit, so the deepest and longest dives are never cut off by the scale (see Log in the spec). |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -373,15 +374,17 @@ Deferred, or to watch:
 
 **Goal**: the phone shows the seeded log as cards grouped by month and a dive's full detail without the chart, read from a Dexie mirror of `/api/log`.
 
-**Implements**: Screens (Log, Dive detail minus the Profile chart), Mobile rules (header pill placeholder, date and number formats), Client data (`/api/log` mirror in Dexie), Architecture (read side), decisions D2, D13, D15, D23. Screens: `LogHifi2` (Hero count header, cards, month groups, search, filters, empty state), `DiveDetailHifi` (title block, headline figures, Figures, Dive, Cylinder and gas, Conditions in Summary + list layout, People, Notes; the Profile card shows the no-profile note for now).
+**Implements**: Screens (Log, Dive detail minus the Profile chart), Mobile rules (header pill placeholder, date and number formats), Client data (`/api/log` mirror in Dexie), Architecture (read side), decisions D2, D13, D15, D23, D25. Screens: `LogHifi2` (Hero count header, cards, month groups, search, filters, empty state), `DiveDetailHifi` (title block, headline figures, Figures, Dive, Cylinder and gas, Conditions in Summary + list layout, People, Notes; the Profile card shows the no-profile note for now).
 
-**Touches**: `apps/web/src/data/db.ts` (Dexie tables mirroring the log, schema version), `apps/web/src/data/sync.ts` (fetch `/api/log` with ETag, write in one Dexie transaction), `apps/web/src/api/` (Hono RPC client with the `X-Shylog` header), `apps/web/src/routes/log/`, `apps/web/src/routes/dive/`, `apps/web/src/format/` (dates "Sat 10", "Sat 25 Jul 2026", durations, depths, tabular numerals), `apps/web/src/components/` (DiveCard, Sparkline, MonthGroup, FilterPills, SyncPill stub), tests with `fake-indexeddb`.
+**Touches**: `apps/web/src/data/db.ts` (Dexie tables mirroring the log, schema version), `apps/web/src/data/sync.ts` (fetch `/api/log` with ETag, write in one Dexie transaction), `apps/web/src/api/` (Hono RPC client with the `X-Shylog` header), `apps/web/src/routes/log/`, `apps/web/src/routes/dive/`, `apps/web/src/format/` (dates "Sat 10", "Sat 25 Jul 2026", durations, depths, tabular numerals), `apps/web/src/components/` (DiveCard, Sparkline, MonthGroup, FilterPills, RangeFilterSheet on shadcn's Slider and Sheet, SyncPill stub), tests with `fake-indexeddb`.
 
 **Acceptance**
 
 - `sync.test.ts`: a log payload lands in Dexie in one transaction; a 304 leaves it untouched; a newer `schemaVersion` stops syncing and sets a flag the UI shows.
 - `format.test.ts`: card date is weekday and day only, month header is "July 2026" with the month's count; depth one decimal, duration whole minutes; a long place is shortened before the date.
 - `log.spec.ts` (Playwright, server seeded from the fixture with `SHYLOG_DEV_LOGIN`): the Log shows "46 dives logged" and the hours and deepest strip, 46 cards in month groups with the right counts (e.g. July 2026 has 15), each with a sparkline; search "Sodwana" after the owner names a seeded site; the year filter narrows the header figures; scrolling collapses the header to "46 dives · N h"; with one seeded dive marked ignored, the header and its month count drop by one and its card and detail show the eye-off icon, read as "Ignored" by screen readers, in place of the number (D23).
+- `filters.test.ts` (D25): a dive is kept when its effective max depth and duration fall within the range, bounds included; a top handle at "> 40 m" or "> 90 min" keeps everything deeper or longer; a dive with no duration is dropped only by a duration range that starts above 0; depth compares in whole mm and duration in seconds, never floats.
+- `range-filter.spec.ts` (D25): the Depth pill opens the sheet, dragging the handles updates the labels above them, and Apply narrows the cards and header figures; the pill then reads the range ("18–30 m") in the year pill's active style; Reset is disabled at the full range and restores it; the slider works by keyboard and reads its values to screen readers; the handles are about 44 px to touch.
 - `dive.spec.ts`: fixture dive 63's detail shows max depth 32.7 m, duration 42 min, avg depth 21.0 m, water temperature range, SAC blank (no pressures), EANx32, max PO₂ 1.38 bar, MOD at 1.4 bar 33.2 m, CNS and OTU; a dive with no samples shows the figures and the no-profile note; the header title appears on scroll.
 - Screenshots at 390 px of the Log and the detail, side by side with `LogHifi2` and `DiveDetailHifi`, in both themes.
 - Every figure is computed by `packages/core` on the client, never duplicated in the web app.
@@ -397,6 +400,7 @@ Deferred, or to watch:
 - [ ] Dexie schema and log mirror
 - [ ] API client with the `X-Shylog` header
 - [ ] Log screen with Hero count header, cards, groups, search and filters, empty state
+- [ ] Depth and duration range filters (D25)
 - [ ] Dive detail without chart
 - [ ] Formatting helpers
 - [ ] View transition from card to detail, with the reduced-motion and unsupported fallbacks
