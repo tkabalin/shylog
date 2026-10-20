@@ -1,6 +1,5 @@
 import { z } from "zod"
 
-import { defaultWaterType } from "../enums.ts"
 import { idSchema } from "../ids.ts"
 import { patchShape, uniqueList } from "./common.ts"
 import { comparedFields, diveFieldsPatch } from "./dive.ts"
@@ -36,7 +35,8 @@ export const patchDiveRequest = z
 export type PatchDiveRequest = z.output<typeof patchDiveRequest>
 
 // `PUT /api/entities/:kind/:id`. A new id creates the entity, so the server
-// then checks the body against the full `entityFields` instead.
+// then checks the body against the full `entityFields` instead. Only the
+// server knows a site's stored body of water, so it re-derives the water type.
 const putEntity = <
   R extends Record<string, z.ZodType>,
   D extends Record<string, z.ZodType>,
@@ -51,13 +51,7 @@ const putEntity = <
     .refine(notEmpty, "Nothing to change")
 
 export const putEntityRequests = {
-  // A new body of water switches the water type, as on a new site, unless
-  // the request sets one. Clearing it leaves the water type as it was.
-  site: putEntity(entityShapes.site).transform((site) =>
-    site.bodyOfWater == null || site.waterType !== undefined
-      ? site
-      : { ...site, waterType: defaultWaterType(site.bodyOfWater) }
-  ),
+  site: putEntity(entityShapes.site),
   region: putEntity(entityShapes.region),
   person: putEntity(entityShapes.person),
   diveCentre: putEntity(entityShapes.diveCentre),

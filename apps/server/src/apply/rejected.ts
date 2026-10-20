@@ -5,14 +5,18 @@ import type { ContentfulStatusCode } from "hono/utils/http-status"
 export class Rejected extends Error {
   readonly status: ContentfulStatusCode
   readonly path?: PropertyKey[]
+  // More for the form, such as the entity a rename collides with.
+  readonly details?: Record<string, unknown>
 
   constructor(
     message: string,
     status: ContentfulStatusCode = 422,
-    path?: PropertyKey[]
+    path?: PropertyKey[],
+    details?: Record<string, unknown>
   ) {
     super(message)
     this.status = status
     this.path = path
+    this.details = details
   }
 }

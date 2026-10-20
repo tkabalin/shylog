@@ -222,7 +222,7 @@ describe("POST /api/ops", () => {
 
   it("rejects a re-sent draft whose new entity was deleted since", async () => {
     await upload([site("site-two-mile"), person("person-x"), dive("dive-a")])
-    db.prepare("DELETE FROM people WHERE id = 'person-x'").run()
+    await send(app, "DELETE", "/api/entities/person/person-x")
     const res = await upload([
       person("person-x"),
       dive("dive-a", { buddies: ["person-x"] }),

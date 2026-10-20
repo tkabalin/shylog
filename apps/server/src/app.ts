@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception"
 import { Rejected } from "./apply/rejected.ts"
 import { factory, type Deps } from "./factory.ts"
 import { dives } from "./routes/dives.ts"
+import { entities } from "./routes/entities.ts"
 import { health } from "./routes/health.ts"
 import { log } from "./routes/log.ts"
 import { ops } from "./routes/ops.ts"
@@ -35,6 +36,7 @@ export function createApp(deps: Deps) {
       .route("/api", samples)
       .route("/api", ops)
       .route("/api", dives)
+      .route("/api", entities)
       .route("/api", health)
       .route("/", web(deps.webRoot, deps.env.SHYLOG_APP_NAME))
       // A refused write has rolled back; the reason goes to the draft's
@@ -42,7 +44,7 @@ export function createApp(deps: Deps) {
       .onError((error, c) => {
         if (error instanceof Rejected) {
           return c.json(
-            { error: error.message, path: error.path },
+            { ...error.details, error: error.message, path: error.path },
             error.status
           )
         }
