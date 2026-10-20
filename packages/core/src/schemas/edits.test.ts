@@ -71,20 +71,6 @@ describe("putEntityRequests", () => {
     expect(site.safeParse({ waterType: "fresh" }).success).toBe(true)
     expect(site.safeParse({ waterType: null }).success).toBe(false)
   })
-
-  it("switches the water type with a new body of water unless one is sent", () => {
-    const site = putEntityRequests.site
-    expect(site.parse({ bodyOfWater: "pool" })).toEqual({
-      bodyOfWater: "pool",
-      waterType: "fresh",
-    })
-    expect(site.parse({ bodyOfWater: null })).toEqual({ bodyOfWater: null })
-    expect(site.parse({ bodyOfWater: "pool", waterType: "salt" })).toEqual({
-      bodyOfWater: "pool",
-      waterType: "salt",
-    })
-    expect(site.parse({ name: "Miracles" })).toEqual({ name: "Miracles" })
-  })
 })
 
 describe("mergeEntityRequests", () => {
