@@ -8,3 +8,6 @@ export type CardFields = z.output<typeof cardFieldsSchema>
 
 export const cardImageTypes = ["image/png", "image/jpeg", "image/webp"] as const
 export const cardImageMaxBytes = 10 * 1024 * 1024
+// Agency eCards are a page or two; the cap bounds what one upload holds in
+// memory.
+export const cardMaxPages = 10

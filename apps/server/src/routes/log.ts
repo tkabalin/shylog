@@ -1,3 +1,4 @@
+import { readCards } from "../cards/store.ts"
 import { schemaVersion } from "../db/migrate.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
@@ -153,11 +154,7 @@ function readLog(db: Db) {
         "SELECT dive_id AS diveId, field, source, computer_value AS computerValue, dismissed FROM field_meta ORDER BY dive_id, field"
       ).map((row) => ({ ...row, dismissed: row.dismissed === 1 })),
       settings: readSettings(db),
-      cards: all<{ id: string; name: string; images: number }>(
-        db,
-        `SELECT id, name, (SELECT count(*) FROM certification_images WHERE card_id = id) AS images
-         FROM certifications ORDER BY position`
-      ),
+      cards: readCards(db),
     }
   })()
 }
