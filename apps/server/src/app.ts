@@ -1,4 +1,8 @@
+import { HTTPException } from "hono/http-exception"
+
+import { Rejected } from "./apply/rejected.ts"
 import { factory, type Deps } from "./factory.ts"
+import { dives } from "./routes/dives.ts"
 import { health } from "./routes/health.ts"
 import { log } from "./routes/log.ts"
 import { samples } from "./routes/samples.ts"
@@ -28,8 +32,25 @@ export function createApp(deps: Deps) {
       .route("/api", version)
       .route("/api", log)
       .route("/api", samples)
+      .route("/api", dives)
       .route("/api", health)
       .route("/", web(deps.webRoot, deps.env.SHYLOG_APP_NAME))
+      // A refused write has rolled back; the reason goes to the draft's
+      // card or the form.
+      .onError((error, c) => {
+        if (error instanceof Rejected) {
+          return c.json(
+            { error: error.message, path: error.path },
+            error.status
+          )
+        }
+        // Hono's own, such as a malformed JSON body, carry their response.
+        if (error instanceof HTTPException) return error.getResponse()
+        // As Hono's default does: a rethrow reaches the Node adapter, which
+        // answers an empty 500 and logs nothing.
+        console.error(error)
+        return c.text("Internal Server Error", 500)
+      })
   )
 }
 

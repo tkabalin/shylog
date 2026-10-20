@@ -75,13 +75,12 @@ describe("GET /api/log", () => {
   it("includes deleted dives with deletedAt, under a new version", async () => {
     const before = (await (await get()).json()) as Log
     const id = diveId(db, 63)
-    write(db, () =>
-      db
-        .prepare(
-          "UPDATE dives SET deleted_at = '2026-10-19T10:00:00Z' WHERE id = ?"
-        )
-        .run(id)
-    )
+    write(db, (journal) => {
+      db.prepare(
+        "UPDATE dives SET deleted_at = '2026-10-19T10:00:00Z' WHERE id = ?"
+      ).run(id)
+      journal({ type: "test", payload: { id } })
+    })
     const res = await get({ "If-None-Match": `"${before.version}"` })
     expect(res.status).toBe(200)
     const after = (await res.json()) as Log
