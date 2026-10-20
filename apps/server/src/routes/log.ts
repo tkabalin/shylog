@@ -1,10 +1,9 @@
-import { settingsSchema } from "@shylog/core"
-
 import { schemaVersion } from "../db/migrate.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
 import { factory } from "../factory.ts"
 import { currentVersion } from "../journal.ts"
+import { readSettings } from "./settings.ts"
 
 // Columns under the names core's schemas use. Choice fields stay as core's
 // keys; the client maps them to labels.
@@ -87,10 +86,6 @@ const all = <T>(db: Db, sql: string) => prepared<[], T>(db, sql).all()
 // version it is tagged with.
 function readLog(db: Db) {
   return db.transaction(() => {
-    const settings = prepared(
-      db,
-      "SELECT diver_name AS diverName, max_po2 AS maxPo2, new_dive_defaults AS newDiveDefaults FROM settings"
-    ).get() as { diverName: string; maxPo2: number; newDiveDefaults: string }
     return {
       // The database's own, which lags the code's if a failed check
       // stopped the migration.
@@ -157,10 +152,7 @@ function readLog(db: Db) {
         db,
         "SELECT dive_id AS diveId, field, source, computer_value AS computerValue, dismissed FROM field_meta ORDER BY dive_id, field"
       ).map((row) => ({ ...row, dismissed: row.dismissed === 1 })),
-      settings: settingsSchema.parse({
-        ...settings,
-        newDiveDefaults: JSON.parse(settings.newDiveDefaults),
-      }),
+      settings: readSettings(db),
       cards: all<{ id: string; name: string; images: number }>(
         db,
         `SELECT id, name, (SELECT count(*) FROM certification_images WHERE card_id = id) AS images
