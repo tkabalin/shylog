@@ -5,6 +5,7 @@ import { factory, type Deps } from "./factory.ts"
 import { dives } from "./routes/dives.ts"
 import { health } from "./routes/health.ts"
 import { log } from "./routes/log.ts"
+import { ops } from "./routes/ops.ts"
 import { samples } from "./routes/samples.ts"
 import { version } from "./routes/version.ts"
 import { readOnly, security } from "./security.ts"
@@ -32,6 +33,7 @@ export function createApp(deps: Deps) {
       .route("/api", version)
       .route("/api", log)
       .route("/api", samples)
+      .route("/api", ops)
       .route("/api", dives)
       .route("/api", health)
       .route("/", web(deps.webRoot, deps.env.SHYLOG_APP_NAME))
