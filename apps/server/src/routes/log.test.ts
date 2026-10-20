@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest"
 
 import { apiHeaders, testApp } from "../../test/app.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
+import { migrations } from "../db/migrate.ts"
 import type { Db } from "../db/open.ts"
 import { write } from "../journal.ts"
 import type { Log } from "./log.ts"
@@ -37,7 +38,7 @@ describe("GET /api/log", () => {
       "settings",
       "cards",
     ])
-    expect(log.schemaVersion).toBe(1)
+    expect(log.schemaVersion).toBe(migrations.length)
     expect(log.dives).toHaveLength(46)
     expect(log.countries).toHaveLength(249)
     expect(log.settings).toEqual({
