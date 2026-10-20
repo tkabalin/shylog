@@ -316,12 +316,34 @@ Deferred, or to watch:
 
 **Not in this milestone**: entity, settings and card endpoints (milestone 6), import, export.
 
-- [ ] `POST /api/ops` with idempotency, versions, age rule, alias matching
-- [ ] `PATCH /api/dives/:id` with `field_meta` rules
-- [ ] Delete and restore
-- [ ] Derived-field recalculation after every write
-- [ ] Statements in the routes, `storeProfile` and the derived pass prepared once per connection and reused, since the derived pass now runs after every write (better-sqlite3 re-parses the SQL on every `prepare`)
-- [ ] Tests listed above
+- [x] `POST /api/ops` with idempotency, versions, age rule, alias matching
+- [x] `PATCH /api/dives/:id` with `field_meta` rules
+- [x] Delete and restore
+- [x] Derived-field recalculation after every write
+- [x] Statements in the routes, `storeProfile` and the derived pass prepared once per connection and reused, since the derived pass now runs after every write (better-sqlite3 re-parses the SQL on every `prepare`)
+- [x] Tests listed above
+
+**Notes for the next session** (written 20 October 2026, branch `feat/draft-uploads-dive-edits`, stacked on `test/subsurface-differential`)
+
+Decisions taken while building:
+
+- A draft with new op ids for a dive the server already has (first reply lost, then edited offline) is applied as an edit of the fields it carries; fields it leaves out are kept. For a dive in Recently deleted it is rejected. An `upsertEntity` for an id the server has, or an alias, uses that entity as it is (now in the spec's Conflict rules).
+- `field_meta`: `computer_value` and `dismissed` survive later hand edits until adopted, even when the hand value comes to match. Clearing a computer-filled field keeps an empty hand value; clearing one with nothing from the computer deletes its row, so the samples fill average depth and temperatures again (now in the spec's Database list). A retried adoption, a repeated dismissal, and deleting or restoring twice are no-ops.
+- `PATCH` merges the request into the stored dive and checks the whole dive with core's `diveFieldsSchema`, which covers every stored-value rule from milestone 2's notes apart from a region in the site's country (the draft's site insert checks that; milestone 6's `PUT` must too). An average depth with no `field_meta` row counts as calculated and is left out, as a calculated surface interval is. The derived pass stores no calculated average deeper than the max depth.
+- `write()` only stores a new version when the change journals something, so a write that changes nothing keeps the version clients hold. Journal types: `upsertEntity`, `upsertDive` (the op, with its op id), `alias`, `editDive` (`{ diveId, ...request }`), `deleteDive`, `restoreDive`.
+- Rejections are `{ error, path }`: 422 for a rule, 404 for an unknown dive, 409 for a `PATCH` to a dive in Recently deleted, 400 for a schema failure or malformed JSON. Every draft rejection is 422. `POST /api/ops` replies `{ result: "applied" | "alreadyApplied", version, serverTime }`; dive edits reply `{ version }`. Validation uses Hono's built-in `validator` (`apps/server/src/validate.ts`), with no new dependency.
+- Every field a draft fills in gets a `hand` row, including the defaulted dive type, nitrox and ignored flag, as the form always sends them.
+- `db/prepared.ts` caches statements per connection and resets `pluck()` on each use.
+
+Deferred, or to watch:
+
+- Milestone 6: entity deletes leave no row, so a re-sent draft is told an id was deleted only when the server has seen it before, as an alias or in a journalled `upsertEntity` op (`seenBefore` in `apply/entity.ts`, a scan of `ops` filtered by type). Entities created online with `PUT` aren't in that journal type, so the delete should leave a tombstone (or `PUT` journal the same `{ kind, id }` shape), and the scan can then go.
+- Milestone 10 or 16: a re-uploaded draft is applied as a patch, so a field the diver cleared offline is cleared only if it is text (which arrives as null); a removed trip, weight or override stays. Rare (needs a lost reply and an offline edit); the client could send explicit nulls for cleared fields if it matters.
+- Milestone 20: a hand dive left at Nitrox no has a `hand` nitrox row, so an import pairing it with an EANx32 computer dive keeps air. Decide then whether gas is compared like the five fields.
+- The derived pass reads every dive's samples on every write: about 10 ms per write on the fixture's 46 dives (9,340 samples), linear, so roughly 100 ms at 500 dives. Cache each dive's own CNS, OTU and sample figures if edits ever feel slow.
+- Carried over from milestone 4: `cnsWithCarryOver` and `surfaceInterval` still parse and sort per call; Vite's dev server has no proxy until milestone 8; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; the seed's journal entry can't be replayed; coverage over the server alone fails core's threshold; Playwright's webServer moves to the seeded server in milestone 8.
+- Carried over from milestones 2 and 3: `mod` can go negative for a limit below the surface PO₂ (show no MOD); check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19.
+- Carried over from the scaffold: run Vite once after adding a route before `tsc -b`; `test:xsd` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 6: Server, entities, settings and cards
 
