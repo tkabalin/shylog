@@ -2,6 +2,7 @@ import { settingsSchema } from "@shylog/core"
 
 import { schemaVersion } from "../db/migrate.ts"
 import type { Db } from "../db/open.ts"
+import { prepared } from "../db/prepared.ts"
 import { factory } from "../factory.ts"
 import { currentVersion } from "../journal.ts"
 
@@ -80,17 +81,16 @@ const dive = (row: DiveRow) => ({
   sparkline: row.sparkline ? (JSON.parse(row.sparkline) as number[]) : null,
 })
 
-const all = <T>(db: Db, sql: string) => db.prepare(sql).all() as T[]
+const all = <T>(db: Db, sql: string) => prepared<[], T>(db, sql).all()
 
 // The whole log but samples, read in one transaction so it matches the
 // version it is tagged with.
 function readLog(db: Db) {
   return db.transaction(() => {
-    const settings = db
-      .prepare(
-        "SELECT diver_name AS diverName, max_po2 AS maxPo2, new_dive_defaults AS newDiveDefaults FROM settings"
-      )
-      .get() as { diverName: string; maxPo2: number; newDiveDefaults: string }
+    const settings = prepared(
+      db,
+      "SELECT diver_name AS diverName, max_po2 AS maxPo2, new_dive_defaults AS newDiveDefaults FROM settings"
+    ).get() as { diverName: string; maxPo2: number; newDiveDefaults: string }
     return {
       // The database's own, which lags the code's if a failed check
       // stopped the migration.
@@ -113,8 +113,7 @@ function readLog(db: Db) {
         db,
         "SELECT id, name, country_code AS countryCode, region_id AS regionId, body_of_water AS bodyOfWater, water_type AS waterType FROM sites ORDER BY name"
       ),
-      countries: db
-        .prepare("SELECT code FROM countries ORDER BY code")
+      countries: prepared(db, "SELECT code FROM countries ORDER BY code")
         .pluck()
         .all() as string[],
       regions: all<{ id: string; name: string; countryCode: string }>(

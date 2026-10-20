@@ -11,6 +11,7 @@ import {
 } from "@shylog/core"
 
 import type { Db } from "./db/open.ts"
+import { prepared } from "./db/prepared.ts"
 import { selectSamples } from "./profile.ts"
 
 interface Row {
@@ -44,9 +45,9 @@ export function sampleTemperatures(samples: readonly Sample[]) {
 // temperatures, CNS and OTU in one pass, inside the caller's write. Fine at
 // hundreds of dives; see docs/PLAN.md before reaching for anything finer.
 export function recalculate(db: Db) {
-  const rows = db
-    .prepare(
-      `SELECT d.id, d.start_time AS startTime, d.duration, d.ignored,
+  const rows = prepared<[], Row>(
+    db,
+    `SELECT d.id, d.start_time AS startTime, d.duration, d.ignored,
          d.trip_id AS tripId, d.nitrox, d.oxygen,
          d.surface_interval_override AS override,
          d.surface_interval AS surfaceInterval,
@@ -56,14 +57,13 @@ export function recalculate(db: Db) {
          d.deleted_at IS NOT NULL AS deleted
        FROM dives d JOIN sites s ON s.id = d.site_id
        ORDER BY d.seq`
-    )
-    .all() as Row[]
+  ).all()
   const samplesOf = selectSamples(db)
   const recorded = new Set(
-    db
-      .prepare(
-        "SELECT dive_id || ' ' || field FROM field_meta WHERE field IN ('averageDepth', 'minTemperature', 'maxTemperature')"
-      )
+    prepared(
+      db,
+      "SELECT dive_id || ' ' || field FROM field_meta WHERE field IN ('averageDepth', 'minTemperature', 'maxTemperature')"
+    )
       .pluck()
       .all() as string[]
   )
@@ -99,10 +99,12 @@ export function recalculate(db: Db) {
       .map((dive, i) => [dive.id, i + 1])
   )
 
-  db.prepare(
+  prepared(
+    db,
     "UPDATE dives SET number = NULL, cns = NULL, otu = NULL WHERE deleted_at IS NOT NULL"
   ).run()
-  const update = db.prepare(
+  const update = prepared(
+    db,
     `UPDATE dives SET number = @number, surface_interval = @surfaceInterval,
        average_depth = @averageDepth, min_temperature = @minTemperature,
        max_temperature = @maxTemperature, cns = @cns, otu = @otu
