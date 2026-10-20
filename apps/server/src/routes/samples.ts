@@ -1,3 +1,4 @@
+import { diveExists } from "../apply/dive.ts"
 import { prepared } from "../db/prepared.ts"
 import { factory } from "../factory.ts"
 import { selectSamples } from "../profile.ts"
@@ -6,7 +7,7 @@ import type { ProfileEvent } from "../uddf/sample-reader.ts"
 export const samples = factory.createApp().get("/dives/:id/samples", (c) => {
   const { db } = c.var.deps
   const id = c.req.param("id")
-  if (!prepared(db, "SELECT 1 FROM dives WHERE id = ?").get(id)) {
+  if (!diveExists(db, id)) {
     return c.json({ error: "No such dive" }, 404)
   }
   const rows = selectSamples(db).all(id)

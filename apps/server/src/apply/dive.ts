@@ -15,6 +15,7 @@ import {
   handEdit,
   metaOf,
   type Meta,
+  recordHand,
   sqlValue,
 } from "./field-meta.ts"
 import { Rejected } from "./rejected.ts"
@@ -200,6 +201,16 @@ function save(db: Db, id: string, fields: Fields) {
       tag
     )
   }
+}
+
+export const diveExists = (db: Db, id: string) =>
+  prepared(db, "SELECT 1 FROM dives WHERE id = ?").get(id) !== undefined
+
+// A new dive from a draft: every field filled in is a hand value.
+export function createDive(db: Db, id: string, draft: DiveFields) {
+  const fields = valid(db, draft)
+  save(db, id, fields)
+  for (const field of Object.keys(fields)) recordHand(db, id, field)
 }
 
 const same = (a: unknown, b: unknown) =>
