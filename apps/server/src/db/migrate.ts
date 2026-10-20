@@ -3,6 +3,7 @@ import { join } from "node:path"
 
 import { getMeta, setMeta, write } from "../journal.ts"
 import { initial } from "./migrations/001-initial.ts"
+import { tombstonesCardHashes } from "./migrations/002-tombstones-card-hashes.ts"
 import type { Db } from "./open.ts"
 
 export interface Migration {
@@ -11,7 +12,7 @@ export interface Migration {
   up(db: Db): void
 }
 
-export const migrations: Migration[] = [initial]
+export const migrations: Migration[] = [initial, tombstonesCardHashes]
 
 export function schemaVersion(db: Db): number {
   const hasMeta = db
@@ -39,10 +40,12 @@ export function migrate(db: Db, dataDir: string, list = migrations) {
   const pending = list.filter((migration) => migration.version > from)
   if (!pending.length) return
 
+  // Decided once, as the first migration leaves a new database non-empty.
+  const empty = !db.prepare("SELECT 1 FROM sqlite_schema LIMIT 1").get()
   db.pragma("foreign_keys = OFF")
   try {
     for (const migration of pending) {
-      snapshot(db, dataDir, migration.version)
+      if (!empty) snapshot(db, dataDir, migration.version)
       runMigration(db, migration)
     }
   } finally {
@@ -51,7 +54,6 @@ export function migrate(db: Db, dataDir: string, list = migrations) {
 }
 
 function snapshot(db: Db, dataDir: string, version: number) {
-  if (!db.prepare("SELECT 1 FROM sqlite_schema LIMIT 1").get()) return
   const dir = join(dataDir, "snapshots")
   mkdirSync(dir, { recursive: true })
   const stamp = new Date().toISOString().replace(/[:.]/g, "-")
