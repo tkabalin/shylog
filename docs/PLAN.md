@@ -361,10 +361,33 @@ Deferred, or to watch:
 
 **Not in this milestone**: the UI for any of this (milestones 11 and 12).
 
-- [ ] Entity create, rename, merge, delete per kind with alias records
-- [ ] Settings read and write
-- [ ] Cards with image files
-- [ ] Tests listed above
+- [x] Entity create, rename, merge, delete per kind with alias records
+- [x] Settings read and write
+- [x] Cards with image files
+- [x] Tests listed above
+
+**Notes for the next session** (written 20 October 2026, branch `feat/entities-settings-cards`, stacked on `feat/draft-uploads-dive-edits`)
+
+Decisions taken while building:
+
+- Deleted entities leave a row in `deleted_entities` (migration 2), which replaced the journal scan in `seenBefore`. A repeated delete is a no-op; `PUT`, merge or a draft naming a deleted or merged-away id is refused (409 for `PUT` and merge, 422 for a draft). A new database now skips the pre-migration snapshot for every pending migration, not only the first.
+- `PUT /api/entities/:kind/:id` checks a new id against the full `entityFields` and a known one against `putEntityRequests`, so it reads the body inside the write. A key clash, on create or rename, is a 409 `{ error, path: ["name"], conflict: { id, name } }`, which is what "Merge instead" needs. Merges and deletes reply `{ version }` like every edit; an unknown kind is a 404.
+- A region's new country moves its sites, and a site already there with the same name refuses the whole edit (409, path `countryCode`). Region merges stay within one country. A person merge keeps the survivor's role and place on a dive that had both. Deleting a trip also drops its dives' `tripId` `field_meta` rows. Refusals name what is in the way ("still used by 1 site and 1 dive centre").
+- Cards: each image row has a 16-hex-character SHA-256 prefix that names its file (`cards/<id>/<hash>`), so files are written, flushed and their folders synced before the commit, and unused ones pruned after. `PUT` pages are new files (type sniffed from the bytes, never the header; up to 10 MB and `cardMaxPages` = 10, a 413 past the body limit) or existing hashes. `/api/log` and `/api/cards` give `images` as the hash list. Images stream; with `?v=<hash>` they are cached for a year, without it `no-cache`, and a stale hash is a 404. New cards go last; there is no endpoint to reorder cards in the list, as no board has one.
+- Journal types: `putEntity` (`{ kind, id, fields }`, the body as sent), `mergeEntity`, `deleteEntity`, `putSettings`, `putCard` (`{ id, name, images: [{ hash, contentType }] }`), `deleteCard`. The card bytes are not journalled, so a replay restores the rows and relies on the backed-up `cards/` folder for the files.
+- A site edit re-derives the water type on the server, only when the body of water changes to a new value and the request sends no water type, so resending the stored body of water keeps a hand-set water type. Core's `putEntityRequests.site` no longer has the transform, since it couldn't see the stored value.
+- Only site and trip edits, merges and deletes run the derived pass (water types and trips feed CNS); other entities, settings and cards skip it, since no dive figure depends on them. A card's leftover files are pruned after the commit, and a failed prune is only logged, so the saved change still replies 200.
+
+Deferred, or to watch:
+
+- Milestone 12: fetch images as `/api/cards/:id/images/:n?v=<hash>` and key the Dexie cache by hash; a 404 on a stale hash means the log copy is behind.
+- Milestone 7: the restore drill should compare `cards/` too, since the journal can't rebuild card files.
+- Milestone 10 or 16: a re-uploaded draft is applied as a patch, so a field the diver cleared offline is cleared only if it is text (which arrives as null); a removed trip, weight or override stays. Rare (needs a lost reply and an offline edit); the client could send explicit nulls for cleared fields if it matters.
+- Milestone 20: a hand dive left at Nitrox no has a `hand` nitrox row, so an import pairing it with an EANx32 computer dive keeps air. Decide then whether gas is compared like the five fields.
+- The derived pass reads every dive's samples on every write: about 10 ms per write on the fixture's 46 dives (9,340 samples), linear, so roughly 100 ms at 500 dives. Cache each dive's own CNS, OTU and sample figures if edits ever feel slow.
+- Carried over from milestone 4: `cnsWithCarryOver` and `surfaceInterval` still parse and sort per call; Vite's dev server has no proxy until milestone 8; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; the seed's journal entry can't be replayed; coverage over the server alone fails core's threshold; Playwright's webServer moves to the seeded server in milestone 8.
+- Carried over from milestones 2 and 3: `mod` can go negative for a limit below the surface PO₂ (show no MOD); check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19.
+- Carried over from the scaffold: run Vite once after adding a route before `tsc -b`; `test:xsd` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 7: Deploy
 
