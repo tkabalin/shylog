@@ -1,4 +1,4 @@
-import { toMillimetres } from "./pressure.ts"
+import { surfaceThreshold, toMillimetres } from "./pressure.ts"
 import { intDiv, lrint } from "./round.ts"
 import type { Sample } from "./samples.ts"
 
@@ -13,13 +13,37 @@ export interface ChartPoint {
 const interpolate = (a: number, b: number, part: number, whole: number) =>
   lrint((a * (whole - part) + b * part) / whole)
 
+// The end of the dive on the chart, as calculate_max_limits_new
+// (core/profile.cpp) finds it: the sample after the last one under water, the
+// last event if later, and always at least the first sample past that event.
+export function chartEnd(
+  samples: readonly Sample[],
+  eventTimes: readonly number[]
+): number {
+  let end = Math.max(0, ...eventTimes)
+  let pastEvents = false
+  let lastDepth = 0
+  for (const sample of samples) {
+    const depth = toMillimetres(sample.depth)
+    const diving = depth > surfaceThreshold || lastDepth > surfaceThreshold
+    if ((diving || !pastEvents) && sample.time > end) {
+      pastEvents = true
+      end = sample.time
+    }
+    lastDepth = depth
+  }
+  return end
+}
+
 // Chart points from merged samples, as populate_plot_entries (core/profile.cpp)
-// builds them: one every 10 s in longer gaps and one at each event. The line
-// starts and ends at the surface, and events after the last sample sit there.
+// builds them: one every 10 s in longer gaps and one at each event, ending one
+// sample past chartEnd so a short dive's line doesn't trail along the surface.
+// The line starts and ends at the surface; later events sit there.
 export function chartPoints(
   samples: readonly Sample[],
   eventTimes: readonly number[]
 ): ChartPoint[] {
+  const end = chartEnd(samples, eventTimes)
   const points: ChartPoint[] = [{ time: 0, depth: 0, temperature: null }]
   const events = eventTimes.filter((time) => time > 0).sort((a, b) => a - b)
   let next = 0
@@ -35,6 +59,7 @@ export function chartPoints(
     const at = (when: number) =>
       interpolate(lastDepth, depth, when - lastTime, delta)
     for (let offset = 10; offset < delta; offset += 10) {
+      if (lastTime + offset > end) break
       while (next < events.length && events[next] < lastTime + offset) {
         insert(events[next], at(events[next]))
         next++
@@ -54,6 +79,7 @@ export function chartPoints(
     while (next < events.length && events[next] === time) next++
     lastTime = time
     lastDepth = depth
+    if (time > end) break
   }
   for (; next < events.length; next++) {
     if (events[next] > lastTime) {

@@ -10,7 +10,6 @@
 // Reads one command per line on stdin and answers each with one line.
 
 #include <algorithm>
-#include <climits>
 #include <cmath>
 #include <cstdio>
 #include <iostream>
@@ -504,13 +503,39 @@ static void insert_entry(std::vector<plot_data> &entry, int time, int depth)
 	e.depth = depth;
 }
 
+// core/profile.cpp: calculate_max_limits_new, only its maxtime, for one
+// computer outside the planner. Subsurface keeps events in time order.
+static int calculate_maxtime(const std::vector<sample> &samples, std::vector<int> events)
+{
+	bool found_sample_beyond_last_event = false;
+	int maxtime = 0;
+	int lastdepth = 0;
+
+	std::sort(events.begin(), events.end());
+	/* Make sure we can fit all events */
+	if (!events.empty())
+		maxtime = std::max(maxtime, events.back());
+
+	for (auto &s: samples) {
+		int depth = s.depth;
+		/* Make sure that we get the first sample beyond the last event.
+		 * If maxtime is somewhere in the middle of the last segment,
+		 * populate_plot_entries() gets confused leading to display artifacts. */
+		if ((depth > SURFACE_THRESHOLD || lastdepth > SURFACE_THRESHOLD || !found_sample_beyond_last_event) &&
+		    s.time > maxtime) {
+			found_sample_beyond_last_event = true;
+			maxtime = s.time;
+		}
+		lastdepth = depth;
+	}
+	return maxtime;
+}
+
 // core/profile.cpp: populate_plot_entries, the time and depth of each entry
-// and the temperature carried. Shylog applies no maxtime cut-off here, so
-// maxtime is as large as it goes (see PLAN.md, core calculations notes).
-static std::vector<plot_data> populate_plot_entries(const std::vector<sample> &samples, std::vector<int> events)
+// and the temperature carried, stopping one sample past maxtime.
+static std::vector<plot_data> populate_plot_entries(const std::vector<sample> &samples, std::vector<int> events, int maxtime)
 {
 	std::vector<plot_data> entry(2);
-	int maxtime = INT_MAX;
 
 	std::sort(events.begin(), events.end());
 	int lastdepth = 0;
@@ -688,10 +713,11 @@ int main()
 			std::vector<int> events(n);
 			for (auto &t: events)
 				in >> t;
-			auto entry = populate_plot_entries(samples, events);
+			int maxtime = calculate_maxtime(samples, events);
+			auto entry = populate_plot_entries(samples, events, maxtime);
 			analyze_plot_info(entry);
 			// Core starts at the second of the two leading surface entries.
-			printf("%zu", entry.size() - 1);
+			printf("%d %zu", maxtime, entry.size() - 1);
 			for (size_t i = 1; i < entry.size(); i++)
 				printf(" %d %d %d %d %d", entry[i].sec, entry[i].depth, entry[i].temperature,
 				       entry[i].speed, entry[i].velocity);
