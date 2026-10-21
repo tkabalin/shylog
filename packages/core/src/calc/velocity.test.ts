@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import { fixtureDive, fixtureScubaDives } from "../../test/fixture.ts"
 import { mergeDuplicateSamples, type Sample } from "./samples.ts"
 import {
+  chartEnd,
   chartPoints,
   speedBand,
   verticalSpeeds,
@@ -136,6 +137,26 @@ describe("verticalSpeeds", () => {
   })
 })
 
+describe("chartEnd", () => {
+  it("is the sample after the last one under water", () => {
+    // 0.75 m is at the surface; 0.751 m is under water.
+    const samples = [at(0, 5), at(20, 0.751), at(30, 0.75), at(40, 0)]
+    expect(chartEnd(samples, [])).toBe(30)
+  })
+
+  it("is the last event if that is later", () => {
+    expect(chartEnd([at(0, 5), at(20, 0)], [50, 10])).toBe(50)
+  })
+
+  it("takes the first sample past the last event, even at the surface", () => {
+    const samples = [at(0, 5), at(20, 0), at(40, 0), at(60, 0)]
+    expect(chartEnd(samples, [30])).toBe(40)
+    // With no events, the first sample after 0 s counts.
+    expect(chartEnd([at(0, 0), at(10, 0), at(20, 0)], [])).toBe(10)
+    expect(chartEnd([], [])).toBe(0)
+  })
+})
+
 describe("chartPoints", () => {
   it("starts at the surface at 0 s, as Subsurface does", () => {
     const points = chartPoints([at(0, 1.38), at(4, 2)], [])
@@ -225,6 +246,19 @@ describe("chartPoints", () => {
       point(6, 0),
     ])
     expect(chartPoints([], [])).toEqual([point(0, 0), point(1, 0), point(2, 0)])
+  })
+
+  it("stops one sample past the end, leaving off the rest of the surface", () => {
+    // Under water until 20 s, so the end is 30 s; 40 s is the one past it.
+    const samples = [at(0, 5), at(20, 5), at(30, 0.5), at(40, 0.2), at(60, 0)]
+    expect(chartPoints(samples, []).map((each) => each.time)).toEqual([
+      0, 0, 10, 20, 30, 40, 41, 42,
+    ])
+    // No 10 s points past the end either: 30 s to 60 s gets none.
+    const gap = [at(0, 5), at(20, 5), at(30, 0.5), at(60, 0)]
+    expect(chartPoints(gap, []).map((each) => each.time)).toEqual([
+      0, 0, 10, 20, 30, 60, 61, 62,
+    ])
   })
 
   it("takes events in any order", () => {

@@ -17,6 +17,7 @@ import { sacRate } from "../../src/calc/sac.ts"
 import { diveEnd, type Sample } from "../../src/calc/samples.ts"
 import { surfaceInterval } from "../../src/calc/surface-interval.ts"
 import {
+  chartEnd,
   chartPoints,
   speedBands,
   verticalSpeeds,
@@ -106,6 +107,37 @@ const samples = fc
       if (i) time += row.step
       return { time, depth: row.depth, tenths: row.tenths }
     })
+  })
+
+// Samples at the surface after the dive, as the D4i logs before it ends the
+// dive, so the chart's end falls before the last sample.
+const withSurfaceTail = fc
+  .tuple(
+    samples,
+    fc.array(
+      fc.record({
+        step: fc.oneof(
+          fc.constantFrom(10, 20),
+          fc.integer({ min: 1, max: 600 })
+        ),
+        depth: fc.oneof(
+          fc.integer({ min: -500, max: 750 }),
+          fc.constantFrom(0, 750, 751)
+        ),
+        tenths: fc.option(fc.integer({ min: -20, max: 350 })),
+      }),
+      { maxLength: 5 }
+    )
+  )
+  .map(([generated, tail]) => {
+    let time = generated.at(-1)?.time ?? 0
+    return [
+      ...generated,
+      ...tail.map((row): GeneratedSample => {
+        time += row.step
+        return { time, depth: row.depth, tenths: row.tenths }
+      }),
+    ]
   })
 
 const celsius = (s: GeneratedSample) =>
@@ -382,7 +414,7 @@ describe("Subsurface's code on random inputs", () => {
 
   it("draws the same chart points and speeds (populate_plot_entries)", () =>
     check(
-      samples.chain((generated) => {
+      withSurfaceTail.chain((generated) => {
         const last = generated.at(-1)?.time ?? 0
         // Events between samples, on them, on the 10 s points and after.
         const time = fc.oneof(
@@ -398,12 +430,13 @@ describe("Subsurface's code on random inputs", () => {
         )
       }),
       async ([generated, events]) => {
-        const [count, ...entries] = await ask(
+        const [end, count, ...entries] = await ask(
           "plot",
           ...sampleWords(generated),
           events.length,
           ...events
         )
+        expect(chartEnd(coreSamples(generated), events)).toBe(end)
         const points = chartPoints(coreSamples(generated), events)
         const speeds = verticalSpeeds(points)
         const got = points.flatMap((point, i) => [
