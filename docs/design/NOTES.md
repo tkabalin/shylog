@@ -64,7 +64,7 @@ These were settled while planning the build (`docs/PLAN.md`, decisions D1 to D22
 - Every field whose hand value differs from the computer's gets the ✓ "Use D4i value" / ✕ "Keep mine" group (start time, max depth, average depth, duration, temperatures). A field holding a computer value shows the "From the D4i" marker, which becomes "Reset to the D4i value" once edited. `EditDiveHifi` draws the group only for start time and duration.
 - Computer and calculated values keep the normal text colour. The accent colour `EditDiveHifi` gives D4i and calculated values was tried in review and dropped.
 - A site's region is typed with the existing regions in that country offered as you type. `SitePickerHifi` has a plain free-text field.
-- The Log header is the board's "Hero count" variant. The Tiles, Split, Sentence and Stat strip variants were explorations.
+- The Log header is the board's "Hero count" variant. The Tiles, Split, Sentence and Stat strip variants were explorations. On scroll the large count and strip scroll away with the list and the compact line fades into the sticky bar; the board keeps the 52px count beside it.
 - The Import done screen lists the dives that differ from the computer, each linking to its detail. The board links the row to one dive.
 - The Compare table on Change pairing also shows average depth.
 - The upload card shows an indeterminate "Reading your export" state. The board's "48 of 72 dives" progress bar implies streaming that the server does not do.
