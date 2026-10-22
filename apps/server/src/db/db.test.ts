@@ -2,6 +2,7 @@ import { existsSync, mkdtempSync, readdirSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
+import { latestSchemaVersion } from "@shylog/core"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
 import { currentVersion } from "../journal.ts"
@@ -91,6 +92,10 @@ describe("a fresh database", () => {
       max_po2: 1.4,
       new_dive_defaults: '{"visibilityMode":"metres"}',
     })
+  })
+
+  it("ends at the schema version core gives the app", () => {
+    expect(latest).toBe(latestSchemaVersion)
   })
 
   it("takes no snapshot and journals each migration", () => {
