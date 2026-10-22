@@ -9,7 +9,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 
 [Subsurface](https://github.com/subsurface/subsurface) is the open-source dive log many divers rely on for the numbers, but it is a desktop app. Shylog is built to be filled in on a phone on the boat, with wet hands and no signal, while giving the same figures Subsurface would.
 
-> **Status**: early development. The shared core (schemas, units and every dive calculation) and the server's database, read API and security are built. The screens come next, step by step from [the build plan](docs/PLAN.md).
+> **Status**: early development. The shared core (schemas, units and every dive calculation), the server's database, API and security, and the deployment with nightly backups are built. The screens come next, step by step from [the build plan](docs/PLAN.md).
 
 ## What it does
 
@@ -106,6 +106,91 @@ pnpm vitest run <paths>   # the tests you touched; CI runs the whole suite
 pnpm test:e2e             # Playwright; first run `pnpm exec playwright install chromium webkit`
 pnpm build
 ```
+
+The migration test also runs against real data when a nightly snapshot is copied to `fixtures/real/shylog.db.gz`, which git ignores.
+
+## Deploying
+
+Each diver gets an instance: the app and a Tailscale sidecar, run as one Compose project from the image CI publishes to `ghcr.io/tkabalin/shylog`. The app shares the sidecar's network and listens on its loopback, so Tailscale Serve is the only way in. Everything an instance keeps (database, snapshots, export, card images and the sidecar's state) is under its `SHYLOG_DATA_DIR`.
+
+Before the first instance, in the Tailscale admin console, turn on MagicDNS and HTTPS certificates. If the GHCR package is private, run `docker login ghcr.io` on the server with a token that can read packages.
+
+For each instance, on the home server:
+
+```bash
+git clone https://github.com/tkabalin/shylog.git && cd shylog   # once: compose.yml, tailscale/, scripts/
+sudo install -d -o 1000 -g 1000 /srv/shylog/<instance>            # the image runs as uid 1000
+mkdir -p instances && cp .env.example instances/<instance>.env    # git ignores instances/
+```
+
+In `instances/<instance>.env`, give each instance its own `COMPOSE_PROJECT_NAME` (required, so a copied file can't take over another instance), `TS_HOSTNAME` and `SHYLOG_DATA_DIR`. Set `SHYLOG_ORIGIN` to `https://<TS_HOSTNAME>.<tailnet>.ts.net`, `SHYLOG_ALLOWED_LOGINS` to the diver's Tailscale login (plus the owner's for support), `TZ` to the server's zone, and `TS_AUTHKEY` to an auth key from the admin console. Then:
+
+```bash
+docker compose --env-file instances/<instance>.env up -d
+docker compose --env-file instances/<instance>.env config   # check: no ports, container_name or named volumes
+```
+
+Once the node has joined, clear `TS_AUTHKEY` in the env file (the sidecar logs in with it only when it has no saved state) and disable key expiry for the node in the admin console, so it never drops off the tailnet.
+
+For the second diver, share their instance's node with their Tailscale account from the admin console, and restrict each node to its diver's devices in the tailnet policy. The owner's instance is never shared.
+
+To update every instance, take a snapshot of each, then pull and restart:
+
+```bash
+scripts/backup.sh <instance>
+docker compose --env-file instances/<instance>.env pull
+docker compose --env-file instances/<instance>.env up -d          # migrations run on startup
+```
+
+The app listens inside the sidecar's network namespace, so it has to restart whenever the sidecar does. Compose does that for restarts it makes; if Docker restarts the sidecar on its own and the app stops answering, run `up -d` again.
+
+### Smoke test
+
+A browser can't add the `X-Shylog` header, so the API is checked from an iOS Shortcut: **Get contents of URL** for `https://<TS_HOSTNAME>.<tailnet>.ts.net/api/health` with the header `X-Shylog: 1`, then **Show result**.
+
+1. From the owner's phone, the Shortcut shows the health JSON, and `https://<host>/manifest.webmanifest` in Safari names the instance's `SHYLOG_APP_NAME`.
+2. From the second diver's device, on their shared node, the Shortcut shows the health JSON.
+3. From a login not in `SHYLOG_ALLOWED_LOGINS`, it shows a 403 refusing the login.
+
+Last run: not yet.
+
+## Backups and restores
+
+At midnight, server local time (`TZ`), each instance writes `snapshots/shylog-<date>.db.gz` in its data folder, a consistent copy made with `VACUUM INTO`, and keeps daily snapshots for 90 days, the newest of each week for two years and the newest of each month forever. Settings shows the time of the last one. The off-site backup job must cover `/srv/shylog/`, the parent of every instance, which holds the snapshots, the export and `cards/`.
+
+The scripts take the instance name and run the server's backup tools in its app container, so the host needs only Docker:
+
+| Script                                                              | What it does                                                                                                                                                                                                                                                                       |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/backup.sh <instance>`                                      | Takes a snapshot now, such as before an update                                                                                                                                                                                                                                     |
+| `scripts/restore-drill.sh <instance>`                               | Restores last night's snapshot to a scratch folder, replays the live journal onto it and reports any difference, card images included. Read-only, so it runs with the app up                                                                                                       |
+| `scripts/restore.sh <instance> <snapshot> [--replay-to <seq>\|all]` | Stops the app, unpacks the snapshot, moves `shylog.db` and its `-wal` and `-shm` to `restore-aside/<time>/`, puts the snapshot in its place, replays the moved-aside journal if asked and starts the app again. It lists any card image the restored database names but can't find |
+
+### Restoring
+
+1. Pick a nightly snapshot, `shylog-<date>.db.gz`: the latest, or for bad data the last one before it was written (`ls /srv/shylog/<instance>/snapshots`). A snapshot from the off-site copy goes in that folder first.
+2. For bad data in a readable database, find the last good journal entry. This lists every entry since a time, in UTC:
+
+   ```bash
+   docker compose --env-file instances/<instance>.env exec app node apps/server/dist/cli.js journal --since 2026-10-22
+   ```
+
+3. Restore, replaying up to that entry, everything (`--replay-to all`), or nothing (leave the option out). The entries not replayed are listed.
+
+   ```bash
+   scripts/restore.sh <instance> shylog-2026-10-22.db.gz --replay-to 1234
+   ```
+
+   If the database was lost or can't be read, nothing can be replayed: changes since the snapshot are entered again or re-imported from the dive computer.
+
+If the snapshot can't be read, nothing is moved and the app starts again as it was. If the replay fails, the restored database stays in place, partly replayed, and the previous one in `restore-aside/`. The app is then left stopped until you start it. If every snapshot is lost, a new instance can import the UDDF export in `export/`, losing only the hand-versus-computer markers.
+
+### Backup checklist
+
+- [ ] The off-site job covers `/srv/shylog/`, with versioning and immutability
+- [ ] A restore from the off-site copy, end to end, once it is set up and then once a year
+- [ ] The restore drill passes on each instance
+- [ ] An occasional copy off both the server and the off-site backup, such as a yearly download to an external drive
 
 ## Docs
 
