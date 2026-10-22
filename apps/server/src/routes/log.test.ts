@@ -52,9 +52,11 @@ describe("GET /api/log", () => {
   it("is tagged with the version, and a matching If-None-Match gets a 304", async () => {
     const res = await get()
     const { version } = (await res.json()) as Log
-    expect(res.headers.get("ETag")).toBe(`"${version}"`)
+    // Weak, as the gzipped body is, so a 304 freshens either copy.
+    expect(res.headers.get("ETag")).toBe(`W/"${version}"`)
     const again = await get({ "If-None-Match": `"${version}"` })
     expect(again.status).toBe(304)
+    expect(again.headers.get("ETag")).toBe(`W/"${version}"`)
     expect(await again.text()).toBe("")
     // As a proxy may weaken it, or a client list several.
     const weak = await get({ "If-None-Match": `"other", W/"${version}"` })

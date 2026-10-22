@@ -179,13 +179,15 @@ export const log = factory.createApp().get("/log", (c) => {
     .header("If-None-Match")
     ?.split(",")
     .map((tag) => tag.trim().replace(/^W\//, ""))
+  // Weak, as the gzipped body compress sends is, so a 304 freshens either.
   const current = `"${currentVersion(db)}"`
   if (sent?.includes(current)) {
-    c.header("ETag", current)
+    c.header("ETag", `W/${current}`)
+    c.header("Vary", "Accept-Encoding")
     return c.body(null, 304)
   }
   // Tagged with the version read alongside the data, not a moment before.
   const body = readLog(db)
-  c.header("ETag", `"${body.version}"`)
+  c.header("ETag", `W/"${body.version}"`)
   return c.json(body)
 })
