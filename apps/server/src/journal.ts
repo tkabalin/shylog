@@ -26,16 +26,27 @@ export function getMeta(db: Db, key: string): string | null {
 
 export const currentVersion = (db: Db) => getMeta(db, "version")
 
+// Strictly increasing, so a transaction's entries share a time no other
+// transaction has, which is how a replay groups them back together.
+let lastCommit = 0
+function commitTime() {
+  lastCommit = Math.max(Date.now(), lastCommit + 1)
+  return new Date(lastCommit)
+}
+
 // Runs `change` in one transaction with its journal entries, and gives the
 // commit a new random version id, so a restore can never bring back a
 // version a client has already seen. A change that journals nothing wrote
 // nothing, so a repeated delete or edit keeps the version clients hold.
+// The change gets the time its entries record, so a replay can reproduce
+// any time it stores.
 export function write<T>(
   db: Db,
-  change: (journal: (entry: Entry) => void) => T
+  change: (journal: (entry: Entry) => void, now: Date) => T
 ): T {
   return db.transaction(() => {
     let changed = false
+    const now = commitTime()
     const result = change((entry) => {
       // Prepared on first use: the first migration creates the table.
       changed = true
@@ -46,9 +57,9 @@ export function write<T>(
         entry.opId ?? null,
         entry.type,
         JSON.stringify(entry.payload),
-        new Date().toISOString()
+        now.toISOString()
       )
-    })
+    }, now)
     if (changed) setMeta(db, "version", randomUUID())
     return result
   })()
