@@ -2,7 +2,8 @@ import { beforeAll, describe, expect, it } from "vitest"
 
 import { apiHeaders, testApp } from "../../test/app.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
-import { migrations } from "../db/migrate.ts"
+import { migrate, migrations } from "../db/migrate.ts"
+import { openDatabase } from "../db/open.ts"
 import type { Db } from "../db/open.ts"
 import { write } from "../journal.ts"
 import type { Log } from "./log.ts"
@@ -73,6 +74,15 @@ describe("GET /api/log", () => {
     expect(log.dives.every((dive) => dive.sparkline?.length === 24)).toBe(true)
   })
 
+  it("carries SAC's figures from the samples", async () => {
+    const log = (await (await get()).json()) as Log
+    const dive63 = log.dives.find((dive) => dive.id === diveId(db, 63))!
+    expect(dive63).toMatchObject({
+      sampleDuration: 2502,
+      sampleAverageDepth: 20.989,
+    })
+  })
+
   it("includes deleted dives with deletedAt, under a new version", async () => {
     const before = (await (await get()).json()) as Log
     const id = diveId(db, 63)
@@ -94,5 +104,27 @@ describe("GET /api/log", () => {
       await app.request("/api/version", { headers: apiHeaders })
     ).json()) as { version: string }
     expect(version.version).toBe(after.version)
+  })
+
+  it("still reads a database a migration behind, as a failed check leaves it", async () => {
+    const old = openDatabase(":memory:")
+    migrate(old, "/nonexistent", migrations.slice(0, 2))
+    old.exec(`
+      INSERT INTO sites (id, name, key, country_code, water_type)
+        VALUES ('site-a', 'A', 'ZA:a', 'ZA', 'salt');
+      INSERT INTO dives (id, start_time, site_id, duration, max_depth)
+        VALUES ('dive-a', '2026-07-22T08:00:00', 'site-a', 900, 10);
+    `)
+    const res = await testApp({ db: old }).request("/api/log", {
+      headers: apiHeaders,
+    })
+    expect(res.status).toBe(200)
+    const log = (await res.json()) as Log
+    expect(log.schemaVersion).toBe(2)
+    expect(log.dives[0]).toMatchObject({
+      id: "dive-a",
+      sampleDuration: null,
+      sampleAverageDepth: null,
+    })
   })
 })

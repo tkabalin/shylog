@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { getMeta, setMeta, write } from "../journal.ts"
 import { initial } from "./migrations/001-initial.ts"
 import { tombstonesCardHashes } from "./migrations/002-tombstones-card-hashes.ts"
+import { sampleFigures } from "./migrations/003-sample-figures.ts"
 import type { Db } from "./open.ts"
 
 export interface Migration {
@@ -12,7 +13,11 @@ export interface Migration {
   up(db: Db): void
 }
 
-export const migrations: Migration[] = [initial, tombstonesCardHashes]
+export const migrations: Migration[] = [
+  initial,
+  tombstonesCardHashes,
+  sampleFigures,
+]
 
 export function schemaVersion(db: Db): number {
   const hasMeta = db

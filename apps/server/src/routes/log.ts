@@ -26,6 +26,13 @@ const diveColumns = `
   computer_model AS computerModel, cns, otu, sparkline,
   ascent_alarm_count AS ascentAlarmCount, deleted_at AS deletedAt`
 
+// Added by migration 3. A database that failed its check isn't migrated
+// but is still served read-only, so it may not have them yet.
+const sampleFigures = (schema: number) =>
+  schema >= 3
+    ? "sample_duration AS sampleDuration, sample_average_depth AS sampleAverageDepth"
+    : "NULL AS sampleDuration, NULL AS sampleAverageDepth"
+
 interface DiveRow {
   id: string
   number: number | null
@@ -68,6 +75,8 @@ interface DiveRow {
   otu: number | null
   sparkline: string | null
   ascentAlarmCount: number
+  sampleDuration: number | null
+  sampleAverageDepth: number | null
   deletedAt: string | null
 }
 
@@ -87,16 +96,17 @@ const all = <T>(db: Db, sql: string) => prepared<[], T>(db, sql).all()
 // version it is tagged with.
 function readLog(db: Db) {
   return db.transaction(() => {
+    // The database's own, which lags the code's if a failed check stopped
+    // the migration.
+    const schema = schemaVersion(db)
     return {
-      // The database's own, which lags the code's if a failed check
-      // stopped the migration.
-      schemaVersion: schemaVersion(db),
+      schemaVersion: schema,
       version: currentVersion(db)!,
       serverTime: new Date().toISOString(),
       // Deleted dives too, with deletedAt, for Recently deleted.
       dives: all<DiveRow>(
         db,
-        `SELECT ${diveColumns} FROM dives ORDER BY start_time, seq`
+        `SELECT ${diveColumns}, ${sampleFigures(schema)} FROM dives ORDER BY start_time, seq`
       ).map(dive),
       sites: all<{
         id: string

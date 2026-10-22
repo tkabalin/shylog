@@ -186,3 +186,29 @@ describe("migrating a database with data", () => {
     expect(db.pragma("foreign_keys", { simple: true })).toBe(1)
   })
 })
+
+describe("migration 3", () => {
+  it("fills SAC's sample figures for dives that already have samples", () => {
+    migrate(db, dir, migrations.slice(0, 2))
+    db.exec(`
+      INSERT INTO sites (id, name, key, country_code, water_type)
+        VALUES ('site-a', 'A', 'ZA:a', 'ZA', 'salt');
+      INSERT INTO dives (id, start_time, site_id, duration, max_depth)
+        VALUES ('dive-a', '2026-07-22T08:00:00', 'site-a', 900, 10),
+               ('dive-b', '2026-07-22T12:00:00', 'site-a', 900, 10);
+      INSERT INTO samples (dive_id, time, depth) VALUES
+        ('dive-a', 0, 0), ('dive-a', 60, 10), ('dive-a', 600, 10),
+        ('dive-a', 660, 0), ('dive-a', 900, 0);
+    `)
+    migrate(db, dir)
+    const figures = db
+      .prepare(
+        "SELECT id, sample_duration, sample_average_depth FROM dives ORDER BY id"
+      )
+      .all()
+    expect(figures).toEqual([
+      { id: "dive-a", sample_duration: 660, sample_average_depth: 9.091 },
+      { id: "dive-b", sample_duration: null, sample_average_depth: null },
+    ])
+  })
+})
