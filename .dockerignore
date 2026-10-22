@@ -1,0 +1,24 @@
+# Only what the build stages copy; local data and secrets never enter the
+# build context.
+.git
+.claude
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/.pnpm-store
+**/dev-dist
+**/coverage
+**/test-results
+**/playwright-report
+planning
+fixtures
+docs
+instances
+**/.env
+**/.env.*
+!.env.example
+apps/web/e2e/__screenshots__
+/data
+**/*.db
+**/*.db-*
+**/*.sqlite*

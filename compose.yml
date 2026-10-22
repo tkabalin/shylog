@@ -1,0 +1,70 @@
+# One Compose project per instance, each with its own env file:
+#   docker compose --env-file instances/<name>.env up -d
+# No container names, published ports or named volumes, so instances never
+# collide; everything an instance keeps is under its SHYLOG_DATA_DIR.
+
+# Required, so an env file copied without a new name can't take over
+# another instance's containers.
+name: ${COMPOSE_PROJECT_NAME:?}
+
+services:
+  # Joins the tailnet as TS_HOSTNAME and serves HTTPS, forwarding to the app
+  # with the Tailscale-User-Login header the server checks.
+  tailscale:
+    image: tailscale/tailscale:v1.104.1@sha256:87c55d6be56ad85b3d8bceca5f87f73de288c609131460dd1be1874c250cc41d
+    hostname: ${TS_HOSTNAME:-shylog}
+    environment:
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      # Log in with the key only when there is no saved state, so a restart
+      # after the key is spent or expired keeps the node on the tailnet.
+      TS_AUTH_ONCE: "true"
+      TS_HOSTNAME: ${TS_HOSTNAME:-shylog}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_SERVE_CONFIG: /config/serve.json
+      TS_USERSPACE: "true"
+    volumes:
+      - ${SHYLOG_DATA_DIR:?}/tailscale:/var/lib/tailscale
+      - ./tailscale/serve.json:/config/serve.json:ro
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  app:
+    image: ghcr.io/tkabalin/shylog:${SHYLOG_TAG:-latest}
+    # The sidecar's network namespace: the server listens on 127.0.0.1:3000
+    # there, which only Tailscale Serve can reach.
+    network_mode: service:tailscale
+    # A restarted sidecar has a new network namespace, so Compose restarts
+    # the app with it; a restart Docker makes on its own doesn't (see the
+    # README).
+    depends_on:
+      tailscale:
+        condition: service_started
+        restart: true
+    environment:
+      SHYLOG_ALLOWED_LOGINS: ${SHYLOG_ALLOWED_LOGINS:?}
+      SHYLOG_ORIGIN: ${SHYLOG_ORIGIN:?}
+      SHYLOG_DATA_DIR: ${SHYLOG_DATA_DIR:?}
+      SHYLOG_APP_NAME: ${SHYLOG_APP_NAME:-Shylog}
+      TS_HOSTNAME: ${TS_HOSTNAME:-shylog}
+      # Where tailscale/serve.json forwards; fixed, as each instance has its
+      # own network namespace.
+      PORT: "3000"
+      # Midnight for the nightly snapshot is local time.
+      TZ: ${TZ:-UTC}
+    # Mounted at the same path, so paths in logs and script output are the
+    # host's too.
+    volumes:
+      - ${SHYLOG_DATA_DIR:?}:${SHYLOG_DATA_DIR:?}
+    # The server writes only to the data folder, apart from SQLite's temp
+    # files, which go in /tmp.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # Forwards SIGTERM, so a stop doesn't wait out the kill timeout.
+    init: true
+    restart: unless-stopped
