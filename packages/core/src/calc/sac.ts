@@ -1,4 +1,3 @@
-import { underwater } from "./average-depth.ts"
 import { gasVolume } from "./gas.ts"
 import {
   depthToMbar,
@@ -7,7 +6,6 @@ import {
   type Water,
 } from "./pressure.ts"
 import { lrint } from "./round.ts"
-import type { Sample } from "./samples.ts"
 
 // Database units: bar, ml, tenths of a per cent, seconds and metres.
 export interface SacInputs {
@@ -48,14 +46,14 @@ export function sacRate(inputs: SacInputs, water: Water): number | null {
 }
 
 // A hand-entered duration or average depth wins. Otherwise Subsurface's
-// figures from the samples are used, which can differ from the computer's
-// own, and only a dive without samples falls back to the stored value.
+// figures from the samples (`underwater`, which the server stores on the
+// dive) are used, which can differ from the computer's own, and only a dive
+// without samples falls back to the stored value.
 export function sacDurationAndDepth(
   dive: { duration: number; averageDepth: number | null },
   hand: { duration: boolean; averageDepth: boolean },
-  samples: readonly Sample[]
+  fromSamples: { duration: number; averageDepth: number } | null
 ) {
-  const fromSamples = underwater(samples)
   return {
     duration:
       hand.duration || !fromSamples ? dive.duration : fromSamples.duration,
