@@ -1,4 +1,4 @@
-import { diveEnd, type Sample } from "@shylog/core"
+import { diveEnd, underwater, type Sample } from "@shylog/core"
 
 import type { Db } from "./db/open.ts"
 import { prepared } from "./db/prepared.ts"
@@ -45,8 +45,9 @@ export function sparkline(samples: readonly Sample[], duration: number) {
   })
 }
 
-// Writes a dive's samples and events, and the sparkline and ascent-alarm
-// count kept on the dive so the Log never needs the samples.
+// Writes a dive's samples and events, and the sparkline, ascent-alarm count
+// and SAC's sample figures kept on the dive so the phone never needs the
+// samples for the Log or the dive's figures.
 export function storeProfile(
   db: Db,
   diveId: string,
@@ -67,12 +68,15 @@ export function storeProfile(
   )
   for (const { type, start, end } of events) event.run(diveId, type, start, end)
   const line = sparkline(samples, duration)
+  const figures = underwater(samples)
   prepared(
     db,
-    "UPDATE dives SET sparkline = ?, ascent_alarm_count = ? WHERE id = ?"
+    "UPDATE dives SET sparkline = ?, ascent_alarm_count = ?, sample_duration = ?, sample_average_depth = ? WHERE id = ?"
   ).run(
     line && JSON.stringify(line),
     events.filter((e) => e.type === "ascent").length,
+    figures?.duration ?? null,
+    figures?.averageDepth ?? null,
     diveId
   )
 }
