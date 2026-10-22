@@ -1,10 +1,7 @@
 import { createHash } from "node:crypto"
 import {
-  closeSync,
   existsSync,
-  fsyncSync,
   mkdirSync,
-  openSync,
   readdirSync,
   renameSync,
   rmSync,
@@ -17,6 +14,7 @@ import { cardMaxPages } from "@shylog/core"
 import { Rejected } from "../apply/rejected.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
+import { syncDir } from "../fs.ts"
 import type { Entry } from "../journal.ts"
 
 export interface Image {
@@ -61,16 +59,6 @@ export function sniff(bytes: Uint8Array): string | null {
 
 export const hashOf = (bytes: Uint8Array) =>
   createHash("sha256").update(bytes).digest("hex").slice(0, 16)
-
-// A rename is only on disk once its folder is flushed too.
-function syncDir(path: string) {
-  const fd = openSync(path, "r")
-  try {
-    fsyncSync(fd)
-  } finally {
-    closeSync(fd)
-  }
-}
 
 type Commit<T> = (apply: () => boolean, entry: Entry) => T
 
