@@ -66,3 +66,6 @@ apps/web/e2e/__screenshots__/
 
 # A snapshot of the real database for the migration test; personal data
 fixtures/real/
+
+# Deployment env files, one per instance: logins, tailnet names, auth keys
+/instances/
