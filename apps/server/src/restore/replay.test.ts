@@ -10,7 +10,7 @@ import { apiHeaders, origin, send, testApp } from "../../test/app.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
 import { applyDraft } from "../apply/draft.ts"
 import { initial } from "../db/migrations/001-initial.ts"
-import { migrate } from "../db/migrate.ts"
+import { migrate, migrations } from "../db/migrate.ts"
 import { openDatabase, type Db } from "../db/open.ts"
 import { compare } from "./compare.ts"
 import { replay } from "./replay.ts"
@@ -258,11 +258,11 @@ describe("replay", () => {
     const result = replay(old, live)
     expect(result.replayed).toEqual([])
     expect(result.failure?.message).toMatch(
-      /^Written at schema 1, before this server's 2/
+      `Written at schema 1, before this server's ${migrations.length}`
     )
     expect(result.notReplayed.map((row) => row.type)).toEqual([
       "putSettings",
-      "migration",
+      ...migrations.slice(1).map(() => "migration"),
     ])
   })
 
@@ -303,9 +303,9 @@ describe("replay", () => {
     const dir = mkdtempSync(join(tmpdir(), "shylog-replay-"))
     onTestFinished(() => rmSync(dir, { recursive: true, force: true }))
     migrate(live, dir)
-    expect(replay(old, live).replayed.map((row) => row.type)).toEqual([
-      "migration",
-    ])
+    expect(replay(old, live).replayed.map((row) => row.type)).toEqual(
+      migrations.slice(1).map(() => "migration")
+    )
     expect(compare(old, live)).toEqual([])
   })
 
@@ -344,7 +344,7 @@ describe("compare", () => {
     expect(compare(copy, db)).toEqual([])
     await send(app, "PUT", "/api/settings", { diverName: "Thomas" })
     expect(compare(copy, db)).toEqual([
-      "ops differs: 3 rows in the restored copy, 4 in the live database",
+      `ops differs: ${migrations.length + 1} rows in the restored copy, ${migrations.length + 2} in the live database`,
       "settings differs: 1 rows in the restored copy, 1 in the live database",
       "sqlite_sequence differs: 1 rows in the restored copy, 1 in the live database",
     ])
