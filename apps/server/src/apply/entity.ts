@@ -64,6 +64,16 @@ const gone = {
   trip: "The trip was deleted",
 } satisfies Record<EntityKind, string>
 
+// An id that never reached the server, such as one a draft names without
+// creating it.
+const unknown = {
+  site: "The site isn't on the server",
+  region: "The region isn't on the server",
+  person: "A person on this dive isn't on the server",
+  diveCentre: "The dive centre isn't on the server",
+  trip: "The trip isn't on the server",
+} satisfies Record<EntityKind, string>
+
 const has = (db: Db, kind: EntityKind, id: string) =>
   prepared(db, `SELECT 1 FROM ${tables[kind]} WHERE id = ?`).get(id) !==
   undefined
@@ -75,16 +85,28 @@ export function resolve(db: Db, kind: EntityKind, id: string): string | null {
   for (let current = id; !seen.has(current);) {
     seen.add(current)
     if (has(db, kind, current)) return current
-    const target = prepared(
-      db,
-      "SELECT target_id FROM aliases WHERE id = ? AND kind = ?"
-    )
-      .pluck()
-      .get(current, kind) as string | undefined
+    const target = aliasTarget(db, kind, current)
     if (target === undefined) return null
     current = target
   }
   return null
+}
+
+const aliasTarget = (db: Db, kind: EntityKind, id: string) =>
+  prepared(db, "SELECT target_id FROM aliases WHERE id = ? AND kind = ?")
+    .pluck()
+    .get(id, kind) as string | undefined
+
+// Whether an id that resolves to nothing was deleted, itself or as the end
+// of the aliases merges left, rather than never being on the server.
+function deletedAlong(db: Db, kind: EntityKind, id: string) {
+  const seen = new Set<string>()
+  for (let current: string | undefined = id; current && !seen.has(current);) {
+    seen.add(current)
+    if (isDeleted(db, kind, current)) return true
+    current = aliasTarget(db, kind, current)
+  }
+  return false
 }
 
 export function existing(
@@ -94,7 +116,10 @@ export function existing(
   path: PropertyKey[]
 ): string {
   const found = resolve(db, kind, id)
-  if (found == null) throw new Rejected(gone[kind], 422, path)
+  if (found == null) {
+    const reason = deletedAlong(db, kind, id) ? gone[kind] : unknown[kind]
+    throw new Rejected(reason, 422, path)
+  }
   return found
 }
 

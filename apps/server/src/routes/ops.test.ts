@@ -205,6 +205,9 @@ describe("POST /api/ops", () => {
       "INSERT INTO people (id, name, key) VALUES ('person-gone', 'Gone', 'gone')"
     ).run()
     db.prepare("DELETE FROM people WHERE id = 'person-gone'").run()
+    db.prepare(
+      "INSERT INTO deleted_entities (id, kind) VALUES ('person-gone', 'person')"
+    ).run()
     const res = await upload([
       person("person-ayanda"),
       dive("dive-a", { buddies: ["person-ayanda", "person-gone"] }),
@@ -218,6 +221,15 @@ describe("POST /api/ops", () => {
     expect(log.dives).toEqual([])
     expect(log.people).toEqual([])
     expect(journal()).toEqual([])
+  })
+
+  it("tells a draft naming an entity the server never had apart from a deleted one", async () => {
+    const res = await upload([dive("dive-a", { siteId: "site-never" })])
+    expect(res.status).toBe(422)
+    expect(await res.json()).toEqual({
+      error: "The site isn't on the server",
+      path: ["fields", "siteId"],
+    })
   })
 
   it("rejects a re-sent draft whose new entity was deleted since", async () => {
