@@ -27,10 +27,17 @@ services:
       - ./tailscale/serve.json:/config/serve.json:ro
     security_opt:
       - no-new-privileges:true
+    # tailscaled uses tens of MB; the limits keep a fault from taking the host.
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          pids: 128
     restart: unless-stopped
 
   app:
-    image: ghcr.io/tkabalin/shylog:${SHYLOG_TAG:-latest}
+    # SHYLOG_IMAGE is for forks that publish their own image.
+    image: ${SHYLOG_IMAGE:-ghcr.io/tkabalin/shylog}:${SHYLOG_TAG:-latest}
     # The sidecar's network namespace: the server listens on 127.0.0.1:3000
     # there, which only Tailscale Serve can reach.
     network_mode: service:tailscale
@@ -67,4 +74,12 @@ services:
       - no-new-privileges:true
     # Forwards SIGTERM, so a stop doesn't wait out the kill timeout.
     init: true
+    # A large UDDF import is the peak; lower the memory on a small host. The
+    # pids cover Node's threads plus a healthcheck or backup tool running
+    # alongside.
+    deploy:
+      resources:
+        limits:
+          memory: ${SHYLOG_MEMORY_LIMIT:-1g}
+          pids: 256
     restart: unless-stopped
