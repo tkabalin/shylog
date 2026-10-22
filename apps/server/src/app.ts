@@ -1,3 +1,4 @@
+import { compress } from "hono/compress"
 import { HTTPException } from "hono/http-exception"
 
 import { Rejected } from "./apply/rejected.ts"
@@ -21,6 +22,23 @@ export function createApp(deps: Deps) {
       .use(async (c, next) => {
         c.set("deps", deps)
         await next()
+      })
+      // Gzip for clients that accept it, skipping non-text types such as
+      // card images and bodies under 1 KB. Tailscale Serve passes it through.
+      .use(compress())
+      // json() sets no Content-Length, which compress needs to see a body
+      // is too small to be worth it.
+      .use("/api/*", async (c, next) => {
+        await next()
+        const type = c.res.headers.get("Content-Type") ?? ""
+        if (
+          type.startsWith("application/json") &&
+          !c.res.headers.has("Content-Length")
+        ) {
+          const body = await c.res.arrayBuffer()
+          c.res = new Response(body, c.res)
+          c.res.headers.set("Content-Length", String(body.byteLength))
+        }
       })
       .use("/api/*", security(deps.env))
       // A failed integrity check stops every write until a restore.
