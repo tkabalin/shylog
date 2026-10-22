@@ -2,6 +2,7 @@ import { serve } from "@hono/node-server"
 
 import { parseEnv } from "./env.ts"
 import { checkIntegrity } from "./integrity.ts"
+import { nightly, startNightly } from "./jobs/nightly.ts"
 import { boot } from "./server.ts"
 
 const env = parseEnv(process.env)
@@ -15,6 +16,10 @@ setInterval(
   },
   24 * 60 * 60 * 1000
 )
+
+startNightly(env.SHYLOG_DATA_DIR, (at) => {
+  void nightly(db, env.SHYLOG_DATA_DIR, state.integrity, at)
+})
 
 // Loopback only: the Tailscale sidecar shares this network namespace and is
 // the one way in.
