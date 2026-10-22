@@ -54,7 +54,7 @@ Nothing in the code or the Compose file assumes a single deployment, so the seco
 - **Identity**: the allowed Tailscale logins are a list in config (`SHYLOG_ALLOWED_LOGINS`), checked against `Tailscale-User-Login`. No login is hard-coded. The owner's login is allowed on both instances, the second diver's only on theirs. For development, `SHYLOG_DEV_LOGIN` supplies a login in place of the header, and the server refuses to start with it set in production.
 - **Hostname and origin**: the tailnet hostname (`TS_HOSTNAME`, default `shylog`) and the expected `Origin` (`SHYLOG_ORIGIN`) are config, so the security checks work under any name.
 - **Data directory**: one root per instance (`SHYLOG_DATA_DIR`, such as `/srv/shylog/<instance>/`) holds `shylog.db`, `export/`, the nightly snapshots, and `cards/`. No other path appears in the code. Every instance lives under one parent folder that the nightly off-site backup job covers.
-- **Compose**: no fixed `container_name`, published ports, or named volumes. Each instance is its own Compose project (`COMPOSE_PROJECT_NAME`) with its own `.env`, and the Tailscale sidecar keeps its state on a bind mount at `${SHYLOG_DATA_DIR}/tailscale`. All instances run the same image tag, so one pull updates them all, and each runs its own migrations on startup.
+- **Compose**: no fixed `container_name`, published ports, or named volumes. Each instance is its own Compose project (`COMPOSE_PROJECT_NAME`) with its own `.env`, and the Tailscale sidecar keeps its state on a bind mount at `${SHYLOG_DATA_DIR}/tailscale`. All instances run the same image tag, which CI builds and publishes to GitHub's container registry once the checks pass on `main`, so one pull updates them all, and each runs its own migrations on startup.
 - **App name**: the display name (`SHYLOG_APP_NAME`) sets the page title and the web app manifest, which the server serves rather than the build baking in, so two installed apps on one phone are told apart.
 - **Diver details**: the owner written to the UDDF export's diver section comes from Settings, not the code.
 - **Scripts**: the restore drill and backup scripts take the instance name as an argument.
@@ -347,7 +347,7 @@ The log has to outlive this app, this server, and any one provider, so backups a
 ### Built into the server
 
 1. Nightly at midnight, server local time (the container's `TZ`), the server writes a consistent database snapshot with `VACUUM INTO` to a temp name, renames it once complete, compresses it, and stores it with the current UDDF export in the folder the existing nightly off-site backup job covers. Snapshots are real files, never symlinks. The `cards/` folder is in the same data directory, so the off-site job covers it too.
-2. Retention for those snapshots: daily for 90 days, weekly for two years, and monthly forever.
+2. Retention for those snapshots: daily for 90 days, then the newest of each week for two years, and the newest of each month forever. Keeping the newest of each period gives the same set whether pruning runs every night or after a gap.
 3. Settings shows the total dive count and the times of the last snapshot and export, so an unexplained drop or a stalled backup is easy to notice.
 4. Restores are described under Server.
 5. Both formats are open: the UDDF export opens in Subsurface, and the database opens in any SQLite tool, so neither needs Shylog.
@@ -721,7 +721,7 @@ The sync rules and the UDDF import and export carry most of the risk, so they ge
 - **Pass-through**: importing a real Subsurface export and then exporting keeps every standard element Shylog doesn't model, in its normal place and valid against the XSD. A test compares each dive's elements before and after, allowing only remapped ids and hand-entered values to differ.
 - **Real fixtures**: Subsurface exports from the D4i and the Zoop Novo. The first real D4i export covers Sodwana in July 2026 (nitrox, dives past 30 m, ascent alarms, mid-dive surfacings) and the freedives of 28 December 2025, which test the freedive rule. Cases the real exports lack (a trip abroad with an offset clock, a night dive crossing midnight, a gauge dive, pressure samples, a PO₂ over the limit) come from small synthetic UDDF files generated from real fixture dives by a checked-in script under `fixtures/synthetic/`. A Zoop Novo export, with a gauge dive if there is one, is needed before the Import step.
 - **Migrations**: every migration runs against a copy of real data, followed by `foreign_key_check`.
-- **Restore drill**: a script restores from a nightly snapshot, replays the journal, and compares the result with the live database.
+- **Restore drill**: a script restores from a nightly snapshot, replays the journal, and compares the result with the live database table by table. It runs inside the instance's app container, so the host needs only Docker.
 
 ## Open questions and later work
 

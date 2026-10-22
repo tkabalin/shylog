@@ -8,6 +8,8 @@ import { createDive, editDive } from "./dive.ts"
 import { applyEntityOp, type EntityOp } from "./entity.ts"
 import { Rejected } from "./rejected.ts"
 
+type DiveOp = Extract<Op, { type: "upsertDive" }>
+
 // Regions first, as a draft's new site or dive centre may sit in one.
 const kindOrder: EntityKind[] = [
   "region",
@@ -53,21 +55,25 @@ export function applyDraft(
 
     for (const op of fresh) {
       if (op.type !== "upsertDive") continue
-      // Its first reply was lost and the draft was edited offline since, so
-      // the new fields are an edit; anything it leaves out is kept.
-      const known = prepared<[string], { deletedAt: string | null }>(
-        db,
-        "SELECT deleted_at AS deletedAt FROM dives WHERE id = ?"
-      ).get(op.diveId)
-      // A 422 like every other rejection, so the reason reaches the card.
-      if (known?.deletedAt != null) {
-        throw new Rejected("This dive is in Recently deleted")
-      }
-      if (known) editDive(db, op.diveId, { fields: op.fields })
-      else createDive(db, op.diveId, op.fields)
+      applyDiveOp(db, op)
       journal({ type: op.type, payload: op, opId: op.opId })
     }
     recalculate(db)
     return "applied"
   })
+}
+
+export function applyDiveOp(db: Db, op: DiveOp) {
+  // Its first reply was lost and the draft was edited offline since, so
+  // the new fields are an edit; anything it leaves out is kept.
+  const known = prepared<[string], { deletedAt: string | null }>(
+    db,
+    "SELECT deleted_at AS deletedAt FROM dives WHERE id = ?"
+  ).get(op.diveId)
+  // A 422 like every other rejection, so the reason reaches the card.
+  if (known?.deletedAt != null) {
+    throw new Rejected("This dive is in Recently deleted")
+  }
+  if (known) editDive(db, op.diveId, { fields: op.fields })
+  else createDive(db, op.diveId, op.fields)
 }

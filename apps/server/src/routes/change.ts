@@ -7,12 +7,12 @@ import { currentVersion, write, type Entry } from "../journal.ts"
 // depends on, such as settings and cards, skip the pass, which reads samples.
 export function change(
   db: Db,
-  apply: () => boolean,
+  apply: (now: Date) => boolean,
   entry: Entry,
   derived = true
 ) {
-  write(db, (journal) => {
-    if (!apply()) return
+  write(db, (journal, now) => {
+    if (!apply(now)) return
     if (derived) recalculate(db)
     journal(entry)
   })

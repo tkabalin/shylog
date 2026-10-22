@@ -42,6 +42,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D23 | Ignored dives (added 19 October 2026) | A hand-set `ignored` flag on each dive, false by default, for pool sessions, aborted dives, chamber runs or any other reason. An ignored dive has no number and is left out of the Log's counts, Statistics and entity figures, but still counts for surface intervals, CNS carry-over, the health dive count and the export (see Ignored dives in the spec). |
 | D24 | Records and milestones (added 19 October 2026) | The Records and averages card adds coldest and warmest dive (by the dive's effective minimum water temperature, since the maximum picks up near-surface readings), total depth descended against a ladder of landmarks from the Leaning Tower of Pisa to the Kármán line, longest streaks in consecutive days and weeks, and a diving anniversary that ignores the year filter (see Records and milestones in the spec). |
 | D25 | Depth and duration filters (added 20 October 2026) | The Log gets Depth and Duration pills beside year, tag and region. Each opens a sheet with a two-handle range slider (0 m to "> 40 m" in 1 m steps; 0 min to "> 90 min" in 5 min steps), the bounds shown above the handles, and Reset and Apply. The top handle at its end means no upper limit, so the deepest and longest dives are never cut off by the scale (see Log in the spec). |
+| D26 | Image and backup tooling (added 22 October 2026) | CI builds the Docker image on every run and, once the checks pass on `main`, publishes it to `ghcr.io/tkabalin/shylog` as `latest` and `sha-<commit>`; Compose pulls a tag rather than building. The snapshot, restore and restore-drill logic is a Node CLI in the server image (`apps/server/src/cli.ts`), which the shell scripts run through `docker compose`, so the host needs only Docker and files in the data folder are written by the container's user. `scripts/backup.sh <instance>` takes a snapshot now through the nightly job's code. The drill compares table by table in Node rather than with `sqldiff`. There are no releases: `latest` is the one moving tag everyone runs, and `scripts/update.sh <instance>` updates an instance with a snapshot first and a rollback to the old image if the new one doesn't turn healthy, so a scheduler on the host can run it for continuous deployment. |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -393,27 +394,57 @@ Deferred, or to watch:
 
 **Goal**: both instances run on the home server behind Tailscale Serve with nightly snapshots and a tested restore, so phone testing and backups start now.
 
-**Implements**: Stack and deployment (Deployment, Data, Access), Instance configuration, Server (Network, Serving), Restores, Backups and durability (Built into the server items 1 to 4, Checklist), Testing (Migrations, Restore drill), decision D18.
+**Implements**: Stack and deployment (Deployment, Data, Access), Instance configuration, Server (Network, Serving), Restores, Backups and durability (Built into the server items 1 to 4, Checklist), Testing (Migrations, Restore drill), decisions D18, D26.
 
-**Touches**: `Dockerfile` (multi-stage: pnpm install, build web and server with tsup, runtime image on Node 24), `compose.yml` (app with `network_mode: service:tailscale`, Tailscale sidecar with `TS_SERVE_CONFIG`, bind mounts under `${SHYLOG_DATA_DIR}`, no `container_name`, ports or named volumes), `.env.example`, `apps/server/src/jobs/nightly.ts` (snapshot with `VACUUM INTO`, compress, prune to daily 90 days, weekly two years, monthly forever), `scripts/backup.sh`, `scripts/restore.sh <instance> <snapshot>`, `scripts/restore-drill.sh <instance>`, `scripts/replay.ts` (journal replay after a sequence number, bypassing the age rule), `README.md` (run, restore guide).
+**Touches**: `Dockerfile` (multi-stage: pnpm install, build web and server with tsup, runtime image on Node 24), `compose.yml` (app with `network_mode: service:tailscale`, Tailscale sidecar with `TS_SERVE_CONFIG`, bind mounts under `${SHYLOG_DATA_DIR}`, no `container_name`, ports or named volumes), `tailscale/serve.json`, `.env.example`, `.github/workflows/ci.yml` (build the image, publish it from `main`), `apps/server/src/jobs/nightly.ts` (snapshot with `VACUUM INTO`, compress, prune to daily 90 days, weekly two years, monthly forever), `apps/server/src/cli.ts` (snapshot now, restore with journal replay after the snapshot's sequence number bypassing the age rule, restore drill), `scripts/backup.sh <instance>`, `scripts/restore.sh <instance> <snapshot>`, `scripts/restore-drill.sh <instance>`, `README.md` (run, restore guide).
 
 **Acceptance**
 
 - `docker compose --env-file instances/<name>.env up` starts the app and sidecar for each of two instances with different `COMPOSE_PROJECT_NAME`, `TS_HOSTNAME` and `SHYLOG_DATA_DIR`; `docker compose config` shows no published ports, no `container_name`, no named volume.
 - From the owner's phone, `https://shylog.<tailnet>.ts.net/api/health` sent with the `X-Shylog` header (an iOS Shortcut, since a browser can't add it) returns JSON and the manifest's name is the instance's `SHYLOG_APP_NAME`; from the second diver's account on the shared node, the identity check passes for their login and fails for an unknown one (smoke test recorded in the README with the commands used).
 - `nightly.test.ts`: the job writes `snapshots/shylog-<date>.db.gz` from a temp file renamed when complete, never a symlink; retention pruning keeps the right set for a synthetic three-year run of dates; a failed snapshot is logged and `/api/health` shows the previous time.
-- `scripts/restore-drill.sh` restores last night's snapshot to a scratch path, replays the journal from the live database after the snapshot's sequence number, and reports no difference from the live database (compared with `sqldiff` or a table-by-table dump); run once against the real instance and the output pasted into the milestone notes.
+- `scripts/restore-drill.sh` restores last night's snapshot to a scratch path, replays the journal from the live database after the snapshot's sequence number, and reports no difference from the live database (compared table by table); run once against the real instance and the output pasted into the milestone notes.
 - `migrations.test.ts`: every migration runs against a copy of the real database (a snapshot the owner provides, gitignored) followed by `foreign_key_check`.
 - Backup checklist: the off-site job covers the parent folder of both instances (confirmed and noted in the README), and a first end-to-end restore from the off-site copy is done.
 
 **Not in this milestone**: the UDDF export in the nightly job (milestone 13), Litestream, Cloudflare.
 
-- [ ] Dockerfile and Compose with the sidecar, env example
-- [ ] Nightly snapshot job with retention
-- [ ] Backup, restore, replay and restore-drill scripts
-- [ ] README restore guide and backup checklist items
+- [x] Dockerfile and Compose with the sidecar, env example
+- [x] Nightly snapshot job with retention
+- [x] Backup, restore, replay and restore-drill scripts
+- [x] README restore guide and backup checklist items
 - [ ] Both instances up, identity smoke test recorded
 - [ ] Restore drill run once
+
+**Notes for the next session** (written 22 October 2026, branch `feat/deploy-backups`)
+
+Still to do on the home server (the owner deploys from the README, D26): bring both instances up, run the identity smoke test and fill in "Last run" in the README, run `scripts/restore-drill.sh` on the real instance and paste its output here, confirm the off-site job covers `/srv/shylog/` and do a first off-site restore, and copy a nightly snapshot to `fixtures/real/shylog.db.gz` so `migrations.test.ts` runs against real data. If the GHCR package is private, make it public or `docker login ghcr.io` on the server. Docker isn't set up in WSL, so the image was first built by CI.
+
+Decisions taken while building:
+
+- The backup tools are one CLI, `apps/server/dist/cli.js` (`snapshot`, `journal --since <time>`, `restore <snapshot> [--replay-to <seq>|all]`, `drill`), which the scripts run in the app container through a shared `scripts/instance.sh`. That file unsets every variable the env file sets, since Compose lets the shell's variables win over `--env-file`.
+- `write()` gives each transaction one time, strictly later than the last, for all its journal entries and for any time it stores (`deleted_at`). A replay groups entries by that time, so a draft replays whole and `--replay-to` inside one stops before it. Replayed rows keep their seq, op id and time, each transaction gets a new version, and entries written before a later migration are refused (they need the server version that wrote them). `seed` entries can't be replayed, which only affects development databases.
+- A restore unpacks the snapshot and runs `integrity_check` on it before moving anything; a refused snapshot exits 3 and `restore.sh` starts the app again. The old files go to `restore-aside/<time>/`, and card images the restored database names but can't find are listed, since the journal can't rebuild them.
+- The drill opens the live database read-only, takes a `VACUUM INTO` copy, and compares every table in a fixed order, streamed, ignoring meta's `version`, `last_snapshot_at` and `last_export_at`, then checks every card image file against its hash.
+- Snapshots stream through gzip under unique temp names (a `backup.sh` run during the nightly one can't collide), and temp files a crashed run left are pruned after a day. A database that failed its integrity check is never snapshotted, by the nightly job or the CLI.
+- Compose requires `COMPOSE_PROJECT_NAME`, sets `TS_AUTH_ONCE`, mounts the data folder at the same path, and runs the app read-only as uid 1000 with `init`. `PORT` is set to 3000 in Compose, matching `tailscale/serve.json`, which can't interpolate it; each instance has its own network namespace, but the CLAUDE.md rule against hard-coded ports may want rewording.
+- `scripts/update.sh` pulls, snapshots only when the image changed, and runs `up --wait` on the image's `HEALTHCHECK` (`cli.js health`, which asks `/api/health` as the first allowed login). On failure it tags the old image back and starts it; the server's refusal of a newer schema makes that fail safely after a migration, leaving the app stopped (exit 1, rolled back is 3). Pull-based on purpose: a self-hosted runner on a public repo, or pushing from Actions, would give CI a way onto the server. The scheduler (and not retrying an image that rolled back) belongs to the host.
+- Compose takes `SHYLOG_IMAGE` for forks and sets memory and pids limits (`SHYLOG_MEMORY_LIMIT`, 1 GB by default) on both containers.
+- CI's `image` job checks the Compose file, builds the image and smoke-tests it (health, page and asset, manifest name, time zone, `snapshot` and `drill`). `publish` rebuilds from the cache only `main` writes, rather than pushing the tested image. Runs on `main` aren't cancelled, but a newer push replaces a pending one, so a burst of merges may skip a `sha-` tag.
+
+Deferred, or to watch:
+
+- Node 24.22.1 (a security release, 20 October) and Tailscale 1.104.2 were too new for the three-day rule; bump the base image digest, `.nvmrc` and the sidecar after 23 October.
+- A sidecar that Docker restarts on its own leaves the app in a dead network namespace until `up -d` (noted in the README). The server could exit when it has no non-loopback interface, so its restart policy rejoins.
+- `VACUUM INTO` blocks the server briefly at midnight; move it to a worker if it ever shows.
+- Milestone 13: the nightly job also writes the UDDF export (`nightly()` in `jobs/nightly.ts`); the drill already ignores `last_export_at`.
+- Milestone 12: fetch images as `/api/cards/:id/images/:n?v=<hash>` and key the Dexie cache by hash; a 404 on a stale hash means the log copy is behind.
+- Milestone 10 or 16: a re-uploaded draft is applied as a patch, so a field the diver cleared offline is cleared only if it is text (which arrives as null); a removed trip, weight or override stays. Rare (needs a lost reply and an offline edit); the client could send explicit nulls for cleared fields if it matters.
+- Milestone 20: a hand dive left at Nitrox no has a `hand` nitrox row, so an import pairing it with an EANx32 computer dive keeps air. Decide then whether gas is compared like the five fields.
+- The derived pass reads every dive's samples on every write: about 10 ms per write on the fixture's 46 dives (9,340 samples), linear, so roughly 100 ms at 500 dives. Cache each dive's own CNS, OTU and sample figures if edits ever feel slow.
+- Carried over from milestone 4: `cnsWithCarryOver` and `surfaceInterval` still parse and sort per call; Vite's dev server has no proxy until milestone 8; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; Playwright's webServer moves to the seeded server in milestone 8.
+- Carried over from milestones 2 and 3: `mod` can go negative for a limit below the surface PO₂ (show no MOD); check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19.
+- Carried over from the scaffold: run Vite once after adding a route before `tsc -b`; `test:xsd` still points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 8: Read-only app, Log and dive detail
 
@@ -848,7 +879,7 @@ Root `package.json`:
 }
 ```
 
-Vitest and Playwright only find their config in the working directory, so the package scripts point back at the root configs. The server's `dev` loads the root `.env` and sets `NODE_ENV`, since an unset `NODE_ENV` counts as production and refuses `SHYLOG_DEV_LOGIN`. `apps/server/tsup.config.ts` holds the entry, `esm` format and the Node target, read from `engines.node` in its `package.json`, so a Node LTS bump is one edit. `check` runs the whole Vitest suite and is for CI only. Locally, including at sign-off, run `typecheck` and `lint` in full and only the test files the milestone names, with `vitest run <paths>` (`packages/core` for all of core). `restore-drill` needs `sqlite3` and `sqldiff` on the host and never runs in CI.
+Vitest and Playwright only find their config in the working directory, so the package scripts point back at the root configs. The server's `dev` loads the root `.env` and sets `NODE_ENV`, since an unset `NODE_ENV` counts as production and refuses `SHYLOG_DEV_LOGIN`. `apps/server/tsup.config.ts` holds the entry, `esm` format and the Node target, read from `engines.node` in its `package.json`, so a Node LTS bump is one edit. `check` runs the whole Vitest suite and is for CI only. Locally, including at sign-off, run `typecheck` and `lint` in full and only the test files the milestone names, with `vitest run <paths>` (`packages/core` for all of core). `restore-drill` runs in the instance's app container through Docker Compose (D26), so the host needs only Docker, and it never runs in CI.
 
 `playwright.config.ts` runs Chromium and WebKit at a 390 × 844 viewport with a `webServer` that starts the server on a temp `SHYLOG_DATA_DIR` with `SHYLOG_DEV_LOGIN` set and seeds the fixture. `scripts/validate-uddf.sh` strips `<shylog>` elements with a short Node script and runs `xmllint --noout --schema fixtures/uddf/uddf_v321.xsd` over the files given; CI installs `libxml2-utils` (it is not installed in the local WSL today).
 

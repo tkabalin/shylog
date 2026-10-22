@@ -1,10 +1,7 @@
 import { createHash } from "node:crypto"
 import {
-  closeSync,
   existsSync,
-  fsyncSync,
   mkdirSync,
-  openSync,
   readdirSync,
   renameSync,
   rmSync,
@@ -17,6 +14,7 @@ import { cardMaxPages } from "@shylog/core"
 import { Rejected } from "../apply/rejected.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
+import { syncDir } from "../fs.ts"
 import type { Entry } from "../journal.ts"
 
 export interface Image {
@@ -61,16 +59,6 @@ export function sniff(bytes: Uint8Array): string | null {
 
 export const hashOf = (bytes: Uint8Array) =>
   createHash("sha256").update(bytes).digest("hex").slice(0, 16)
-
-// A rename is only on disk once its folder is flushed too.
-function syncDir(path: string) {
-  const fd = openSync(path, "r")
-  try {
-    fsyncSync(fd)
-  } finally {
-    closeSync(fd)
-  }
-}
 
 type Commit<T> = (apply: () => boolean, entry: Entry) => T
 
@@ -121,52 +109,54 @@ export function saveCard<T>(
       syncDir(dir)
       if (newCardsDir) syncDir(dirname(dir))
     }
-    const hashes = next.map((page) => page.hash)
+    const images = next.map(({ hash, contentType }) => ({ hash, contentType }))
     return commit(
-      () => {
-        const stored = prepared(
-          db,
-          "SELECT name FROM certifications WHERE id = ?"
-        )
-          .pluck()
-          .get(id)
-        if (
-          stored === name &&
-          current.map((image) => image.hash).join() === hashes.join()
-        ) {
-          return false
-        }
-        // A new card goes last in the list.
-        prepared(
-          db,
-          `INSERT INTO certifications (id, name, position)
-           VALUES (?, ?, (SELECT coalesce(max(position), -1) + 1 FROM certifications))
-           ON CONFLICT (id) DO UPDATE SET name = excluded.name`
-        ).run(id, name)
-        prepared(db, "DELETE FROM certification_images WHERE card_id = ?").run(
-          id
-        )
-        next.forEach((page, n) =>
-          prepared(
-            db,
-            "INSERT INTO certification_images (card_id, n, content_type, hash) VALUES (?, ?, ?, ?)"
-          ).run(id, n, page.contentType, page.hash)
-        )
-        return true
-      },
+      () => writeCard(db, id, name, images),
       // With their types, so a replay can rebuild the rows.
-      {
-        type: "putCard",
-        payload: {
-          id,
-          name,
-          images: next.map(({ hash, contentType }) => ({ hash, contentType })),
-        },
-      }
+      { type: "putCard", payload: { id, name, images } }
     )
   } finally {
     prune(db, folder, id)
   }
+}
+
+// The rows alone, which a replay applies too: the files are already in
+// cards/. True when the card changed, so a repeated save writes nothing.
+export function writeCard(
+  db: Db,
+  id: string,
+  name: string,
+  images: Image[]
+): boolean {
+  const stored = prepared(db, "SELECT name FROM certifications WHERE id = ?")
+    .pluck()
+    .get(id)
+  const hashes = (list: Image[]) => list.map((image) => image.hash).join()
+  if (stored === name && hashes(imagesOf(db, id)) === hashes(images)) {
+    return false
+  }
+  // A new card goes last in the list.
+  prepared(
+    db,
+    `INSERT INTO certifications (id, name, position)
+     VALUES (?, ?, (SELECT coalesce(max(position), -1) + 1 FROM certifications))
+     ON CONFLICT (id) DO UPDATE SET name = excluded.name`
+  ).run(id, name)
+  prepared(db, "DELETE FROM certification_images WHERE card_id = ?").run(id)
+  images.forEach((image, n) =>
+    prepared(
+      db,
+      "INSERT INTO certification_images (card_id, n, content_type, hash) VALUES (?, ?, ?, ?)"
+    ).run(id, n, image.contentType, image.hash)
+  )
+  return true
+}
+
+export function removeCard(db: Db, id: string): boolean {
+  prepared(db, "DELETE FROM certification_images WHERE card_id = ?").run(id)
+  return (
+    prepared(db, "DELETE FROM certifications WHERE id = ?").run(id).changes > 0
+  )
 }
 
 export function deleteCard<T>(
@@ -176,18 +166,10 @@ export function deleteCard<T>(
   commit: Commit<T>
 ): T {
   try {
-    return commit(
-      () => {
-        prepared(db, "DELETE FROM certification_images WHERE card_id = ?").run(
-          id
-        )
-        return (
-          prepared(db, "DELETE FROM certifications WHERE id = ?").run(id)
-            .changes > 0
-        )
-      },
-      { type: "deleteCard", payload: { id } }
-    )
+    return commit(() => removeCard(db, id), {
+      type: "deleteCard",
+      payload: { id },
+    })
   } finally {
     prune(db, join(dir, id), id)
   }

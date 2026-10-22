@@ -4,7 +4,7 @@ import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
 import { factory } from "../factory.ts"
 import { currentVersion } from "../journal.ts"
-import { readSettings } from "./settings.ts"
+import { readSettings } from "../apply/settings.ts"
 
 // Columns under the names core's schemas use. Choice fields stay as core's
 // keys; the client maps them to labels.

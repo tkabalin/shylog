@@ -17,6 +17,11 @@ import { Rejected } from "./rejected.ts"
 
 export type EntityOp = Extract<Op, { type: "upsertEntity" }>
 
+// Only sites (water type) and trips (CNS carry-over) feed dive figures, so
+// only their edits run the derived pass, which reads every dive's samples.
+export const feedsDiveFigures = (kind: EntityKind) =>
+  kind === "site" || kind === "trip"
+
 export const tables = {
   site: "sites",
   region: "regions",

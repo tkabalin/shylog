@@ -269,8 +269,13 @@ export function editDive(
 }
 
 // Moves a dive to Recently deleted or back. True when that changed it, so
-// doing either twice writes nothing.
-export function setDeleted(db: Db, id: string, deleted: boolean): boolean {
+// doing either twice writes nothing. The time is the journal entry's.
+export function setDeleted(
+  db: Db,
+  id: string,
+  deleted: boolean,
+  now: Date
+): boolean {
   const row = prepared<[string], { deletedAt: string | null }>(
     db,
     "SELECT deleted_at AS deletedAt FROM dives WHERE id = ?"
@@ -278,7 +283,7 @@ export function setDeleted(db: Db, id: string, deleted: boolean): boolean {
   if (!row) throw new Rejected("No such dive", 404)
   if ((row.deletedAt != null) === deleted) return false
   prepared(db, "UPDATE dives SET deleted_at = ? WHERE id = ?").run(
-    deleted ? new Date().toISOString() : null,
+    deleted ? now.toISOString() : null,
     id
   )
   return true
