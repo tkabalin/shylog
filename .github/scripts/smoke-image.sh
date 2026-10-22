@@ -27,7 +27,12 @@ get() {
     }, () => process.exit(1))"
 }
 
-for _ in $(seq 30); do get /api/health >/dev/null 2>&1 && break; sleep 1; done
+# The image's own healthcheck, which scripts/update.sh waits on.
+for _ in $(seq 30); do
+  [[ $(docker inspect -f '{{.State.Health.Status}}' "$container") == healthy ]] && break
+  sleep 1
+done
+[[ $(docker inspect -f '{{.State.Health.Status}}' "$container") == healthy ]]
 get /api/health | jq -e '.integrity == "ok" and .diveCount == 0'
 get /manifest.webmanifest | jq -e '.name == "Shylog CI"'
 # The built web app, with its title from SHYLOG_APP_NAME and its assets.

@@ -13,7 +13,7 @@ import { drill, restore, SnapshotRefused } from "./restore/restore.ts"
 // The backup tools, run inside the app container by scripts/*.sh, so files
 // written to the data folder belong to the container's user.
 const usage =
-  "Usage: cli.js snapshot | journal --since <time> | restore <snapshot> [--replay-to <seq>|all] | drill"
+  "Usage: cli.js snapshot | journal --since <time> | restore <snapshot> [--replay-to <seq>|all] | drill | health"
 
 function parse() {
   try {
@@ -33,7 +33,8 @@ function parse() {
 
 const { positionals, values } = parse()
 const [command, ...rest] = positionals
-const dataDir = parseEnv(process.env).SHYLOG_DATA_DIR
+const env = parseEnv(process.env)
+const dataDir = env.SHYLOG_DATA_DIR
 
 const line = (row: JournalRow) => `  ${row.seq}  ${row.appliedAt}  ${row.type}`
 
@@ -120,6 +121,21 @@ if (command === "snapshot" && !rest.length) {
     console.log("No differences from the live database.")
   }
   if (result.replay.failure || result.differences.length) process.exitCode = 1
+} else if (command === "health" && !rest.length) {
+  // Docker's healthcheck, which scripts/update.sh waits on. It asks as Serve
+  // would, as the first allowed login. A failed integrity check still passes:
+  // the server keeps serving reads, and Settings shows the problem.
+  const response = await fetch(`http://127.0.0.1:${env.PORT}/api/health`, {
+    headers: {
+      "X-Shylog": "1",
+      "Tailscale-User-Login": env.SHYLOG_ALLOWED_LOGINS[0],
+    },
+    signal: AbortSignal.timeout(4000),
+  })
+  if (!response.ok) {
+    console.error(`/api/health answered ${response.status}`)
+    process.exitCode = 1
+  }
 } else {
   console.error(usage)
   process.exitCode = 2
