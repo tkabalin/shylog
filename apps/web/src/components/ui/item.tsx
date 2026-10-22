@@ -42,6 +42,8 @@ const itemVariants = cva(
         default: "border-transparent",
         outline: "border-border",
         muted: "border-transparent bg-muted/50",
+        // Shylog: the Log's dive card (LogHifi2), a raised card on the page.
+        card: "rounded-xl border-transparent bg-card shadow-xs ring-1 ring-foreground/10",
       },
       size: {
         default: "gap-2.5 px-3 py-2.5",

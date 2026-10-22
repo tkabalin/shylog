@@ -5,7 +5,6 @@ import {
   diveOtu,
   diveOxygen,
   surfaceInterval,
-  underwater,
   type Sample,
   type WaterType,
 } from "@shylog/core"
@@ -26,6 +25,8 @@ interface Row {
   override: number
   surfaceInterval: number | null
   averageDepth: number | null
+  // Stored with the samples (storeProfile), so it isn't worked out again.
+  sampledAverageDepth: number | null
   minTemperature: number | null
   maxTemperature: number | null
   waterType: WaterType
@@ -54,6 +55,7 @@ export function recalculate(db: Db) {
          d.surface_interval_override AS override,
          d.surface_interval AS surfaceInterval,
          d.average_depth AS averageDepth,
+         d.sample_average_depth AS sampledAverageDepth,
          d.min_temperature AS minTemperature,
          d.max_temperature AS maxTemperature, s.water_type AS waterType,
          d.deleted_at IS NOT NULL AS deleted
@@ -83,7 +85,6 @@ export function recalculate(db: Db) {
       // What the update needs from the samples, so they aren't all held.
       return {
         ...row,
-        sampledAverageDepth: underwater(samples)?.averageDepth ?? null,
         temperatures: sampleTemperatures(samples),
         end: diveEnd(row.duration, samples),
         cns: oxygen == null ? null : diveCns(samples, oxygen, water),

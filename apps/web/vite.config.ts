@@ -17,6 +17,19 @@ export default defineConfig({
   optimizeDeps: {
     entries: ["index.html", "src/routes/**/*.tsx"],
   },
+  // The browser tests give each of their dev servers a cache of its own.
+  cacheDir: process.env.VITE_CACHE_DIR,
+  // The Hono server, which listens on 127.0.0.1 only. It writes the
+  // manifest too, with the instance's name, so Vite mustn't answer it with
+  // the app's HTML.
+  server: {
+    proxy: Object.fromEntries(
+      ["/api", "/manifest.webmanifest"].map((path) => [
+        path,
+        process.env.SHYLOG_API_ORIGIN ?? "http://127.0.0.1:3000",
+      ])
+    ),
+  },
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "./src"),

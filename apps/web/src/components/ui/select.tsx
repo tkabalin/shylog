@@ -30,14 +30,38 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   )
 }
 
+// Shylog: the Log's filter pills (LogHifi2) are borderless 36px pills that
+// tint when a filter is set and dip when pressed, with the tap area grown
+// to 44px below md:.
+const pillTrigger =
+  "relative flex h-9 w-fit shrink-0 items-center gap-1 rounded-full pr-2 pl-2.5 text-[13px] font-medium whitespace-nowrap transition-[color,background-color,scale] duration-150 ease-out outline-none select-none active:scale-[0.97] active:bg-muted after:absolute after:inset-x-0 after:-inset-y-1 focus-visible:ring-3 focus-visible:ring-ring/50 data-active:bg-primary/9 data-active:text-primary data-active:active:bg-primary/15 motion-reduce:active:scale-100 md:after:hidden dark:data-active:bg-primary/14 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15em]"
+
 function SelectTrigger({
   className,
   size = "default",
+  variant = "default",
   children,
   ...props
 }: SelectPrimitive.Trigger.Props & {
   size?: "sm" | "default"
+  variant?: "default" | "pill"
 }) {
+  if (variant === "pill") {
+    return (
+      <SelectPrimitive.Trigger
+        data-slot="select-trigger"
+        className={cn(pillTrigger, className)}
+        {...props}
+      >
+        {children}
+        <SelectPrimitive.Icon
+          render={
+            <IconSelector className="pointer-events-none size-3.5 opacity-70" />
+          }
+        />
+      </SelectPrimitive.Trigger>
+    )
+  }
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
@@ -86,7 +110,7 @@ function SelectContent({
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
           className={cn(
-            "relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) animate-none! overflow-x-hidden overflow-y-auto rounded-lg bg-popover/70 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:backdrop-blur-2xl before:backdrop-saturate-150 data-[align-trigger=true]:animate-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 **:data-[slot$=-item]:focus:bg-foreground/10 **:data-[slot$=-item]:data-highlighted:bg-foreground/10 **:data-[slot$=-separator]:bg-foreground/5 **:data-[slot$=-trigger]:focus:bg-foreground/10 **:data-[slot$=-trigger]:aria-expanded:bg-foreground/10! **:data-[variant=destructive]:**:text-accent-foreground! **:data-[variant=destructive]:text-accent-foreground! **:data-[variant=destructive]:focus:bg-foreground/10! data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "relative isolate z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover/70 text-popover-foreground shadow-md ring-1 ring-foreground/10 transition-[opacity,scale] duration-150 ease-out before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:backdrop-blur-2xl before:backdrop-saturate-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-ending-style:duration-100 data-starting-style:scale-95 data-starting-style:opacity-0 data-[align-trigger=true]:transition-none **:data-[slot$=-item]:focus:bg-foreground/10 **:data-[slot$=-item]:data-highlighted:bg-foreground/10 **:data-[slot$=-separator]:bg-foreground/5 **:data-[slot$=-trigger]:focus:bg-foreground/10 **:data-[slot$=-trigger]:aria-expanded:bg-foreground/10! **:data-[variant=destructive]:**:text-accent-foreground! **:data-[variant=destructive]:text-accent-foreground! **:data-[variant=destructive]:focus:bg-foreground/10! motion-reduce:data-ending-style:scale-100 motion-reduce:data-starting-style:scale-100 [@media(prefers-reduced-transparency:reduce)]:bg-popover [@media(prefers-reduced-transparency:reduce)]:before:backdrop-blur-none",
             className
           )}
           {...props}
@@ -191,6 +215,7 @@ function SelectScrollDownButton({
 }
 
 export {
+  pillTrigger,
   Select,
   SelectContent,
   SelectGroup,

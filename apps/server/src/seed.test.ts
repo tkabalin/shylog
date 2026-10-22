@@ -100,8 +100,13 @@ describe("seeding the D4i fixture", () => {
     expect(dive(36)).toMatchObject({ cns: 1, otu: 0 })
   })
 
-  it("stores the sparkline and ascent alarms with the samples", () => {
+  it("stores the sparkline, ascent alarms and SAC's figures with the samples", () => {
     expect(dive(54).ascent_alarm_count).toBe(5)
+    // underwater() on the samples, as core's SAC test works it out.
+    expect(dive(63)).toMatchObject({
+      sample_duration: 2502,
+      sample_average_depth: 20.989,
+    })
     const line = JSON.parse(dive(63).sparkline as string) as number[]
     expect(line).toHaveLength(24)
     const deepest = db
