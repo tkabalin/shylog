@@ -8,7 +8,8 @@ const nodeMajor = pkg.engines.node.match(/\d+/)?.[0]
 if (!nodeMajor) throw new Error(`No Node version in "${pkg.engines.node}"`)
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  // The server, and the backup tools the scripts run in its container.
+  entry: ["src/index.ts", "src/cli.ts"],
   format: "esm",
   target: `node${nodeMajor}`,
   clean: true,
