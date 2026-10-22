@@ -111,7 +111,7 @@ The migration test also runs against real data when a nightly snapshot is copied
 
 ## Deploying
 
-Each diver gets an instance: the app and a Tailscale sidecar, run as one Compose project from the image CI publishes to `ghcr.io/tkabalin/shylog`. The app shares the sidecar's network and listens on its loopback, so Tailscale Serve is the only way in. Everything an instance keeps (database, snapshots, export, card images and the sidecar's state) is under its `SHYLOG_DATA_DIR`.
+Each diver gets an instance: the app and a Tailscale sidecar, run as one Compose project from the image CI publishes to `ghcr.io/tkabalin/shylog`. The app shares the sidecar's network and listens on its loopback, so Tailscale Serve is the only way in. Everything an instance keeps (database, snapshots, export, card images and the sidecar's state) is under its `SHYLOG_DATA_DIR`. The paths below use `/srv/shylog/<instance>`; any folder works, as long as one parent holds every instance for the off-site backup.
 
 Before the first instance, in the Tailscale admin console, turn on MagicDNS and HTTPS certificates. If the GHCR package is private, run `docker login ghcr.io` on the server with a token that can read packages.
 
@@ -123,7 +123,7 @@ sudo install -d -o 1000 -g 1000 /srv/shylog/<instance>            # the image ru
 mkdir -p instances && cp .env.example instances/<instance>.env    # git ignores instances/
 ```
 
-In `instances/<instance>.env`, give each instance its own `COMPOSE_PROJECT_NAME` (required, so a copied file can't take over another instance), `TS_HOSTNAME` and `SHYLOG_DATA_DIR`. Set `SHYLOG_ORIGIN` to `https://<TS_HOSTNAME>.<tailnet>.ts.net`, `SHYLOG_ALLOWED_LOGINS` to the diver's Tailscale login (plus the owner's for support), `TZ` to the server's zone, and `TS_AUTHKEY` to an auth key from the admin console. Then:
+In `instances/<instance>.env`, give each instance its own `COMPOSE_PROJECT_NAME` (required, so a copied file can't take over another instance), `TS_HOSTNAME` and `SHYLOG_DATA_DIR`. Set `SHYLOG_ORIGIN` to `https://<TS_HOSTNAME>.<tailnet>.ts.net`, `SHYLOG_ALLOWED_LOGINS` to the diver's Tailscale login (plus the owner's for support), `TZ` to the server's zone, and `TS_AUTHKEY` to an auth key from the admin console. The nightly snapshot runs at midnight in `TZ`, so pick a zone that keeps it ahead of the host's own backup job. A fork that publishes its own image sets `SHYLOG_IMAGE`, and a small host can lower `SHYLOG_MEMORY_LIMIT` (1 GB by default). Then:
 
 ```bash
 docker compose --env-file instances/<instance>.env up -d
@@ -134,13 +134,18 @@ Once the node has joined, clear `TS_AUTHKEY` in the env file (the sidecar logs i
 
 For the second diver, share their instance's node with their Tailscale account from the admin console, and restrict each node to its diver's devices in the tailnet policy. The owner's instance is never shared.
 
-To update every instance, take a snapshot of each, then pull and restart:
+### Updating
+
+CI publishes every change that passes on `main` as `latest`, and as `sha-<commit>` to pin one build with `SHYLOG_TAG`. There are no releases: `latest` is the version to run. To update, pull the repo, so `compose.yml` matches the image, then update each instance:
 
 ```bash
-scripts/backup.sh <instance>
-docker compose --env-file instances/<instance>.env pull
-docker compose --env-file instances/<instance>.env up -d          # migrations run on startup
+git pull
+scripts/update.sh <instance>
 ```
+
+`update.sh` pulls the image and does nothing more if it hasn't changed. Otherwise it takes a snapshot, starts the new server (which runs any migrations) and waits up to three minutes for its healthcheck. If the new server doesn't turn healthy, the old image is started again. That works only while the database is still on the old schema, since an older server refuses a newer one, so after a migration the app is left stopped, with the restore command to run. It exits 0 when updated or already current, 3 when rolled back and 1 when left stopped.
+
+To update automatically, run `git pull` and `update.sh` for each instance from a scheduler, such as a systemd timer, and alert on a non-zero exit. After a rollback, the next run pulls the same image and tries again, so hold off until a newer one is published. Watchtower and similar tools pull the image without the snapshot or the rollback, and leave `compose.yml` behind.
 
 The app listens inside the sidecar's network namespace, so it has to restart whenever the sidecar does. Compose does that for restarts it makes; if Docker restarts the sidecar on its own and the app stops answering, run `up -d` again.
 
