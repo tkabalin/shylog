@@ -38,4 +38,8 @@ COPY --from=build /src/apps/server/package.json apps/server/
 COPY --from=build /src/apps/server/dist apps/server/dist
 COPY --from=build /src/apps/web/dist apps/web/dist
 USER node
+# A short start interval, so scripts/update.sh sees a new server healthy within
+# seconds; the start period leaves room for migrations on a large log.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=2m --start-interval=2s \
+  CMD ["node", "apps/server/dist/cli.js", "health"]
 CMD ["node", "apps/server/dist/index.js"]
