@@ -80,7 +80,8 @@ test.describe("at phone width", () => {
   test("shows the bottom nav's top line only while content is under it", async ({
     page,
   }) => {
-    await page.goto("/")
+    // Stats is still empty, so the page starts too short to scroll.
+    await page.goto("/stats")
     const nav = page.getByRole("navigation", { name: "Main" })
     const main = page.locator("main")
     const line = () => nav.evaluate((el) => getComputedStyle(el).borderTopColor)
