@@ -5,12 +5,16 @@ export default defineConfig({
     // Packages start with no tests; an empty project is not a failure.
     passWithNoTests: true,
     // Off unless `--coverage` is passed; CI does, and adds the table to the
-    // run's summary page. The web UI is covered by Playwright, not Vitest, so
-    // apps/web joins once it has unit-tested code of its own.
+    // run's summary page. Screens and shadcn's components are covered by
+    // Playwright, not Vitest, so only the web app's logic is counted.
     coverage: {
       provider: "v8",
-      include: ["packages/*/src/**", "apps/server/src/**"],
-      exclude: ["**/*.test.ts"],
+      include: [
+        "packages/*/src/**",
+        "apps/server/src/**",
+        "apps/web/src/{data,format,log,dive}/**",
+      ],
+      exclude: ["**/*.test.{ts,tsx}"],
       reporter: [
         ["text", { file: "coverage.txt", skipFull: false }],
         "text-summary",
