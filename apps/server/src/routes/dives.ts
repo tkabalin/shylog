@@ -22,7 +22,7 @@ export const dives = factory
     const { db } = c.var.deps
     const diveId = c.req.param("id")
     return c.json(
-      change(db, () => setDeleted(db, diveId, true), {
+      change(db, (now) => setDeleted(db, diveId, true, now), {
         type: "deleteDive",
         payload: { diveId },
       })
@@ -32,7 +32,7 @@ export const dives = factory
     const { db } = c.var.deps
     const diveId = c.req.param("id")
     return c.json(
-      change(db, () => setDeleted(db, diveId, false), {
+      change(db, (now) => setDeleted(db, diveId, false, now), {
         type: "restoreDive",
         payload: { diveId },
       })
