@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { fixtureDive } from "../../test/fixture.ts"
+import { underwater } from "./average-depth.ts"
 import { sacDurationAndDepth, sacRate, type SacInputs } from "./sac.ts"
 import type { Sample } from "./samples.ts"
 
@@ -125,7 +126,7 @@ describe("sacDurationAndDepth", () => {
       sacDurationAndDepth(
         stored,
         { duration: false, averageDepth: false },
-        samples
+        underwater(samples)
       )
     ).toEqual({ duration: 660, averageDepth: 9.091 })
   })
@@ -135,7 +136,7 @@ describe("sacDurationAndDepth", () => {
       sacDurationAndDepth(
         stored,
         { duration: true, averageDepth: false },
-        samples
+        underwater(samples)
       )
     ).toEqual({ duration: 700, averageDepth: 9.091 })
   })
@@ -145,20 +146,24 @@ describe("sacDurationAndDepth", () => {
       sacDurationAndDepth(
         stored,
         { duration: false, averageDepth: true },
-        samples
+        underwater(samples)
       )
     ).toEqual({ duration: 660, averageDepth: 8 })
   })
 
   it("uses the stored values for a dive without samples", () => {
     expect(
-      sacDurationAndDepth(stored, { duration: false, averageDepth: false }, [])
+      sacDurationAndDepth(
+        stored,
+        { duration: false, averageDepth: false },
+        underwater([])
+      )
     ).toEqual(stored)
     expect(
       sacDurationAndDepth(
         { duration: 700, averageDepth: null },
         { duration: false, averageDepth: false },
-        []
+        null
       )
     ).toEqual({ duration: 700, averageDepth: null })
   })
@@ -168,7 +173,7 @@ describe("sacDurationAndDepth", () => {
     const values = sacDurationAndDepth(
       dive,
       { duration: false, averageDepth: false },
-      dive.samples
+      underwater(dive.samples)
     )
     expect(values).toEqual({ duration: 2502, averageDepth: 20.989 })
     expect(dive.averageDepth).toBe(21.005)
