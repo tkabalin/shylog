@@ -28,7 +28,7 @@ const items = [
 
 function DevUiPage() {
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-4 p-4 pt-[calc(1rem+env(safe-area-inset-top))]">
       <h1 className="text-lg font-semibold">UI sample</h1>
       <Button>Save</Button>
       <Input aria-label="Site" placeholder="Site" />
