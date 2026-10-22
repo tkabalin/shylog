@@ -14,6 +14,7 @@ import { Route as ImportRouteImport } from './routes/import'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as DevUiRouteImport } from './routes/dev.ui'
+import { Route as DiveDiveIdRouteImport } from './routes/dive/$diveId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const DevUiRoute = DevUiRouteImport.update({
   path: '/dev/ui',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiveDiveIdRoute = DiveDiveIdRouteImport.update({
+  id: '/dive/$diveId',
+  path: '/dive/$diveId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/dev/ui': typeof DevUiRoute
+  '/dive/$diveId': typeof DiveDiveIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/dev/ui': typeof DevUiRoute
+  '/dive/$diveId': typeof DiveDiveIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,22 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/dev/ui': typeof DevUiRoute
+  '/dive/$diveId': typeof DiveDiveIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/import' | '/settings' | '/stats' | '/dev/ui'
+  fullPaths:
+    '/' | '/import' | '/settings' | '/stats' | '/dev/ui' | '/dive/$diveId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/import' | '/settings' | '/stats' | '/dev/ui'
-  id: '__root__' | '/' | '/import' | '/settings' | '/stats' | '/dev/ui'
+  to: '/' | '/import' | '/settings' | '/stats' | '/dev/ui' | '/dive/$diveId'
+  id:
+    | '__root__'
+    | '/'
+    | '/import'
+    | '/settings'
+    | '/stats'
+    | '/dev/ui'
+    | '/dive/$diveId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +94,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
   DevUiRoute: typeof DevUiRoute
+  DiveDiveIdRoute: typeof DiveDiveIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +134,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevUiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dive/$diveId': {
+      id: '/dive/$diveId'
+      path: '/dive/$diveId'
+      fullPath: '/dive/$diveId'
+      preLoaderRoute: typeof DiveDiveIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +150,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
   DevUiRoute: DevUiRoute,
+  DiveDiveIdRoute: DiveDiveIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

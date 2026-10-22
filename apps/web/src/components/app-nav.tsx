@@ -1,4 +1,10 @@
-import { Link } from "@tanstack/react-router"
+import {
+  Link,
+  useMatchRoute,
+  useRouter,
+  type AnyRouter,
+} from "@tanstack/react-router"
+import type { MouseEvent } from "react"
 import {
   IconAdjustmentsHorizontal,
   IconChartBar,
@@ -23,8 +29,40 @@ const destinations = [
   { to: "/settings", label: "Settings", icon: IconAdjustmentsHorizontal },
 ] as const
 
+declare module "@tanstack/react-router" {
+  interface HistoryState {
+    // Set by a Log card, so the dive's page knows the Log is behind it.
+    fromLog?: true
+  }
+}
+
+// Back in history when the Log came before, so it returns with its scroll
+// position and filters, as a pushed screen pops; otherwise a fresh Log.
+export function backToLog(router: AnyRouter, event: MouseEvent) {
+  if (router.state.location.state.fromLog && router.history.canGoBack()) {
+    event.preventDefault()
+    router.history.back()
+  }
+}
+
+// A dive's detail is pushed from the Log, so the Log stays the current tab
+// there and tapping it goes back.
+function useLogTab() {
+  const router = useRouter()
+  const onDive = !!useMatchRoute()({ to: "/dive/$diveId" })
+  return (to: string) =>
+    to === "/" && onDive
+      ? {
+          "data-status": "active",
+          "aria-current": "page" as const,
+          onClick: (event: MouseEvent) => backToLog(router, event),
+        }
+      : {}
+}
+
 // Phones get a bottom bar, as on the Log board.
 export function BottomNav() {
+  const logTab = useLogTab()
   return (
     <nav
       aria-label="Main"
@@ -36,6 +74,7 @@ export function BottomNav() {
           key={to}
           to={to}
           aria-label={label}
+          {...logTab(to)}
           className="group flex min-h-12.25 items-center justify-center text-muted-foreground select-none [-webkit-touch-callout:none] data-[status=active]:text-primary"
         >
           <Icon
@@ -50,6 +89,7 @@ export function BottomNav() {
 
 // From md: up the same destinations sit in a fixed sidebar.
 export function AppSidebar() {
+  const logTab = useLogTab()
   return (
     <Sidebar
       collapsible="none"
@@ -66,7 +106,13 @@ export function AppSidebar() {
                         sets the data-active the sidebar styles use. */}
                     <SidebarMenuButton
                       render={
-                        <Link to={to} activeProps={{ "data-active": "" }} />
+                        <Link
+                          to={to}
+                          activeProps={{ "data-active": "" }}
+                          {...(logTab(to)["data-status"]
+                            ? { ...logTab(to), "data-active": "" }
+                            : {})}
+                        />
                       }
                     >
                       <Icon aria-hidden />
