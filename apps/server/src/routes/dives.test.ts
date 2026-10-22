@@ -195,7 +195,9 @@ describe("PATCH /api/dives/:id", () => {
 
   it("rejects an unknown site and a dive in Recently deleted", async () => {
     const site = await patch({ fields: { siteId: "site-nowhere" } })
-    expect(await site.json()).toMatchObject({ error: "The site was deleted" })
+    expect(await site.json()).toMatchObject({
+      error: "The site isn't on the server",
+    })
     expect(
       (await patch({ fields: { notes: "x" } }, "dive-nowhere")).status
     ).toBe(404)
