@@ -13,10 +13,11 @@ function RootLayout() {
       <AppSidebar />
       {/* viewport-fit=cover lets the page run under the notch. Each page
           keeps its own top to the safe area, so its sticky bars cover the
-          status bar; bottom padding matches the bottom nav's height. */}
+          status bar; bottom padding matches the bottom nav's height. No
+          rubber band, so a pull at the top can't drag the header down. */}
       <SidebarInset
         id="main"
-        className="overflow-y-auto pr-[env(safe-area-inset-right)] pb-[calc(--spacing(12.25)+max(0.5rem,env(safe-area-inset-bottom)))] pl-[env(safe-area-inset-left)] md:pb-0"
+        className="overflow-y-auto overscroll-y-none pr-[env(safe-area-inset-right)] pb-[calc(--spacing(12.25)+max(0.5rem,env(safe-area-inset-bottom)))] pl-[env(safe-area-inset-left)] md:pb-0"
       >
         <Outlet />
       </SidebarInset>

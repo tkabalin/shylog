@@ -83,19 +83,53 @@ test("narrows the header figures to a year", async ({ page }) => {
   await expect(page.getByRole("region", { name: /2025$/ })).toHaveCount(0)
 })
 
-test("scrolls the count away and shows the compact line in the bar", async ({
+test("clears every filter at once, and only shows Clear while one is set", async ({
+  page,
+}) => {
+  await page.goto("/?q=reef&year=2026&depth=10-30")
+  const clear = page.getByRole("button", { name: "Clear filters" })
+  await clear.click()
+  await expect(page).toHaveURL("/?q=reef")
+  await expect(clear).toHaveCount(0)
+})
+
+test("scrolls the count away and sticks the bar to the top", async ({
   page,
 }) => {
   await page.goto("/")
   const main = page.locator("#main")
   const bar = page.locator("[data-log-bar]")
-  const compact = bar.locator("p[aria-hidden]")
   await expect(header(page)).toContainText("46dives logged")
-  await expect(compact).toHaveCSS("opacity", "0")
   await main.evaluate((el) => el.scrollBy(0, 400))
   await expect(bar).toHaveAttribute("data-stuck", "")
-  await expect(compact).toHaveText(/^46 dives · \d+ h$/)
-  await expect(compact).toHaveCSS("opacity", "1")
+  await expect(bar).not.toContainText("dives")
+  // One line under the bar and the month heading stuck below it.
+  await expect(page.locator("[data-month-heading][data-stuck]")).toHaveCount(1)
+  await expect(bar).toHaveAttribute("data-heading-stuck", "")
+  // From the moment the bar sticks the line belongs to the headings: never
+  // on the bar above the first month or between two, and on one at most.
+  const slips = await main.evaluate(async (el) => {
+    const frame = () => new Promise(requestAnimationFrame)
+    const bar = document.querySelector("[data-log-bar]")!
+    const found: number[] = []
+    for (let y = 0; y <= 600; y += 4) {
+      el.scrollTo(0, y)
+      await frame()
+      await frame()
+      const marked = el.querySelectorAll("[data-month-heading][data-stuck]")
+      if (
+        (bar.hasAttribute("data-stuck") &&
+          !bar.hasAttribute("data-heading-stuck")) ||
+        marked.length > 1
+      )
+        found.push(y)
+    }
+    return found
+  })
+  expect(slips).toEqual([])
+  await main.evaluate((el) => el.scrollTo(0, 400))
+  // No notch in the test browser, so the bar keeps its 12px margin.
+  expect((await bar.boundingBox())!.y).toBe(12)
   await expect(header(page)).not.toBeInViewport()
   // Nothing in the bar changes height, so the search stays put.
   const search = page.getByRole("searchbox", { name: "Search dives" })

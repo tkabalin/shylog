@@ -1,6 +1,7 @@
 import { expect, type Page } from "@playwright/test"
 
 import { deleteDive, diveId, getLog, test, uploadDive } from "./api"
+import { tapCard } from "./ui"
 
 // A figure's value by its term, as screen readers pair them.
 const figure = (page: Page, term: string) =>
@@ -22,7 +23,7 @@ test("shows fixture dive 63's figures", async ({ page, request }) => {
   await expect(figure(page, "Duration")).toHaveText("42min")
   await expect(figure(page, "Avg depth")).toHaveText("21.0m")
   await expect(figure(page, "Water temperature")).toHaveText(
-    /^\d+(\.\d)?–\d+(\.\d)?°C$/
+    /^\d+(\.\d)?\u00a0–\u00a0\d+(\.\d)?°C$/
   )
   // No cylinder pressures in the export, so no SAC.
   await expect(figure(page, "SAC rate")).toHaveText("—")
@@ -41,12 +42,35 @@ test("sends the Log link to a fresh Log when the dive was opened directly", asyn
 }) => {
   // Something before it in history that isn't the Log.
   await page.goto("/stats")
+  // On WebKit the router's own first navigation can still be running and
+  // interrupt the next goto, so wait for the page it renders.
+  await expect(page.getByRole("heading", { name: "Stats" })).toBeAttached()
   await page.goto(`/dive/${await diveId(request, 63)}`)
   await page
     .locator("header")
     .first()
     .getByRole("link", { name: "Log" })
     .click()
+  await expect(page).toHaveURL("/")
+  await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
+  // The Log took the dive's place, so back skips the dive.
+  await page.goBack()
+  await expect(page).toHaveURL("/stats")
+})
+
+test("goes back to the Log list from a tab opened on a dive", async ({
+  page,
+}) => {
+  await page.goto("/")
+  await tapCard(page.locator("main a[href^='/dive/']").first())
+  await expect(page).toHaveURL(/\/dive\//)
+  await page
+    .getByRole("navigation", { name: "Main" })
+    .getByRole("link", { name: "Stats" })
+    .click()
+  await expect(page).toHaveURL("/stats")
+  // Stats took the dive's place; the Log list is behind it.
+  await page.goBack()
   await expect(page).toHaveURL("/")
   await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
 })
@@ -62,7 +86,18 @@ test("brings the site name into the bar once the title scrolls away", async ({
   // The h1 names the page; the bar's copy is only for the eye.
   await expect(barTitle).toHaveAttribute("aria-hidden", "true")
   await expect(bar).not.toHaveAttribute("data-scrolled")
-  // Any scroll gives the bar its material; the title waits for the h1.
+  // Solid from the frame a fast flick starts, before any scroll handler
+  // runs, so text never shows through it.
+  const background = await page.locator("#main").evaluate((el) => {
+    el.scrollBy(0, 600)
+    const color = getComputedStyle(el.querySelector("header")!).backgroundColor
+    el.scrollTo(0, 0)
+    return color
+  })
+  // Neither transparent nor an alpha colour such as oklch(1 0 0 / 85%).
+  expect(background).not.toBe("rgba(0, 0, 0, 0)")
+  expect(background).not.toContain("/")
+  // Any scroll gives the bar its line; the title waits for the h1.
   await page.locator("#main").evaluate((el) => el.scrollBy(0, 10))
   await expect(bar).toHaveAttribute("data-scrolled", "")
   await expect(barTitle).toHaveCSS("opacity", "0")

@@ -104,6 +104,19 @@ test.describe("at phone width", () => {
     await expect.poll(line).toMatch(none)
   })
 
+  test("switches tabs in place, so back never steps through them", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    const nav = page.getByRole("navigation", { name: "Main" })
+    for (const tab of ["Stats", "Settings", "Log"]) {
+      await nav.getByRole("link", { name: tab }).click()
+      await expect(page.getByRole("heading", { name: tab })).toBeAttached()
+    }
+    await page.goBack()
+    expect(page.url()).not.toMatch(/\/(stats|settings)$/)
+  })
+
   test("sizes controls for touch and inputs at 16px", async ({ page }) => {
     await page.goto("/dev/ui")
     const controls = [

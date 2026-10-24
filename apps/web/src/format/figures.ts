@@ -29,7 +29,8 @@ export function temperatureRange(min: number | null, max: number | null) {
   if (min == null && max == null) return null
   if (min == null || max == null || min === max)
     return temperature((min ?? max)!)
-  return `${temperature(min)}–${temperature(max)}`
+  // Non-breaking spaces, so the range never wraps inside its figure.
+  return `${temperature(min)}\u00a0–\u00a0${temperature(max)}`
 }
 
 // Millilitres as litres: 11100 → "11.1", 12000 → "12".

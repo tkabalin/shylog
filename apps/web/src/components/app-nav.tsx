@@ -66,13 +66,15 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="bottom-nav fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t bg-background/85 pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur-md md:hidden"
+      className="bottom-nav fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t bg-background pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] md:hidden"
     >
       {destinations.map(({ to, label, icon: Icon }) => (
         // Icons only, so the label is the link's name for tests and VoiceOver.
+        // Tabs replace the entry, so swiping back never steps through tabs.
         <Link
           key={to}
           to={to}
+          replace
           aria-label={label}
           {...logTab(to)}
           className="group flex min-h-12.25 items-center justify-center text-muted-foreground select-none [-webkit-touch-callout:none] data-[status=active]:text-primary"
@@ -108,6 +110,7 @@ export function AppSidebar() {
                       render={
                         <Link
                           to={to}
+                          replace
                           activeProps={{ "data-active": "" }}
                           {...(logTab(to)["data-status"]
                             ? { ...logTab(to), "data-active": "" }

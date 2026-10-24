@@ -6,7 +6,8 @@ import { depth, hours } from "@/format/figures"
 import type { headerFigures } from "@/log/filters"
 
 // Whether the bar has reached its sticky position, read from layout on
-// each scroll frame (no writes, so no extra layout).
+// each scroll frame. The month heading stuck under it is marked directly
+// (only when it changes), so the line moves below both without a render.
 function useStuck(scroller: string) {
   const bar = useRef<HTMLDivElement>(null)
   const [stuck, setStuck] = useState(false)
@@ -15,12 +16,38 @@ function useStuck(scroller: string) {
     const target = bar.current
     if (!element || !target) return
     let frame = 0
+    let heading: HTMLElement | null = null
     const update = () => {
       frame = 0
       const top = parseFloat(getComputedStyle(target).top)
-      const offset =
-        target.getBoundingClientRect().top - element.getBoundingClientRect().top
-      setStuck(element.scrollTop > 0 && offset <= top + 0.5)
+      const rect = target.getBoundingClientRect()
+      const offset = rect.top - element.getBoundingClientRect().top
+      const isStuck = element.scrollTop > 0 && offset <= top + 0.5
+      setStuck(isStuck)
+      // A stuck heading sits right under the bar; one lookup finds it.
+      const hit = isStuck
+        ? (document
+            .elementFromPoint(rect.left + 1, rect.bottom + 1)
+            ?.closest<HTMLElement>("[data-month-heading]") ?? null)
+        : null
+      // A heading pushed up behind the bar keeps its (hidden) line until the
+      // next one arrives, so the line never jumps back up to the bar.
+      const next =
+        hit ??
+        (heading && heading.getBoundingClientRect().top < rect.bottom
+          ? heading
+          : null)
+      if (next !== heading) {
+        heading?.removeAttribute("data-stuck")
+        next?.setAttribute("data-stuck", "")
+        heading = next
+      }
+      // While the list has month headings the line is theirs alone, so the
+      // bar never draws one above the first month before it arrives.
+      target.toggleAttribute(
+        "data-heading-stuck",
+        isStuck && !!element.querySelector("[data-month-heading]")
+      )
     }
     const onScroll = () => {
       frame ||= requestAnimationFrame(update)
@@ -38,7 +65,7 @@ function useStuck(scroller: string) {
 
 // LogHifi2's Hero count header (D15) as an iOS large title (D27): the count
 // and strip scroll away with the list, and the bar with the search and
-// filters sticks under a cap that fades in the compact line.
+// filters sticks under the status bar.
 export function LogHeader({
   figures,
   children,
@@ -77,12 +104,19 @@ export function LogHeader({
         <p className="flex flex-wrap items-center gap-x-3.5 pt-0.5 pb-4 text-base text-muted-foreground tabular-nums">
           <span className="inline-flex items-center gap-1.5">
             <IconHourglass aria-hidden className="size-[1.15em]" />
-            {h} h underwater
+            <span>
+              <span className="font-semibold">{h} h</span> underwater
+            </span>
           </span>
           {figures.deepest != null && (
             <span className="inline-flex items-center gap-1.5">
               <IconArrowBarToDown aria-hidden className="size-[1.15em]" />
-              deepest {depth(figures.deepest)} m
+              <span>
+                deepest{" "}
+                <span className="font-semibold">
+                  {depth(figures.deepest)} m
+                </span>
+              </span>
             </span>
           )}
         </p>
@@ -91,19 +125,14 @@ export function LogHeader({
         ref={bar}
         data-log-bar
         data-stuck={stuck ? "" : undefined}
-        className="sticky top-[calc(2.75rem+env(safe-area-inset-top))] z-10 border-b border-transparent bg-background/85 px-4 backdrop-blur-md transition-[border-color] duration-200 data-stuck:border-border [@media(prefers-reduced-transparency:reduce)]:bg-background"
+        className="sticky top-[max(0.75rem,env(safe-area-inset-top))] z-10 border-b border-transparent bg-background px-4 transition-[border-color] duration-200 data-stuck:not-data-heading-stuck:border-border"
       >
-        {/* The 44px above the bar once stuck: the compact line, opaque
-            over what is left of the count (a blur here would see only the
-            bar, which is its backdrop root). */}
-        <p
+        {/* The status bar (or a margin, without one) above the bar once
+            stuck, opaque over what is left of the count. */}
+        <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-full flex h-[calc(2.75rem+env(safe-area-inset-top))] items-end bg-background px-4 pt-[env(safe-area-inset-top)] text-[13px] text-muted-foreground tabular-nums opacity-0 transition-opacity duration-200 ease-out in-data-stuck:opacity-100"
-        >
-          <span className="flex h-11 items-center">
-            {n} {n === 1 ? "dive" : "dives"} · {h} h
-          </span>
-        </p>
+          className="pointer-events-none absolute inset-x-0 bottom-full h-[max(0.75rem,env(safe-area-inset-top))] bg-background opacity-0 in-data-stuck:opacity-100"
+        />
         {children}
       </div>
     </>
