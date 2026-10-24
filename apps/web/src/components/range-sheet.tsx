@@ -64,12 +64,19 @@ export default function RangeSheet({
   const close = draft.max - draft.min < (scale.max - scale.min) / 5
 
   return (
-    <Drawer open={open && mounted} onOpenChange={onOpenChange}>
-      <DrawerContent finalFocus={returnFocus}>
+    <Drawer showSwipeHandle open={open && mounted} onOpenChange={onOpenChange}>
+      {/* Edge to edge on a phone; wider screens get a centred sheet, as a
+          full-width one leaves the slider stretched across the window. */}
+      <DrawerContent
+        finalFocus={returnFocus}
+        className="md:mx-auto md:max-w-md md:border-x"
+      >
         <DrawerHeader>
           <DrawerTitle>{label}</DrawerTitle>
         </DrawerHeader>
-        <div className="px-6 pt-10 pb-8">
+        {/* Only the handle and header drag the sheet down: a slide across that drifts
+            down a little must not dismiss it. */}
+        <div data-base-ui-swipe-ignore className="px-6 pt-14 pb-12">
           <Slider
             value={[draft.min, draft.max]}
             min={scale.min}
@@ -96,7 +103,10 @@ export default function RangeSheet({
             }
           />
         </div>
-        <DrawerFooter className="flex-row gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <DrawerFooter
+          data-base-ui-swipe-ignore
+          className="flex-row gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]"
+        >
           <Button
             variant="outline"
             className="flex-1"
