@@ -59,11 +59,11 @@ describe("figures", () => {
   })
 
   it("shows a temperature range, or one value when they match", () => {
-    expect(temperatureRange(22, 24)).toBe("22–24")
+    expect(temperatureRange(22, 24)).toBe("22\u00a0–\u00a024")
     expect(temperatureRange(21.5, 21.5)).toBe("21.5")
     expect(temperatureRange(null, 24)).toBe("24")
     expect(temperatureRange(null, null)).toBeNull()
-    expect(temperatureRange(-1.9, 2)).toBe("−1.9–2")
+    expect(temperatureRange(-1.9, 2)).toBe("−1.9\u00a0–\u00a02")
   })
 
   it("names the gas", () => {

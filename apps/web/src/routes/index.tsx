@@ -193,7 +193,7 @@ function LogPage() {
                 variant="link"
                 size="lg"
                 nativeButton={false}
-                render={<Link to="/import" />}
+                render={<Link to="/import" replace />}
               >
                 <IconUpload data-icon="inline-start" />
                 Import from Subsurface

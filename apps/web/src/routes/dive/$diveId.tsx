@@ -106,8 +106,11 @@ function DivePage() {
 function BackLink() {
   const router = useRouter()
   return (
+    // With no Log behind it, a fresh Log takes the dive's place, so swiping
+    // back doesn't reopen it.
     <Link
       to="/"
+      replace
       onClick={(event) => backToLog(router, event)}
       className="inline-flex h-11 items-center gap-0.5 justify-self-start pr-2 pl-1 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50"
     >
@@ -117,8 +120,9 @@ function BackLink() {
   )
 }
 
-// The bar takes its material as soon as anything scrolls under it, and
-// the site's name once the title has passed under it, as iOS bars do.
+// The bar is always solid, so a quick flick never shows text through it
+// before a scroll frame has run. It takes its line as soon as anything
+// scrolls under it, and the site's name once the title has passed under it.
 // Read from layout, so the safe-area inset above the bar counts.
 function useBar() {
   const barRef = useRef<HTMLElement>(null)
@@ -178,7 +182,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         ref={barRef}
         data-scrolled={scrolled ? "" : undefined}
         data-titled={titled ? "" : undefined}
-        className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-transparent px-2 pt-[env(safe-area-inset-top)] transition-[background-color,border-color,backdrop-filter,-webkit-backdrop-filter] duration-200 data-scrolled:border-border data-scrolled:bg-background/85 data-scrolled:backdrop-blur-md [@media(prefers-reduced-transparency:reduce)]:data-scrolled:bg-background"
+        className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-transparent bg-background px-2 pt-[env(safe-area-inset-top)] transition-[border-color] duration-200 data-scrolled:border-border"
       >
         <BackLink />
         {/* A visual echo of the h1, which screen readers already have. */}
@@ -361,7 +365,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
 
         <Section title="Conditions">
           <Card className="gap-0 py-0">
-            <dl className="grid grid-cols-3 border-b *:not-first:border-l">
+            <dl className="grid grid-cols-3 *:not-first:border-l not-last:border-b">
               <Tile
                 term="Weather"
                 value={label(weathers, dive.weather)}

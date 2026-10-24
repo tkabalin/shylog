@@ -5,7 +5,9 @@ import {
   IconCalendar,
   IconHourglass,
   IconMap,
+  IconX,
 } from "@tabler/icons-react"
+import { cn } from "cn"
 
 import { RangeFilter, usePreloadRangeSheet } from "@/components/range-filter"
 import {
@@ -15,6 +17,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  pillTrigger,
 } from "@/components/ui/select"
 import type { LogView } from "@/data/log"
 import { year } from "@/format/dates"
@@ -107,6 +110,7 @@ export function FilterPills({
     }
   }, [log])
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch })
+  const any = Object.values(filters).some((value) => value !== undefined)
   usePreloadRangeSheet()
 
   return (
@@ -115,6 +119,18 @@ export function FilterPills({
       aria-label="Filters"
       className="-mx-4 flex [scrollbar-width:none] gap-1 overflow-x-auto px-3.5 py-1"
     >
+      {/* First, so it shows without scrolling the row. */}
+      {any && (
+        <button
+          type="button"
+          aria-label="Clear filters"
+          onClick={() => onChange({})}
+          className={cn(pillTrigger, "pr-2.5 text-foreground")}
+        >
+          <IconX aria-hidden />
+          Clear
+        </button>
+      )}
       <FilterSelect
         name="Year"
         label="All years"
