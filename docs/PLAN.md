@@ -31,7 +31,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D12 | Zoop Novo | The Import milestones do not start until a Zoop Novo export is in `fixtures/subsurface/`. |
 | D13 | Dexie timing | Dexie mirrors `/api/log` from the read-only app onwards. Drafts are written to the Dexie queue from the editing milestone and uploaded straight away. The Offline milestone adds the service worker, retry, sync states, storage persistence, queue export and the update flow. |
 | D14 | Adopt or dismiss | A field whose hand value differs from a stored computer value shows the ✓ "Use D4i value" / ✕ "Keep mine" group, for all five compared fields. A field currently holding a computer value shows the "From the D4i" marker, which becomes "Reset to the D4i value" once edited. Computer and calculated values use the normal text colour; the accent treatment tried in the wireframe review was dropped. |
-| D15 | Log header | The *Hero count* variant: "72 dives logged", a one-line "58 h underwater · deepest 32.7 m" strip, collapsing to "72 dives · 58 h" on scroll. |
+| D15 | Log header | The *Hero count* variant: "72 dives logged", a one-line "58 h underwater · deepest 32.7 m" strip, collapsing to "72 dives · 58 h" on scroll. The compact line was dropped on 24 October 2026: only the search and filter bar stays. |
 | D16 | "N dives differ" after an import | The Import done screen lists the differing dives, each linking to its detail. No new Log filter. |
 | D17 | Icon key | Reference only, no screen. |
 | D18 | Tailscale state | A bind mount at `${SHYLOG_DATA_DIR}/tailscale`, so one folder per instance holds everything the backup covers. |
@@ -43,7 +43,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D24 | Records and milestones (added 19 October 2026) | The Records and averages card adds coldest and warmest dive (by the dive's effective minimum water temperature, since the maximum picks up near-surface readings), total depth descended against a ladder of landmarks from the Leaning Tower of Pisa to the Kármán line, longest streaks in consecutive days and weeks, and a diving anniversary that ignores the year filter (see Records and milestones in the spec). |
 | D25 | Depth and duration filters (added 20 October 2026) | The Log gets Depth and Duration pills beside year, tag and region. Each opens a sheet with a two-handle range slider (0 m to "> 40 m" in 1 m steps; 0 min to "> 90 min" in 5 min steps), the bounds shown above the handles, and Reset and Apply. The top handle at its end means no upper limit, so the deepest and longest dives are never cut off by the scale (see Log in the spec). |
 | D26 | Image and backup tooling (added 22 October 2026) | CI builds the Docker image on every run and, once the checks pass on `main`, publishes it to `ghcr.io/tkabalin/shylog` as `latest` and `sha-<commit>`; Compose pulls a tag rather than building. The snapshot, restore and restore-drill logic is a Node CLI in the server image (`apps/server/src/cli.ts`), which the shell scripts run through `docker compose`, so the host needs only Docker and files in the data folder are written by the container's user. `scripts/backup.sh <instance>` takes a snapshot now through the nightly job's code. The drill compares table by table in Node rather than with `sqldiff`. |
-| D27 | Log and detail details (added 22 October 2026) | SAC's sample figures (time under water and mean depth) are stored on the dive when its samples are written and sent in `/api/log`, so the detail's SAC needs no samples. The Log's count and strip scroll away with the list like an iOS large title, and the compact line fades into the sticky bar; nothing animates height. Range filters round the dive to whole metres and minutes before comparing. A card's place is the site's region, or its country when the site has none, and the detail shows "region, country" or the country. The search narrows the cards but not the header figures, which follow the filter pills only. Opening a dive from the Log doesn't animate; the card-to-detail morph was dropped. |
+| D27 | Log and detail details (added 22 October 2026) | SAC's sample figures (time under water and mean depth) are stored on the dive when its samples are written and sent in `/api/log`, so the detail's SAC needs no samples. The Log's count and strip scroll away with the list like an iOS large title, leaving the search and filter bar stuck under the status bar; nothing animates height. Range filters round the dive to whole metres and minutes before comparing. A card's place is the site's region, or its country when the site has none, and the detail shows "region, country" or the country. The search narrows the cards but not the header figures, which follow the filter pills only. Opening a dive from the Log doesn't animate; the card-to-detail morph was dropped. |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -472,16 +472,48 @@ Deferred, or to watch:
 
 **Not in this milestone**: the profile chart (milestone 9), editing, sync states beyond a stub pill, service worker, list virtualisation (only if scrolling a long log still feels slow on the phone with `content-visibility`, then with TanStack Virtual, keeping the sticky month headers).
 
-- [ ] Dexie schema and log mirror
-- [ ] API client with the `X-Shylog` header
-- [ ] Log screen with Hero count header, cards, groups, search and filters, empty state
-- [ ] Depth and duration range filters (D25)
-- [ ] Dive detail without chart
-- [ ] Formatting helpers
-- [ ] Response compression in Hono
-- [ ] Scroll restoration on the Log, route code splitting, `content-visibility` on month groups
-- [ ] `/api/log` size recorded
-- [ ] Tests and screenshots listed above
+- [x] Dexie schema and log mirror
+- [x] API client with the `X-Shylog` header
+- [x] Log screen with Hero count header, cards, groups, search and filters, empty state
+- [x] Depth and duration range filters (D25)
+- [x] Dive detail without chart
+- [x] Formatting helpers
+- [x] Response compression in Hono
+- [x] Scroll restoration on the Log, route code splitting, `content-visibility` on month groups
+- [x] `/api/log` size recorded
+- [x] Tests and screenshots listed above
+
+**Notes for the next session** (written 22 October 2026, branch `feat/log-dive-detail`, stacked on `feat/deploy-backups`)
+
+Still to do on the owner's phone: record tap-to-content time for opening a dive (the detail makes no request and renders from memory, and `defaultPreload: "intent"` starts the route chunk on touchstart). Also check the drawer overlay's blur cost during momentum scroll (the bars and headings are opaque now), edge-swipe back in the installed app (tabs replace history, so it should never step through them), the month line handing over between months, the keyboard with the sticky search focused, swipe-to-dismiss against dragging the slider, whether the top safe-area inset is non-zero in standalone mode, and whether cards flash their pressed tint when a scroll starts on them.
+
+Measured:
+
+- First load of the Log, before this branch: 453 kB of JS (149 kB gzipped) in one chunk. Now 584 kB before idle, then 640 kB (216 kB gzipped) once the range sheet's chunk preloads; the shell alone is 567 kB (190 kB gzipped). Most of the growth is Dexie and the Log's code. `"sideEffects": false` on core took 97 kB off, and lazy-loading the range sheet 57 kB.
+- `/api/log` for the seeded 46 dives: 93 kB, 10.4 kB gzipped, about 2 kB a dive, so roughly 1 MB and 115 kB gzipped at 500 dives. No delta sync needed.
+
+Decisions taken while building:
+
+- D27 records the decisions taken in review: SAC's sample figures stored on the dive, the large-title header, the place falling back to the country, search leaving the header figures alone, range filters rounding the dive to whole metres and minutes, and no card-to-detail transition (`.claude/rules/motion.md` was reworded for the header).
+- The Log stays at `/` in `routes/index.tsx`, not `routes/log/`. Its logic lives in `src/log/` (filters, groups, header figures), the detail's in `src/dive/`, the mirror in `src/data/` and formatting in `src/format/`. Custom icons go in `src/components/icons/`.
+- The mirror is read into memory (`data/log.ts`, `useSyncExternalStore`) before the first render, and syncs fetch `/api/log` with the mirror's version as an ETag on open, on focus and every five minutes, rather than checking `/api/version` first. A failed first sync shows "Can't reach Shylog" with Try again. A blocked app (a newer schema) still asks with the blocking version's tag, so a rolled-back server unblocks it, and a sync never writes over a newer log another tab wrote.
+- Filters live in the URL, so going back from a dive keeps them; the router's `scrollRestoration` restores `#main`. The back link and the Log tab on a dive go back in history when they can; otherwise they, the tabs, and links into a tab replace the current entry, so swiping back never steps through tabs (SPEC "Navigation history"). Forward after going back from a dive is left as is. Month groups use `content-visibility: auto` with their exact height (cards are a fixed 84 px). Bars, sticky headings and the tab bar are opaque; the line under the stuck search bar moves to the stuck month heading, and stays with the headings while two months hand over.
+- The range filter is shadcn's Drawer (Base UI's swipeable drawer) rather than Sheet. It is lazy-loaded once the Log is idle, mounts closed for a frame so its first opening slides in, fades in place under reduced motion, and shows one joined label when the handles are close.
+- `#main` no longer pads the top safe area; each page owns it, so its sticky bar covers the status bar. Later screens must do the same.
+- Hono's compress gzips API responses over 1 KB (a small middleware sets Content-Length on API JSON so the threshold works) and the log's ETag is always weak. Vite's dev server proxies `/api` and `/manifest.webmanifest` to the Hono server (`SHYLOG_API_ORIGIN`).
+- Browser tests run on two seeded stacks: read-only tests on one, `@writes` tests one at a time on the other, undoing their change in a `restore` fixture. `console.spec.ts` fails on any console warning or error, uncaught exception or failed request. Ports move with `E2E_WEB_PORT` and `E2E_API_PORT`.
+- A draft or edit naming an entity the server never had is now told it "isn't on the server"; "was deleted" is kept for real deletions.
+
+Deferred, or to watch:
+
+- Milestone 9: the Profile card shows the sparkline as a stand-in until the chart replaces it. The card sparklines' depth scale is the chart's minimum (deepest + 3 m, at least 30 m) without tick rounding; switch them to the chart's axis then.
+- Milestone 11: the detail treats a deleted dive as not found; Recently deleted will need to open one.
+- Milestone 16: until the service worker precaches, a cold launch's first tap on a card may wait on the network for the detail chunk.
+- The no-profile copy follows the spec's synced-dive wording; the board's text is the draft variant ("once this dive has synced"), for milestone 16.
+- The Content-Length middleware copies each API JSON body once; fine at this size.
+- `readCards` still selects `hash` without a schema check, so a database left at schema 1 by a failed integrity check can't serve `/api/log` (from milestone 6; the new sample columns already handle it).
+- Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a re-uploaded draft is applied as a patch (milestone 10 or 16); a hand dive at Nitrox no keeps air on import (milestone 20); the derived pass reads every dive's samples on every write.
+- Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
 
 ## Milestone 9: Profile chart
 
@@ -689,7 +721,7 @@ Deferred, or to watch:
 **Not in this milestone**: the update flow and queue export (milestone 17).
 
 - [ ] Service worker precache and manifest
-- [ ] iOS install details: `apple-touch-icon` PNGs, `apple-mobile-web-app-title`, and a status bar style checked on a phone in both themes (`black-translucent` puts white text over the light theme's white header)
+- [ ] iOS install details: `apple-touch-icon` PNGs, `apple-mobile-web-app-title`, and a status bar style checked on a phone in both themes (`black-translucent` puts white text over the light theme's white header). Also check the soft blur iOS draws under the status bar on a cold launch, over the top of the Log's count until the first scroll (seen on the dev server, 24 October 2026)
 - [ ] Sync states, retry, pill, banner
 - [ ] Draft indicators and provisional numbers
 - [ ] Offline guards on synced-data controls
