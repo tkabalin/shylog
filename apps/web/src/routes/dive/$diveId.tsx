@@ -480,13 +480,18 @@ function ProfileCard({ dive }: { dive: Dive }) {
   return (
     <section aria-labelledby="profile-h">
       <Card className="gap-3 px-4">
-        <h2
-          id="profile-h"
-          className="flex items-baseline gap-2 text-[15px] font-semibold tracking-[-0.01em]"
-        >
-          Profile
+        {/* The computer sits in the top-right corner, the one the chart
+            leaves free (its axis and alarms take the bottom), so the
+            heading reads as just "Profile". */}
+        <div className="flex items-baseline justify-between gap-2">
+          <h2
+            id="profile-h"
+            className="text-[15px] font-semibold tracking-[-0.01em]"
+          >
+            Profile
+          </h2>
           {dive.computerModel && (
-            <span className="inline-flex items-center gap-1.5 text-[13px] font-normal tracking-normal text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
               <IconDeviceWatch
                 aria-hidden
                 className="size-[1.15em] self-center"
@@ -494,7 +499,7 @@ function ProfileCard({ dive }: { dive: Dive }) {
               {dive.computerModel}
             </span>
           )}
-        </h2>
+        </div>
         {dive.sparkline ? (
           <Sparkline
             points={dive.sparkline}
