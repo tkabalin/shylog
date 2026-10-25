@@ -18,6 +18,6 @@ Each board is a `.dc.html` file: one phone screen at 390 px wide, with its marku
 | `ImportHifi`, `ImportReviewHifi`, `PairedHifi`, `ChangePairingHifi`, `ImportDoneHifi` | Import: upload, review, paired dives, change a pairing, summary |
 | `IconKeyHifi` | Icon key |
 
-`shylog-icon.svg` is the app icon: the shark on Tailwind cyan-700 (`#007595`), full bleed and inside the maskable safe zone. Generate the PWA and Apple touch icon sizes from it.
+`shylog-icon.svg` is the app icon: the shark on a sand gradient (`#F4E4C4` to `#E3C89B`) with a soft shadow, full bleed and inside the maskable safe zone. Generate the PWA and Apple touch icon sizes from it.
 
 [NOTES.md](NOTES.md) lists where the wireframes contradict the spec. Follow the spec there.
