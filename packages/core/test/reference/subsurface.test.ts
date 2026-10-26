@@ -2,6 +2,7 @@ import fc from "fast-check"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { underwater } from "../../src/calc/average-depth.ts"
+import { minChartTime } from "../../src/calc/axes.ts"
 import {
   cnsWithCarryOver,
   diveCns,
@@ -9,6 +10,11 @@ import {
   type CnsDive,
 } from "../../src/calc/cns-otu.ts"
 import { gasVolume } from "../../src/calc/gas.ts"
+import {
+  depthLabels,
+  pointsInView,
+  temperatureLabels,
+} from "../../src/calc/labels.ts"
 import { likelySame } from "../../src/calc/likely-same.ts"
 import { mod } from "../../src/calc/mod.ts"
 import type { Water } from "../../src/calc/pressure.ts"
@@ -16,6 +22,7 @@ import { lrint } from "../../src/calc/round.ts"
 import { sacRate } from "../../src/calc/sac.ts"
 import { diveEnd, type Sample } from "../../src/calc/samples.ts"
 import { surfaceInterval } from "../../src/calc/surface-interval.ts"
+import { axisTicks } from "../../src/calc/ticks.ts"
 import {
   chartEnd,
   chartPoints,
@@ -138,6 +145,31 @@ const withSurfaceTail = fc
         return { time, depth: row.depth, tenths: row.tenths }
       }),
     ]
+  })
+
+// A dive on a coarse grid of depths and temperatures, so a 2 m prominence,
+// the 2 m minimum and the 0.4 and 2 °C label steps are hit exactly, with
+// the first temperatures often missing.
+const coarseDive = fc
+  .array(
+    fc.record({
+      step: fc.constantFrom(1, 2, 3, 5, 10, 20),
+      depth: fc.oneof(
+        fc.integer({ min: 0, max: 20 }).map((n) => n * 1000),
+        fc.constantFrom(1999, 2000, 2001, 3999, 4000, 4001)
+      ),
+      tenths: fc.option(fc.constantFrom(200, 204, 205, 210, 220, 224, 240), {
+        freq: 2,
+      }),
+    }),
+    { maxLength: 80 }
+  )
+  .map((rows) => {
+    let time = 0
+    return rows.map((row): GeneratedSample => {
+      time += row.step
+      return { time, depth: row.depth, tenths: row.tenths }
+    })
   })
 
 const celsius = (s: GeneratedSample) =>
@@ -448,6 +480,148 @@ describe("Subsurface's code on random inputs", () => {
         ])
         expect(points.length).toBe(count)
         expect(got).toEqual(entries)
+      }
+    ))
+  it("places the same axis ticks (DiveCartesianAxis::updateTicks)", () =>
+    check(
+      fc
+        .oneof(
+          // Time axes in seconds, from a few seconds to over a day, so steps
+          // reach both the whole-fraction rule and the decimal one.
+          fc.record({
+            max: fc.oneof(
+              fc.integer({ min: 1, max: 600 }),
+              fc.integer({ min: 600, max: 7200 }),
+              fc.integer({ min: 7200, max: 100_000 })
+            ),
+            scale: fc.constant(1 / 60),
+            decimals: fc.constant(2),
+            time: fc.constant(true),
+          }),
+          // Depth axes in mm, including the 30 m floor and very shallow ones.
+          fc.record({
+            max: fc.oneof(
+              fc.integer({ min: 1, max: 30_000 }),
+              fc.integer({ min: 30_000, max: 200_000 })
+            ),
+            scale: fc.constant(0.001),
+            decimals: fc.constant(0),
+            time: fc.constant(false),
+          })
+        )
+        .chain((axis) =>
+          fc.oneof(
+            fc.record({
+              axis: fc.constant(axis),
+              size: fc.integer({ min: 20, max: 2000 }),
+              space: fc.double({ min: 4, max: 120, noNaN: true }),
+            }),
+            // A whole number of ticks over a range that is an exact multiple
+            // of a tidy step, so the step lands on the rounding edges.
+            fc
+              .record({
+                count: fc.integer({ min: 2, max: 50 }),
+                space: fc.integer({ min: 4, max: 40 }),
+                step: axis.time
+                  ? fc.constantFrom(
+                      5,
+                      10,
+                      12,
+                      15,
+                      20,
+                      30,
+                      60,
+                      300,
+                      600,
+                      720,
+                      900
+                    )
+                  : fc.constantFrom(1000, 2000, 4000, 5000, 10_000),
+                offset: fc.constantFrom(-1, 0, 1),
+              })
+              .map(({ count, space, step, offset }) => ({
+                axis: { ...axis, max: count * step + offset },
+                size: count * space,
+                space,
+              }))
+          )
+        ),
+      async ({ axis, size, space }) => {
+        const [shown, min, max, count, ...values] = await ask(
+          "ticks",
+          0,
+          axis.max,
+          axis.scale,
+          size,
+          space,
+          axis.decimals,
+          axis.time ? 1 : 0
+        )
+        const ticks = axisTicks({ min: 0, ...axis, size, space })
+        if (!shown) return expect(ticks).toBeNull()
+        expect(ticks).toEqual({ min, max, values })
+        expect(values).toHaveLength(count)
+      }
+    ))
+
+  it("labels the same depths and temperatures (DiveProfileItem, DiveTemperatureItem)", () =>
+    check(
+      fc.oneof(withSurfaceTail, coarseDive).chain((generated) => {
+        const last = generated.at(-1)?.time ?? 0
+        return fc.record({
+          generated: fc.constant(generated),
+          events: fc.array(fc.integer({ min: 0, max: last + 60 }), {
+            maxLength: 4,
+          }),
+          // The 30 min floor, or any end, so the last point in view is
+          // sometimes cut at the axis.
+          floor: fc.oneof(
+            fc.constant(minChartTime),
+            fc.integer({ min: 0, max: last + 60 })
+          ),
+          interval: fc.oneof(
+            fc.integer({ min: 1, max: 900 }),
+            fc.integer({ min: 1, max: 30 })
+          ),
+        })
+      }),
+      async ({ generated, events, floor, interval }) => {
+        const samples = coreSamples(generated)
+        const max = Math.max(floor, chartEnd(samples, events))
+        const words = await ask(
+          "labels",
+          ...sampleWords(generated),
+          events.length,
+          ...events,
+          max,
+          interval
+        )
+        const depthCount = words[0]
+        const depths = words.slice(1, 1 + depthCount * 3)
+        const temperatures = words.slice(2 + depthCount * 3)
+        const points = chartPoints(samples, events)
+        const inView = pointsInView(points, max)
+        expect(
+          depthLabels(points, inView, interval).flatMap((label) => [
+            label.time,
+            label.depth,
+            label.kind === "peak" ? 0 : 1,
+          ])
+        ).toEqual(depths)
+        // Shylog's departure: no label from a point cut against an entry
+        // with no temperature, which Subsurface reads as 0 K.
+        const expected: number[] = []
+        for (let i = 0; i < temperatures.length; i += 3) {
+          if (!temperatures[i + 2]) {
+            expected.push(temperatures[i], temperatures[i + 1])
+          }
+        }
+        expect(
+          temperatureLabels(points, inView, max, interval).flatMap((label) => [
+            label.time,
+            lrint(label.temperature * 1000 + 273_150),
+          ])
+        ).toEqual(expected)
       }
     ))
 })
