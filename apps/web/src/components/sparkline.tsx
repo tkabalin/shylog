@@ -1,8 +1,11 @@
 import { cn } from "cn"
 
+import { chartDepthAxis } from "@/chart/layout"
+
 // The Log's 24-point profile (D2) from the surface and back, in the board's
-// 60 × 24 box. The scale is the profile chart's (deepest + 3 m, at least
-// 30 m), so a shallow dive looks shallow. `stretch` keeps the line weight.
+// 60 × 24 box. The scale is the profile chart's depth axis with its 30 m
+// floor, unlike the detail's, so a shallow dive looks shallow in the list.
+// `stretch` keeps the line weight.
 export function Sparkline({
   points: slices,
   maxDepth,
@@ -15,7 +18,10 @@ export function Sparkline({
   className?: string
 }) {
   const points = [0, ...slices, 0]
-  const scale = Math.max(30, Math.max(maxDepth, ...points) + 3)
+  const scale =
+    chartDepthAxis(Math.round(Math.max(maxDepth, ...points) * 1000), {
+      zoomed: false,
+    }).max / 1000
   const step = 58 / (points.length - 1)
   const line = points
     .map(
