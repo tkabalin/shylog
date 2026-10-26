@@ -10,3 +10,8 @@ export type Log = InferResponseType<
   ReturnType<typeof apiClient>["api"]["log"]["$get"],
   200
 >
+
+export type Profile = InferResponseType<
+  ReturnType<typeof apiClient>["api"]["dives"][":id"]["samples"]["$get"],
+  200
+>

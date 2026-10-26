@@ -1,6 +1,6 @@
 import { Dexie, type EntityTable } from "dexie"
 
-import type { Log } from "@/api/client"
+import type { Log, Profile } from "@/api/client"
 
 export type Dive = Log["dives"][number]
 export type Site = Log["sites"][number]
@@ -32,6 +32,14 @@ export interface Blocked {
   version: string
 }
 
+// A dive's samples and events, fetched the first time its detail opens,
+// with a digest of the figures the server keeps from them (see samples.ts),
+// so a profile an import later replaces is fetched again.
+export interface CachedProfile extends Profile {
+  diveId: string
+  digest: string
+}
+
 // One table per collection of /api/log, mirroring it, so the log reads
 // offline. Bump the version when a table or index changes.
 export class LogDb extends Dexie {
@@ -46,6 +54,7 @@ export class LogDb extends Dexie {
   fieldMeta!: Dexie.Table<FieldMeta, [string, string]>
   cards!: EntityTable<Card, "id">
   meta!: Dexie.Table<Meta | Blocked, string>
+  profiles!: EntityTable<CachedProfile, "diveId">
 
   constructor(name = "shylog") {
     super(name)
@@ -62,6 +71,7 @@ export class LogDb extends Dexie {
       cards: "id",
       meta: "key",
     })
+    this.version(2).stores({ profiles: "diveId" })
   }
 }
 

@@ -9,6 +9,7 @@ import {
   type LogDb,
   type Meta,
 } from "./db"
+import { pruneProfiles } from "./samples"
 
 export type SyncResult = "updated" | "unchanged" | "blocked"
 
@@ -41,7 +42,7 @@ export async function syncLog(
     })
     return "blocked"
   }
-  await db.transaction("rw", [...collections, "meta"], async () => {
+  await db.transaction("rw", [...collections, "meta", "profiles"], async () => {
     // Another tab may have written a newer log while this one fetched.
     const now = (await db.meta.get("log")) as Meta | undefined
     if (now?.version !== meta?.version) return
@@ -57,6 +58,7 @@ export async function syncLog(
       db.links.bulkPut(log.links),
       db.fieldMeta.bulkPut(log.fieldMeta),
       db.cards.bulkPut(log.cards),
+      pruneProfiles(db, new Set(log.dives.map((dive) => dive.id))),
     ])
     await db.meta.delete("blocked")
     await db.meta.put({
