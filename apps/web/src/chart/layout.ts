@@ -10,7 +10,8 @@ import { depthAxis, type AxisOptions } from "@shylog/core"
 // them (the board draws them inside).
 export const chartHeight = 200
 export const plotTop = 18
-export const plotHeight = 152
+export const timeAxisHeight = 30
+export const plotHeight = chartHeight - plotTop - timeAxisHeight
 export const plotLeft = 30
 
 // Axis labels are 10 px Geist. Subsurface spaces ticks and labels by the
@@ -30,6 +31,9 @@ export const alarmsHeaderHeight = 33
 export const alarmRowHeight = 56
 
 // The depth axis for a deepest point in mm: zoomed to the dive on the
-// detail chart, from 30 m on the Log's sparklines.
-export const chartDepthAxis = (deepest: number, options?: AxisOptions) =>
-  depthAxis(deepest, plotHeight, labelHeight, options)
+// detail chart, from 30 m on the Log's sparklines. Ticks are spaced for the
+// card's plot unless given another height (the full-screen chart's).
+export const chartDepthAxis = (
+  deepest: number,
+  { height = plotHeight, ...options }: AxisOptions & { height?: number } = {}
+) => depthAxis(deepest, height, labelHeight, options)

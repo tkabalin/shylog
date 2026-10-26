@@ -1,14 +1,6 @@
 import { cn } from "cn"
 
-import {
-  chartHeight,
-  laneBottom,
-  laneHeight,
-  laneTop,
-  plotHeight,
-  plotLeft,
-  plotTop,
-} from "./layout"
+import { laneBottom, laneHeight, laneTop, plotLeft, plotTop } from "./layout"
 import type { ProfileModel } from "./model"
 
 // The crosshair, drawn in its own layers over the charts' scales so a move
@@ -29,7 +21,7 @@ export function Crosshair({
 }) {
   const point = model.points[index]
   const x = plotLeft + (point.time / model.time.max) * (width - plotLeft)
-  const height = lane ? laneHeight : chartHeight
+  const height = lane ? laneHeight : model.chartHeight
   let y: number | null
   if (lane) {
     const range = model.temperature!
@@ -40,7 +32,7 @@ export function Crosshair({
         : laneTop +
           ((range.max - point.temperature) / (range.max - range.min)) * span
   } else {
-    y = plotTop + (point.depth / model.depth.max) * plotHeight
+    y = plotTop + (point.depth / model.depth.max) * model.plotHeight
   }
   return (
     <svg
@@ -57,7 +49,7 @@ export function Crosshair({
           x1={x}
           x2={x}
           y1={lane ? 0 : plotTop}
-          y2={lane ? height : plotTop + plotHeight}
+          y2={lane ? height : plotTop + model.plotHeight}
           className="stroke-foreground"
           strokeOpacity={0.5}
         />

@@ -1,9 +1,9 @@
 import { CatchBoundary } from "@tanstack/react-router"
 import { IconDeviceWatch } from "@tabler/icons-react"
-import { useEffect, useReducer, useState } from "react"
+import { useEffect, useState } from "react"
 import { cn } from "cn"
 
-import { loadChart, retryChart } from "@/chart/load"
+import { useChartLoads } from "@/chart/load"
 import {
   alarmRowHeight,
   alarmsHeaderHeight,
@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Dive } from "@/data/db"
-import { loadProfile, outcome, profileKey, retryProfile } from "@/data/samples"
+import { profileKey } from "@/data/samples"
 
 // The Profile card. A dive with samples gets the chart, which holds its
 // final height while its code and samples load, so nothing below moves.
@@ -39,20 +39,22 @@ export function ProfileCard({ dive, mod }: { dive: Dive; mod: number | null }) {
           >
             Profile
           </h2>
-          {/* A long model and firmware string is cut short, not wrapped,
-              so the heading stays on one line. */}
-          {dive.computerModel && (
-            <span
-              title={dive.computerModel}
-              className="inline-flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground"
-            >
-              <IconDeviceWatch
-                aria-hidden
-                className="size-[1.15em] shrink-0 self-center"
-              />
-              <span className="truncate">{dive.computerModel}</span>
-            </span>
-          )}
+          <div className="flex min-w-0 items-center gap-1">
+            {/* A long model and firmware string is cut short, not wrapped,
+                so the heading stays on one line. */}
+            {dive.computerModel && (
+              <span
+                title={dive.computerModel}
+                className="inline-flex min-w-0 items-center gap-1.5 text-[13px] text-muted-foreground"
+              >
+                <IconDeviceWatch
+                  aria-hidden
+                  className="size-[1.15em] shrink-0 self-center"
+                />
+                <span className="truncate">{dive.computerModel}</span>
+              </span>
+            )}
+          </div>
         </div>
         {dive.sparkline ? (
           // Anything thrown here is a profile that fails to draw, which
@@ -75,22 +77,6 @@ export function ProfileCard({ dive, mod }: { dive: Dive; mod: number | null }) {
   )
 }
 
-// Re-renders when a load settles and reads its outcome, so the card never
-// suspends: React holds a Suspense fallback for at least 300 ms, even for a
-// profile read from the phone in a few milliseconds.
-function useSettled<T>(promise: Promise<T>) {
-  const [, settle] = useReducer((n: number) => n + 1, 0)
-  useEffect(() => {
-    let live = true
-    const done = () => live && settle()
-    promise.then(done, done)
-    return () => {
-      live = false
-    }
-  }, [promise])
-  return outcome(promise)
-}
-
 // True once `ms` have passed since the first render.
 function useAfter(ms: number) {
   const [after, setAfter] = useState(false)
@@ -105,24 +91,10 @@ function useAfter(ms: number) {
 // kept on the phone is within a few frames. Until then the card holds its
 // final height, blank for 150 ms so a quick load shows no skeleton.
 function ProfileBody({ dive, mod }: { dive: Dive; mod: number | null }) {
-  const [loads, setLoads] = useState(() => ({
-    profile: loadProfile(dive),
-    chart: loadChart(),
-  }))
-  const profile = useSettled(loads.profile)
-  const chart = useSettled(loads.chart)
+  const { profile, chart, retry } = useChartLoads(dive)
   const late = useAfter(150)
   if (profile.status === "rejected" || chart.status === "rejected") {
-    return (
-      <ProfileFailed
-        alarms={dive.ascentAlarmCount}
-        retry={() => {
-          retryProfile(dive)
-          retryChart()
-          setLoads({ profile: loadProfile(dive), chart: loadChart() })
-        }}
-      />
-    )
+    return <ProfileFailed alarms={dive.ascentAlarmCount} retry={retry} />
   }
   if (profile.status === "fulfilled" && chart.status === "fulfilled") {
     const Chart = chart.value.default

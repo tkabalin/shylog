@@ -16,7 +16,14 @@ import {
 
 import type { Profile } from "@/api/client"
 
-import { chartDepthAxis, depthLabelWidth, timeLabelWidth } from "./layout"
+import {
+  chartDepthAxis,
+  depthLabelWidth,
+  plotHeight as cardPlotHeight,
+  plotTop,
+  timeAxisHeight,
+  timeLabelWidth,
+} from "./layout"
 
 export type ProfileEvent = Profile["events"][number]
 
@@ -30,13 +37,14 @@ export interface Alarm {
   peakIndex: number
 }
 
-// Everything the chart draws for one dive at one plot width, from core's rules
+// Everything the chart draws for one dive at one plot size, from core's rules
 // (see Profile chart in the spec): points in view with their speeds, the
 // axes, labelled depths and temperatures, events, alarms and the MOD line.
 export function profileModel(
   { samples, events: sent }: Profile,
   { maxDepth, mod }: { maxDepth: number; mod: number | null },
-  width: number
+  width: number,
+  plotHeight = cardPlotHeight
 ) {
   // In time order, as the markers' label spacing assumes; an end before
   // its start would hide the event from the crosshair.
@@ -56,7 +64,10 @@ export function profileModel(
     zoomed: true,
   })
   const inView = pointsInView(all, time.max)
-  const depth = chartDepthAxis(deepestPoint(maxDepth, all), { zoomed: true })
+  const depth = chartDepthAxis(deepestPoint(maxDepth, all), {
+    zoomed: true,
+    height: plotHeight,
+  })
   const interval = labelInterval(depthLabelWidth, time, width)
 
   const speeds = verticalSpeeds(all).slice(0, inView)
@@ -106,6 +117,9 @@ export function profileModel(
   const eventEnd = (event: ProfileEvent) =>
     Math.max(event.end ?? event.start, event.start + minSpan)
   return {
+    plotHeight,
+    // The depth chart's whole height: the event band, the plot, the times.
+    chartHeight: plotTop + plotHeight + timeAxisHeight,
     eventEnd,
     points,
     speeds,
