@@ -133,4 +133,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:sha-${{ github.sha }}
+          # Lets a host read which commit latest is from its config alone.
+          # A label changes only the config, not the layers, so this is
+          # still the tested build.
+          labels: org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
