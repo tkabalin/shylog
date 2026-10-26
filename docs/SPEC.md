@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Name (provisional)**: Shylog, with a shyshark as the app icon. Also used for the repo and the tailnet hostname, `shylog`. The icon (`docs/design/shylog-icon.svg`) is a puffadder shyshark resting on a sand gradient, drawn full bleed with the shark inside the maskable safe zone, so iOS and Android can apply their own corner shape.
+**Name (provisional)**: Shylog, with a shyshark as the app icon. Also used for the repo and the tailnet hostname, `shylog`. The icon (`docs/design/shylog-icon.svg`) is a puffadder shyshark on white with a soft shadow, drawn full bleed with the shark inside the maskable safe zone, so iOS and Android can apply their own corner shape.
 
 A mobile-first PWA for logging dives, self-hosted on a home server and reachable only over Tailscale. Data lives in a SQLite database on the server, and a plain UDDF copy of the whole log is exported nightly and on demand, so the data is never locked into the app.
 
