@@ -18,6 +18,6 @@ Each board is a `.dc.html` file: one phone screen at 390 px wide, with its marku
 | `ImportHifi`, `ImportReviewHifi`, `PairedHifi`, `ChangePairingHifi`, `ImportDoneHifi` | Import: upload, review, paired dives, change a pairing, summary |
 | `IconKeyHifi` | Icon key |
 
-`shylog-icon.svg` is the app icon: the shark on white (`#FFFFFF`) with a soft shadow, full bleed and inside the maskable safe zone. Generate the PWA and Apple touch icon sizes from it.
+`shylog-icon.svg` is the app icon: the shark on white (`#FFFFFF`) with a soft shadow, full bleed and inside the maskable safe zone. Generate the PWA icon sizes from it. The Apple touch icon is rendered from its copy in `apps/web/public/` by `pnpm --filter @shylog/web icons`; run it after changing the icon.
 
 [NOTES.md](NOTES.md) lists where the wireframes contradict the spec. Follow the spec there.
