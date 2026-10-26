@@ -564,16 +564,51 @@ Deferred, or to watch:
 
 **Not in this milestone**: tank pressure, heart rate, ppO₂ (D8), zoom, differs banner behaviour (milestone 10), prefetching samples as cards scroll into view (a fast scroll through a long log would fetch dozens of profiles the diver never opens; add it only if prefetch on intent measurably falls short).
 
-- [ ] Sample fetch and Dexie cache
-- [ ] Chart points, interpolation, event points
-- [ ] Axis ranges and tick rules
-- [ ] Speed colouring and lookback
-- [ ] Labelled peaks and temperature labels
-- [ ] Temperature lane, event bands with labels, MOD line, crosshair
-- [ ] Alarms list under the chart
-- [ ] Table alternative
-- [ ] Prefetch of samples and the chart chunk on intent, fixed-height Profile card with fade-in
-- [ ] Tests and screenshots listed above
+- [x] Sample fetch and Dexie cache
+- [x] Chart points, interpolation, event points
+- [x] Axis ranges and tick rules
+- [x] Speed colouring and lookback
+- [x] Labelled peaks and temperature labels
+- [x] Temperature lane, event bands with labels, MOD line, crosshair
+- [x] Alarms list under the chart
+- [x] Table alternative
+- [x] Prefetch of samples and the chart chunk on intent, fixed-height Profile card with fade-in
+- [x] Tests and screenshots listed above
+
+**Notes for the next session** (written 26 October 2026, branch `feat/profile-chart`, on `main`)
+
+Still to do on the owner's phone: time from tapping a card to the chart, and whether a cached dive flashes the skeleton before the chart. Also check, on iOS:
+
+- that `touch-action: pan-y` on the chart lets a vertical flick scroll the page, while a tap or a sideways drag (even one that drifts) moves the crosshair;
+- whether a long press selects or calls out anything, and whether a grey tap flash shows on the chart or the alarm rows;
+- that the 10 px labels and their halos read outdoors, in both themes;
+- whether scrubbing a long, dense dive drops frames, or the 150 ms fade-in hitches.
+
+The tap-to-content time and the Milestone 8 phone checks below are still open.
+
+Measured: the chart chunk (Recharts and the chart) is 352 kB, 103 kB gzipped, and loads only on a dive's detail; the Log's main chunk is 216 kB, 68 kB gzipped. The dev page's fixtures are left out of production builds.
+
+Decisions taken while building:
+
+- The axis, tick and label rules are in core (`calc/ticks.ts`, `axes.ts`, `labels.ts`), ported from `updateTicks`/`sensibleInterval`, `DiveProfileItem::replot` and `DiveTemperatureItem::replot`, and checked against C++ copies in the differential test, with edge generators for the 2 m and 0.4 °C boundaries. Two departures: no temperature label from a point cut against an entry with no temperature (Subsurface reads it as 0 K), and Subsurface's end-of-dive temperature label is never drawn, as in Subsurface, whose test compares a time with 200,000 mK. On the left, the peak walk takes the deepest point before the one that crossed the 2 m mark, as Subsurface's range does.
+- Label sizes are constants (`chart/layout.ts`: 12 px high, 18 and 28 px wide), so at 390 px dive 63's axis is 40 m in 10 m steps; the acceptance's 36 m is for about 10 labels and is tested that way.
+- After the owner's look on the phone, the detail chart's axes are Subsurface's zoomed plot (no 30 m or 30 min floor; time at least 30 s), so a 10 m or 3 min dive fills the chart; the acceptance's 30 m and 30 min cases are tested with the default. The Log's sparklines keep the 30 m floor (`chartDepthAxis` with `zoomed: false`). The depth labels sit in a 30 px gutter left of the plot, event markers are icons alone, centred on their drawn band, with a 3 px gap above the plot, each temperature is labelled only the first time, and m:ss tick labels round their seconds. The loading skeleton sketches every section at its final size.
+- The crosshair rests on the deepest point, and a tap or sideways drag moves it while a vertical swipe scrolls (SPEC, Profile chart). Every event keeps its icon, so alarms under 14 px apart overlap.
+- The chart is Recharts 3.10.1 through shadcn's chart component, not the 3.8.0 shadcn pins (its reselect 5.1.1 fails the trust policy), so `chart.tsx` was written from the CLI's `view` output. Recharts' accessibility layer is off; the sr-only table is the alternative. The crosshair is drawn in its own SVG layers (`chart/crosshair.tsx`) over the charts' scales, so scrubbing doesn't redraw Recharts.
+- Colours use the base tokens (`--speed-*`, `--warn`, `--primary`): `@theme inline` emits no `--color-*` variables, so `var(--color-…)` in SVG resolved to nothing. The readout marks a Moderate or faster rate with a dot in the band's colour and keeps the text readable, since lime and yellow fail contrast on white.
+- Samples are cached in Dexie (`profiles`, schema version 2) under a digest of the sparkline, alarm count and SAC's sample figures; a sync drops the copies of dives the log no longer has. One promise per dive, marked with its outcome for React's `use()`, keeps the 50 most recent in memory. A failed load stays failed until Try again or a fresh visit, as a re-render would otherwise loop; a chart that fails to draw says so without Try again. `chart/load.tsx` holds the lazy chunk, because the router's code splitting can't share a reassigned module variable with the route file.
+- The Profile card is `components/profile-card.tsx`, also used by the dev-only `/dev/profile` page (Demo, Worst, Cold, One and Loading states), which feeds worst-case profiles through `primeProfile`.
+
+Deferred, or to watch:
+
+- Only ascent alarms are listed under the chart; other event types (the Zoop Novo's, milestone 18) are drawn as icons and named only in the readout and table. Decide their list rows once a Zoop Novo export is in.
+- The digest can't see a re-import that changes nothing it covers; a samples revision from the server would be exact (milestone 20).
+- The Change pairing sparkline (milestone 21) should use `chartDepthAxis` like the Log's.
+- React logs a caught profile failure to the console in development; `console.spec.ts` never hits one.
+- `apps/web/.tanstack/tmp` is the router plugin's scratch folder and is untracked; ignore it in git if it keeps appearing.
+- Carried over from milestone 8: on the phone, tap-to-content time, the drawer overlay's blur cost during momentum scroll, edge-swipe back in the installed app, the month line handing over, the keyboard with the sticky search focused, swipe-to-dismiss against dragging the slider, the top safe-area inset in standalone mode, and cards flashing their pressed tint when a scroll starts on them. Milestone 11: the detail treats a deleted dive as not found. Milestone 16: a cold launch's first tap may wait on the network for the detail and chart chunks until the service worker precaches; the no-profile copy is the synced-dive wording. The Content-Length middleware copies each API JSON body once; `readCards` selects `hash` without a schema check.
+- Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a re-uploaded draft is applied as a patch (milestone 10 or 16); a hand dive at Nitrox no keeps air on import (milestone 20); the derived pass reads every dive's samples on every write.
+- Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
 
 ## Milestone 10: Editing, the dive form and pickers
 
