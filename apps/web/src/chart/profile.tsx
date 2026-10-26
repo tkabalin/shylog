@@ -1,5 +1,4 @@
 import {
-  use,
   useCallback,
   useLayoutEffect,
   useMemo,
@@ -11,8 +10,8 @@ import { speedBand, speedBands } from "@shylog/core"
 import { IconAlertTriangle } from "@tabler/icons-react"
 import { cn } from "cn"
 
+import type { Profile as ProfileData } from "@/api/client"
 import type { Dive } from "@/data/db"
-import { loadProfile } from "@/data/samples"
 import { depth, temperature, temperatureRange } from "@/format/figures"
 
 import { Alarms } from "./alarms"
@@ -33,16 +32,16 @@ import { TemperatureLane } from "./temperature-lane"
 
 // The Profile card's body, the chart's lazy chunk: the crosshair readout,
 // the depth chart, the temperature lane, the alarms and the table
-// alternative. It suspends until the dive's samples are in.
+// alternative, drawn once the card has the dive's samples.
 export default function Profile({
   dive,
   mod,
+  profile,
 }: {
   dive: Dive
   mod: number | null
+  profile: ProfileData
 }) {
-  // Once per dive, not on every scrub's render.
-  const profile = use(useMemo(() => loadProfile(dive), [dive]))
   const ref = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   useLayoutEffect(() => {

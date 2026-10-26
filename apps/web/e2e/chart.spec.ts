@@ -76,20 +76,15 @@ test("has a table of every point for screen readers", async ({
   ])
 })
 
-test("loads the chart's code only on a dive", async ({ page, request }) => {
+test("loads the chart's code once the Log is idle", async ({ page }) => {
   const chart: string[] = []
   page.on("request", (req) => {
     if (/\/src\/chart\/profile|recharts/.test(req.url())) chart.push(req.url())
   })
   await page.goto("/")
   await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
-  // Long enough for the Log's idle preloads to have run.
-  await page.waitForTimeout(1000)
-  expect(chart).toEqual([])
-
-  await page.goto(`/dive/${await diveId(request, 63)}`)
-  await expect(profile(page).locator(".recharts-wrapper").first()).toBeVisible()
-  expect(chart).not.toEqual([])
+  // Before any dive is opened, so the first one needn't wait on it.
+  await expect.poll(() => chart.length).toBeGreaterThan(0)
 })
 
 test("asks once when the samples fail, then tries again on request", async ({
@@ -102,6 +97,10 @@ test("asks once when the samples fail, then tries again on request", async ({
     asked++
     return route.fulfill({ status: 503, json: {} })
   })
+  // The background download fails the same way.
+  await page.route("**/api/samples?*", (route) =>
+    route.fulfill({ status: 503, json: {} })
+  )
   await page.goto(`/dive/${id}`)
   const retry = profile(page).getByRole("button", { name: "Try again" })
   await expect(retry).toBeVisible()
@@ -110,6 +109,7 @@ test("asks once when the samples fail, then tries again on request", async ({
   expect(asked).toBe(1)
 
   await page.unroute(`**/api/dives/${id}/samples`)
+  await page.unroute("**/api/samples?*")
   await retry.click()
   await expect(profile(page).locator(".recharts-wrapper").first()).toBeVisible()
 })

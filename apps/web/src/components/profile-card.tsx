@@ -1,9 +1,9 @@
 import { CatchBoundary } from "@tanstack/react-router"
 import { IconDeviceWatch } from "@tabler/icons-react"
-import { Suspense } from "react"
+import { useEffect, useReducer, useState } from "react"
 import { cn } from "cn"
 
-import { ProfileChart, retryChart } from "@/chart/load"
+import { loadChart, retryChart } from "@/chart/load"
 import {
   alarmRowHeight,
   alarmsHeaderHeight,
@@ -21,10 +21,10 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Dive } from "@/data/db"
-import { LoadFailed, profileKey, retryProfile } from "@/data/samples"
+import { loadProfile, outcome, profileKey, retryProfile } from "@/data/samples"
 
 // The Profile card. A dive with samples gets the chart, which holds its
-// final height while its chunk and samples load, so nothing below moves.
+// final height while its code and samples load, so nothing below moves.
 export function ProfileCard({ dive, mod }: { dive: Dive; mod: number | null }) {
   return (
     <section aria-labelledby="profile-h">
@@ -55,29 +55,15 @@ export function ProfileCard({ dive, mod }: { dive: Dive; mod: number | null }) {
           )}
         </div>
         {dive.sparkline ? (
+          // Anything thrown here is a profile that fails to draw, which
+          // would fail again, so it offers no retry.
           <CatchBoundary
             getResetKey={() => profileKey(dive)}
-            errorComponent={({ error, reset }) => (
-              <ProfileFailed
-                alarms={dive.ascentAlarmCount}
-                // A profile that fails to draw would fail again.
-                retry={
-                  error instanceof LoadFailed
-                    ? () => {
-                        retryProfile(dive)
-                        retryChart()
-                        reset()
-                      }
-                    : undefined
-                }
-              />
+            errorComponent={() => (
+              <ProfileFailed alarms={dive.ascentAlarmCount} />
             )}
           >
-            <Suspense
-              fallback={<ProfilePlaceholder alarms={dive.ascentAlarmCount} />}
-            >
-              <ProfileChart key={profileKey(dive)} dive={dive} mod={mod} />
-            </Suspense>
+            <ProfileBody key={profileKey(dive)} dive={dive} mod={mod} />
           </CatchBoundary>
         ) : (
           <p className="text-sm leading-[1.45] text-muted-foreground">
@@ -89,10 +75,67 @@ export function ProfileCard({ dive, mod }: { dive: Dive; mod: number | null }) {
   )
 }
 
+// Re-renders when a load settles and reads its outcome, so the card never
+// suspends: React holds a Suspense fallback for at least 300 ms, even for a
+// profile read from the phone in a few milliseconds.
+function useSettled<T>(promise: Promise<T>) {
+  const [, settle] = useReducer((n: number) => n + 1, 0)
+  useEffect(() => {
+    let live = true
+    const done = () => live && settle()
+    promise.then(done, done)
+    return () => {
+      live = false
+    }
+  }, [promise])
+  return outcome(promise)
+}
+
+// True once `ms` have passed since the first render.
+function useAfter(ms: number) {
+  const [after, setAfter] = useState(false)
+  useEffect(() => {
+    const id = setTimeout(() => setAfter(true), ms)
+    return () => clearTimeout(id)
+  }, [ms])
+  return after
+}
+
+// The chart once its code and the dive's samples are in, which for a dive
+// kept on the phone is within a few frames. Until then the card holds its
+// final height, blank for 150 ms so a quick load shows no skeleton.
+function ProfileBody({ dive, mod }: { dive: Dive; mod: number | null }) {
+  const [loads, setLoads] = useState(() => ({
+    profile: loadProfile(dive),
+    chart: loadChart(),
+  }))
+  const profile = useSettled(loads.profile)
+  const chart = useSettled(loads.chart)
+  const late = useAfter(150)
+  if (profile.status === "rejected" || chart.status === "rejected") {
+    return (
+      <ProfileFailed
+        alarms={dive.ascentAlarmCount}
+        retry={() => {
+          retryProfile(dive)
+          retryChart()
+          setLoads({ profile: loadProfile(dive), chart: loadChart() })
+        }}
+      />
+    )
+  }
+  if (profile.status === "fulfilled" && chart.status === "fulfilled") {
+    const Chart = chart.value.default
+    return <Chart dive={dive} mod={mod} profile={profile.value} />
+  }
+  return <ProfilePlaceholder alarms={dive.ascentAlarmCount} bare={!late} />
+}
+
 // The chart's sections at their final heights (see chart/profile.tsx), each
 // sketched where its content will land: the readout, the chart with its
 // gutter and time labels, the temperature lane and one row per alarm. Bare
-// keeps the space but hides the sketch, for the failed state.
+// keeps the space but hides the sketch, for the failed state and a load's
+// first 150 ms.
 function ProfilePlaceholder({
   alarms,
   bare,
