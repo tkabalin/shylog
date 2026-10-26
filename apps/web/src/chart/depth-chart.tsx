@@ -21,7 +21,7 @@ import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 
 import { halo } from "./format"
 import { chartHeight, plotHeight, plotLeft, plotTop } from "./layout"
-import type { ProfileEvent, ProfileModel } from "./model"
+import type { ProfileModel } from "./model"
 
 const config = {
   depth: { label: "Depth", color: "var(--primary)" },
@@ -106,7 +106,7 @@ export const DepthChart = memo(function DepthChart({
           <ReferenceArea
             key={`${event.type} ${event.start}`}
             x1={event.start}
-            x2={bandEnd(event, model, width)}
+            x2={model.eventEnd(event)}
             fill="var(--warn-band)"
             fillOpacity={1}
             ifOverflow="hidden"
@@ -136,20 +136,12 @@ export const DepthChart = memo(function DepthChart({
         />
         {/* Over the line, so labels and the crosshair read on top. */}
         <ZIndexLayer zIndex={DefaultZIndexes.label}>
-          <Annotations model={model} width={width} />
+          <Annotations model={model} />
         </ZIndexLayer>
       </ComposedChart>
     </ChartContainer>
   )
 })
-
-// Where an event's band ends: at least 6 px on, so a one-second alarm
-// still shows. Its icon is centred on the band as drawn.
-const bandEnd = (event: ProfileEvent, model: ProfileModel, width: number) =>
-  Math.max(
-    event.end ?? event.start,
-    event.start + (6 * model.time.max) / (width - plotLeft)
-  )
 
 // Hard colour stops along the line: each segment takes the band of the
 // point it ends on, as Subsurface colours it. The gradient spans the
@@ -210,7 +202,7 @@ function TimeTick({
   )
 }
 
-function Annotations({ model, width }: { model: ProfileModel; width: number }) {
+function Annotations({ model }: { model: ProfileModel }) {
   const x = useXAxisScale()
   const y = useYAxisScale()
   const plot = usePlotArea()
@@ -273,10 +265,7 @@ function Annotations({ model, width }: { model: ProfileModel; width: number }) {
       {model.events.map((event) => {
         // Kept whole inside the plot when the band is at its edge.
         const centre = Math.min(
-          Math.max(
-            x((event.start + bandEnd(event, model, width)) / 2)!,
-            left + 7
-          ),
+          Math.max(x((event.start + model.eventEnd(event)) / 2)!, left + 7),
           right - 7
         )
         return (

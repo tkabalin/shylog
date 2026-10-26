@@ -100,7 +100,13 @@ export function profileModel(
   }
 
   const temperature = temperatureAxis(points)
+  // An event drawn at least 6 px wide, so a one-second alarm still shows;
+  // the readout names it for as long as the crosshair is on that band.
+  const minSpan = (6 * time.max) / width
+  const eventEnd = (event: ProfileEvent) =>
+    Math.max(event.end ?? event.start, event.start + minSpan)
   return {
+    eventEnd,
     points,
     speeds,
     time,
@@ -145,11 +151,23 @@ export function pointAt(points: readonly ChartPoint[], seconds: number) {
 // so it moves in steps of 0.06 m/min.
 export const rate = (speed: number) => (-speed * 60) / 1000 + 0
 
-// Events whose span holds a time, for the readout.
-export const eventsAt = (events: readonly ProfileEvent[], seconds: number) =>
-  events.filter(
-    (event) => event.start <= seconds && seconds <= (event.end ?? event.start)
-  )
+// Events whose span holds a time: as recorded by default, or as drawn
+// when given the model's `eventEnd`. Where a widened band overlaps the next
+// alarm, the one recorded at that time comes first.
+const recorded = (event: ProfileEvent) => event.end ?? event.start
+export const eventsAt = (
+  events: readonly ProfileEvent[],
+  seconds: number,
+  end = recorded
+) => {
+  const holds = (to: typeof end) => (event: ProfileEvent) =>
+    event.start <= seconds && seconds <= to(event)
+  const on = events.filter(holds(end))
+  return [
+    ...on.filter(holds(recorded)),
+    ...on.filter((e) => !holds(recorded)(e)),
+  ]
+}
 
 // UDDF's alarm types as words: "rbt" is remaining bottom time.
 const eventNames: Record<string, string> = { ascent: "Ascent", rbt: "RBT" }

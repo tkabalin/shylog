@@ -114,7 +114,10 @@ export default function Profile({
   const band = speedBand(speed)
   const strong = speedBands.indexOf(band) >= speedBands.indexOf("moderate")
   // One line at most, so the readout keeps its height.
-  const now = model && point ? eventsAt(model.events, point.time)[0] : null
+  const now =
+    model && point
+      ? eventsAt(model.events, point.time, model.eventEnd)[0]
+      : null
 
   return (
     <div
