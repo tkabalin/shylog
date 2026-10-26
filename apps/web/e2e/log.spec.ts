@@ -149,11 +149,13 @@ test("opens a dive from its card with no request but its samples", async ({
   await page.goto("/")
   await expect(cards(page)).toHaveCount(46)
   // The log copy is all the detail needs, so its figures are there at once;
-  // only the profile chart asks for the dive's samples.
+  // only the profile chart asks for samples, the dive's own or, in the
+  // background, every dive's.
   const requests: string[] = []
   page.on("request", (req) => {
     const path = new URL(req.url()).pathname
-    if (path.startsWith("/api/") && path !== `/api/dives/${id}/samples`)
+    const samples = [`/api/dives/${id}/samples`, "/api/samples"]
+    if (path.startsWith("/api/") && !samples.includes(path))
       requests.push(req.url())
   })
   await tapCard(page.locator(`a[href='/dive/${id}']`))
