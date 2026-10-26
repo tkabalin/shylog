@@ -111,6 +111,18 @@ describe("syncLog", () => {
     expect(await db.links.count()).toBe(0)
   })
 
+  it("drops the kept profiles of dives the log no longer has", async () => {
+    const kept = { digest: "[]", samples: [], events: [] }
+    await db.profiles.bulkPut([
+      { diveId: "dive-a", ...kept },
+      { diveId: "dive-gone", ...kept },
+    ])
+    await syncLog({ db, fetch: server(() => log("v1")) })
+    expect((await db.profiles.toArray()).map((p) => p.diveId)).toEqual([
+      "dive-a",
+    ])
+  })
+
   it("leaves the mirror untouched on a 304", async () => {
     const fetch = server(() => log("v1"))
     await syncLog({ db, fetch })
