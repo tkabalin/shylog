@@ -639,6 +639,264 @@ static void analyze_plot_info(std::vector<plot_data> &entry)
 	}
 }
 
+// profile-widget/divecartesianaxis.cpp: sensibleInterval, as written.
+static double sensibleInterval(double inc, int decimals, bool is_time_axis, bool is_multiple_of_three)
+{
+	if (is_time_axis && inc < 60.0) {
+		// for time axes and less than one hour increments, round to
+		// 1, 2, 3, 4, 5, 6  or 12 parts of an hour or a minute
+		// (that is 60, 30, 20, 15, 12, 10 or 5 min/sec).
+		bool fraction_of_hour = inc > 1.0;
+		if (fraction_of_hour)
+			inc /= 60.0;
+		inc = inc <= 1.0 / 12.0 ? 1.0 / 12.0 :
+		      inc <= 1.0 / 6.0  ? 1.0 / 6.0 :
+					  1.0 / floor(1.0/inc);
+		if (fraction_of_hour)
+			inc *= 60.0;
+		return inc;
+	}
+
+	// Use full decimal increments
+	double digits = floor(log10(inc));
+	int digits_int = lrint(digits);
+
+	// Don't do increments smaller than the displayed decimals.
+	if (digits_int < -decimals) {
+		digits_int = -decimals;
+		digits = static_cast<double>(digits_int);
+	}
+
+	double digits_factor = pow(10.0, digits);
+	int inc_int = std::max((int)ceil(inc / digits_factor), 1);
+	if (is_multiple_of_three)
+	{
+		// Do increments quantized to 3. In general: 1, 3, 6, 15
+		if (inc_int > 6)
+			inc_int = 15;
+		else if (inc_int > 3)
+			inc_int = 6;
+		else if (inc_int == 2)
+			inc_int = 3;
+	} else {
+		// Do "nice" increments of the leading digit. In general: 1, 2, 4, 5.
+		if (inc_int > 5)
+			inc_int = 10;
+		if (inc_int == 3)
+			inc_int = 4;
+	}
+	inc = inc_int * digits_factor;
+
+	return inc;
+}
+
+// DiveCartesianAxis::updateTicks flattened to its arithmetic: the axis's
+// line becomes `size`, the label measure `space`, the transform `a` with no
+// offset, and updateLabels the values it would place. Bottom is the time axis.
+struct axis_ticks {
+	bool shown = false;
+	double min = 0, max = 0;
+	std::vector<double> values;
+};
+
+static axis_ticks update_ticks(double dataMin, double dataMax, double a, double size, double spaceNeeded, int fractionalDigits, bool bottom)
+{
+	axis_ticks result;
+	double min = dataMin, max = dataMax;
+	if (dataMax - dataMin < 1e-5)
+		return result;
+
+	int numTicks = lrint(size / spaceNeeded);
+
+	numTicks = std::clamp(numTicks, 2, 50);
+	double stepValue = (dataMax - dataMin) / numTicks;
+
+	// Round the interval to a sensible size in display units
+	double intervalDisplay = stepValue * a;
+	intervalDisplay = sensibleInterval(intervalDisplay, fractionalDigits, bottom, false);
+
+	// Choose full multiples of the interval as minumum and maximum values
+	double minDisplay = a * dataMin;
+	double maxDisplay = a * dataMax;
+
+	// The time axis is special: use the full width in that case.
+	// Other axes round to the next "nice" number
+	double firstDisplay, lastDisplay;
+	double firstValue;
+	if (bottom) {
+		firstDisplay = ceil(minDisplay / intervalDisplay * (1.0 - 1e-5)) * intervalDisplay;
+		lastDisplay = floor(maxDisplay / intervalDisplay * (1.0 + 1e-5)) * intervalDisplay;
+		firstValue = firstDisplay / a;
+	} else {
+		firstDisplay = floor(minDisplay / intervalDisplay * (1.0 + 1e-5)) * intervalDisplay;
+		lastDisplay = ceil(maxDisplay / intervalDisplay * (1.0 - 1e-5)) * intervalDisplay;
+		min = firstDisplay / a;
+		max = lastDisplay / a;
+		firstValue = min;
+	}
+	numTicks = lrint((lastDisplay - firstDisplay) / intervalDisplay) + 1;
+	numTicks = std::max(numTicks, 0);
+	if (numTicks == 0)
+		return result;
+
+	stepValue = bottom ?
+		intervalDisplay / a :		// special case for time axis.
+		numTicks > 1 ? (max - min) / (numTicks - 1) : 0;
+
+	result.shown = true;
+	result.min = min;
+	result.max = max;
+	double value = firstValue;
+	for (int i = 0; i < numTicks; i++, value += stepValue)
+		result.values.push_back(value);
+	return result;
+}
+
+// DiveProfileItem::replot's peak search, with plot_depth_sample recording
+// each label (0 for a peak, 1 for a valley) instead of drawing it.
+struct depth_label {
+	int sec, depth, kind;
+};
+
+static bool comp_depth(const plot_data &p1, const plot_data &p2)
+{
+	return p1.depth < p2.depth;
+}
+
+static std::vector<depth_label> depth_labels(const std::vector<plot_data> &data, int from, int to, int half_interval)
+{
+	std::vector<depth_label> labels;
+	auto plot_depth_sample = [&](const plot_data &entry, int kind) {
+		labels.push_back({ entry.sec, entry.depth, kind });
+	};
+
+	// No point in searching peaks with less than three samples
+	if (to - from < 3)
+		return labels;
+
+	const int min_depth = 2000; // in mm
+	const int min_prominence = 2000; // in mm (should this adapt to depth range?)
+	struct Peak {
+		int range_from;
+		int range_to;
+		int peak;
+	};
+	std::vector<Peak> stack;
+	int highest_peak = std::max_element(data.begin() + from, data.begin() + to, comp_depth) - data.begin();
+	if (data[highest_peak].depth < min_depth)
+		return labels;
+	stack.push_back(Peak{ from, to, highest_peak });
+	while (!stack.empty()) {
+		Peak act_peak = stack.back();
+		stack.pop_back();
+		plot_depth_sample(data[act_peak.peak], 0);
+
+		// Skip half_interval seconds to the left and right of peak
+		// and add new peaks if there is enough place.
+		const plot_data &act_sample = data[act_peak.peak];
+		int valley = act_peak.peak;
+
+		// Search for first sample outside minimum range to the right.
+		int new_from;
+		for (new_from = act_peak.peak + 1; new_from + 3 < act_peak.range_to; ++new_from) {
+			if (data[new_from].sec > act_sample.sec + half_interval)
+				break;
+			if (data[new_from].depth < data[valley].depth)
+				valley = new_from;
+		}
+		// Continue search until peaks reach the minimum prominence (height from valley).
+		for ( ; new_from + 3 < act_peak.range_to; ++new_from) {
+			if (data[new_from].depth >= data[valley].depth + min_prominence) {
+				int new_peak = std::max_element(data.begin() + new_from, data.begin() + act_peak.range_to, comp_depth) - data.begin();
+				if (data[new_peak].depth < min_depth)
+					break;
+				stack.push_back(Peak{ new_from, act_peak.range_to, new_peak });
+
+				if (data[valley].depth >= min_depth)
+					plot_depth_sample(data[valley], 1);
+				break;
+			}
+			if (data[new_from].depth < data[valley].depth)
+				valley = new_from;
+		}
+
+		valley = act_peak.peak;
+
+		// Search for first sample outside minimum range to the left.
+		int new_to;
+		for (new_to = act_peak.peak - 1; new_to >= act_peak.range_from + 3; --new_to) {
+			if (data[new_to].sec + half_interval < act_sample.sec)
+				break;
+			if (data[new_to].depth < data[valley].depth)
+				valley = new_to;
+		}
+		// Continue search until peaks reach the minimum prominence (height from valley).
+		for ( ; new_to >= act_peak.range_from + 3; --new_to) {
+			if (data[new_to].depth >= data[valley].depth + min_prominence) {
+				int new_peak = std::max_element(data.begin() + act_peak.range_from, data.begin() + new_to, comp_depth) - data.begin();
+				if (data[new_peak].depth < min_depth)
+					break;
+				stack.push_back(Peak{ act_peak.range_from, new_to, new_peak });
+
+				if (data[valley].depth >= min_depth)
+					plot_depth_sample(data[valley], 1);
+				break;
+			}
+			if (data[new_to].depth < data[valley].depth)
+				valley = new_to;
+		}
+	}
+	return labels;
+}
+
+// DiveTemperatureItem::replot's label choice, with AbstractProfilePolygonItem's
+// getPoint clipping inlined. `cut_into_none` marks a label from a point
+// cut against an entry with no temperature (0 K), which Shylog leaves out.
+struct temperature_label {
+	int sec, mkelvin, cut_into_none;
+};
+
+static std::vector<temperature_label> temperature_labels(const std::vector<plot_data> &data, int from, int to, double hmin, double hmax, int interval)
+{
+	double last = -300.0, last_printed_temp = 0.0;
+	std::vector<temperature_label> textItems;
+
+	for (int i = from; i < to; i++) {
+		double sec = data[i].sec;
+		double mkelvin = data[i].temperature;
+		int cut_into_none = 0;
+		if (i == from && i < to && sec < hmin) {
+			double rel = fabs(data[i+1].sec - sec) > 1e-10 ? (hmin - sec) / (data[i+1].sec - sec) : 0.5;
+			mkelvin = (data[i+1].temperature - mkelvin) * rel + mkelvin;
+			sec = hmin;
+		}
+		if (i == to - 1 && i > 0 && sec > hmax) {
+			double prev_x = data[i-1].sec, prev_y = data[i-1].temperature;
+			double rel = fabs(sec - prev_x) > 1e-10 ? (hmax - prev_x) / (sec - prev_x) : 0.5;
+			cut_into_none = data[i].temperature == 0 || data[i-1].temperature == 0;
+			mkelvin = (mkelvin - prev_y) * rel + prev_y;
+			sec = hmax;
+		}
+		if (mkelvin < 1.0)
+			continue;
+
+		/* don't print a temperature
+		 * if it's been less than a full label interval and less than a 2K change OR
+		 * if it's been less than a half label interval OR if the change from the
+		 * last print is less than .4K (and therefore less than 1F) */
+		if (((sec < last + interval) && (fabs(mkelvin - last_printed_temp) < 2000.0)) ||
+		    (sec < last + interval / 2) ||
+		    (fabs(mkelvin - last_printed_temp) < 400.0))
+			continue;
+		last = sec;
+		if (mkelvin > 200000.0)
+			textItems.push_back({ static_cast<int>(sec), static_cast<int>(mkelvin), cut_into_none });
+		last_printed_temp = mkelvin;
+	}
+	// The end label's test compares a time with 200000 mK, so it is never drawn.
+	return textItems;
+}
+
 static std::vector<sample> read_samples(std::istream &in)
 {
 	size_t n;
@@ -721,6 +979,47 @@ int main()
 			for (size_t i = 1; i < entry.size(); i++)
 				printf(" %d %d %d %d %d", entry[i].sec, entry[i].depth, entry[i].temperature,
 				       entry[i].speed, entry[i].velocity);
+			printf("\n");
+		} else if (command == "ticks") {
+			double dataMin, dataMax, a, size, space;
+			int decimals, bottom;
+			in >> dataMin >> dataMax >> a >> size >> space >> decimals >> bottom;
+			auto ticks = update_ticks(dataMin, dataMax, a, size, space, decimals, bottom);
+			printf("%d %.17g %.17g %zu", ticks.shown, ticks.min, ticks.max, ticks.values.size());
+			for (double v: ticks.values)
+				printf(" %.17g", v);
+			printf("\n");
+		} else if (command == "labels") {
+			// plotDive's view of the whole dive: the time axis from 0 to
+			// `axis_max`, the entries from the first at 0 to the first past it.
+			auto samples = read_samples(in);
+			size_t n;
+			in >> n;
+			std::vector<int> events(n);
+			for (auto &t: events)
+				in >> t;
+			double axis_max;
+			int interval;
+			in >> axis_max >> interval;
+			int maxtime = calculate_maxtime(samples, events);
+			auto entry = populate_plot_entries(samples, events, maxtime);
+			int lastSecond = lrint(axis_max);
+			auto it1 = entry.begin();
+			auto it2 = std::lower_bound(it1, entry.end(), lastSecond,
+						    [](const plot_data &d, int s)
+						    { return d.sec < s; });
+			if (it2 < entry.end())
+				++it2;
+			int from = it1 - entry.begin();
+			int to = it2 - entry.begin();
+			auto depths = depth_labels(entry, from, to, interval);
+			auto temps = temperature_labels(entry, from, to, 0.0, axis_max, interval);
+			printf("%zu", depths.size());
+			for (auto &l: depths)
+				printf(" %d %d %d", l.sec, l.depth, l.kind);
+			printf(" %zu", temps.size());
+			for (auto &l: temps)
+				printf(" %d %d %d", l.sec, l.mkelvin, l.cut_into_none);
 			printf("\n");
 		} else {
 			printf("unknown %s\n", command.c_str());
