@@ -1,9 +1,8 @@
-import { CatchBoundary } from "@tanstack/react-router"
-import { IconDeviceWatch } from "@tabler/icons-react"
-import { useEffect, useState } from "react"
+import { CatchBoundary, Link } from "@tanstack/react-router"
+import { IconArrowsMaximize, IconDeviceWatch } from "@tabler/icons-react"
 import { cn } from "cn"
 
-import { useChartLoads } from "@/chart/load"
+import { useAfter, useChartLoads } from "@/chart/load"
 import {
   alarmRowHeight,
   alarmsHeaderHeight,
@@ -25,7 +24,16 @@ import { profileKey } from "@/data/samples"
 
 // The Profile card. A dive with samples gets the chart, which holds its
 // final height while its code and samples load, so nothing below moves.
-export function ProfileCard({ dive, mod }: { dive: Dive; mod: number | null }) {
+// `expand` is off on the dev page, whose made-up dives the log can't open.
+export function ProfileCard({
+  dive,
+  mod,
+  expand = true,
+}: {
+  dive: Dive
+  mod: number | null
+  expand?: boolean
+}) {
   return (
     <section aria-labelledby="profile-h">
       <Card className="gap-3 px-4">
@@ -54,6 +62,21 @@ export function ProfileCard({ dive, mod }: { dive: Dive; mod: number | null }) {
                 <span className="truncate">{dive.computerModel}</span>
               </span>
             )}
+            {/* Pushed, so closing it (or swiping back) returns here, with
+                the dive left scrolled where it was. The 44 px target
+                overhangs the card's padding, not the row. */}
+            {expand && dive.sparkline && (
+              <Link
+                to="/dive/$diveId/profile"
+                params={{ diveId: dive.id }}
+                state={{ fromDive: true }}
+                resetScroll={false}
+                aria-label="Show the profile full screen"
+                className="-my-3 -mr-3 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-opacity duration-150 select-none active:opacity-50"
+              >
+                <IconArrowsMaximize aria-hidden className="size-4.5" />
+              </Link>
+            )}
           </div>
         </div>
         {dive.sparkline ? (
@@ -75,16 +98,6 @@ export function ProfileCard({ dive, mod }: { dive: Dive; mod: number | null }) {
       </Card>
     </section>
   )
-}
-
-// True once `ms` have passed since the first render.
-function useAfter(ms: number) {
-  const [after, setAfter] = useState(false)
-  useEffect(() => {
-    const id = setTimeout(() => setAfter(true), ms)
-    return () => clearTimeout(id)
-  }, [ms])
-  return after
 }
 
 // The chart once its code and the dive's samples are in, which for a dive
