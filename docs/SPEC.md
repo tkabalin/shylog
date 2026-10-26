@@ -357,9 +357,9 @@ Losing at most a day of changes is acceptable: hand-logged dives can be re-enter
 
 ### Checklist
 
-- [ ] Reuse the existing off-site backup; confirm its versioning and immutability cover the Shylog backup folder
-- [ ] Restore from the off-site backup end to end once it is set up, then once a year
-- [ ] Write a short restore guide in the repo README
+- [x] Reuse the existing off-site backup; confirm its versioning and immutability cover the Shylog backup folder
+- [x] Restore from the off-site backup end to end once it is set up, then once a year (first done 26 October 2026)
+- [x] Write a short restore guide in the repo README
 - [ ] Keep an occasional copy off both the server and the off-site backup, such as a yearly download to an external drive
 
 ## Subsurface import
