@@ -661,6 +661,8 @@ Deferred, or to watch:
 
 **Touches**: `apps/server/src/uddf/writer.ts` (owner from settings, divecomputer, sites with geography and the body-of-water element, divebases, buddies, trips, gasdefinitions grouped by fraction, tanks grouped by material and volume, dives in schema order, `<applicationdata><shylog>` under Shylog's namespace, `<surfaceintervalbeforedive>` with `<infinity/>`), `apps/server/src/jobs/nightly.ts` (export after the snapshot, temp file, fsync, re-parse, rename), `apps/server/src/routes/export.ts` (`/api/export/uddf`, `/api/export/snapshot`, `/api/export/run`), `fixtures/uddf/uddf_v321.xsd` (vendored), `scripts/validate-uddf.sh` (strips `<shylog>` then runs `xmllint --schema`), `apps/web/src/routes/settings/` (Download rows, export alert with Export now), tests.
 
+**Shape already in use**: the SSI converter (`apps/server/scripts/ssi/convert.ts`) writes `<shylog>` first: namespace `https://github.com/tkabalin/shylog/uddf`, elements named after core's dive fields (`surface`, `maxTemperature`, `trainingCourse`, one `tag` per tag), values as Shylog's keys, temperatures in kelvin. It also writes a site's region in `geography/location` and its ISO code in `address/country`, since the XSD requires both. The writer uses the same shape, or changes the converter with it.
+
 **Acceptance**
 
 - `writer.test.ts`: a log with hand dives on 32.4% and 32% nitrox produces two mixes; two dives with Aluminium 11100 ml share one tank; every id is the Shylog id and the export is byte-identical on two runs with no change; dive 63 maps to `informationbeforedive/datetime` without an offset, `greatestdepth` 32.66, temperatures in kelvin, duration in seconds; the per-dive `<shylog>` block carries surge, surface, weather, rating, max temperature, gear, tags, dive centre and trip id; a dive with no earlier dive writes `<infinity/>`; an ignored dive has no `divenumber` and its `<shylog>` block says it is ignored (D23); a hand value that differs from the computer's goes in the standard element; tags, people and professionals export as the spec says.
@@ -839,6 +841,7 @@ Deferred, or to watch:
 - `reimport.test.ts`: importing the same export twice skips every dive as already imported; deleting a dive and importing again still skips it.
 - `passthrough.test.ts`: import the D4i fixture, export, and compare each dive's standard elements before and after, allowing only remapped ids, hand values and Shylog's own additions to differ; the result validates with `test:xsd`; `<he>`, alarms and extra sample channels in a synthetic fixture survive in place.
 - `sync-import.test.ts`: a hand-logged dive uploaded from a draft, then matched by an import, ends with the same data whether the draft arrived before or after the preview was made.
+- `ssi.test.ts`: a file from the SSI converter (its `generatorName`) adds every dive as hand values, with no fingerprint and no clock offset, reading its `<shylog>` block; the D4i fixture imported afterwards pairs with those dives.
 
 **Not in this milestone**: UI (milestone 21).
 
