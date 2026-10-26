@@ -141,17 +141,19 @@ test("scrolls the count away and sticks the bar to the top", async ({
   await expect(header(page)).toBeInViewport()
 })
 
-test("opens a dive from its card with no request of its own", async ({
+test("opens a dive from its card with no request but its samples", async ({
   page,
   request,
 }) => {
   const id = await diveId(request, 63)
   await page.goto("/")
   await expect(cards(page)).toHaveCount(46)
-  // The log copy is all the detail needs, so its figures are there at once.
+  // The log copy is all the detail needs, so its figures are there at once;
+  // only the profile chart asks for the dive's samples.
   const requests: string[] = []
   page.on("request", (req) => {
-    if (new URL(req.url()).pathname.startsWith("/api/"))
+    const path = new URL(req.url()).pathname
+    if (path.startsWith("/api/") && path !== `/api/dives/${id}/samples`)
       requests.push(req.url())
   })
   await tapCard(page.locator(`a[href='/dive/${id}']`))

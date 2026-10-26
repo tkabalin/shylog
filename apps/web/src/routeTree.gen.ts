@@ -14,6 +14,7 @@ import { Route as ImportRouteImport } from './routes/import'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as DevCardsRouteImport } from './routes/dev.cards'
+import { Route as DevProfileRouteImport } from './routes/dev.profile'
 import { Route as DevUiRouteImport } from './routes/dev.ui'
 import { Route as DiveDiveIdRouteImport } from './routes/dive/$diveId'
 
@@ -42,6 +43,11 @@ const DevCardsRoute = DevCardsRouteImport.update({
   path: '/dev/cards',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevProfileRoute = DevProfileRouteImport.update({
+  id: '/dev/profile',
+  path: '/dev/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevUiRoute = DevUiRouteImport.update({
   id: '/dev/ui',
   path: '/dev/ui',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/dev/cards': typeof DevCardsRoute
+  '/dev/profile': typeof DevProfileRoute
   '/dev/ui': typeof DevUiRoute
   '/dive/$diveId': typeof DiveDiveIdRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/dev/cards': typeof DevCardsRoute
+  '/dev/profile': typeof DevProfileRoute
   '/dev/ui': typeof DevUiRoute
   '/dive/$diveId': typeof DiveDiveIdRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/dev/cards': typeof DevCardsRoute
+  '/dev/profile': typeof DevProfileRoute
   '/dev/ui': typeof DevUiRoute
   '/dive/$diveId': typeof DiveDiveIdRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stats'
     | '/dev/cards'
+    | '/dev/profile'
     | '/dev/ui'
     | '/dive/$diveId'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stats'
     | '/dev/cards'
+    | '/dev/profile'
     | '/dev/ui'
     | '/dive/$diveId'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stats'
     | '/dev/cards'
+    | '/dev/profile'
     | '/dev/ui'
     | '/dive/$diveId'
   fileRoutesById: FileRoutesById
@@ -117,6 +129,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
   DevCardsRoute: typeof DevCardsRoute
+  DevProfileRoute: typeof DevProfileRoute
   DevUiRoute: typeof DevUiRoute
   DiveDiveIdRoute: typeof DiveDiveIdRoute
 }
@@ -158,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevCardsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dev/profile': {
+      id: '/dev/profile'
+      path: '/dev/profile'
+      fullPath: '/dev/profile'
+      preLoaderRoute: typeof DevProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dev/ui': {
       id: '/dev/ui'
       path: '/dev/ui'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
   DevCardsRoute: DevCardsRoute,
+  DevProfileRoute: DevProfileRoute,
   DevUiRoute: DevUiRoute,
   DiveDiveIdRoute: DiveDiveIdRoute,
 }

@@ -32,7 +32,6 @@ import {
   IconClock,
   IconCloud,
   IconCloudRain,
-  IconDeviceWatch,
   IconEye,
   IconEyeOff,
   IconFish,
@@ -51,13 +50,15 @@ import {
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { loadChart, retryChart } from "@/chart/load"
 import { backToLog } from "@/components/app-nav"
 import { IconSurfaceCalm, IconSurfaceStormy } from "@/components/icons"
-import { Sparkline } from "@/components/sparkline"
+import { ProfileCard } from "@/components/profile-card"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import type { Dive } from "@/data/db"
-import { useLog, type LogView } from "@/data/log"
+import { currentLog, useLog, type LogView } from "@/data/log"
+import { loadProfile, retryProfile } from "@/data/samples"
 import { diveFigures } from "@/dive/figures"
 import { clockTime, longDate } from "@/format/dates"
 import {
@@ -74,6 +75,19 @@ import { fullPlace } from "@/format/place"
 
 export const Route = createFileRoute("/dive/$diveId")({
   component: DivePage,
+  // Runs on intent too (a touch or hover on the card), so the samples and
+  // the chart's chunk are on their way before the tap ends. It never waits:
+  // the detail renders from the log copy at once.
+  loader: ({ params }) => {
+    const dive = currentLog()?.dive.get(params.diveId)
+    if (dive?.sparkline) {
+      // Opening the dive again is a fresh try after a failure.
+      retryProfile(dive)
+      retryChart()
+      loadProfile(dive).catch(() => {})
+      loadChart().catch(() => {})
+    }
+  },
 })
 
 type Icon = ComponentType<IconProps>
@@ -249,7 +263,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
           />
         </dl>
 
-        <ProfileCard dive={dive} />
+        <ProfileCard dive={dive} mod={figures.mod} />
 
         <Section title="Figures">
           <Card className="gap-0 py-0">
@@ -471,49 +485,6 @@ function Headline({
         )}
       </dd>
     </div>
-  )
-}
-
-// The Profile card. The chart arrives with the samples in a later change;
-// until then a dive with samples shows its sparkline at card width.
-function ProfileCard({ dive }: { dive: Dive }) {
-  return (
-    <section aria-labelledby="profile-h">
-      <Card className="gap-3 px-4">
-        {/* The computer sits in the top-right corner, the one the chart
-            leaves free (its axis and alarms take the bottom), so the
-            heading reads as just "Profile". */}
-        <div className="flex items-baseline justify-between gap-2">
-          <h2
-            id="profile-h"
-            className="text-[15px] font-semibold tracking-[-0.01em]"
-          >
-            Profile
-          </h2>
-          {dive.computerModel && (
-            <span className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground">
-              <IconDeviceWatch
-                aria-hidden
-                className="size-[1.15em] self-center"
-              />
-              {dive.computerModel}
-            </span>
-          )}
-        </div>
-        {dive.sparkline ? (
-          <Sparkline
-            points={dive.sparkline}
-            maxDepth={dive.maxDepth}
-            stretch
-            className="h-30 w-full [&_polyline]:stroke-2"
-          />
-        ) : (
-          <p className="text-sm leading-[1.45] text-muted-foreground">
-            No dive computer profile. Importing a Subsurface export attaches it.
-          </p>
-        )}
-      </Card>
-    </section>
   )
 }
 

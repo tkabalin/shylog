@@ -147,6 +147,9 @@ function subscribe(listener: () => void) {
 
 export const useLog = () => useSyncExternalStore(subscribe, () => state)
 
+// The same copy outside React, for route loaders.
+export const currentLog = () => state.log
+
 // A failed read still marks the log loaded, so the screens can say so
 // instead of staying blank, and the next sync tries again.
 export async function loadLog(db: LogDb = defaultDb) {
