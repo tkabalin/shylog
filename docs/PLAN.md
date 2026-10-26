@@ -548,7 +548,7 @@ Deferred, or to watch:
 
 **Implements**: Profile chart (all subsections), Screens (Dive detail: alarms list, differs banner slot), Statistics (second paragraph: lazy chart chunk), decision D8. Screens: `DiveDetailHifi` Profile card with the Lane temperature option and Ascent rate colour, Alarms list.
 
-**Touches**: `apps/web/src/chart/` (lazy chunk: `points.ts`, `axes.ts`, `ticks.ts`, `labels.ts`, `ProfileChart.tsx` on Recharts, `TemperatureLane.tsx`, `EventBands.tsx`, `ModLine.tsx`, `Crosshair.tsx`, `ProfileTable.tsx`), `apps/web/src/data/samples.ts` (fetch and cache samples in Dexie), tests.
+**Touches**: `packages/core/src/calc/` (`axes.ts`, `ticks.ts`, `labels.ts` beside the existing `chartPoints` and `verticalSpeeds`, with Subsurface's tick and peak code added to the differential test in `packages/core/test/reference/`), `apps/web/src/chart/` (lazy chunk: `ProfileChart.tsx` on Recharts, `TemperatureLane.tsx`, `EventBands.tsx`, `ModLine.tsx`, `Crosshair.tsx`, `ProfileTable.tsx`), `apps/web/src/data/samples.ts` (fetch and cache samples in Dexie), tests.
 
 **Acceptance**
 
