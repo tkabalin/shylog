@@ -414,12 +414,37 @@ Deferred, or to watch:
 - [x] Nightly snapshot job with retention
 - [x] Backup, restore, replay and restore-drill scripts
 - [x] README restore guide and backup checklist items
-- [ ] Both instances up, identity smoke test recorded
-- [ ] Restore drill run once
+- [x] Both instances up, identity smoke test recorded
+- [x] Restore drill run once
 
 **Notes for the next session** (written 22 October 2026, branch `feat/deploy-backups`)
 
 Still to do on the home server (the owner deploys from the README, D26): bring both instances up, run the identity smoke test and fill in "Last run" in the README, run `scripts/restore-drill.sh` on the real instance and paste its output here, confirm the off-site job covers `/srv/shylog/` and do a first off-site restore, and copy a nightly snapshot to `fixtures/real/shylog.db.gz` so `migrations.test.ts` runs against real data. If the GHCR package is private, make it public or `docker login ghcr.io` on the server. Docker isn't set up in WSL, so the image was first built by CI.
+
+Restore drill, run on the home server on 26 October 2026 against both instances, on `main` at `f674896`, after their first scheduled snapshot:
+
+```
+=== thomas
+Restored shylog-2026-10-26.db.gz to a scratch folder.
+Replayed 0 journal entries.
+No differences from the live database.
+=== john
+Restored shylog-2026-10-26.db.gz to a scratch folder.
+Replayed 0 journal entries.
+No differences from the live database.
+```
+
+Nothing had been written since the snapshots, so no journal entries were replayed. Run it again once some writes land after a snapshot, to exercise the replay.
+
+The acceptance asks for the smoke test and the off-site coverage to be noted in the README. The dated records are kept here instead, because they describe the owner's server, and the README stays generic for anyone running Shylog. The README has the smoke test's how-to.
+
+Smoke test, 25 and 26 October 2026, two instances:
+
+- The owner's phone: both apps installed from Safari and loaded.
+- With only the second diver's login allowed on their instance, a request from the owner's login got `403 {"error":"Login not allowed"}`. Adding it back restored `200`.
+- The second diver's phone, on the shared node: the app installed to the home screen and loaded. This proves that Serve sends a shared user's login and that the tailnet grant for the shared node works.
+
+Off-site backup, 26 October 2026: the server's nightly system backup copies `/srv/shylog/` to the NAS, and restic sends that copy to Backblaze B2. Both instances' snapshots were confirmed in B2. Restic's retention provides the versioning. Immutability comes from a backup key that can't delete files, plus a 30-day window in which hidden files can still be recovered: real object lock doesn't work with restic's pruning. First end-to-end restore: a snapshot was restored from B2 with restic, and its checksum matched the NAS copy. It was restored with `cli.js restore` into a scratch data folder, and a server started on it turned healthy and passed `health` and `drill`.
 
 Decisions taken while building:
 

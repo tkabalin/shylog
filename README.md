@@ -82,6 +82,16 @@ Once the node has joined, clear `TS_AUTHKEY` and disable key expiry for the node
 
 If you set up an instance for another diver, share its node with their Tailscale account and restrict each node to its diver's devices in the tailnet policy.
 
+### Smoke test
+
+Every `/api` request needs an `X-Shylog` header, and Tailscale Serve sends the caller's login, which must be in `SHYLOG_ALLOWED_LOGINS`. From a device on the tailnet:
+
+```bash
+curl -H 'X-Shylog: 1' https://<TS_HOSTNAME>.<tailnet>.ts.net/api/health
+```
+
+If the host doesn't use MagicDNS, add `--resolve <TS_HOSTNAME>.<tailnet>.ts.net:443:<node IP>`, with the node IP from `docker compose --env-file instances/<instance>.env exec tailscale tailscale ip -4`. A request without the header gets `403 Missing X-Shylog`, and one from a login that isn't allowed gets `403 Login not allowed`. To check the refusal, take your login out of `SHYLOG_ALLOWED_LOGINS`, run `up -d --wait app`, repeat the request, then put it back. For the second diver, install the app on their phone through the shared node: the app sends the header on every call, so it loading proves their login passes.
+
 ### Updating
 
 ```bash
