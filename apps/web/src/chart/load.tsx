@@ -74,3 +74,14 @@ export function useChartLoads(dive: Dive) {
     },
   }
 }
+
+// True once `ms` have passed since the first render: a load quicker than
+// that shows no skeleton.
+export function useAfter(ms: number) {
+  const [after, setAfter] = useState(false)
+  useEffect(() => {
+    const id = setTimeout(() => setAfter(true), ms)
+    return () => clearTimeout(id)
+  }, [ms])
+  return after
+}

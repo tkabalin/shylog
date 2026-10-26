@@ -10,6 +10,8 @@ import { ProfileTable } from "./profile-table"
 import { useSize } from "./size"
 import { DepthView, LaneView, Readout, useCrosshair } from "./view"
 
+export { FullProfile } from "./full-profile"
+
 // The Profile card's body, the chart's lazy chunk: the crosshair readout,
 // the depth chart, the temperature lane, the alarms and the table
 // alternative, drawn once the card has the dive's samples.

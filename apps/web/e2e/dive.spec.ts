@@ -52,7 +52,11 @@ test("sends the Log link to a fresh Log when the dive was opened directly", asyn
     .getByRole("link", { name: "Log" })
     .click()
   await expect(page).toHaveURL("/")
-  await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
+  // The Log itself, not the dive still shown while the Log's code loads (its
+  // own links start /dive/ too): going back mid-load would reload the page.
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Log" })
+  ).toBeAttached()
   // The Log took the dive's place, so back skips the dive.
   await page.goBack()
   await expect(page).toHaveURL("/stats")

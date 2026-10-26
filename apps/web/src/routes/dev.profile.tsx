@@ -154,7 +154,12 @@ function DevProfilePage() {
   return (
     <div className="flex flex-col gap-2 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-24">
       <h1 className="sr-only">Profile card</h1>
-      <ProfileCard key={dive.id} dive={dive} mod={modDepth} />
+      <ProfileCard
+        key={dive.id}
+        dive={dive}
+        mod={modDepth}
+        expand={data === "demo"}
+      />
       <nav className="fixed bottom-24 left-1/2 flex -translate-x-1/2 rounded-full bg-neutral-200 p-1 font-sans text-xs text-neutral-900">
         {sets.map((d) => (
           <a

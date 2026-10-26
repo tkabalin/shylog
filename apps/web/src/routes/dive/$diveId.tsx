@@ -47,7 +47,12 @@ import {
   IconUserStar,
   type IconProps,
 } from "@tabler/icons-react"
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useRouter,
+} from "@tanstack/react-router"
 import { cn } from "cn"
 
 import { loadChart, retryChart } from "@/chart/load"
@@ -114,7 +119,14 @@ function DivePage() {
       </div>
     )
   }
-  return <DiveDetail dive={dive} log={log} />
+  // The full-screen profile opens over the detail, which stays put
+  // underneath, so closing it lands where the dive was scrolled to.
+  return (
+    <>
+      <DiveDetail dive={dive} log={log} />
+      <Outlet />
+    </>
+  )
 }
 
 function BackLink() {
