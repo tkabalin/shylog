@@ -72,6 +72,9 @@ export class LogDb extends Dexie {
       meta: "key",
     })
     this.version(2).stores({ profiles: "diveId" })
+    // The digest as an index too, so the background download can see which
+    // profiles are kept, and which are stale, without reading any samples.
+    this.version(3).stores({ profiles: "diveId, [diveId+digest]" })
   }
 }
 

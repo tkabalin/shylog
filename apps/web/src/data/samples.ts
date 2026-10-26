@@ -1,3 +1,5 @@
+import { samplesBatch } from "@shylog/core"
+
 import { apiClient, type Profile } from "@/api/client"
 
 import { db as defaultDb, type Dive, type LogDb } from "./db"
@@ -7,8 +9,8 @@ import { db as defaultDb, type Dive, type LogDb } from "./db"
 export class LoadFailed extends Error {}
 
 // One request per dive and profile, shared by the route loader's prefetch
-// and the chart, which reads the same promise with React's use(). Kept for
-// the dives opened most recently, newest last.
+// and the Profile card, which draws from it as soon as it settles. Kept
+// for the dives opened most recently, newest last.
 const loading = new Map<string, Promise<Profile>>()
 const kept = 50
 // A failure is kept until retried: React renders the chart again to show
@@ -73,9 +75,17 @@ function forget(key: string) {
   failed.delete(key)
 }
 
-// Marks the promise with its outcome as React's use() reads it, so a
-// profile already in hand renders at once instead of suspending a frame.
-function settled<T>(promise: Promise<T>) {
+// What a load has come to, read without waiting, so a profile already in
+// hand draws on the card's first render.
+export type Settled<T> =
+  | { status: "pending" }
+  | { status: "fulfilled"; value: T }
+  | { status: "rejected"; reason: unknown }
+export const outcome = <T>(promise: Promise<T>) =>
+  promise as unknown as Settled<T>
+
+// Marks the promise with its outcome (see `outcome`).
+export function settled<T>(promise: Promise<T>) {
   const tracked = promise as Promise<T> & Record<string, unknown>
   tracked.status = "pending"
   // Blocks, not expressions: returning the promise itself from a handler
@@ -116,6 +126,92 @@ async function readProfile(
   return { samples, events }
 }
 
+// After a sync: fetches, 25 dives a request, the profiles of every dive with
+// samples that the phone doesn't keep yet or keeps under an older digest, so
+// every chart opens at once and works offline. A batch the server refuses is
+// skipped; losing the connection ends the run, and the next sync tries again.
+type DownloadOptions = { db?: LogDb; fetch?: typeof globalThis.fetch }
+let downloading: Promise<void> | undefined
+let next: [readonly Dive[], DownloadOptions] | undefined
+// Set once a write fails with the phone's storage full: every later run
+// would fetch the same batch only to drop it. Other failures retry next sync.
+let full = false
+// Dexie reports a full disk as an abort's inner error, a mock as itself.
+const isQuota = (error: unknown): boolean =>
+  error instanceof Object &&
+  ((error as { name?: unknown }).name === "QuotaExceededError" ||
+    isQuota((error as { inner?: unknown }).inner))
+export function downloadProfiles(
+  dives: readonly Dive[],
+  options: DownloadOptions = {}
+) {
+  if (full) return Promise.resolve()
+  // One run at a time; a sync during it leaves its newer list for another.
+  next = [dives, options]
+  downloading ??= (async () => {
+    while (next && !full) {
+      const run = next
+      next = undefined
+      await download(...run).catch((error: unknown) => {
+        console.debug("Profile download stopped", error)
+      })
+    }
+    // Cleared in the same step as the last check of `next`, so a list left
+    // after it starts a new run rather than joining one that has ended.
+    downloading = next = undefined
+  })()
+  return downloading
+}
+
+async function download(
+  dives: readonly Dive[],
+  { db = defaultDb, fetch }: DownloadOptions
+) {
+  const kept = new Set(
+    (await db.profiles.orderBy("[diveId+digest]").keys()).map((key) =>
+      String(key)
+    )
+  )
+  // Each asked-for dive's digest, as the log had it when the run began.
+  const asked = new Map<string, string>()
+  for (const dive of dives) {
+    const key = digest(dive)
+    // Not for Recently deleted, which never draws one; a restore brings it.
+    if (dive.sparkline && !dive.deletedAt && !kept.has(String([dive.id, key])))
+      asked.set(dive.id, key)
+  }
+  const missing = [...asked.keys()]
+  for (let i = 0; i < missing.length; i += samplesBatch) {
+    const ids = missing.slice(i, i + samplesBatch)
+    const res = await apiClient(fetch).api.samples.$get({
+      query: { ids: ids.join(",") },
+    })
+    if (!res.ok) {
+      console.debug(`Couldn't download profiles (${res.status})`)
+      continue
+    }
+    const { profiles } = await res.json()
+    // Only for dives the log still has as they were: a sync since may have
+    // pruned one or brought a new profile, which the next run fetches.
+    await db
+      .transaction("rw", db.dives, db.profiles, async () => {
+        const now = await db.dives.bulkGet(Object.keys(profiles))
+        await db.profiles.bulkPut(
+          now.flatMap((dive) => {
+            const key = dive && digest(dive)
+            return key && key === asked.get(dive.id)
+              ? [{ diveId: dive.id, digest: key, ...profiles[dive.id] }]
+              : []
+          })
+        )
+      })
+      .catch((error: unknown) => {
+        if (isQuota(error)) full = true
+        throw error
+      })
+  }
+}
+
 // Drops the copies of dives the log no longer has, in the same transaction
 // as a sync that writes the log. By key, so no profile's samples are read.
 export const pruneProfiles = (db: LogDb, diveIds: ReadonlySet<string>) =>
@@ -134,4 +230,5 @@ export function primeProfile(dive: Dive, profile: Promise<Profile>) {
 export function forgetProfiles() {
   loading.clear()
   failed.clear()
+  full = false
 }

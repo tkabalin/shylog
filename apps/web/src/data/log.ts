@@ -15,6 +15,7 @@ import {
   type Site,
   type Trip,
 } from "./db"
+import { downloadProfiles } from "./samples"
 import { syncLog } from "./sync"
 
 export interface DiveLinks {
@@ -181,6 +182,10 @@ export function sync() {
       if (result === "updated" || (await behind())) await loadLog()
       if (result === "blocked" && !state.blocked)
         set({ ...state, blocked: true })
+      // Every dive's profile on the phone, so charts open at once offline;
+      // not from a server whose schema this app doesn't understand.
+      if (state.log && result !== "blocked")
+        void downloadProfiles([...state.log.dive.values()])
     })
     .catch((error: unknown) => {
       // Expected offline or with Tailscale off, and shown on screen, so it
