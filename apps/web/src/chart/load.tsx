@@ -1,6 +1,13 @@
-import { useEffect } from "react"
+import { useEffect, useReducer, useState } from "react"
 
-import { LoadFailed, outcome, settled } from "@/data/samples"
+import type { Dive } from "@/data/db"
+import {
+  LoadFailed,
+  loadProfile,
+  outcome,
+  retryProfile,
+  settled,
+} from "@/data/samples"
 
 type ChartModule = typeof import("./profile")
 
@@ -32,4 +39,38 @@ export function usePreloadChart() {
     const id = setTimeout(load, 1000)
     return () => clearTimeout(id)
   }, [])
+}
+
+// Re-renders when a load settles and reads its outcome, so the chart never
+// suspends: React holds a Suspense fallback for at least 300 ms, even for a
+// profile read from the phone in a few milliseconds.
+function useSettled<T>(promise: Promise<T>) {
+  const [, settle] = useReducer((n: number) => n + 1, 0)
+  useEffect(() => {
+    let live = true
+    const done = () => live && settle()
+    promise.then(done, done)
+    return () => {
+      live = false
+    }
+  }, [promise])
+  return outcome(promise)
+}
+
+// A dive's samples and the chart's code, as they settle, and a retry for
+// either failing (Try again).
+export function useChartLoads(dive: Dive) {
+  const [loads, setLoads] = useState(() => ({
+    profile: loadProfile(dive),
+    chart: loadChart(),
+  }))
+  return {
+    profile: useSettled(loads.profile),
+    chart: useSettled(loads.chart),
+    retry() {
+      retryProfile(dive)
+      retryChart()
+      setLoads({ profile: loadProfile(dive), chart: loadChart() })
+    },
+  }
 }

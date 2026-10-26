@@ -20,7 +20,7 @@ import { cn } from "cn"
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 
 import { halo } from "./format"
-import { chartHeight, plotHeight, plotLeft, plotTop } from "./layout"
+import { plotLeft, plotTop, timeAxisHeight } from "./layout"
 import type { ProfileModel } from "./model"
 
 const config = {
@@ -56,12 +56,13 @@ export const DepthChart = memo(function DepthChart({
 }) {
   const gradient = `speed-${useId().replace(/:/g, "")}`
   const { points, time, depth } = model
+  const height = model.chartHeight
   return (
     <ChartContainer
       config={config}
       className="aspect-auto w-full text-[10px]"
-      style={{ height: chartHeight }}
-      initialDimension={{ width, height: chartHeight }}
+      style={{ height }}
+      initialDimension={{ width, height }}
     >
       <ComposedChart
         data={points}
@@ -78,7 +79,7 @@ export const DepthChart = memo(function DepthChart({
           domain={[0, time.max]}
           ticks={time.values}
           interval={0}
-          height={chartHeight - plotTop - plotHeight}
+          height={timeAxisHeight}
           axisLine={false}
           tickLine={false}
           allowDataOverflow
