@@ -199,3 +199,10 @@ export const diveFieldsPatch = z
     return fields
   })
 export type DiveFieldsPatch = z.output<typeof diveFieldsPatch>
+
+// The most dives one `GET /api/samples` asks for (see Client data).
+export const samplesBatch = 25
+export const sampleIdsSchema = z
+  .array(idSchema("dive"))
+  .min(1)
+  .max(samplesBatch)

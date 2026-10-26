@@ -71,3 +71,33 @@ describe("GET /api/dives/:id/samples", () => {
     expect(res.status).toBe(404)
   })
 })
+
+describe("GET /api/samples", () => {
+  const batch = async (ids: string, status = 200) => {
+    const res = await app.request(`/api/samples?ids=${ids}`, {
+      headers: apiHeaders,
+    })
+    expect(res.status).toBe(status)
+    return (await res.json()) as { profiles: Record<string, Profile> }
+  }
+
+  it("returns several dives' profiles, as the one-dive route does", async () => {
+    const [a, b] = [diveId(db, 3), diveId(db, 63)]
+    const { profiles } = await batch(`${a},${b},${a}`)
+    expect(Object.keys(profiles).sort()).toEqual([a, b].sort())
+    expect(profiles[a]).toEqual(await profile(a))
+    expect(profiles[b]).toEqual(await profile(b))
+  })
+
+  it("leaves out dives it doesn't have", async () => {
+    const { profiles } = await batch(`${diveId(db, 63)},dive-missing`)
+    expect(Object.keys(profiles)).toEqual([diveId(db, 63)])
+  })
+
+  it("refuses no ids, more than 25, or ids that aren't dives'", async () => {
+    await batch("", 400)
+    const many = Array.from({ length: 26 }, (_, i) => `dive-${i}`).join(",")
+    await batch(many, 400)
+    await batch("site-a", 400)
+  })
+})
