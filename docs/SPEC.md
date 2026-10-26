@@ -611,9 +611,9 @@ The dive detail shows the computer's time series much as Subsurface does, everyt
 - Depth as the main line, with the surface at the top. The line is coloured by vertical speed, using the bands below, and no legend is shown for them.
 - Water temperature in its own lane below the depth chart, on the same time axis. The D4i records temperature only when it changes, so each value is carried forward to the next.
 - Tank pressure is not drawn in v1, since neither the D4i nor the Zoop Novo records it in a Subsurface export; the `samples` table keeps a pressure column so an export that carries it is not lost.
-- Computer events (warnings and flags) as markers on the timeline at the moment they occurred, each with an icon and a short label. An event that spans an interval, such as an ascent-rate alarm, is drawn as a band. Surface events are not shown as warnings.
+- Computer events (warnings and flags) as markers on the timeline at the moment they occurred, each an icon centred over its band, with no text: the alarms list under the chart and the crosshair's readout name them. An event that spans an interval, such as an ascent-rate alarm, is drawn as a band, at least 6 px wide. Surface events are not shown as warnings.
 - The gas's MOD as a horizontal line at that depth, with a short label such as "MOD 33.2 m", drawn only when the MOD falls within the depth axis's range. The line never widens the depth axis, which still comes from the dive's own depth (see Axis ranges), so air dives and shallow nitrox dives usually show no line. It uses the same MOD as the dive's figures (the gas mix and the maximum PO₂ setting), so it appears only for single-cylinder dives with a known gas mix. For example, dive 63 of the first export (EANx32, 32.66 m) has a depth axis reaching at least 35.7 m (the deepest point plus 3 m), past its MOD of 33.2 m at 1.4 bar, so the line is shown.
-- Tapping or hovering anywhere shows a crosshair with the time, depth, temperature, vertical rate, and any event at that moment. Vertical rate is shown as ±x.x m/min (positive when ascending, negative when descending), calculated as Subsurface's tooltip does (`analyze_plot_info` and `plot_string` in `core/profile.cpp`): the depth change from the previous chart point, including the interpolated and event points described under Chart points, divided by the time between them and truncated to whole mm per second, so it moves in steps of 0.06 m/min. The crosshair shows the value at the first chart point at or after its time, and a point at the same time as the one before it reads 0. This is calculated after duplicate samples are merged.
+- Tapping or hovering anywhere shows a crosshair with the time, depth, temperature, vertical rate, and any event at that moment. Before a touch, the crosshair rests on the deepest point. A tap moves it and a sideways drag scrubs, while a vertical swipe on the chart still scrolls the page. Vertical rate is shown as ±x.x m/min (positive when ascending, negative when descending), calculated as Subsurface's tooltip does (`analyze_plot_info` and `plot_string` in `core/profile.cpp`): the depth change from the previous chart point, including the interpolated and event points described under Chart points, divided by the time between them and truncated to whole mm per second, so it moves in steps of 0.06 m/min. The crosshair shows the value at the first chart point at or after its time, and a point at the same time as the one before it reads 0. This is calculated after duplicate samples are merged.
 
 Hand-logged dives with no computer data show the key figures without a chart, and a note in its place: for a draft, that the profile comes from a Subsurface import once the dive has synced; for a synced dive, that importing a Subsurface export attaches the profile. The chart has a table alternative for screen readers, like every chart.
 
@@ -633,7 +633,7 @@ The exact boundaries are 25, 76, 152, and 304 mm/s for ascents (1.5, 4.56, 9.12,
 
 #### Chart points
 
-- Every sample is kept up to the end of the dive (the time axis's end before its 30 min minimum, see Axis ranges) and one sample past it. Surface samples after that are left off, as Subsurface does, so a short dive's line doesn't trail along the surface to 30 min. Where two samples are more than 10 s apart, a point is interpolated in a straight line every 10 s, so no gap exceeds 10 s. A 20 s log gets one extra point per pair, a 60 s log gets five, and a 4 s log gets none.
+- Every sample is kept up to the end of the dive (the time axis's end, see Axis ranges) and one sample past it. Surface samples after that are left off, as Subsurface does, so a dive's line doesn't trail along the surface after it. Where two samples are more than 10 s apart, a point is interpolated in a straight line every 10 s, so no gap exceeds 10 s. A 20 s log gets one extra point per pair, a 60 s log gets five, and a 4 s log gets none.
 - Interpolated points carry the previous sample's temperature forward. A point is also added at each computer event's time.
 - Nothing is thinned. Every point in the visible time range is plotted, plus one either side, cut at the axis edge by interpolation.
 - A segment's speed band uses the depth change back to the nearest earlier point that is at least 15 s earlier and at least two points back (or the first point, if none is that far back). A segment already in the fast or crazy band keeps its single-step speed. The crosshair's vertical rate always uses the single step, as Subsurface's tooltip does.
@@ -644,8 +644,8 @@ Each axis's range comes from the data, and some axes then round their ends to th
 
 | Axis | Range | Rounded to ticks? |
 | --- | --- | --- |
-| Time | 0 to the end of the dive (the last underwater sample plus the next one, or the last event if later, and always at least the first sample after the last event); at least 30 min | No, ticks sit inside the range |
-| Depth | 0 (surface at the top) to the deepest point + 3 m; at least 30 m | Yes, the max rounds up to the next tick |
+| Time | 0 to the end of the dive (the last underwater sample plus the next one, or the last event if later, and always at least the first sample after the last event); at least 30 s | No, ticks sit inside the range |
+| Depth | 0 (surface at the top) to the deepest point + 3 m | Yes, the max rounds up to the next tick |
 | Temperature | Lowest to highest sample, at least 2 °C apart | No tick marks |
 | Tank pressure | Lowest to highest, from samples and the cylinders' start and end pressures; drawn in the 24 to 80 % band of the chart height | No tick marks |
 | Heart rate | Lowest non-zero to highest | Yes |
@@ -653,7 +653,7 @@ Each axis's range comes from the data, and some axes then round their ends to th
 
 The deepest point is the larger of the dive's recorded maximum depth and any sample. If a dive has more than one computer's series, the ranges cover all of them so they share one scale. If the chart zooms, only the time axis changes, and the other axes keep the whole dive's ranges.
 
-The 30 min and 30 m minimums stop short or shallow dives from filling the whole chart.
+The time and depth ranges are Subsurface's zoomed plot, so every chart fills its space whatever the dive's length or depth. Subsurface's default adds a 30 min and 30 m minimum, which left a 10 m dive in the top third of the chart; the Log's sparklines keep the 30 m minimum (rounded to the detail chart's ticks), so a shallow dive still looks shallow in the list. The depth labels sit in a gutter left of the plot, so a steep descent never runs under them.
 
 #### Tick spacing
 
@@ -664,7 +664,7 @@ Each axis picks a tick count from the space available, then rounds the step up t
 - Ends: the time axis keeps its exact bounds, and ticks run from the first multiple inside them to the last. Other axes round the min down and the max up to the next multiple, and take those as their new bounds.
 - Labels: time shows whole minutes, or m:ss when the visible span is under 10 minutes. Depth shows no decimals and no label at 0.
 
-Example: a 38 m dive gives 38 + 3 = 41 m. With room for about 10 depth labels, that is 4.1 m per tick, rounded up to 5 m, so the depth axis ends at 45 m. A 52 min dive with room for about 12 time labels gives 4.3 min per tick, rounded up to 5 min. A 20 min dive keeps the 30 min minimum, so it fills two-thirds of the width.
+Example: a 38 m dive gives 38 + 3 = 41 m. With room for about 10 depth labels, that is 4.1 m per tick, rounded up to 5 m, so the depth axis ends at 45 m. A 52 min dive with room for about 12 time labels gives 4.3 min per tick, rounded up to 5 min. A 3 min dive gets ticks in seconds and m:ss labels, rounded to the second.
 
 #### Labelled peaks and temperature
 
@@ -673,7 +673,7 @@ Only some depth and temperature values get a label, so the chart stays readable.
 - Depth: with fewer than three points in view, nothing is labelled. Otherwise the deepest point in view is labelled if it is at least 2 m deep.
 - From each labelled peak, the search skips one label interval to each side, tracking the shallowest point passed. Past that, the first point at least 2 m deeper than the shallowest point so far gives a new peak: the deepest point in what remains on that side.
 - The new peak is labelled, and so is the shallowest point passed if it is at least 2 m deep. The search then repeats from the new peak.
-- Temperature: a label is skipped unless at least half a label interval has passed since the last label and the value is at least 0.4 °C from the last labelled value. It also needs either a full label interval since the last label or a change of at least 2 °C.
+- Temperature: a label is skipped unless at least half a label interval has passed since the last label and the value is at least 0.4 °C from the last labelled value. It also needs either a full label interval since the last label or a change of at least 2 °C. Unlike Subsurface, each temperature is labelled only the first time: the lane's steps show a return to a level already labelled.
 
 Source: `core/profile.cpp` and `profile-widget/` (`profilescene.cpp`, `divecartesianaxis.cpp`, `diveprofileitem.cpp`) in the Subsurface repository, read on 13 October 2026.
 
