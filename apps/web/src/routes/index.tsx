@@ -9,6 +9,7 @@ import {
 } from "@tabler/icons-react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 
+import { usePreloadChart } from "@/chart/load"
 import { FilterPills } from "@/components/filter-pills"
 import { LogHeader } from "@/components/log-header"
 import { MonthGroup } from "@/components/month-group"
@@ -87,6 +88,8 @@ export const Route = createFileRoute("/")({
 
 function LogPage() {
   const { log, loaded, blocked, failed } = useLog()
+  // So the first dive opened draws its chart without waiting on the code.
+  usePreloadChart()
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
   // The router commits search changes in a transition, so a field bound to

@@ -1,26 +1,35 @@
-import { lazy, type ComponentProps } from "react"
+import { useEffect } from "react"
 
-import { LoadFailed } from "@/data/samples"
+import { LoadFailed, outcome, settled } from "@/data/samples"
 
-// The chart is its own chunk, so the Log never loads Recharts. A failed
-// import is a load failure like the samples', offline or after a deploy.
-let failed = false
-export const loadChart = () =>
-  import("./profile").catch((cause: unknown) => {
-    failed = true
-    throw new LoadFailed("Couldn't load the chart", { cause })
-  })
-let Lazy = lazy(loadChart)
+type ChartModule = typeof import("./profile")
 
-// React.lazy keeps a failed import for good, so a retry needs a new one.
-export function retryChart() {
-  if (!failed) return
-  failed = false
-  Lazy = lazy(loadChart)
+// The chart is its own chunk, so the Log's first render never waits on
+// Recharts. It loads once the Log is idle, so a dive's first opening needn't
+// wait either. A failed import is a load failure like the samples', offline
+// or after a deploy, and stays failed until retried.
+let chart: Promise<ChartModule> | undefined
+export function loadChart() {
+  chart ??= settled(
+    import("./profile").catch((cause: unknown) => {
+      throw new LoadFailed("Couldn't load the chart", { cause })
+    })
+  )
+  return chart
 }
 
-// The Profile card's body, from the chunk (see profile.tsx).
-export function ProfileChart(props: ComponentProps<typeof Lazy>) {
-  const Current = Lazy
-  return <Current {...props} />
+export function retryChart() {
+  if (chart && outcome(chart).status === "rejected") chart = undefined
+}
+
+export function usePreloadChart() {
+  useEffect(() => {
+    const load = () => void loadChart().catch(() => {})
+    if ("requestIdleCallback" in window) {
+      const id = requestIdleCallback(load)
+      return () => cancelIdleCallback(id)
+    }
+    const id = setTimeout(load, 1000)
+    return () => clearTimeout(id)
+  }, [])
 }
