@@ -5,7 +5,14 @@ import type { Profile } from "@/api/client"
 
 import { fixtureDive } from "../../../../packages/core/test/fixture.ts"
 import { clock, rateLabel } from "./format"
-import { eventLabel, eventsAt, pointAt, profileModel, rate } from "./model"
+import {
+  eventLabel,
+  eventsAt,
+  pointAt,
+  profileModel,
+  rate,
+  type ProfileEvent,
+} from "./model"
 
 // Fixture dive 54 as the server sends it: merged samples, its five ascent
 // alarms as spans, and the surface events at its start and end.
@@ -179,6 +186,31 @@ describe("the crosshair", () => {
     expect(rate(1)).toBe(-0.06)
     expect(rateLabel(rate(-181))).toBe("+10.9")
     expect(rateLabel(rate(346))).toBe("−20.8")
+  })
+
+  it("names an alarm for as long as the crosshair is on its drawn band", () => {
+    // 257–258 s, drawn 6 px wide: about 37 s on a 1837 s axis 296 px wide.
+    const model = dive54(326 - 30)
+    expect(eventsAt(model.events, 290, model.eventEnd)).toHaveLength(1)
+    expect(eventsAt(model.events, 290)).toEqual([])
+    expect(eventsAt(model.events, 300, model.eventEnd)).toEqual([])
+  })
+
+  it("names the alarm recorded at a time before a widened band over it", () => {
+    const events = [
+      { type: "rbt", start: 100, end: 101 },
+      { type: "ascent", start: 120, end: 125 },
+    ]
+    const drawn = (event: ProfileEvent) =>
+      Math.max(event.end ?? event.start, event.start + 37)
+    expect(eventsAt(events, 122, drawn).map((e) => e.type)).toEqual([
+      "ascent",
+      "rbt",
+    ])
+    expect(eventsAt(events, 130, drawn).map((e) => e.type)).toEqual([
+      "rbt",
+      "ascent",
+    ])
   })
 
   it("names the alarm it sits in", () => {

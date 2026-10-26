@@ -49,7 +49,7 @@ export const ProfileTable = memo(function ProfileTable({
               </TableCell>
               <TableCell>{rateLabel(rate(model.speeds[i].speed))}</TableCell>
               <TableCell>
-                {eventsAt(model.events, point.time)
+                {eventsAt(model.events, point.time, model.eventEnd)
                   .map((event) => `${eventLabel(event.type)} alarm`)
                   .join(", ")}
               </TableCell>
