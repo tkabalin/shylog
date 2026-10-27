@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Two jobs so a failing check doesn't hide the browser results, and the
-# Playwright browser install runs alongside the fast checks. Actions are
+# browser tests run alongside the fast checks. Actions are
 # pinned to commit SHAs, so a moved or hijacked tag can't change what runs.
 jobs:
   check:
@@ -53,6 +53,12 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Browsers and their system libraries come with the image, as apt from
+    # the runner's Ubuntu mirror stalled past the timeout. Its version must
+    # match @playwright/test in the lockfile; bump both together.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      options: --user 1001
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -63,7 +69,6 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium webkit
       - id: e2e
         run: pnpm test:e2e
       - if: ${{ !cancelled() && steps.e2e.outcome != 'skipped' }}
