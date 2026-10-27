@@ -647,12 +647,13 @@ Deferred, or to watch:
 
 Still to do on the owner's phone:
 
-- the native `<input type="checkbox" switch>` (Nitrox, Ignore this dive): that Safari draws its own switch, with the haptic, at the board's size and in cyan-400 in dark mode;
+- the native `<input type="checkbox" switch>` (Nitrox, Ignore this dive): that Safari draws its own switch, with the haptic, at the board's size and in cyan-400 in dark mode, and that its colour fading on the way off matches a switch in the Settings app;
 - the invisible date and time inputs over their text: that a tap anywhere on the row opens the iOS picker, the time picker starts at 09:00, and VoiceOver reads and opens them;
 - the names sheet: that the keyboard rises when it opens (`initialFocus`; iOS may focus without a keyboard outside the tap's gesture), that the chip area scrolls with the keyboard up, and that every sheet's last rows scroll above the keyboard (`--keyboard`, from `visualViewport`);
 - a comma typed in a water temperature (`type="number"`): it should show "Use a point for decimals", not vanish;
 - whether the keyboard pushes the form's sticky bar off screen when a low field is focused;
-- the drawer backdrop's blur behind the full-height sheets, and swipe-to-dismiss from a scrolled list.
+- swipe-to-dismiss from a scrolled list;
+- the segmented controls' 300 ms slide, and the month line under the Log's bar straight after a swipe back from a dive.
 
 Decisions taken while building:
 
@@ -665,6 +666,7 @@ Decisions taken while building:
 - An edit captures the saved values when the form opens (and keeps them with the autosave), so a sync while it's open, or a restored form, never sends the server's newer values back as hand edits.
 - The profile chart and the Log's sparkline are drawn to the computer's max depth when a hand value replaced it, the depth gutter widens for 3-digit labels, and the time axis's "min" moved to the first label.
 - Figures past what any dive can reach are refused by core's schema (Limits under v1 fields in the spec), chosen with the owner: 350 m, 24 h, a 48 h interval override, 300 bar with the end no higher than the start, 20 L, 40 kg, −3 to 40 °C and 150 m of visibility. The form shows the schema's message under the field.
+- From the owner's review of the PR: every full-height sheet stays full height, since each opens the keyboard; sheets dim what is behind them with no blur; every sheet title is shadcn's default (centred, 16 px medium); the segmented thumb slides in 300 ms on the drawer curve, as 200 ms ease-out read as a snap; the dive bar takes its line at the first pixel of scroll again.
 - iOS's tap highlight is off app-wide (`index.css`), so every tappable row and small button has its own pressed state; buttons and list options can't be text-selected.
 - No component-testing library: the form tests render with `react-dom` and React's `act` (`dive/form/testing.tsx`). The plan's `form.test.ts` is `form.test.tsx`; `adopt.test.tsx` and `sitepicker.test.tsx` likewise. The board renderer used for comparisons is in the session's scratchpad, not the repo.
 
@@ -675,7 +677,7 @@ Deferred, or to watch:
 - Pressures stay on the number pad (NOTES), so a fractional imported pressure can't be retyped exactly.
 - Milestone 16: the outline, cloud-off icon and provisional number on draft cards, retry on reconnect, and the offline notes; drafts show in the Log meanwhile, unmarked. Milestone 11: deleting from the form.
 - Carried over from milestone 9: on the phone, tap-to-content time, a cached dive flashing a skeleton, `touch-action: pan-y` on the chart, long press on the chart and alarm rows, the 10 px labels outdoors, scrubbing a dense dive. Other event types' rows (milestone 18). The profile digest can't see a re-import that changes nothing it covers (milestone 20). The Change pairing sparkline should use `chartDepthAxis` (milestone 21). React logs a caught profile failure in development.
-- Carried over from milestone 8: on the phone, the drawer overlay's blur during momentum scroll, edge-swipe back in the installed app, the month line handing over, the keyboard with the sticky search focused, swipe-to-dismiss against the slider, the top safe-area inset in standalone mode, cards flashing their pressed tint when a scroll starts on them. Milestone 11: the detail treats a deleted dive as not found. Milestone 16: a cold launch's first tap may wait on the network for the detail and chart chunks; the no-profile copy is the synced-dive wording. The Content-Length middleware copies each API JSON body once; `readCards` selects `hash` without a schema check.
+- Carried over from milestone 8: on the phone, edge-swipe back in the installed app, the month line handing over, the keyboard with the sticky search focused, swipe-to-dismiss against the slider, the top safe-area inset in standalone mode, cards flashing their pressed tint when a scroll starts on them. Milestone 11: the detail treats a deleted dive as not found. Milestone 16: a cold launch's first tap may wait on the network for the detail and chart chunks; the no-profile copy is the synced-dive wording. The Content-Length middleware copies each API JSON body once; `readCards` selects `hash` without a schema check.
 - Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a hand dive at Nitrox no keeps air on import (milestone 20); the derived pass reads every dive's samples on every write.
 - Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
 
