@@ -1,4 +1,4 @@
-import { patchDiveRequest, type DiveId, type EntityKind } from "@shylog/core"
+import { entityCreateOrder, patchDiveRequest, type DiveId } from "@shylog/core"
 
 import { apiClient } from "@/api/client"
 import { editDraft, listDrafts, readDraft, saveDraft } from "@/data/drafts"
@@ -13,18 +13,10 @@ import {
   type NewEntity,
 } from "./values"
 
-// Regions first, as a new site or dive centre may sit in one, as the server
-// applies a draft's entities.
-const kindOrder: EntityKind[] = [
-  "region",
-  "site",
-  "diveCentre",
-  "person",
-  "trip",
-]
 const ordered = (entities: NewEntity[]) =>
   [...entities].sort(
-    (a, b) => kindOrder.indexOf(a.kind) - kindOrder.indexOf(b.kind)
+    (a, b) =>
+      entityCreateOrder.indexOf(a.kind) - entityCreateOrder.indexOf(b.kind)
   )
 
 // The entities the dive uses that it must carry: its own new ones, and any

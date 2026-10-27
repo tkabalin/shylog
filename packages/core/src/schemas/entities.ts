@@ -13,6 +13,16 @@ export const entityKinds = [
 ] as const
 export type EntityKind = (typeof entityKinds)[number]
 
+// The order a draft's or a form's new entities are created in: regions
+// first, as a new site or dive centre may sit in one.
+export const entityCreateOrder: readonly EntityKind[] = [
+  "region",
+  "site",
+  "diveCentre",
+  "person",
+  "trip",
+]
+
 // Each kind's fields split into required, defaulted (filled in at save, so
 // an edit can change but not clear them) and optional, which an edit can
 // clear (see patchShape).
