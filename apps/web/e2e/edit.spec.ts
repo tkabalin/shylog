@@ -1,0 +1,104 @@
+import { expect, type Page } from "@playwright/test"
+
+import { deleteDive, diveId, getLog, patchDive, test } from "./api"
+import { still } from "./ui"
+
+const sheet = (page: Page) => page.getByRole("dialog")
+
+// Opens a picker row and waits for its sheet to finish sliding in.
+async function openSheet(page: Page, row: RegExp) {
+  await page.getByRole("button", { name: row }).click()
+  await still(sheet(page))
+}
+
+test("adds a dive with a new site and buddy, which uploads and gets its number @writes", async ({
+  page,
+  restore,
+}) => {
+  const name = `E2E Reef ${Date.now()}`
+  await page.goto("/")
+  await page.getByRole("link", { name: "Log a dive" }).click()
+  await expect(page.getByRole("heading", { name: "New dive" })).toBeVisible()
+
+  await openSheet(page, /^Site,/)
+  await sheet(page).getByRole("button", { name: "New site" }).click()
+  await sheet(page).getByLabel("Name").fill(name)
+  await sheet(page).getByRole("button", { name: "Add", exact: true }).click()
+  await expect(
+    page.getByRole("button", { name: /^Site,/ })
+  ).toHaveAccessibleName(`Site, ${name}`)
+
+  await page.locator("#field-time").fill("09:00")
+  await page.getByLabel("Duration").fill("40")
+  await page.getByLabel("Max depth").fill("18,5")
+
+  await openSheet(page, /^Buddies,/)
+  await page.getByRole("textbox", { name: "Buddies" }).fill("E2E Buddy")
+  await sheet(page).getByRole("button", { name: "Add “E2E Buddy”" }).click()
+  await sheet(page).getByRole("button", { name: "Done" }).click()
+  await expect(
+    page.getByRole("button", { name: /^Buddies,/ })
+  ).toHaveAccessibleName("Buddies, E2E Buddy")
+
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  // The detail takes the form's place.
+  await expect(page).toHaveURL(/\/dive\/dive-[\w-]+$/)
+  const id = page.url().split("/").pop()!
+  restore((request) => deleteDive(request, id))
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(name)
+  // Numbered once the server has it.
+  await expect(page.getByText(/^Dive \d+$/)).toBeVisible()
+  await expect(page.getByText("E2E Buddy")).toBeVisible()
+  const log = await getLog(page.request)
+  expect(log.dives.find((dive) => dive.id === id)?.maxDepth).toBe(18.5)
+
+  // The detail replaced the form, so its Log link goes back to the Log the
+  // form was opened from rather than stacking another: forward returns.
+  await page.getByRole("link", { name: "Log" }).first().click()
+  await expect(page).toHaveURL(/\/$/)
+  await page.goForward()
+  await expect(page).toHaveURL(new RegExp(`/dive/${id}$`))
+})
+
+test("edits a dive's notes, which changes the log's version @writes", async ({
+  page,
+  restore,
+}) => {
+  const id = await diveId(page.request, 63)
+  const before = await getLog(page.request)
+  const notes = before.dives.find((dive) => dive.id === id)!.notes
+  restore((request) => patchDive(request, id, { notes }))
+
+  // The Log first, so Back from the detail has it to return to.
+  await page.goto("/")
+  await expect(page.getByRole("heading", { name: "Log" })).toBeAttached()
+  await page.goto(`/dive/${id}`)
+  await page.getByRole("link", { name: "Edit" }).click()
+  await expect(page.getByRole("heading", { name: "Edit dive" })).toBeVisible()
+  await page.getByLabel("General").fill("Strong drift north")
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+
+  // Save goes back to the detail, which shows the new notes.
+  await expect(page).toHaveURL(new RegExp(`/dive/${id}$`))
+  await expect(page.getByText("Strong drift north")).toBeVisible()
+  const after = await getLog(page.request)
+  expect(after.version).not.toBe(before.version)
+  // The form is gone from history: Back from the detail reaches the Log.
+  await page.goBack()
+  await expect(page).toHaveURL(/\/$/)
+})
+
+test("keeps the form's values and offers Try again when the server can't be reached", async ({
+  page,
+}) => {
+  const id = await diveId(page.request, 63)
+  await page.route(`**/api/dives/${id}`, (route) =>
+    route.request().method() === "PATCH" ? route.abort() : route.fallback()
+  )
+  await page.goto(`/dive/${id}/edit`)
+  await page.getByLabel("General").fill("Kept while offline")
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  await expect(page.getByRole("button", { name: "Try again" })).toBeVisible()
+  await expect(page.getByLabel("General")).toHaveValue("Kept while offline")
+  await expect(page).toHaveURL(new RegExp(`/dive/${id}/edit$`))
+})

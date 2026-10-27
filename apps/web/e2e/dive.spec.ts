@@ -66,7 +66,7 @@ test("goes back to the Log list from a tab opened on a dive", async ({
   page,
 }) => {
   await page.goto("/")
-  await tapCard(page.locator("main a[href^='/dive/']").first())
+  await tapCard(page.locator("main a[href^='/dive/dive-']").first())
   await expect(page).toHaveURL(/\/dive\//)
   await page
     .getByRole("navigation", { name: "Main" })
@@ -76,7 +76,9 @@ test("goes back to the Log list from a tab opened on a dive", async ({
   // Stats took the dive's place; the Log list is behind it.
   await page.goBack()
   await expect(page).toHaveURL("/")
-  await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
+  await expect(
+    page.locator("main a[href^='/dive/dive-']").first()
+  ).toBeVisible()
 })
 
 test("brings the site name into the bar once the title scrolls away", async ({

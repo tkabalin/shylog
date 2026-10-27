@@ -61,7 +61,9 @@ test("keeps every dive's profile on the phone after a sync", async ({
   context,
 }) => {
   await page.goto("/")
-  await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
+  await expect(
+    page.locator("main a[href^='/dive/dive-']").first()
+  ).toBeVisible()
   await expect.poll(() => keptProfiles(page)).toBe(46)
 
   // Open one dive in the app while online, so the detail's code is loaded,
@@ -88,7 +90,9 @@ test("draws a kept dive's chart with no skeleton", async ({
   // A fresh start: nothing in memory but the log, the chart's code loaded
   // while the Log was idle.
   await page.reload()
-  await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
+  await expect(
+    page.locator("main a[href^='/dive/dive-']").first()
+  ).toBeVisible()
   await page.waitForTimeout(1000)
   await page.evaluate(() => {
     const seen = new MutationObserver(() => {

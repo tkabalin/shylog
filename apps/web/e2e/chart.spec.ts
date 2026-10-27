@@ -82,7 +82,9 @@ test("loads the chart's code once the Log is idle", async ({ page }) => {
     if (/\/src\/chart\/profile|recharts/.test(req.url())) chart.push(req.url())
   })
   await page.goto("/")
-  await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
+  await expect(
+    page.locator("main a[href^='/dive/dive-']").first()
+  ).toBeVisible()
   // Before any dive is opened, so the first one needn't wait on it.
   await expect.poll(() => chart.length).toBeGreaterThan(0)
 })

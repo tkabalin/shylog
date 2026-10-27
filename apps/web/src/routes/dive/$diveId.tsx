@@ -24,11 +24,13 @@ import {
   IconArrowBarToDown,
   IconArrowBarToDownDashed,
   IconArrowsHorizontal,
+  IconArrowsDiff,
   IconArrowWaveRightUp,
   IconBarbell,
   IconBuildingStore,
   IconCalendar,
   IconChevronLeft,
+  IconChevronRight,
   IconClock,
   IconCloud,
   IconCloudRain,
@@ -38,6 +40,7 @@ import {
   IconHourglass,
   IconMap,
   IconNotes,
+  IconPencil,
   IconPool,
   IconRipple,
   IconScubaMask,
@@ -65,6 +68,7 @@ import type { Dive } from "@/data/db"
 import { currentLog, useLog, type LogView } from "@/data/log"
 import { loadProfile, retryProfile } from "@/data/samples"
 import { diveFigures } from "@/dive/figures"
+import { computerName, differences } from "@/dive/form/values"
 import { clockTime, longDate } from "@/format/dates"
 import {
   bar,
@@ -200,6 +204,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
       .filter(Boolean)
       .join(", ") || null
   const figures = diveFigures(dive, log)
+  const differing = differences(dive, log.fieldMeta.get(dive.id))
   const { barRef, content, title, scrolled, titled } = useBar()
 
   const visibility =
@@ -223,6 +228,14 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         >
           {site?.name}
         </span>
+        <Link
+          to="/dive/$diveId/edit"
+          params={{ diveId: dive.id }}
+          className="inline-flex h-11 items-center gap-1 justify-self-end px-2.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50 active:duration-0"
+        >
+          <IconPencil aria-hidden className="size-[1.15em]" />
+          Edit
+        </Link>
       </header>
 
       <div className="flex flex-col gap-6 px-4 pt-5 pb-8">
@@ -279,6 +292,32 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
             unit={dive.averageDepth != null ? "m" : undefined}
           />
         </dl>
+
+        {differing.length > 0 && (
+          // Leads to the form, where each value can be used or dismissed.
+          <Link
+            to="/dive/$diveId/edit"
+            params={{ diveId: dive.id }}
+            className="-mt-2 flex min-h-11 items-center gap-2.5 rounded-xl bg-primary/8 px-3.5 text-sm transition-colors duration-150 active:bg-primary/14 active:duration-0"
+          >
+            <IconArrowsDiff
+              aria-hidden
+              className="size-4.5 shrink-0 text-primary"
+            />
+            <span className="flex-1">
+              {differing.length}{" "}
+              {differing.length === 1 ? "value differs" : "values differ"} from{" "}
+              {/* Kept together, so the model never sits alone on a line. */}
+              <span className="whitespace-nowrap">
+                the {computerName(dive.computerModel)}
+              </span>
+            </span>
+            <span className="inline-flex items-center gap-0.5 font-medium text-primary">
+              Review
+              <IconChevronRight aria-hidden className="size-4" />
+            </span>
+          </Link>
+        )}
 
         <ProfileCard dive={dive} mod={figures.mod} />
 
