@@ -69,7 +69,7 @@ export function temperatureAxis(points: readonly ChartPoint[]) {
 }
 
 // Seconds that three label widths cover on the time axis, rounded up, as
-// getMinLabelDistance gives the peak and temperature labels' spacing.
+// getMinLabelDistance gives the peak labels' spacing.
 export const labelInterval = (
   labelWidth: number,
   axis: AxisTicks,

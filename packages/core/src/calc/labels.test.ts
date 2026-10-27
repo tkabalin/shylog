@@ -2,12 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { fixtureDive } from "../../test/fixture.ts"
 import { timeAxis } from "./axes.ts"
-import {
-  depthLabels,
-  pointsInView,
-  temperatureLabels,
-  type DepthLabel,
-} from "./labels.ts"
+import { depthLabels, pointsInView, type DepthLabel } from "./labels.ts"
 import { mergeDuplicateSamples } from "./samples.ts"
 import { chartEnd, chartPoints, type ChartPoint } from "./velocity.ts"
 
@@ -141,67 +136,5 @@ describe("depthLabels", () => {
       point(70, 0),
     ]
     expect(brief(depthLabels(points, 8, 5))).toEqual(["peak 20000 at 10"])
-  })
-})
-
-describe("temperatureLabels", () => {
-  const at = (time: number, temperature: number | null) =>
-    point(time, 10_000, temperature)
-
-  it("labels the first temperature, then changes of 0.4 °C after the interval", () => {
-    const points = [
-      at(0, null),
-      at(10, 20),
-      at(100, 20.3),
-      at(200, 20.4),
-      at(300, 21),
-    ]
-    expect(temperatureLabels(points, 5, 1800, 100)).toEqual([
-      { time: 10, temperature: 20 },
-      { time: 200, temperature: 20.4 },
-      { time: 300, temperature: 21 },
-    ])
-  })
-
-  it("waits a full interval unless the change is 2 °C, and half one regardless", () => {
-    const points = [
-      at(0, 20),
-      at(40, 23),
-      at(60, 21),
-      at(80, 21.9),
-      at(120, 25),
-      at(220, 22),
-    ]
-    expect(temperatureLabels(points, 6, 1800, 100)).toEqual([
-      { time: 0, temperature: 20 },
-      // 23 °C at 40 s is under half an interval on; 21 and 21.9 °C are
-      // under a full one and less than 2 °C off.
-      { time: 120, temperature: 25 },
-      // A full interval on, so 3 °C less is labelled.
-      { time: 220, temperature: 22 },
-    ])
-    // Exactly 2 °C is enough after half an interval.
-    expect(temperatureLabels([at(0, 20), at(60, 22)], 2, 1800, 100)).toEqual([
-      { time: 0, temperature: 20 },
-      { time: 60, temperature: 22 },
-    ])
-  })
-
-  it("cuts the last point in view at the axis's end", () => {
-    const points = [at(0, 20), at(1790, 20), at(1810, 22)]
-    expect(temperatureLabels(points, 3, 1800, 100)).toEqual([
-      { time: 0, temperature: 20 },
-      { time: 1800, temperature: 21 },
-    ])
-  })
-
-  it("leaves out a point cut against one with no temperature", () => {
-    // Subsurface would read the missing value as 0 K and label -38.6 °C.
-    const points = [at(0, null), at(20, null), at(25, 20)]
-    expect(temperatureLabels(points, 3, 24, 1)).toEqual([])
-  })
-
-  it("leaves out readings below 200 K, as Subsurface does", () => {
-    expect(temperatureLabels([at(0, -80)], 1, 1800, 100)).toEqual([])
   })
 })

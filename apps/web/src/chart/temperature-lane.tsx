@@ -3,21 +3,22 @@ import {
   DefaultZIndexes,
   Line,
   LineChart,
-  usePlotArea,
-  useXAxisScale,
   useYAxisScale,
   XAxis,
   YAxis,
   ZIndexLayer,
 } from "recharts"
 
-import { cn } from "cn"
-
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 import { temperature } from "@/format/figures"
 
-import { halo } from "./format"
-import { laneBottom, laneHeight, laneTop, plotLeft } from "./layout"
+import {
+  labelHeight,
+  laneBottom,
+  laneHeight,
+  laneTop,
+  plotLeft,
+} from "./layout"
 import type { ProfileModel } from "./model"
 
 const config = {
@@ -28,8 +29,9 @@ const config = {
 } satisfies ChartConfig
 
 // Water temperature in its own lane under the depth chart, on the same time
-// axis. The D4i records it only when it changes, so the line steps. The
-// crosshair is drawn over it separately (crosshair.tsx).
+// axis. The D4i records it only when it changes, so the line steps. Only
+// the lowest and highest are labelled; the crosshair (crosshair.tsx) reads
+// the rest.
 export const TemperatureLane = memo(function TemperatureLane({
   model,
   width,
@@ -70,7 +72,6 @@ export const TemperatureLane = memo(function TemperatureLane({
           connectNulls
           isAnimationActive={false}
         />
-        {/* Over the line, so the labels read on top. */}
         <ZIndexLayer zIndex={DefaultZIndexes.label}>
           <LaneAnnotations model={model} width={width} />
         </ZIndexLayer>
@@ -86,10 +87,19 @@ function LaneAnnotations({
   model: ProfileModel
   width: number
 }) {
-  const x = useXAxisScale()
   const y = useYAxisScale()
-  const plot = usePlotArea()
-  if (!x || !y || !plot) return null
+  if (!y) return null
+  const { min, max } = model.water!
+  const low = y(min)!
+  // The axis is at least 2 °C tall, so when the water barely changed the
+  // highest is pushed up off the lowest.
+  const labels =
+    temperature(max) === temperature(min)
+      ? [{ value: min, at: low }]
+      : [
+          { value: min, at: low },
+          { value: max, at: Math.min(y(max)!, low - labelHeight) },
+        ]
   return (
     <g aria-hidden className="tabular-nums">
       <line
@@ -99,22 +109,19 @@ function LaneAnnotations({
         y2={laneHeight - 0.5}
         className="stroke-border"
       />
-      {/* Above the line and starting at its point, as Subsurface aligns
-          them, turned back near the right edge to stay in the lane. */}
-      {model.temperatureLabels.map((label) => {
-        const lx = x(label.time)!
-        return (
-          <text
-            key={label.time}
-            x={lx}
-            y={y(label.temperature)! - 4}
-            textAnchor={lx > width - 24 ? "end" : "start"}
-            className={cn(halo, "fill-muted-foreground")}
-          >
-            {temperature(label.temperature)}°
-          </text>
-        )
-      })}
+      {/* In the gutter, like the depth labels. */}
+      {labels.map(({ value, at }) => (
+        <text
+          key={value}
+          x={plotLeft - 4}
+          y={at}
+          dy="0.32em"
+          textAnchor="end"
+          className="fill-muted-foreground"
+        >
+          {temperature(value)}°
+        </text>
+      ))}
     </g>
   )
 }

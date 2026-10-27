@@ -138,12 +138,11 @@ describe("profileModel", () => {
     expect(model.alarms[0].from.time).toBe(20)
   })
 
-  it("labels each temperature only the first time", () => {
-    // Back and forth between 13 and 14 °C, a minute at a time.
-    const samples = Array.from({ length: 8 }, (_, i) => ({
+  it("gives the water's range, not the lane's 2 °C axis", () => {
+    const samples = [22, 22.4, 22.2].map((temperature, i) => ({
       time: (i + 1) * 60,
       depth: 10,
-      temperature: i % 2 ? 14 : 13,
+      temperature,
       pressure: null,
     }))
     const model = profileModel(
@@ -151,9 +150,8 @@ describe("profileModel", () => {
       { maxDepth: 10, mod: null },
       326
     )
-    expect(model.temperatureLabels.map((label) => label.temperature)).toEqual([
-      13, 14,
-    ])
+    expect(model.temperature).toMatchObject({ min: 22, max: 24 })
+    expect(model.water).toEqual({ min: 22, max: 22.4 })
   })
 
   it("has no temperature range when none was recorded", () => {

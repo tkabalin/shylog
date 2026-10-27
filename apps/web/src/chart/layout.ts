@@ -22,10 +22,10 @@ export const timeLabelWidth = 28
 
 export const readoutHeight = 44
 export const laneHeaderHeight = 16
-// The lane's line runs between these insets, leaving room above it for the
-// labelled temperatures.
+// The lane's line runs between these insets, leaving room for the gutter's
+// labels centred on its highest and lowest levels.
 export const laneHeight = 40
-export const laneTop = 14
+export const laneTop = 6
 export const laneBottom = 6
 export const alarmsHeaderHeight = 33
 export const alarmRowHeight = 56
