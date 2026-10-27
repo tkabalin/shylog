@@ -17,6 +17,7 @@ import type { Profile } from "@/api/client"
 import {
   chartDepthAxis,
   depthLabelWidth,
+  plotLeftFor,
   plotHeight as cardPlotHeight,
   plotTop,
   timeAxisHeight,
@@ -34,6 +35,11 @@ export interface Alarm {
   peak: number
   peakIndex: number
 }
+
+// The depth labels' gutter for a dive, from its deepest point recorded or
+// sampled, which the axis is drawn to; the model gives the same.
+export const profileGutter = ({ samples }: Profile, maxDepth: number) =>
+  plotLeftFor(Math.max(maxDepth, ...samples.map((sample) => sample.depth)))
 
 // Everything the chart draws for one dive at one plot size, from core's rules
 // (see Profile chart in the spec): points in view with their speeds, the
@@ -115,6 +121,8 @@ export function profileModel(
   const eventEnd = (event: ProfileEvent) =>
     Math.max(event.end ?? event.start, event.start + minSpan)
   return {
+    // The depth labels' gutter, left of the plot.
+    left: plotLeftFor(deepestPoint(maxDepth, all) / 1000),
     plotHeight,
     // The depth chart's whole height: the event band, the plot, the times.
     chartHeight: plotTop + plotHeight + timeAxisHeight,

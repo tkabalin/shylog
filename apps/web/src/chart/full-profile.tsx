@@ -2,9 +2,11 @@ import { useMemo, useRef, type ReactNode } from "react"
 
 import type { Profile as ProfileData } from "@/api/client"
 import type { Dive } from "@/data/db"
+import { useLog } from "@/data/log"
+import { profileMaxDepth } from "@/dive/figures"
 
-import { plotLeft, plotTop, timeAxisHeight } from "./layout"
-import { profileModel } from "./model"
+import { plotTop, timeAxisHeight } from "./layout"
+import { profileGutter, profileModel } from "./model"
 import { ProfileTable } from "./profile-table"
 import { useSize } from "./size"
 import { DepthView, LaneView, Readout, useCrosshair } from "./view"
@@ -29,17 +31,20 @@ export function FullProfile({
   const ref = useRef<HTMLDivElement>(null)
   const { width, height } = useSize(ref)
   const plotHeight = Math.max(80, height - plotTop - timeAxisHeight)
+  // Subscribed, so using the computer's value redraws the axis.
+  const { log } = useLog()
+  const depth = profileMaxDepth(dive, log?.fieldMeta.get(dive.id))
   const model = useMemo(
     () =>
       width && height
         ? profileModel(
             profile,
-            { maxDepth: dive.maxDepth, mod },
-            width - plotLeft,
+            { maxDepth: depth, mod },
+            width - profileGutter(profile, depth),
             plotHeight
           )
         : null,
-    [profile, dive.maxDepth, mod, width, height, plotHeight]
+    [profile, depth, mod, width, height, plotHeight]
   )
   const { index, handlers } = useCrosshair(model, { free: true, turned })
 

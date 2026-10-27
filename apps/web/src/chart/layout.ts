@@ -12,7 +12,12 @@ export const chartHeight = 200
 export const plotTop = 18
 export const timeAxisHeight = 30
 export const plotHeight = chartHeight - plotTop - timeAxisHeight
+// Wide enough for "90 m", as the loading skeleton draws it. A dive whose
+// axis reaches 100 m needs room for three digits: judged from the deepest
+// point before the axis is worked out, with margin for it rounding up.
 export const plotLeft = 30
+export const plotLeftFor = (deepestMetres: number) =>
+  deepestMetres >= 90 ? 38 : plotLeft
 
 // Axis labels are 10 px Geist. Subsurface spaces ticks and labels by the
 // size of its widest label ("999" for depth, "99.99" for time).

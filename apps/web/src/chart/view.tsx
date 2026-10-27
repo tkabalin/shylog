@@ -8,7 +8,7 @@ import { depth, temperature } from "@/format/figures"
 import { Crosshair } from "./crosshair"
 import { DepthChart } from "./depth-chart"
 import { clock, rateLabel } from "./format"
-import { laneHeaderHeight, laneHeight, plotLeft, readoutHeight } from "./layout"
+import { laneHeaderHeight, laneHeight, readoutHeight } from "./layout"
 import { eventLabel, eventsAt, pointAt, rate, type ProfileModel } from "./model"
 import { TemperatureLane } from "./temperature-lane"
 
@@ -37,8 +37,8 @@ export function useCrosshair(
     // Measured within the plot, past the depth labels' gutter.
     const box = event.currentTarget.getBoundingClientRect()
     const part = turned
-      ? (event.clientY - box.top - plotLeft) / (box.height - plotLeft)
-      : (event.clientX - box.left - plotLeft) / (box.width - plotLeft)
+      ? (event.clientY - box.top - model.left) / (box.height - model.left)
+      : (event.clientX - box.left - model.left) / (box.width - model.left)
     const seconds = Math.min(Math.max(part, 0), 1) * model.time.max
     setChosen(pointAt(model.points, seconds))
   }

@@ -1,6 +1,6 @@
 import { cn } from "cn"
 
-import { laneBottom, laneHeight, laneTop, plotLeft, plotTop } from "./layout"
+import { laneBottom, laneHeight, laneTop, plotTop } from "./layout"
 import type { ProfileModel } from "./model"
 
 // The crosshair, drawn in its own layers over the charts' scales so a move
@@ -20,7 +20,7 @@ export function Crosshair({
   layer: "line" | "dot"
 }) {
   const point = model.points[index]
-  const x = plotLeft + (point.time / model.time.max) * (width - plotLeft)
+  const x = model.left + (point.time / model.time.max) * (width - model.left)
   const height = lane ? laneHeight : model.chartHeight
   let y: number | null
   if (lane) {
