@@ -79,6 +79,27 @@ describe("the form's fields", () => {
     ])
   })
 
+  it("shows core's limits under the field, in the form's units", () => {
+    const { errors } = toFields(
+      filled({
+        maxDepth: "3270",
+        duration: "1500",
+        cylinderVolume: "24",
+        startPressure: "60",
+        endPressure: "200",
+        visibility: "metres",
+        visibilityMetres: "200",
+      })
+    )
+    expect(errors).toMatchObject({
+      maxDepth: "Up to 350 m",
+      duration: "Up to 24 h",
+      cylinderVolume: "Up to 20 L",
+      endPressure: "Above the start pressure",
+      visibilityMetres: "Up to 150 m",
+    })
+  })
+
   it("reads a comma as the decimal point", () => {
     const { fields } = toFields(
       filled({ maxDepth: "32,7", averageDepth: "21,1" })

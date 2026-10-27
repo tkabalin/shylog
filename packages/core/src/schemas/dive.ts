@@ -25,11 +25,22 @@ import {
 // Fields in database units: metres, seconds, °C, bar, millilitres, and
 // oxygen in tenths of a per cent. Calculated values (number, SAC, MOD, max
 // PO₂, CNS, OTU) are derived by the server and never sent.
+//
+// Figures past what any dive can reach are refused, so a slipped decimal
+// never skews the statistics; each message is in the app's units, as the
+// form shows it under the field (see v1 fields in the spec).
+const depth = z.number().positive().max(350, "Up to 350 m")
+const pressure = z.number().nonnegative().max(300, "Up to 300 bar")
+const temperature = z.number().min(-3, "From −3 °C").max(40, "Up to 40 °C")
+
 const required = {
   startTime: localDateTime,
   siteId: idSchema("site"),
-  duration: z.int().positive(),
-  maxDepth: z.number().positive(),
+  duration: z
+    .int()
+    .positive()
+    .max(24 * 3600, "Up to 24 h"),
+  maxDepth: depth,
 }
 
 // Always set on a saved dive, so an edit can change them but not clear them.
@@ -54,24 +65,31 @@ export const optionalDiveFields = {
   surge: choice(surges),
   surface: choice(surfaces),
   weather: choice(weathers),
-  minTemperature: z.number(),
-  maxTemperature: z.number(),
-  visibility: z.number().nonnegative(),
+  minTemperature: temperature,
+  maxTemperature: temperature,
+  visibility: z.number().nonnegative().max(150, "Up to 150 m"),
   visibilityRating: choice(visibilityRatings),
   workload: choice(workloads),
   thermalComfort: choice(thermalComforts),
-  averageDepth: z.number().positive(),
+  averageDepth: depth,
   // Set only to override the calculated interval; "none" is no previous dive,
   // exported as UDDF's <infinity/>.
-  surfaceInterval: z.union([z.int().nonnegative(), z.literal("none")]),
-  weight: z.number().nonnegative(),
+  // Longer than 48 hours is no previous dive, as the calculation caps it.
+  surfaceInterval: z.union([
+    z
+      .int()
+      .nonnegative()
+      .max(48 * 3600, "Up to 48 h, or No previous dive"),
+    z.literal("none"),
+  ]),
+  weight: z.number().nonnegative().max(40, "Up to 40 kg"),
   cylinderMaterial: choice(cylinderMaterials),
-  cylinderVolume: z.int().positive(),
+  cylinderVolume: z.int().positive().max(20_000, "Up to 20 L"),
   // Tenths of a per cent. 21 % or less is air, entered as Nitrox no, as an
   // import reads it.
   oxygen: z.int().min(211).max(1000),
-  startPressure: z.number().nonnegative(),
-  endPressure: z.number().nonnegative(),
+  startPressure: pressure,
+  endPressure: pressure,
   notableAnimals: text,
   gearDetails: text,
   notes: text,
@@ -99,6 +117,8 @@ type Checked = {
       | "maxTemperature"
       | "averageDepth"
       | "maxDepth"
+      | "startPressure"
+      | "endPressure"
   ]?: z.output<(typeof required & typeof optionalDiveFields)[K]> | null
 }
 
@@ -135,6 +155,19 @@ function checkDive(fields: Checked, ctx: z.RefinementCtx) {
       code: "custom",
       message: "Deeper than the maximum depth",
       path: ["averageDepth"],
+    })
+  }
+  // Gas is used on a dive, never gained, so this is two fields swapped.
+  const { startPressure, endPressure } = fields
+  if (
+    startPressure != null &&
+    endPressure != null &&
+    endPressure > startPressure
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Above the start pressure",
+      path: ["endPressure"],
     })
   }
 }
