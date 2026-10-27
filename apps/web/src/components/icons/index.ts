@@ -27,3 +27,31 @@ export const IconSurfaceStormy = createReactComponent(
     ],
   ]
 )
+
+// EditDiveHifi, Visibility: three rising bars, the unreached ones faint, for
+// the Low, Average and High ratings.
+const levelBars = (level: 1 | 2 | 3) =>
+  [
+    ["path", { d: "M6 19v-5", key: "svg-0" }],
+    ["path", { d: "M12 19v-9", opacity: level >= 2 ? 1 : 0.3, key: "svg-1" }],
+    ["path", { d: "M18 19v-13", opacity: level >= 3 ? 1 : 0.3, key: "svg-2" }],
+  ] as Parameters<typeof createReactComponent>[3]
+
+export const IconLevelLow = createReactComponent(
+  "outline",
+  "level-low",
+  "LevelLow",
+  levelBars(1)
+)
+export const IconLevelAverage = createReactComponent(
+  "outline",
+  "level-average",
+  "LevelAverage",
+  levelBars(2)
+)
+export const IconLevelHigh = createReactComponent(
+  "outline",
+  "level-high",
+  "LevelHigh",
+  levelBars(3)
+)
