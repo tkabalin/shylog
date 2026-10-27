@@ -52,7 +52,8 @@ For each of two rounds:
 
 1. Bring `main` up to date as in step 2. If it can't be moved, keep the review's findings to files in `git diff --name-only origin/main...HEAD`.
 2. Run `/code-review high --fix --max-findings all`. If the branch touches `.github/`, `playwright.config.ts`, `vitest.config.ts` or package scripts, also start a separate subagent in parallel that reviews only the CI and test setup for correctness, speed and hardening, and reports without editing.
-3. Fix every finding from both, including those the reviewer skipped, unless one needs the user's decision or contradicts the plan; list those with the reason.
+   If the branch changes UI, also start a visual review subagent in parallel, in round one and again in round two if round one's fixes touched UI. It runs the app, takes its own screenshots of every screen and state the branch built or changed, and opens each image to look at it; it never judges from code, the DOM or passing tests. It hunts for visual defects and imperfections, and reports each with its screenshot path without editing. Brief it as in [reference.md](reference.md).
+3. Fix every finding from all of them, including those the reviewer skipped, unless one needs the user's decision or contradicts the plan; list those with the reason.
 4. Fold each fix into the commit it belongs to, and reword any commit message that no longer fits (see [reference.md](reference.md)). A fix that is its own logical change gets its own commit; if unsure, ask.
 5. Rerun typecheck, lint and the scoped tests. Retake screenshots only if a fix touched UI.
 

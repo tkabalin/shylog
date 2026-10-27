@@ -30,6 +30,17 @@ The boards in `docs/design/hifi/` need Claude Design's runtime (`support.js`) to
 
 App screenshots may go in the gitignored `apps/web/e2e/__screenshots__/`. Board renders and composites go in the scratchpad.
 
+## Briefing the visual reviewer
+
+Give it the diff scope (`git diff --name-only <base>...HEAD`), the routes and components the branch added or changed, the boards they follow, how to start the app (API server with its seed, then Vite), and the scratchpad folder for its shots. Ask it to cover, for each screen:
+
+- 390 px in light and dark, and 1024 px where the layout changes;
+- the whole page, scrolled through, with each sheet, drawer, picker and menu open;
+- loading, empty and error states, forced with `page.route` (hang or fail the API), and worst-case data such as long names, missing fields and large numbers;
+- pressed, focused and disabled states where the branch styles them.
+
+Reading an image downscales it, so it must crop each area of interest at 2x with PIL and read the crops, not only full pages or contact sheets. What to look for: misalignment and uneven spacing, clipped, overflowing, truncated or overlapping text, wrong or low-contrast colours, anything that breaks in dark mode, inconsistent type sizes or weights, figures without tabular numerals, touch targets under about 44 px, content under the safe areas or sticky bars, layout shift between states, and differences from the board. Each finding names the screen, state, theme and width, the screenshot path, and what looks wrong. It logs console errors while it works and reports those too.
+
 ## Local quirks
 
 - On `/mnt/c`, Vite's first dependency optimisation takes more than 30 s and the first e2e run times out. Run it again once `apps/web/node_modules/.vite` is warm.
