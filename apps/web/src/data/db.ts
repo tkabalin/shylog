@@ -2,7 +2,9 @@ import { Dexie, type EntityTable } from "dexie"
 
 import type { Log, Profile } from "@/api/client"
 
-export type Dive = Log["dives"][number]
+// A draft that hasn't uploaded is shown as a dive too, with the server's
+// reason if it refused it (see readLog).
+export type Dive = Log["dives"][number] & { draft?: true; rejected?: string }
 export type Site = Log["sites"][number]
 export type Region = Log["regions"][number]
 export type Person = Log["people"][number]
