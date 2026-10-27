@@ -589,6 +589,13 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - The calculated block shows SAC rate, MOD, and max PO₂; CNS and OTU appear only on the dive detail.
   - An optional Copy from last dive action fills most fields (site, trip, buddies, dive professionals, dive centre, entry, weight, cylinder, gas, gear details, current, surge, surface, weather, visibility, and tags), leaving the number, date and time, depths, duration, pressures, temperatures, animals, and notes to fill.
   - An Ignore this dive switch at the end of the form, off by default, says that an ignored dive gets no number and is left out of totals and statistics.
+  - Pickers open as bottom sheets and add no history entry. Choice fields (type, entry, current, surge, workload, thermal comfort) open a list with a Not set row. The trip opens the same sheet as the dive centre: trips used most recently first, Add for a new name, and the chosen trip as a chip that removes it. The site picker is a full-height sheet whose new-site form opens its country list (recently used countries first, then A to Z, searched ignoring accents) and body-of-water list inside the same sheet; a new site's country starts as that of the most recent dive's site.
+  - Buddies, dive professionals, and the dive centre are rows that each open a full-height sheet: the chosen names, a field with the keyboard up, and the people (or dive centres) used most recently first, narrowing to matches with Add as you type. A person already on the dive in one role is not offered for the other. Names are saved as typed; the keyboard capitalises each word.
+  - The surface interval override is typed as hours and minutes, with No previous dive and a reset to the calculated value.
+  - Where a hand value differs from the computer's, the computer's value shows on a line under the field with Use and Keep mine (see For a matched dive). The two water temperatures share one line.
+  - Cylinder material, weather, and surface are segmented controls; tapping the chosen option again clears it.
+  - Cancel asks before discarding a form with changes (Discard changes or Keep editing); an untouched form closes at once. The site picker can't be swiped away while a new site is being filled in.
+  - Saving with a required field empty or an impossible value (an average depth deeper than the maximum, a minimum temperature above the maximum) shows the problem under each field and scrolls to the first.
 - **Statistics**: headline figures and charts, filtered by year (see Statistics).
 - **Import**: upload a Subsurface UDDF export, review the pairings, then see the summary (see Subsurface import).
 - **Settings**, in sections:

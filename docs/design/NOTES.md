@@ -32,6 +32,13 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - No board has ignored dives. `EditDiveHifi` needs the Ignore this dive switch at the end of the form, and `LogHifi2` cards and the `DiveDetailHifi` title show an eye-off icon in place of the dive number, with "Ignored" as screen-reader text.
 - `LogHifi2` has no depth or duration filter. Add Depth and Duration pills after the board's existing filter pills, styled the same, each opening a sheet with a range slider and Reset and Apply (see Log in the spec).
 
+- Pickers follow D29. `SitePickerHifi` becomes a full-height bottom sheet with Cancel in place of "‹ Edit dive"; Country and Body of water open as lists inside it (body of water is a list, not a native select).
+- Buddies, dive professionals and the dive centre are rows in the form that open a sheet, not the board's suggestion list inside the card. The list is "Recent" (most recently used), not "Frequent"; Add keeps the name as typed rather than capitalising it; nobody is offered for both roles.
+- The ✓/✕ group sits on its own line under each field, right-aligned like the values, for all six compared fields, rather than squeezed into the row.
+- Surface interval is edited as hours and minutes boxes, not free text.
+- Copy from last dive is one row like the form's own: the title with its icon, and the last dive's site on the right. The board's two-line card with the dive number and date is simplified away.
+- Tag chips and segmented controls are 40 to 44 px tall; the ✓/✕ buttons and chip remove buttons keep their size with a 44 px tap area.
+
 ## Settings and people
 
 - New-dive defaults use the dive form's controls (material, volume in litres, Nitrox and oxygen percentage), not the board's preset lists, and a new dive is filled from them. `EditDiveHifi` leaves them blank.
