@@ -103,11 +103,8 @@ test("brings the site name into the bar once the title scrolls away", async ({
   // Neither transparent nor an alpha colour such as oklch(1 0 0 / 85%).
   expect(background).not.toBe("rgba(0, 0, 0, 0)")
   expect(background).not.toContain("/")
-  // The line waits for the content's first line to reach the bar, not the
-  // gap above it; the title waits for the h1.
+  // Any scroll gives the bar its line; the title waits for the h1.
   await page.locator("#main").evaluate((el) => el.scrollBy(0, 10))
-  await expect(bar).not.toHaveAttribute("data-scrolled")
-  await page.locator("#main").evaluate((el) => el.scrollBy(0, 20))
   await expect(bar).toHaveAttribute("data-scrolled", "")
   await expect(barTitle).toHaveCSS("opacity", "0")
   await page.locator("#main").evaluate((el) => el.scrollBy(0, 300))
