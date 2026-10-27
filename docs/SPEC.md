@@ -610,7 +610,7 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
 The dive detail shows the computer's time series much as Subsurface does, everything plotted against elapsed time in the dive. The chart's points, axis ranges, tick spacing, and labelled peaks follow Subsurface's rules; the visual style is Shylog's own.
 
 - Depth as the main line, with the surface at the top. The line is coloured by vertical speed, using the bands below, and no legend is shown for them.
-- Water temperature in its own lane below the depth chart, on the same time axis. The D4i records temperature only when it changes, so each value is carried forward to the next.
+- Water temperature in its own lane below the depth chart, on the same time axis. The D4i records temperature only when it changes, so each value is carried forward to the next. The lowest and highest temperatures are labelled in the gutter left of the lane, and the crosshair's readout gives the temperature at any other moment.
 - Tank pressure is not drawn in v1, since neither the D4i nor the Zoop Novo records it in a Subsurface export; the `samples` table keeps a pressure column so an export that carries it is not lost.
 - Computer events (warnings and flags) as markers on the timeline at the moment they occurred, each an icon centred over its band, with no text: the alarms list under the chart and the crosshair's readout name them. An event that spans an interval, such as an ascent-rate alarm, is drawn as a band, at least 6 px wide. Surface events are not shown as warnings.
 - The gas's MOD as a horizontal line at that depth, with a short label such as "MOD 33.2 m", drawn only when the MOD falls within the depth axis's range. The line never widens the depth axis, which still comes from the dive's own depth (see Axis ranges), so air dives and shallow nitrox dives usually show no line. It uses the same MOD as the dive's figures (the gas mix and the maximum PO₂ setting), so it appears only for single-cylinder dives with a known gas mix. For example, dive 63 of the first export (EANx32, 32.66 m) has a depth axis reaching at least 35.7 m (the deepest point plus 3 m), past its MOD of 33.2 m at 1.4 bar, so the line is shown.
@@ -651,7 +651,7 @@ Each axis's range comes from the data, and some axes then round their ends to th
 | --- | --- | --- |
 | Time | 0 to the end of the dive (the last underwater sample plus the next one, or the last event if later, and always at least the first sample after the last event); at least 30 s | No, ticks sit inside the range |
 | Depth | 0 (surface at the top) to the deepest point + 3 m | Yes, the max rounds up to the next tick |
-| Temperature | Lowest to highest sample, at least 2 °C apart | No tick marks |
+| Temperature | Lowest to highest sample, at least 2 °C apart | No tick marks; the lowest and highest samples are labelled, the highest pushed up a label's height when the two would overlap |
 | Tank pressure | Lowest to highest, from samples and the cylinders' start and end pressures; drawn in the 24 to 80 % band of the chart height | No tick marks |
 | Heart rate | Lowest non-zero to highest | Yes |
 | Gas partial pressure | 0 to the highest of the gases shown | Yes |
@@ -671,14 +671,14 @@ Each axis picks a tick count from the space available, then rounds the step up t
 
 Example: a 38 m dive gives 38 + 3 = 41 m. With room for about 10 depth labels, that is 4.1 m per tick, rounded up to 5 m, so the depth axis ends at 45 m. A 52 min dive with room for about 12 time labels gives 4.3 min per tick, rounded up to 5 min. A 3 min dive gets ticks in seconds and m:ss labels, rounded to the second.
 
-#### Labelled peaks and temperature
+#### Labelled peaks
 
-Only some depth and temperature values get a label, so the chart stays readable. Both rules use a label interval: the time that three label widths of that axis cover on screen.
+Only some depths get a label, so the chart stays readable. The rule uses a label interval: the time that three depth label widths cover on screen.
 
 - Depth: with fewer than three points in view, nothing is labelled. Otherwise the deepest point in view is labelled if it is at least 2 m deep.
 - From each labelled peak, the search skips one label interval to each side, tracking the shallowest point passed. Past that, the first point at least 2 m deeper than the shallowest point so far gives a new peak: the deepest point in what remains on that side.
 - The new peak is labelled, and so is the shallowest point passed if it is at least 2 m deep. The search then repeats from the new peak.
-- Temperature: a label is skipped unless at least half a label interval has passed since the last label and the value is at least 0.4 °C from the last labelled value. It also needs either a full label interval since the last label or a change of at least 2 °C. Unlike Subsurface, each temperature is labelled only the first time: the lane's steps show a return to a level already labelled.
+- Unlike Subsurface, temperatures are not labelled along the lane: on a lane this short the labels collided with its steps. Only the lowest and highest are labelled, in the gutter (see Axis ranges).
 
 Source: `core/profile.cpp` and `profile-widget/` (`profilescene.cpp`, `divecartesianaxis.cpp`, `diveprofileitem.cpp`) in the Subsurface repository, read on 13 October 2026.
 
