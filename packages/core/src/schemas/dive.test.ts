@@ -142,6 +142,40 @@ describe("diveFieldsSchema", () => {
     expect(parse({ ...dive, averageDepth: 21 }).success).toBe(true)
     expect(parse({ ...dive, averageDepth: 33 }).success).toBe(false)
   })
+
+  // Each limit is the edge of what any dive can reach: the edge passes,
+  // one step past it fails with the message the form shows.
+  it.each([
+    ["maxDepth", 350, 350.1, "Up to 350 m"],
+    ["averageDepth", 350, 350.1, "Up to 350 m"],
+    ["duration", 86_400, 86_401, "Up to 24 h"],
+    ["surfaceInterval", 172_800, 172_801, "Up to 48 h, or No previous dive"],
+    ["startPressure", 300, 300.5, "Up to 300 bar"],
+    ["endPressure", 0, 300.5, "Up to 300 bar"],
+    ["cylinderVolume", 20_000, 20_001, "Up to 20 L"],
+    ["weight", 40, 40.5, "Up to 40 kg"],
+    ["minTemperature", -3, -3.1, "From −3 °C"],
+    ["maxTemperature", 40, 40.1, "Up to 40 °C"],
+    ["visibility", 150, 151, "Up to 150 m"],
+  ])("limits %s to %s", (field, edge, past, message) => {
+    // Deep enough that an average depth at its edge isn't below the max.
+    const deep = { ...dive, maxDepth: 350 }
+    expect(parse({ ...deep, [field]: edge }).success).toBe(true)
+    const result = parse({ ...deep, [field]: past })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0]).toMatchObject({ path: [field], message })
+  })
+
+  it("rejects an end pressure above the start", () => {
+    expect(
+      parse({ ...dive, startPressure: 200, endPressure: 60 }).success
+    ).toBe(true)
+    expect(
+      parse({ ...dive, startPressure: 60, endPressure: 200 }).error?.issues
+    ).toMatchObject([
+      { path: ["endPressure"], message: "Above the start pressure" },
+    ])
+  })
 })
 
 describe("diveFieldsPatch", () => {
@@ -206,6 +240,10 @@ describe("diveFieldsPatch", () => {
       diveFieldsPatch.safeParse({ averageDepth: 30, maxDepth: 10 }).success
     ).toBe(false)
     expect(diveFieldsPatch.safeParse({ averageDepth: 30 }).success).toBe(true)
+    expect(
+      diveFieldsPatch.safeParse({ startPressure: 60, endPressure: 200 }).success
+    ).toBe(false)
+    expect(diveFieldsPatch.safeParse({ endPressure: 200 }).success).toBe(true)
   })
 
   it("rejects visibility in metres and as a rating together", () => {

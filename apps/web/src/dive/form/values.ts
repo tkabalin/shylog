@@ -1,5 +1,6 @@
 import {
   comparedFields,
+  diveFieldsSchema,
   litresToMillilitres,
   minutesToSeconds,
   parseDecimal,
@@ -260,6 +261,29 @@ export function copyFromDive(
 
 export type Errors = Partial<Record<FieldName, string>>
 
+// The form field each schema field is typed in, where the names differ.
+const schemaField: Record<string, FieldName> = {
+  startTime: "time",
+  siteId: "siteId",
+  duration: "duration",
+  maxDepth: "maxDepth",
+  averageDepth: "averageDepth",
+  surfaceInterval: "surfaceInterval",
+  weight: "weight",
+  cylinderVolume: "cylinderVolume",
+  oxygen: "oxygen",
+  startPressure: "startPressure",
+  endPressure: "endPressure",
+  visibility: "visibilityMetres",
+  minTemperature: "minTemperature",
+  maxTemperature: "maxTemperature",
+  notableAnimals: "notableAnimals",
+  gearDetails: "gearDetails",
+  notes: "notes",
+  trainingAgency: "trainingAgency",
+  trainingCourse: "trainingCourse",
+}
+
 const required = "Required"
 
 // The form's values in database units, as core's dive schema takes them,
@@ -395,6 +419,13 @@ export function toFields(values: FormValues): {
   if (values.diveCentreId) fields.diveCentreId = values.diveCentreId
   for (const name of ["notableAnimals", "gearDetails", "notes"] as const) {
     if (values[name].trim()) fields[name] = values[name]
+  }
+  // The limits and cross-field rules live in core's schema, which the server
+  // applies too: its message goes under any field the checks above passed.
+  const checked = diveFieldsSchema.safeParse(fields)
+  for (const issue of checked.success ? [] : checked.error.issues) {
+    const name = schemaField[String(issue.path[0])]
+    if (name && !errors[name]) errors[name] = issue.message
   }
   return { fields: fields as DraftFields, errors }
 }
