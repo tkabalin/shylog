@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { IconArrowBarToDown, IconHourglass } from "@tabler/icons-react"
 
+import { countText } from "@/components/pickers/match"
 import { SyncPill } from "@/components/sync-pill"
 import { depth, hours } from "@/format/figures"
 import type { headerFigures } from "@/log/filters"
@@ -95,7 +96,8 @@ export function LogHeader({
         </div>
         <p className="flex h-16 items-baseline gap-2 whitespace-nowrap tabular-nums">
           <span className="text-[52px] leading-14 font-semibold tracking-[-0.05em]">
-            {n}
+            {/* "1,280", grouped as dates and figures elsewhere are. */}
+            {countText(n)}
           </span>
           <span className="text-[17px] font-medium text-muted-foreground">
             {n === 1 ? "dive logged" : "dives logged"}
