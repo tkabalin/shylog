@@ -60,9 +60,17 @@ function useLogTab() {
       : {}
 }
 
-// Phones get a bottom bar, as on the Log board.
+// Phones get a bottom bar, as on the Log board. The dive form covers it,
+// as EditDiveHifi draws it and an iOS edit sheet would, so a tab can't
+// leave a form half filled in.
+export function useOnForm() {
+  const match = useMatchRoute()
+  return !!(match({ to: "/dive/new" }) || match({ to: "/dive/$diveId/edit" }))
+}
+
 export function BottomNav() {
   const logTab = useLogTab()
+  if (useOnForm()) return null
   return (
     <nav
       aria-label="Main"
