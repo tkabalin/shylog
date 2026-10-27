@@ -59,5 +59,10 @@ for (const via of ["the Log link", "the browser"] as const) {
       .toBeLessThanOrEqual(1)
     await expect(bar).toHaveAttribute("data-stuck", "")
     expect(before.month.length).toBeGreaterThan(0)
+    // The stuck month draws the line under the bar at once, not after the
+    // first scroll.
+    await expect(page.locator("[data-month-heading][data-stuck]")).toHaveCount(
+      1
+    )
   })
 }
