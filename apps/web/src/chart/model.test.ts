@@ -2,6 +2,8 @@ import { mergeDuplicateSamples } from "@shylog/core"
 import { describe, expect, it } from "vitest"
 
 import type { Profile } from "@/api/client"
+import type { Dive, FieldMeta } from "@/data/db"
+import { profileMaxDepth } from "@/dive/figures"
 
 import { fixtureDive } from "../../../../packages/core/test/fixture.ts"
 import { clock, rateLabel } from "./format"
@@ -229,5 +231,45 @@ describe("the crosshair", () => {
   it("shows elapsed time as m:ss", () => {
     expect(clock(257)).toBe("4:17")
     expect(clock(5)).toBe("0:05")
+  })
+})
+
+describe("the depth labels' gutter", () => {
+  const profile = (deepest: number): Profile => ({
+    samples: [
+      { time: 0, depth: 0, temperature: null, pressure: null },
+      { time: 600, depth: deepest, temperature: null, pressure: null },
+      { time: 1200, depth: 0, temperature: null, pressure: null },
+    ],
+    events: [],
+  })
+
+  it("widens for an axis that reaches three digits", () => {
+    expect(
+      profileModel(profile(42), { maxDepth: 42, mod: null }, 326).left
+    ).toBe(30)
+    const deep = profileModel(profile(104), { maxDepth: 104, mod: null }, 326)
+    expect(deep.depth.max).toBeGreaterThanOrEqual(100_000)
+    expect(deep.left).toBe(38)
+  })
+})
+
+describe("the profile's depth", () => {
+  it("follows the computer's max depth, not a hand value that replaced it", () => {
+    const dive = { maxDepth: 33 } as Dive
+    const meta = new Map<string, FieldMeta>([
+      [
+        "maxDepth",
+        {
+          diveId: "dive-a",
+          field: "maxDepth",
+          source: "hand",
+          computerValue: 32.66,
+          dismissed: false,
+        },
+      ],
+    ])
+    expect(profileMaxDepth(dive, meta)).toBe(32.66)
+    expect(profileMaxDepth(dive, undefined)).toBe(33)
   })
 })

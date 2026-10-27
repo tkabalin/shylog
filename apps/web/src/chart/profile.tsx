@@ -2,10 +2,11 @@ import { useCallback, useMemo, useRef } from "react"
 
 import type { Profile as ProfileData } from "@/api/client"
 import type { Dive } from "@/data/db"
+import { useLog } from "@/data/log"
+import { profileMaxDepth } from "@/dive/figures"
 
 import { Alarms } from "./alarms"
-import { plotLeft } from "./layout"
-import { profileModel, type Alarm } from "./model"
+import { profileGutter, profileModel, type Alarm } from "./model"
 import { ProfileTable } from "./profile-table"
 import { useSize } from "./size"
 import { DepthView, LaneView, Readout, useCrosshair } from "./view"
@@ -26,16 +27,19 @@ export default function Profile({
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const { width } = useSize(ref)
+  // Subscribed, so using the computer's value redraws the axis.
+  const { log } = useLog()
+  const depth = profileMaxDepth(dive, log?.fieldMeta.get(dive.id))
   const model = useMemo(
     () =>
       width
         ? profileModel(
             profile,
-            { maxDepth: dive.maxDepth, mod },
-            width - plotLeft
+            { maxDepth: depth, mod },
+            width - profileGutter(profile, depth)
           )
         : null,
-    [profile, dive.maxDepth, mod, width]
+    [profile, depth, mod, width]
   )
   const { index, setChosen, handlers } = useCrosshair(model)
   const show = useCallback(

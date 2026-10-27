@@ -9,6 +9,7 @@ import { Sparkline } from "@/components/sparkline"
 import { Item } from "@/components/ui/item"
 import type { Dive } from "@/data/db"
 import type { LogView } from "@/data/log"
+import { profileMaxDepth } from "@/dive/figures"
 import { cardDay } from "@/format/dates"
 import { depth, minutes } from "@/format/figures"
 import { cardPlace } from "@/format/place"
@@ -70,7 +71,7 @@ export function DiveCard({ dive, log }: { dive: Dive; log: LogView }) {
         {dive.sparkline && (
           <Sparkline
             points={dive.sparkline}
-            maxDepth={dive.maxDepth}
+            maxDepth={profileMaxDepth(dive, log.fieldMeta.get(dive.id))}
             stretch
             className="w-full md:h-7"
           />

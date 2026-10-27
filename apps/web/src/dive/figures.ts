@@ -7,7 +7,7 @@ import {
   type Water,
 } from "@shylog/core"
 
-import type { Dive } from "@/data/db"
+import type { Dive, FieldMeta } from "@/data/db"
 import type { LogView } from "@/data/log"
 
 // The detail's calculated figures, every one from core (see Calculations in
@@ -40,4 +40,14 @@ export function diveFigures(dive: Dive, log: LogView) {
     mod: modDepth != null && modDepth > 0 ? modDepth : null,
     limit,
   }
+}
+
+// The depth the profile is drawn to: the computer's own, since the chart
+// draws its samples. A hand value that replaced it may be far off (a typo,
+// a dive the computer only partly logged) and would squash the line.
+export function profileMaxDepth(dive: Dive, meta?: Map<string, FieldMeta>) {
+  const row = meta?.get("maxDepth")
+  return row?.source === "hand" && typeof row.computerValue === "number"
+    ? row.computerValue
+    : dive.maxDepth
 }

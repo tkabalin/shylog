@@ -20,7 +20,7 @@ import { cn } from "cn"
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 
 import { halo } from "./format"
-import { plotLeft, plotTop, timeAxisHeight } from "./layout"
+import { plotTop, timeAxisHeight } from "./layout"
 import type { ProfileModel } from "./model"
 
 const config = {
@@ -66,7 +66,7 @@ export const DepthChart = memo(function DepthChart({
     >
       <ComposedChart
         data={points}
-        margin={{ top: plotTop, right: 0, bottom: 0, left: plotLeft }}
+        margin={{ top: plotTop, right: 0, bottom: 0, left: model.left }}
         // The table under the chart is its screen-reader alternative.
         accessibilityLayer={false}
       >

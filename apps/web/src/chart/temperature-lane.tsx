@@ -12,13 +12,7 @@ import {
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 import { temperature } from "@/format/figures"
 
-import {
-  labelHeight,
-  laneBottom,
-  laneHeight,
-  laneTop,
-  plotLeft,
-} from "./layout"
+import { labelHeight, laneBottom, laneHeight, laneTop } from "./layout"
 import type { ProfileModel } from "./model"
 
 const config = {
@@ -49,7 +43,12 @@ export const TemperatureLane = memo(function TemperatureLane({
     >
       <LineChart
         data={model.points}
-        margin={{ top: laneTop, right: 0, bottom: laneBottom, left: plotLeft }}
+        margin={{
+          top: laneTop,
+          right: 0,
+          bottom: laneBottom,
+          left: model.left,
+        }}
         // The table under the chart is its screen-reader alternative.
         accessibilityLayer={false}
       >
@@ -103,7 +102,7 @@ function LaneAnnotations({
   return (
     <g aria-hidden className="tabular-nums">
       <line
-        x1={plotLeft}
+        x1={model.left}
         x2={width}
         y1={laneHeight - 0.5}
         y2={laneHeight - 0.5}
@@ -113,7 +112,7 @@ function LaneAnnotations({
       {labels.map(({ value, at }) => (
         <text
           key={value}
-          x={plotLeft - 4}
+          x={model.left - 4}
           y={at}
           dy="0.32em"
           textAnchor="end"
