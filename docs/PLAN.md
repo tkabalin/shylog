@@ -664,12 +664,12 @@ Decisions taken while building:
 - Drafts live in their own Dexie database, `shylog-queue` (version 1: drafts, ops, meta with the device id, forms for autosave). An accepted draft is dropped only once the fetched log holds its dive; a sync that reaches the server uploads any drafts still waiting; nothing uploads to a server on a newer schema. A draft carries an upsertEntity for any entity it uses that only another draft created. The new-dive autosave keeps the dive's id, so a form reopened after the draft was saved rewrites that draft.
 - An edit captures the saved values when the form opens (and keeps them with the autosave), so a sync while it's open, or a restored form, never sends the server's newer values back as hand edits.
 - The profile chart and the Log's sparkline are drawn to the computer's max depth when a hand value replaced it, the depth gutter widens for 3-digit labels, and the time axis's "min" moved to the first label.
+- Figures past what any dive can reach are refused by core's schema (Limits under v1 fields in the spec), chosen with the owner: 350 m, 24 h, a 48 h interval override, 300 bar with the end no higher than the start, 20 L, 40 kg, −3 to 40 °C and 150 m of visibility. The form shows the schema's message under the field.
 - iOS's tap highlight is off app-wide (`index.css`), so every tappable row and small button has its own pressed state; buttons and list options can't be text-selected.
 - No component-testing library: the form tests render with `react-dom` and React's `act` (`dive/form/testing.tsx`). The plan's `form.test.ts` is `form.test.tsx`; `adopt.test.tsx` and `sitepicker.test.tsx` likewise. The board renderer used for comparisons is in the session's scratchpad, not the repo.
 
 Deferred, or to watch:
 
-- No upper limits on depth, duration or pressure (332 m, 1440 min and 3000 bar save); the schemas have none. Decide whether the spec wants sanity limits.
 - The e2e `@writes` test that adds a dive leaves its new site and buddy on the writes stack (deleted dives still count as uses, so they can't be deleted).
 - `prefetch.spec.ts`'s "draws a kept dive's chart" timed out once under the full parallel run (46 profiles in 5 s) and passed alone.
 - Pressures stay on the number pad (NOTES), so a fractional imported pressure can't be retyped exactly.
