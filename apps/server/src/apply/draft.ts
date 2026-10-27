@@ -1,4 +1,4 @@
-import { opVersion, type EntityKind, type Op } from "@shylog/core"
+import { entityCreateOrder, opVersion, type Op } from "@shylog/core"
 
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
@@ -9,15 +9,6 @@ import { applyEntityOp, type EntityOp } from "./entity.ts"
 import { Rejected } from "./rejected.ts"
 
 type DiveOp = Extract<Op, { type: "upsertDive" }>
-
-// Regions first, as a draft's new site or dive centre may sit in one.
-const kindOrder: EntityKind[] = [
-  "region",
-  "site",
-  "diveCentre",
-  "person",
-  "trip",
-]
 
 function check(op: Op, now: Date) {
   // Installed copies running the previous version can still upload.
@@ -50,7 +41,10 @@ export function applyDraft(
 
     const entities = fresh
       .filter((op): op is EntityOp => op.type === "upsertEntity")
-      .sort((a, b) => kindOrder.indexOf(a.kind) - kindOrder.indexOf(b.kind))
+      .sort(
+        (a, b) =>
+          entityCreateOrder.indexOf(a.kind) - entityCreateOrder.indexOf(b.kind)
+      )
     for (const op of entities) applyEntityOp(db, op, journal)
 
     for (const op of fresh) {
