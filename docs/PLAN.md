@@ -632,16 +632,52 @@ Deferred, or to watch:
 
 **Not in this milestone**: deleting from the form (milestone 11), offline behaviour beyond a failed save (milestone 16), the profile banner's import side.
 
-- [ ] Draft store and upload path
-- [ ] Edit path with retry
-- [ ] Form sections with native inputs, inputmode rules, comma decimals
-- [ ] Calculated block
-- [ ] Adopt, dismiss, marker and reset
-- [ ] Site picker with country list, region reuse, water type
-- [ ] People, dive-centre and trip pickers, option sheets
-- [ ] Copy from last dive, new-dive defaults, Training fields, Ignore this dive switch
-- [ ] Autosave of the unsaved form, restored on reopen
-- [ ] Tests and screenshots listed above
+- [x] Draft store and upload path
+- [x] Edit path with retry
+- [x] Form sections with native inputs, inputmode rules, comma decimals
+- [x] Calculated block
+- [x] Adopt, dismiss, marker and reset
+- [x] Site picker with country list, region reuse, water type
+- [x] People, dive-centre and trip pickers, option sheets
+- [x] Copy from last dive, new-dive defaults, Training fields, Ignore this dive switch
+- [x] Autosave of the unsaved form, restored on reopen
+- [x] Tests and screenshots listed above
+
+**Notes for the next session** (written 27 October 2026, branch `feat/dive-form`)
+
+Still to do on the owner's phone:
+
+- the native `<input type="checkbox" switch>` (Nitrox, Ignore this dive): that Safari draws its own switch, with the haptic, at the board's size and in cyan-400 in dark mode;
+- the invisible date and time inputs over their text: that a tap anywhere on the row opens the iOS picker, the time picker starts at 09:00, and VoiceOver reads and opens them;
+- the names sheet: that the keyboard rises when it opens (`initialFocus`; iOS may focus without a keyboard outside the tap's gesture), that the chip area scrolls with the keyboard up, and that every sheet's last rows scroll above the keyboard (`--keyboard`, from `visualViewport`);
+- a comma typed in a water temperature (`type="number"`): it should show "Use a point for decimals", not vanish;
+- whether the keyboard pushes the form's sticky bar off screen when a low field is focused;
+- the drawer backdrop's blur behind the full-height sheets, and swipe-to-dismiss from a scrolled list.
+
+Decisions taken while building:
+
+- Every picker is a bottom sheet (D29). The site picker is a full-height sheet whose New site form pushes its Country (recent, then A to Z, accent-folded search) and Body of water lists inside it, never a sheet on a sheet; a new site's country starts as the last dive's. While a new site is being filled in, swipe, Escape and a tap outside don't close it. Region suggestions sit under the field, with "New region in …" as a caption.
+- Buddies, dive professionals and the dive centre are rows ("Sam Naidoo + 2") opening a full-height sheet like Calendar's Add Invitees: chips, the field on its own line, people used most recently first (by their latest dive in that role), matches and Add. Nobody is offered for both roles, names are saved as typed with `autocapitalize="words"`, and Return picks only an exact match, otherwise adds the typed name.
+- Computer differences (D14) sit on a line under each field, the two temperatures sharing one, and compare at display precision, so a hand 32.7 against the computer's 32.66 is not a difference. Typing over an adopted or kept value makes it typed again.
+- The form shows numbers to one decimal; untouched fields are never sent, and the calculated block uses the stored values for them. Pressures parse as decimals (bar), on the number pad. The surface interval is edited as hours and minutes; tapping alone doesn't override the calculated figure.
+- Cancel asks (Discard changes / Keep editing) when anything was typed. The form covers the tab bar and, from md: up, keeps a centred phone-like width.
+- Drafts live in their own Dexie database, `shylog-queue` (version 1: drafts, ops, meta with the device id, forms for autosave). An accepted draft is dropped only once the fetched log holds its dive; a sync that reaches the server uploads any drafts still waiting; nothing uploads to a server on a newer schema. A draft carries an upsertEntity for any entity it uses that only another draft created. The new-dive autosave keeps the dive's id, so a form reopened after the draft was saved rewrites that draft.
+- An edit captures the saved values when the form opens (and keeps them with the autosave), so a sync while it's open, or a restored form, never sends the server's newer values back as hand edits.
+- The profile chart and the Log's sparkline are drawn to the computer's max depth when a hand value replaced it, the depth gutter widens for 3-digit labels, and the time axis's "min" moved to the first label.
+- iOS's tap highlight is off app-wide (`index.css`), so every tappable row and small button has its own pressed state; buttons and list options can't be text-selected.
+- No component-testing library: the form tests render with `react-dom` and React's `act` (`dive/form/testing.tsx`). The plan's `form.test.ts` is `form.test.tsx`; `adopt.test.tsx` and `sitepicker.test.tsx` likewise. The board renderer used for comparisons is in the session's scratchpad, not the repo.
+
+Deferred, or to watch:
+
+- No upper limits on depth, duration or pressure (332 m, 1440 min and 3000 bar save); the schemas have none. Decide whether the spec wants sanity limits.
+- The e2e `@writes` test that adds a dive leaves its new site and buddy on the writes stack (deleted dives still count as uses, so they can't be deleted).
+- `prefetch.spec.ts`'s "draws a kept dive's chart" timed out once under the full parallel run (46 profiles in 5 s) and passed alone.
+- Pressures stay on the number pad (NOTES), so a fractional imported pressure can't be retyped exactly.
+- Milestone 16: the outline, cloud-off icon and provisional number on draft cards, retry on reconnect, and the offline notes; drafts show in the Log meanwhile, unmarked. Milestone 11: deleting from the form.
+- Carried over from milestone 9: on the phone, tap-to-content time, a cached dive flashing a skeleton, `touch-action: pan-y` on the chart, long press on the chart and alarm rows, the 10 px labels outdoors, scrubbing a dense dive. Other event types' rows (milestone 18). The profile digest can't see a re-import that changes nothing it covers (milestone 20). The Change pairing sparkline should use `chartDepthAxis` (milestone 21). React logs a caught profile failure in development.
+- Carried over from milestone 8: on the phone, the drawer overlay's blur during momentum scroll, edge-swipe back in the installed app, the month line handing over, the keyboard with the sticky search focused, swipe-to-dismiss against the slider, the top safe-area inset in standalone mode, cards flashing their pressed tint when a scroll starts on them. Milestone 11: the detail treats a deleted dive as not found. Milestone 16: a cold launch's first tap may wait on the network for the detail and chart chunks; the no-profile copy is the synced-dive wording. The Content-Length middleware copies each API JSON body once; `readCards` selects `hash` without a schema check.
+- Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a hand dive at Nitrox no keeps air on import (milestone 20); the derived pass reads every dive's samples on every write.
+- Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
 
 ## Milestone 11: Editing, delete and restore, Settings, entities
 
