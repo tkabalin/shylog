@@ -17,7 +17,9 @@ test("leaves the console clean", async ({ page }) => {
   })
 
   await page.goto("/")
-  await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
+  await expect(
+    page.locator("main a[href^='/dive/dive-']").first()
+  ).toBeVisible()
   await page.getByRole("combobox", { name: /^Year/ }).click()
   await page.getByRole("option", { name: "2026" }).click()
   await page.getByRole("button", { name: "Depth" }).click()
@@ -25,11 +27,13 @@ test("leaves the console clean", async ({ page }) => {
   await page.keyboard.press("Escape")
   await page.getByRole("searchbox", { name: "Search dives" }).fill("Sodwana")
   await page.locator("#main").evaluate((el) => el.scrollBy(0, 600))
-  await page.locator("main a[href^='/dive/']").first().click()
+  await page.locator("main a[href^='/dive/dive-']").first().click()
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
   await page.locator("#main").evaluate((el) => el.scrollBy(0, 600))
   await page.goBack()
-  await expect(page.locator("main a[href^='/dive/']").first()).toBeVisible()
+  await expect(
+    page.locator("main a[href^='/dive/dive-']").first()
+  ).toBeVisible()
   await page.goto("/dive/dive-missing")
   await expect(page.getByText("Dive not found")).toBeVisible()
 

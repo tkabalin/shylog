@@ -11,7 +11,7 @@ for (const via of ["the Log link", "the browser"] as const) {
   }) => {
     await page.goto("/")
     const main = page.locator("#main")
-    const cards = page.locator("main a[href^='/dive/']")
+    const cards = page.locator("main a[href^='/dive/dive-']")
     await expect(cards).toHaveCount(46)
     await main.evaluate((el) => el.scrollTo(0, 1800))
     const bar = page.locator("[data-log-bar]")

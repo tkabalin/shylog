@@ -4,7 +4,7 @@ import { diveId, getLog, patchDive, test } from "./api"
 import { tapCard } from "./ui"
 
 const header = (page: Page) => page.locator("header").first()
-const cards = (page: Page) => page.locator("main a[href^='/dive/']")
+const cards = (page: Page) => page.locator("main a[href^='/dive/dive-']")
 const month = (page: Page, label: string) =>
   page.getByRole("region", { name: label })
 

@@ -3,6 +3,7 @@ import { tags, type Tag } from "@shylog/core"
 import {
   IconCloudOff,
   IconNotebook,
+  IconPlus,
   IconRefresh,
   IconSearch,
   IconUpload,
@@ -193,6 +194,16 @@ function LogPage() {
             </EmptyHeader>
             <EmptyContent>
               <Button
+                size="lg"
+                // The board's primary action: 48 px, rounder, semibold.
+                className="h-12 w-full rounded-[14px] text-base font-semibold"
+                nativeButton={false}
+                render={<Link to="/dive/new" state={{ fromLog: true }} />}
+              >
+                <IconPlus data-icon="inline-start" />
+                Log a dive
+              </Button>
+              <Button
                 variant="link"
                 size="lg"
                 nativeButton={false}
@@ -243,7 +254,9 @@ function LogPage() {
             </div>
           </LogHeader>
           {update}
-          <div className="flex flex-col gap-4 px-4 pt-3 pb-6">
+          {/* Room below the last card for the floating button, which floats
+              at every width. */}
+          <div className="flex flex-col gap-4 px-4 pt-3 pb-24">
             {groups.length ? (
               groups.map((group) => (
                 <MonthGroup key={group.key} group={group} log={log} />
@@ -254,6 +267,15 @@ function LogPage() {
               </p>
             )}
           </div>
+          {/* The board's floating button, clear of the tab bar on phones. */}
+          <Link
+            to="/dive/new"
+            state={{ fromLog: true }}
+            aria-label="Log a dive"
+            className="fixed right-5 bottom-[calc(3.75rem+max(0.5rem,env(safe-area-inset-bottom)))] z-10 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-[scale,opacity] duration-150 ease-out select-none [-webkit-touch-callout:none] active:scale-95 motion-reduce:active:scale-100 motion-reduce:active:opacity-80 md:right-8 md:bottom-8"
+          >
+            <IconPlus aria-hidden className="size-6.5 stroke-[2.25]" />
+          </Link>
         </>
       )}
     </div>

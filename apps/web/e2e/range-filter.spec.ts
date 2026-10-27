@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test"
 import { getLog } from "./api"
 import { still } from "./ui"
 
-const cards = (page: Page) => page.locator("main a[href^='/dive/']")
+const cards = (page: Page) => page.locator("main a[href^='/dive/dive-']")
 const header = (page: Page) => page.locator("header").first()
 // As the filter reads a dive: whole metres and minutes.
 const metres = (depth: number) => Math.round(Math.round(depth * 1000) / 1000)
