@@ -849,54 +849,6 @@ static std::vector<depth_label> depth_labels(const std::vector<plot_data> &data,
 	return labels;
 }
 
-// DiveTemperatureItem::replot's label choice, with AbstractProfilePolygonItem's
-// getPoint clipping inlined. `cut_into_none` marks a label from a point
-// cut against an entry with no temperature (0 K), which Shylog leaves out.
-struct temperature_label {
-	int sec, mkelvin, cut_into_none;
-};
-
-static std::vector<temperature_label> temperature_labels(const std::vector<plot_data> &data, int from, int to, double hmin, double hmax, int interval)
-{
-	double last = -300.0, last_printed_temp = 0.0;
-	std::vector<temperature_label> textItems;
-
-	for (int i = from; i < to; i++) {
-		double sec = data[i].sec;
-		double mkelvin = data[i].temperature;
-		int cut_into_none = 0;
-		if (i == from && i < to && sec < hmin) {
-			double rel = fabs(data[i+1].sec - sec) > 1e-10 ? (hmin - sec) / (data[i+1].sec - sec) : 0.5;
-			mkelvin = (data[i+1].temperature - mkelvin) * rel + mkelvin;
-			sec = hmin;
-		}
-		if (i == to - 1 && i > 0 && sec > hmax) {
-			double prev_x = data[i-1].sec, prev_y = data[i-1].temperature;
-			double rel = fabs(sec - prev_x) > 1e-10 ? (hmax - prev_x) / (sec - prev_x) : 0.5;
-			cut_into_none = data[i].temperature == 0 || data[i-1].temperature == 0;
-			mkelvin = (mkelvin - prev_y) * rel + prev_y;
-			sec = hmax;
-		}
-		if (mkelvin < 1.0)
-			continue;
-
-		/* don't print a temperature
-		 * if it's been less than a full label interval and less than a 2K change OR
-		 * if it's been less than a half label interval OR if the change from the
-		 * last print is less than .4K (and therefore less than 1F) */
-		if (((sec < last + interval) && (fabs(mkelvin - last_printed_temp) < 2000.0)) ||
-		    (sec < last + interval / 2) ||
-		    (fabs(mkelvin - last_printed_temp) < 400.0))
-			continue;
-		last = sec;
-		if (mkelvin > 200000.0)
-			textItems.push_back({ static_cast<int>(sec), static_cast<int>(mkelvin), cut_into_none });
-		last_printed_temp = mkelvin;
-	}
-	// The end label's test compares a time with 200000 mK, so it is never drawn.
-	return textItems;
-}
-
 static std::vector<sample> read_samples(std::istream &in)
 {
 	size_t n;
@@ -1013,13 +965,9 @@ int main()
 			int from = it1 - entry.begin();
 			int to = it2 - entry.begin();
 			auto depths = depth_labels(entry, from, to, interval);
-			auto temps = temperature_labels(entry, from, to, 0.0, axis_max, interval);
 			printf("%zu", depths.size());
 			for (auto &l: depths)
 				printf(" %d %d %d", l.sec, l.depth, l.kind);
-			printf(" %zu", temps.size());
-			for (auto &l: temps)
-				printf(" %d %d %d", l.sec, l.mkelvin, l.cut_into_none);
 			printf("\n");
 		} else {
 			printf("unknown %s\n", command.c_str());

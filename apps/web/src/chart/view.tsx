@@ -3,7 +3,7 @@ import { speedBand, speedBands } from "@shylog/core"
 import { IconAlertTriangle } from "@tabler/icons-react"
 import { cn } from "cn"
 
-import { depth, temperature, temperatureRange } from "@/format/figures"
+import { depth, temperature } from "@/format/figures"
 
 import { Crosshair } from "./crosshair"
 import { DepthChart } from "./depth-chart"
@@ -196,11 +196,7 @@ export function LaneView({
         className="flex items-baseline justify-between text-xs text-muted-foreground tabular-nums"
         style={{ height: laneHeaderHeight }}
       >
-        <span>
-          Water temperature
-          {model?.water &&
-            ` · ${temperatureRange(model.water.min, model.water.max)} °C`}
-        </span>
+        <span>Water temperature</span>
         {point?.temperature != null && (
           <span className="font-medium text-foreground">
             {temperature(point.temperature)} °C

@@ -7,11 +7,9 @@ import {
   modInView,
   pointsInView,
   temperatureAxis,
-  temperatureLabels,
   timeAxis,
   verticalSpeeds,
   type ChartPoint,
-  type TemperatureLabel,
 } from "@shylog/core"
 
 import type { Profile } from "@/api/client"
@@ -39,7 +37,7 @@ export interface Alarm {
 
 // Everything the chart draws for one dive at one plot size, from core's rules
 // (see Profile chart in the spec): points in view with their speeds, the
-// axes, labelled depths and temperatures, events, alarms and the MOD line.
+// axes, labelled depths, events, alarms and the MOD line.
 export function profileModel(
   { samples, events: sent }: Profile,
   { maxDepth, mod }: { maxDepth: number; mod: number | null },
@@ -125,13 +123,11 @@ export function profileModel(
     speeds,
     time,
     depth,
-    // The lane's axis, at least 2 °C tall, and the range the water had.
+    // The lane's axis, at least 2 °C tall, and the range the water had,
+    // which the lane's gutter labels.
     temperature,
     water: temperature && { min: temperature.min, max: temperature.highest },
     depthLabels: depthLabels(all, inView, interval),
-    temperatureLabels: firstOfEach(
-      temperatureLabels(all, inView, time.max, interval)
-    ),
     events: shown,
     alarms,
     mod: modInView(mod, depth) ? mod : null,
@@ -140,19 +136,6 @@ export function profileModel(
 }
 
 export type ProfileModel = ReturnType<typeof profileModel>
-
-// Each temperature labelled only the first time Subsurface's rule picks it:
-// the lane's steps show a return to a level, so repeats add only clutter.
-// Compared in whole tenths, as the labels show them.
-function firstOfEach(labels: readonly TemperatureLabel[]) {
-  const seen = new Set<number>()
-  return labels.filter((label) => {
-    const tenths = Math.round(label.temperature * 10)
-    if (seen.has(tenths)) return false
-    seen.add(tenths)
-    return true
-  })
-}
 
 // The crosshair's point: the first at or after a time (as Subsurface's
 // tooltip picks it), or the last.

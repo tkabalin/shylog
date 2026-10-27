@@ -10,11 +10,7 @@ import {
   type CnsDive,
 } from "../../src/calc/cns-otu.ts"
 import { gasVolume } from "../../src/calc/gas.ts"
-import {
-  depthLabels,
-  pointsInView,
-  temperatureLabels,
-} from "../../src/calc/labels.ts"
+import { depthLabels, pointsInView } from "../../src/calc/labels.ts"
 import { likelySame } from "../../src/calc/likely-same.ts"
 import { mod } from "../../src/calc/mod.ts"
 import type { Water } from "../../src/calc/pressure.ts"
@@ -147,9 +143,8 @@ const withSurfaceTail = fc
     ]
   })
 
-// A dive on a coarse grid of depths and temperatures, so a 2 m prominence,
-// the 2 m minimum and the 0.4 and 2 °C label steps are hit exactly, with
-// the first temperatures often missing.
+// A dive on a coarse grid of depths, so a 2 m prominence and the 2 m
+// minimum are hit exactly.
 const coarseDive = fc
   .array(
     fc.record({
@@ -564,7 +559,7 @@ describe("Subsurface's code on random inputs", () => {
       }
     ))
 
-  it("labels the same depths and temperatures (DiveProfileItem, DiveTemperatureItem)", () =>
+  it("labels the same depths (DiveProfileItem)", () =>
     check(
       fc.oneof(withSurfaceTail, coarseDive).chain((generated) => {
         const last = generated.at(-1)?.time ?? 0
@@ -588,7 +583,7 @@ describe("Subsurface's code on random inputs", () => {
       async ({ generated, events, floor, interval }) => {
         const samples = coreSamples(generated)
         const max = Math.max(floor, chartEnd(samples, events))
-        const words = await ask(
+        const [count, ...depths] = await ask(
           "labels",
           ...sampleWords(generated),
           events.length,
@@ -596,32 +591,13 @@ describe("Subsurface's code on random inputs", () => {
           max,
           interval
         )
-        const depthCount = words[0]
-        const depths = words.slice(1, 1 + depthCount * 3)
-        const temperatures = words.slice(2 + depthCount * 3)
         const points = chartPoints(samples, events)
-        const inView = pointsInView(points, max)
         expect(
-          depthLabels(points, inView, interval).flatMap((label) => [
-            label.time,
-            label.depth,
-            label.kind === "peak" ? 0 : 1,
-          ])
+          depthLabels(points, pointsInView(points, max), interval).flatMap(
+            (label) => [label.time, label.depth, label.kind === "peak" ? 0 : 1]
+          )
         ).toEqual(depths)
-        // Shylog's departure: no label from a point cut against an entry
-        // with no temperature, which Subsurface reads as 0 K.
-        const expected: number[] = []
-        for (let i = 0; i < temperatures.length; i += 3) {
-          if (!temperatures[i + 2]) {
-            expected.push(temperatures[i], temperatures[i + 1])
-          }
-        }
-        expect(
-          temperatureLabels(points, inView, max, interval).flatMap((label) => [
-            label.time,
-            lrint(label.temperature * 1000 + 273_150),
-          ])
-        ).toEqual(expected)
+        expect(depths).toHaveLength(count * 3)
       }
     ))
 })
