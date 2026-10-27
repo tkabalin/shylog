@@ -211,3 +211,17 @@
   --primary: var(--color-cyan-400);
   --primary-foreground: var(--color-cyan-950);
 }
+
+@layer base {
+  /* Taps show each control's own pressed state, not iOS's grey flash, and
+     a long press on a button or list row doesn't select its text. */
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  [role="button"],
+  [role="option"] {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
