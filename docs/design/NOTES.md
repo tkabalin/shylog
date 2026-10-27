@@ -25,7 +25,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - `inputmode="numeric"` for whole numbers (duration, pressures); `type="number" step="0.1"` for water temperature, which can be negative.
 - Touch targets are about 44 px below `md:`. Several chips, segmented buttons and inline actions on the boards are 28 to 36 px.
 - Date, time, site, duration and max depth are all required. The board marks only the first three.
-- A new dive's date is prefilled with today; dive type comes from the new-dive defaults (Recreation unless changed).
+- A new dive's date is prefilled with today; its start time is empty until tapped, then starts at 09:00; dive type comes from the new-dive defaults (Recreation unless changed).
 - Training agency and course name appear when the dive type is Training. The board has no Training state.
 - A failed save keeps the form's values and offers to try again.
 - Dive type options are the spec's list. The Settings board's "Technical" and "Work" don't exist.
