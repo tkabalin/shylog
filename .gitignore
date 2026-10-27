@@ -69,3 +69,6 @@ fixtures/real/
 
 # Deployment env files, one per instance: logins, tailnet names, auth keys
 /instances/
+
+# TanStack Router plugin scratch files
+.tanstack/
