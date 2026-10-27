@@ -58,6 +58,10 @@ import {
   IconSurfaceCalm,
   IconSurfaceStormy,
 } from "@/components/icons"
+import {
+  IntervalSheet,
+  type IntervalChoice,
+} from "@/components/pickers/interval-sheet"
 import { countText } from "@/components/pickers/match"
 import { NamesSheet, type Candidate } from "@/components/pickers/names-sheet"
 import { OptionSheet, type Option } from "@/components/pickers/option-sheet"
@@ -1374,9 +1378,9 @@ function NoteField({
   )
 }
 
-// The surface interval: the calculated figure with its marker, or, once
-// tapped, hours and minutes on the number pad with No previous dive and a
-// reset to the calculated value (D29).
+// The surface interval: the calculated figure with its marker, or the
+// figure or No previous dive picked in its sheet, where Calculated puts the
+// worked-out figure back (D29).
 function SurfaceInterval({
   value,
   calculated,
@@ -1389,134 +1393,71 @@ function SurfaceInterval({
   onChange: (value: FormValues["surfaceInterval"]) => void
   error?: string
 }) {
-  // Tapping opens the boxes on the calculated figure; only typing in them
-  // overrides it, so a look doesn't stop the interval being worked out.
   const [open, setOpen] = useState(false)
-  const parts =
-    value != null && value !== "none"
+  const choice: IntervalChoice =
+    value == null || value === "none"
       ? value
-      : open && value == null
-        ? typeof calculated === "number"
-          ? intervalParts(calculated)
-          : { hours: "", minutes: "" }
-        : null
-  const reset =
-    value != null ? (
-      <ResetButton
-        label="Reset to the calculated value"
-        onClick={() => {
-          setOpen(false)
-          onChange(null)
-        }}
-      />
-    ) : calculated !== undefined ? (
-      <Marker source="calculated" computer="" />
-    ) : null
+      : {
+          minutes:
+            (Number(value.hours) || 0) * 60 + (Number(value.minutes) || 0),
+        }
   const shown =
-    value === "none"
+    choice === "none"
       ? "No previous dive"
-      : calculated === undefined
-        ? null
-        : calculated === "none"
-          ? "No previous dive"
-          : interval(calculated)
+      : choice
+        ? interval(choice.minutes * 60)
+        : calculated === undefined
+          ? null
+          : calculated === "none"
+            ? "No previous dive"
+            : interval(calculated)
   return (
     <Field under={<ErrorLine id="error-surfaceInterval" message={error} />}>
-      {!parts ? (
-        <Row>
-          <Label icon={IconClockPause} after={reset}>
-            Surface interval
-          </Label>
-          <button
-            type="button"
-            id="field-surfaceInterval"
-            onClick={() => {
-              setOpen(true)
-              if (value === "none") onChange({ hours: "", minutes: "" })
-            }}
-            aria-label={`Surface interval, ${shown ?? "calculated when saved"}`}
-            className={cn(
-              "flex h-11.5 min-w-0 flex-1 items-center justify-end text-base font-medium tabular-nums",
-              !shown && "text-muted-foreground/60"
-            )}
+      <Row className={pressedRow}>
+        <Label
+          icon={IconClockPause}
+          after={
+            value == null &&
+            calculated !== undefined && (
+              <Marker source="calculated" computer="" />
+            )
+          }
+        >
+          Surface interval
+        </Label>
+        <button
+          type="button"
+          id="field-surfaceInterval"
+          onClick={() => setOpen(true)}
+          aria-label={`Surface interval, ${shown ?? "calculated when saved"}`}
+          aria-describedby={error ? "error-surfaceInterval" : undefined}
+          aria-invalid={!!error || undefined}
+          className="flex h-11.5 min-w-0 flex-1 items-center justify-end gap-1 text-right text-base font-medium tabular-nums"
+        >
+          <span
+            className={cn("truncate", !shown && "text-muted-foreground/60")}
           >
-            {shown ?? (
-              <>
-                —{/* Where a unit would be, so the dashes line up. */}
-                <span aria-hidden className="ml-3 min-w-5.5" />
-              </>
-            )}
-          </button>
-        </Row>
-      ) : (
-        <div className="flex flex-col px-4 pt-2 pb-1">
-          <div className="flex min-h-11.5 items-center gap-1.5">
-            {/* On a 320 px phone the label wraps rather than pushing the
-                minutes box off the card. */}
-            {/* On a 320 px phone the icon gives way, so the label fits on
-                one line beside the boxes. */}
-            <Label
-              icon={IconClockPause}
-              after={reset}
-              className="shrink max-[374px]:[&>label>svg]:hidden max-[374px]:[&>span>svg]:hidden"
-            >
-              Surface interval
-            </Label>
-            <span className="flex-1" />
-            <IntervalBox
-              id="field-surfaceInterval"
-              label="Hours"
-              value={parts.hours}
-              onChange={(hours) => onChange({ ...parts, hours })}
-            />
-            <span className="shrink-0 text-sm text-muted-foreground">h</span>
-            <IntervalBox
-              label="Minutes"
-              value={parts.minutes}
-              onChange={(minutes) => onChange({ ...parts, minutes })}
-            />
-            <span className="shrink-0 text-sm text-muted-foreground">min</span>
-          </div>
-          <Reveal className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false)
-                onChange("none")
-              }}
-              className="relative h-8 text-sm font-medium whitespace-nowrap text-primary transition-opacity duration-150 after:absolute after:-inset-y-1.5 active:opacity-50 active:duration-0"
-            >
-              No previous dive
-            </button>
-          </Reveal>
-        </div>
-      )}
+            {shown ?? "—"}
+          </span>
+          <IconChevronRight
+            aria-hidden
+            className="size-4.5 shrink-0 text-muted-foreground/60"
+          />
+        </button>
+      </Row>
+      <IntervalSheet
+        open={open}
+        onOpenChange={setOpen}
+        value={choice}
+        calculated={calculated}
+        onChange={(next) =>
+          onChange(
+            next == null || next === "none"
+              ? next
+              : intervalParts(next.minutes * 60)
+          )
+        }
+      />
     </Field>
-  )
-}
-
-function IntervalBox({
-  id,
-  label,
-  value,
-  onChange,
-}: {
-  id?: string
-  label: string
-  value: string
-  onChange: (value: string) => void
-}) {
-  return (
-    <RowInput
-      id={id}
-      aria-label={label}
-      inputMode="numeric"
-      placeholder="—"
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      // Narrow, so the row fits a 375 px phone, with room for three digits
-      // of hours.
-      className="w-9 flex-none"
-    />
   )
 }

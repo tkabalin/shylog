@@ -403,7 +403,7 @@ describe("a synced dive", () => {
 describe("the surface interval", () => {
   const dive = testDive({ id: "dive-si", surfaceInterval: 7800 })
   const log = testLog({ dives: [dive] })
-  const show = () => {
+  const show = (initial = fromDive(dive, log)) => {
     const onSave = vi.fn((values: FormValues) => {
       void values
       return Promise.resolve()
@@ -414,7 +414,7 @@ describe("the surface interval", () => {
         log={log}
         dive={dive}
         original={fromDive(dive, log)}
-        initial={fromDive(dive, log)}
+        initial={initial}
         onSave={onSave}
         onCancel={vi.fn()}
       />
@@ -422,24 +422,64 @@ describe("the surface interval", () => {
     click(document.querySelector("#field-surfaceInterval"))
     return onSave
   }
+  const saved = async (onSave: ReturnType<typeof show>) => {
+    await act(async () => button("Save")!.click())
+    return onSave.mock.calls[0][0].surfaceInterval
+  }
+  const wheel = (label: string, n: number) =>
+    button(String(n), document.querySelector(`[aria-label="${label}"]`)!)
+  const chosen = (name: string | RegExp) =>
+    button(name, document.querySelector("[role=dialog]")!)!.getAttribute(
+      "aria-pressed"
+    )
 
   it("opens on the calculated figure without overriding it", async () => {
     const onSave = show()
-    expect(
-      document.querySelector<HTMLInputElement>("#field-surfaceInterval")!.value
-    ).toBe("2")
-    await act(async () => button("Save")!.click())
-    expect(onSave.mock.calls[0][0].surfaceInterval).toBeNull()
+    expect(chosen(/^Calculated/)).toBe("true")
+    expect(wheel("Hours", 2)!.getAttribute("aria-selected")).toBe("true")
+    expect(wheel("Minutes", 10)!.getAttribute("aria-selected")).toBe("true")
+    click(button("Done"))
+    expect(await saved(onSave)).toBeNull()
   })
 
-  it("overrides it once something is typed", async () => {
+  it("overrides it once a wheel is turned", async () => {
     const onSave = show()
-    type(document.querySelector('input[aria-label="Minutes"]'), "30")
-    await act(async () => button("Save")!.click())
-    expect(onSave.mock.calls[0][0].surfaceInterval).toEqual({
-      hours: "2",
-      minutes: "30",
+    click(wheel("Minutes", 30))
+    expect(chosen(/^Calculated/)).toBe("false")
+    click(button("Done"))
+    expect(await saved(onSave)).toEqual({ hours: "2", minutes: "30" })
+  })
+
+  it("caps a figure by hand at 48 hours", async () => {
+    const onSave = show()
+    click(wheel("Hours", 48))
+    click(button("Done"))
+    expect(await saved(onSave)).toEqual({ hours: "48", minutes: "0" })
+  })
+
+  it("records no previous dive", async () => {
+    const onSave = show()
+    click(button("No previous dive"))
+    click(button("Done"))
+    expect(await saved(onSave)).toBe("none")
+  })
+
+  it("puts the calculated figure back, with no reset on the form", async () => {
+    const onSave = show({
+      ...fromDive(dive, log),
+      surfaceInterval: { hours: "1", minutes: "5" },
     })
+    expect(button(/^Reset/)).toBeUndefined()
+    click(button(/^Calculated/))
+    click(button("Done"))
+    expect(await saved(onSave)).toBeNull()
+  })
+
+  it("keeps the value when the sheet is cancelled", async () => {
+    const onSave = show()
+    click(wheel("Minutes", 30))
+    click(button("Cancel"))
+    expect(await saved(onSave)).toBeNull()
   })
 })
 
