@@ -151,13 +151,11 @@ function BackLink() {
 }
 
 // The bar is always solid, so a quick flick never shows text through it
-// before a scroll frame has run. It takes its line once the content's first
-// line reaches it (not at the first pixel of scroll, while the gap above
-// the content passes), and the site's name once the title has passed under
-// it. Read from layout, so the safe-area inset above the bar counts.
+// before a scroll frame has run. It takes its line as soon as anything
+// scrolls under it, and the site's name once the title has passed under it.
+// Read from layout, so the safe-area inset above the bar counts.
 function useBar() {
   const barRef = useRef<HTMLElement>(null)
-  const content = useRef<HTMLElement>(null)
   const title = useRef<HTMLHeadingElement>(null)
   const [state, setState] = useState({ scrolled: false, titled: false })
   useEffect(() => {
@@ -166,15 +164,12 @@ function useBar() {
     let frame = 0
     const update = () => {
       frame = 0
-      const bar = barRef.current?.getBoundingClientRect().bottom
-      const scrolled =
-        bar != null &&
-        !!content.current &&
-        content.current.getBoundingClientRect().top < bar
+      const scrolled = main.scrollTop > 0
       const titled =
-        bar != null &&
+        !!barRef.current &&
         !!title.current &&
-        title.current.getBoundingClientRect().bottom <= bar
+        title.current.getBoundingClientRect().bottom <=
+          barRef.current.getBoundingClientRect().bottom
       setState((was) =>
         was.scrolled === scrolled && was.titled === titled
           ? was
@@ -191,7 +186,7 @@ function useBar() {
       cancelAnimationFrame(frame)
     }
   }, [])
-  return { barRef, content, title, ...state }
+  return { barRef, title, ...state }
 }
 
 function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
@@ -205,7 +200,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
       .join(", ") || null
   const figures = diveFigures(dive, log)
   const differing = differences(dive, log.fieldMeta.get(dive.id))
-  const { barRef, content, title, scrolled, titled } = useBar()
+  const { barRef, title, scrolled, titled } = useBar()
 
   const visibility =
     dive.visibility != null
@@ -239,7 +234,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
       </header>
 
       <div className="flex flex-col gap-6 px-4 pt-5 pb-8">
-        <section ref={content} className="flex flex-col gap-1 px-1">
+        <section className="flex flex-col gap-1 px-1">
           <p className="flex min-h-5.5 items-center text-sm font-medium text-muted-foreground tabular-nums">
             {dive.ignored ? (
               <>
