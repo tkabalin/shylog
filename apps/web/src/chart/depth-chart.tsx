@@ -186,8 +186,10 @@ function TimeTick({
   model: ProfileModel
   width: number
 }) {
-  const last = value === model.time.values.at(-1)
-  const text = `${timeLabel(value, model.time)}${last ? " min" : ""}`
+  // The unit on the first label, which sits at the plot's left edge: on
+  // the last one it pushed the number well off its gridline.
+  const first = value === model.time.values[0]
+  const text = `${timeLabel(value, model.time)}${first ? " min" : ""}`
   const half = textWidth(text) / 2
   const anchor = x - half < 0 ? "start" : x + half > width ? "end" : "middle"
   return (
