@@ -18,6 +18,7 @@ function useStuck(scroller: string) {
     if (!element || !target) return
     let frame = 0
     let heading: HTMLElement | null = null
+    let misses = 0
     const update = () => {
       frame = 0
       const top = parseFloat(getComputedStyle(target).top)
@@ -45,12 +46,18 @@ function useStuck(scroller: string) {
       }
       // While the list has month headings the line is theirs alone, so the
       // bar never draws one above the first month before it arrives.
-      target.toggleAttribute(
-        "data-heading-stuck",
-        isStuck && !!element.querySelector("[data-month-heading]")
-      )
+      const headings = !!element.querySelector("[data-month-heading]")
+      target.toggleAttribute("data-heading-stuck", isStuck && headings)
+      // A month just restored into view isn't hit-testable until
+      // content-visibility paints it, so a stuck bar with no heading under
+      // it looks again for a few frames rather than waiting for a scroll.
+      if (isStuck && headings && !next && misses < 5) {
+        misses++
+        frame = requestAnimationFrame(update)
+      }
     }
     const onScroll = () => {
+      misses = 0
       frame ||= requestAnimationFrame(update)
     }
     // After the router has restored the scroll position.
