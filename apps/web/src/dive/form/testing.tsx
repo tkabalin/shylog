@@ -14,9 +14,11 @@ declare global {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 // jsdom has neither matchMedia nor scrollIntoView, which the form uses a
-// frame after a save to bring an error or alert into view; no motion
-// preference is set, and scrolling does nothing.
+// frame after a save to bring an error or alert into view, nor scrollTo,
+// which turns the interval sheet's wheels; no motion preference is set,
+// and scrolling does nothing.
 Element.prototype.scrollIntoView ??= () => {}
+Element.prototype.scrollTo ??= () => {}
 window.matchMedia ??= (query: string) =>
   ({
     matches: false,

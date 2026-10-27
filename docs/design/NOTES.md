@@ -35,7 +35,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Pickers follow D29. `SitePickerHifi` becomes a full-height bottom sheet with Cancel in place of "‹ Edit dive"; Country and Body of water open as lists inside it (body of water is a list, not a native select).
 - Buddies, dive professionals and the dive centre are rows in the form that open a sheet, not the board's suggestion list inside the card. The list is "Recent" (most recently used), not "Frequent"; Add keeps the name as typed rather than capitalising it; nobody is offered for both roles.
 - The ✓/✕ group sits on its own line under each field, right-aligned like the values, for all six compared fields, rather than squeezed into the row.
-- Surface interval is edited as hours and minutes boxes, not free text.
+- Surface interval is picked on hours and minutes wheels in a sheet, with Calculated and No previous dive as rows, not typed as free text.
 - Copy from last dive is one row like the form's own: the title with its icon, and the last dive's site on the right. The board's two-line card with the dive number and date is simplified away.
 - Tag chips and segmented controls are 40 to 44 px tall; the ✓/✕ buttons and chip remove buttons keep their size with a 44 px tap area.
 
