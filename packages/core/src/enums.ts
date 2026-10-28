@@ -20,12 +20,13 @@ export const diveTypes = {
 } as const satisfies Options
 export type DiveType = keyof typeof diveTypes
 
+// In the order a diver reaches for them, not UDDF's: boats before a pier.
 export const entries = {
   beachShore: { label: "Beach or shore", uddf: "beach-shore" },
-  pier: { label: "Pier", uddf: "pier" },
   smallBoat: { label: "Small boat", uddf: "small-boat" },
   charterBoat: { label: "Charter boat", uddf: "charter-boat" },
   liveaboard: { label: "Liveaboard", uddf: "live-aboard" },
+  pier: { label: "Pier", uddf: "pier" },
   barge: { label: "Barge", uddf: "barge" },
   landside: { label: "Landside", uddf: "landside" },
   hyperbaricFacility: {
