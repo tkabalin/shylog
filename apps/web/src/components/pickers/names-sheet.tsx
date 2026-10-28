@@ -173,7 +173,7 @@ export function NamesSheet({
                   onClick={() => onChange(selected.filter((s) => s !== id))}
                   // 44 px tall but narrow, so a tap on the end of the name
                   // never removes the person.
-                  className="relative inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-opacity duration-150 after:absolute after:-inset-y-2 after:-right-1 after:left-0 active:opacity-50 active:duration-0"
+                  className="relative inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-opacity duration-150 after:absolute after:-inset-y-2 after:-right-1 after:left-0 hover:opacity-70 active:opacity-50 active:duration-0"
                 >
                   <IconX aria-hidden className="size-4" />
                 </button>
@@ -227,7 +227,7 @@ export function NamesSheet({
                 role="option"
                 aria-selected={false}
                 onClick={() => choose(c.id)}
-                className="flex min-h-13.5 w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-150 not-first:border-t active:bg-muted active:duration-0"
+                className="flex min-h-13.5 w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-150 not-first:border-t hover:bg-muted/60 active:bg-muted active:duration-0"
               >
                 <Avatar kind={kind} name={c.name} />
                 <span className="flex min-w-0 flex-1 flex-col gap-px">
@@ -248,7 +248,7 @@ export function NamesSheet({
               <button
                 type="button"
                 onClick={() => choose(onCreate(typed))}
-                className="flex min-h-13.5 w-full items-center gap-3 border-t px-4 py-2 text-left text-primary transition-colors duration-150 first:border-t-0 active:bg-muted active:duration-0"
+                className="flex min-h-13.5 w-full items-center gap-3 border-t px-4 py-2 text-left text-primary transition-colors duration-150 first:border-t-0 hover:bg-muted/60 active:bg-muted active:duration-0"
               >
                 <span
                   aria-hidden

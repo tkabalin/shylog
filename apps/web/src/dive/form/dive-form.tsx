@@ -540,7 +540,7 @@ export function DiveForm({
                 onCancel()
               else setConfirming(true)
             }}
-            className="inline-flex h-11 items-center justify-self-start px-2 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50 active:duration-0"
+            className="inline-flex h-11 items-center justify-self-start px-2 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
           >
             Cancel
           </button>
@@ -551,7 +551,7 @@ export function DiveForm({
             type="button"
             onClick={() => void save()}
             disabled={saving}
-            className="inline-flex h-11 items-center justify-self-end px-2 text-base font-semibold text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50 active:duration-0 disabled:text-muted-foreground/60"
+            className="inline-flex h-11 items-center justify-self-end px-2 text-base font-semibold text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50 active:duration-0 enabled:hover:opacity-70 disabled:text-muted-foreground/60"
           >
             {saving ? "Saving…" : "Save"}
           </button>
@@ -590,7 +590,7 @@ export function DiveForm({
               <button
                 type="button"
                 onClick={() => update(copyFromDive(values, latest, log))}
-                className="flex min-h-11.5 w-full items-center gap-3 pr-3.5 pl-4 text-left transition-colors duration-150 active:bg-muted active:duration-0"
+                className="flex min-h-11.5 w-full items-center gap-3 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
               >
                 {/* One row like the form's own; the last dive's site, which
                     is what it's remembered by, gives way to the title. */}
@@ -814,7 +814,7 @@ export function DiveForm({
                           : values.tags.filter((t) => t !== tag)
                       )
                     }
-                    className="relative h-10 rounded-full bg-muted px-3.5 text-sm font-medium text-foreground transition-[color,background-color,opacity] duration-150 hover:bg-muted hover:text-foreground active:opacity-50 active:duration-0 aria-pressed:bg-primary/10 aria-pressed:text-primary data-pressed:bg-primary/10 data-pressed:text-primary"
+                    className="relative h-10 cursor-pointer rounded-full bg-muted px-3.5 text-sm font-medium text-foreground transition-[color,background-color,opacity] duration-150 hover:bg-muted hover:text-foreground hover:opacity-80 active:opacity-50 active:duration-0 aria-pressed:bg-primary/10 aria-pressed:text-primary data-pressed:bg-primary/10 data-pressed:text-primary"
                   >
                     {tags[tag].label}
                     <Haptic />

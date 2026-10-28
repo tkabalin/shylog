@@ -7,6 +7,24 @@
 /* Desktop chrome and compact controls need a wide screen and a mouse or
    trackpad: a phone turned landscape is wide too, but still under a finger. */
 @custom-variant desk (@media (width >= 48rem) and (pointer: fine));
+/* Hover needs a mouse too: Tailwind's own asks only (hover: hover), which
+   some Android phones and iPads report, leaving a tint stuck after a tap. */
+@custom-variant hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+/* A form row tints while the control in it is hovered, not its label,
+   which a click does nothing on. */
+@custom-variant control-hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:has(:is(button, input, textarea):hover) {
+      @slot;
+    }
+  }
+}
 
 @theme inline {
   --font-heading: var(--font-sans);
@@ -174,6 +192,10 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  /* And a transition with no curve of its own (hover and press fades)
+     answers at once rather than easing in. Written out, as an inline
+     theme emits no var() to point at. */
+  --default-transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 :root {

@@ -402,7 +402,7 @@ function SiteList({
           <button
             type="button"
             onClick={onNew}
-            className="flex min-h-13 items-center gap-3 px-4 text-left text-base font-medium text-primary transition-colors duration-150 active:bg-muted active:duration-0"
+            className="flex min-h-13 items-center gap-3 px-4 text-left text-base font-medium text-primary transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
           >
             <IconPlus aria-hidden className="size-5 shrink-0" />
             <span className="truncate">{addLabel}</span>
@@ -485,7 +485,7 @@ function SiteButton({
       type="button"
       aria-current={current || undefined}
       onClick={() => onPick(site.id)}
-      className="flex min-h-14 items-center gap-3 py-2 pr-3.5 pl-4 text-left transition-colors duration-150 active:bg-muted active:duration-0"
+      className="flex min-h-14 items-center gap-3 py-2 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
     >
       <span className="flex min-w-0 flex-1 flex-col gap-px">
         <span className="truncate text-base font-medium tracking-[-0.01em]">
@@ -652,7 +652,7 @@ function NewSite({
                     onDraft({ ...draft, region: region.name })
                     regionInput.current?.blur()
                   }}
-                  className="flex min-h-13 w-full items-center gap-3 px-4 py-1.5 text-left transition-colors duration-150 not-first:border-t active:bg-muted active:duration-0"
+                  className="flex min-h-13 w-full items-center gap-3 px-4 py-1.5 text-left transition-colors duration-150 not-first:border-t hover:bg-muted/60 active:bg-muted active:duration-0"
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-px">
                     <span className="truncate text-base font-medium">
@@ -725,7 +725,7 @@ function PushRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-11.5 items-center gap-3 px-4 text-left transition-colors duration-150 active:bg-muted active:duration-0"
+      className="flex min-h-11.5 items-center gap-3 px-4 text-left transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
     >
       <span className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
         {Icon && <Icon aria-hidden className="size-[1.15em]" />}
@@ -774,7 +774,7 @@ function CountryList({
         type="button"
         onClick={() => onPick(code)}
         aria-current={code === value || undefined}
-        className="flex min-h-12 items-center gap-3 px-4 text-left text-base font-medium transition-colors duration-150 active:bg-muted active:duration-0"
+        className="flex min-h-12 items-center gap-3 px-4 text-left text-base font-medium transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
       >
         <span className="min-w-0 flex-1 truncate">{name}</span>
         {code === value && (
@@ -839,7 +839,7 @@ function BodyList({
           type="button"
           onClick={() => onPick(option.value)}
           aria-current={option.value === value || undefined}
-          className="flex min-h-12 items-center gap-3 px-4 py-2 text-left transition-colors duration-150 active:bg-muted active:duration-0"
+          className="flex min-h-12 items-center gap-3 px-4 py-2 text-left transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
         >
           <span className="flex min-w-0 flex-1 flex-col gap-px">
             <span

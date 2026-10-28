@@ -52,7 +52,7 @@ export const Alarms = memo(function Alarms({
                 onClick={() => onShow(alarm)}
                 aria-label={`Ascent rate alarm at ${clock(event.start)} ${spoken}, peak ascent ${peak.toFixed(1)} metres per minute. Show on profile.`}
                 // The tint comes on at once and fades on release.
-                className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2 text-left transition-colors duration-150 outline-none select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] focus-visible:bg-muted active:bg-muted active:duration-0"
+                className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2 text-left transition-colors duration-150 outline-none select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hover:bg-muted/60 focus-visible:bg-muted active:bg-muted active:duration-0"
                 style={{ height: alarmRowHeight }}
               >
                 <span className="flex min-w-0 flex-col gap-px">

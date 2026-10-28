@@ -91,7 +91,7 @@ function FullScreen({ dive, log }: { dive: Dive; log: LogView }) {
         replace
         onClick={close}
         aria-label="Close"
-        className="-ml-2.5 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-primary transition-opacity duration-150 active:opacity-50"
+        className="-ml-2.5 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-primary transition-opacity duration-150 hover:opacity-70 active:opacity-50"
       >
         <IconX aria-hidden className="size-5.5 stroke-[2.25]" />
       </Link>

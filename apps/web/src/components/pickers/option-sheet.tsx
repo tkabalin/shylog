@@ -86,7 +86,7 @@ function OptionRow({
       role="option"
       aria-selected={selected}
       onClick={onClick}
-      className="flex min-h-13 w-full items-center gap-3 border-t px-4 py-2 text-left transition-colors duration-150 active:bg-muted active:duration-0"
+      className="flex min-h-13 w-full items-center gap-3 border-t px-4 py-2 text-left transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
     >
       <span
         className={cn(
