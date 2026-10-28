@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -49,6 +50,7 @@ import {
   IconUserStar,
   IconWeight,
 } from "@tabler/icons-react"
+import { useBlocker } from "@tanstack/react-router"
 import { cn } from "cn"
 
 import {
@@ -193,6 +195,7 @@ export function DiveForm({
   onChange,
   onSave,
   onCancel,
+  onDiscard,
 }: {
   title: string
   log: LogView
@@ -205,7 +208,9 @@ export function DiveForm({
   onChange?: (values: FormValues) => void
   // Rejects with a message to show when the save fails.
   onSave: (values: FormValues) => Promise<void>
+  // Closes the form; onDiscard first drops what was typed.
   onCancel: () => void
+  onDiscard?: () => void
 }) {
   const [values, setValues] = useState(initial)
   const [showErrors, setShowErrors] = useState(false)
@@ -216,14 +221,37 @@ export function DiveForm({
   const desk = useDesk()
   // Asks first when something was typed, as an iOS edit sheet does: one
   // stray tap shouldn't throw a dive away.
+  const typed = () =>
+    JSON.stringify(values) !== JSON.stringify(original ?? blank ?? initial)
+  // Set as Save or Cancel closes the form, so LeaveGuard lets them go.
+  const leaving = useRef(false)
+  const close = () => {
+    leaving.current = true
+    onDiscard?.()
+    onCancel()
+  }
+  // A move elsewhere LeaveGuard held, waiting on the same question.
+  const [leave, setLeave] = useState<Leave | null>(null)
   const cancel = () => {
-    const untouched = original ?? blank ?? initial
-    if (JSON.stringify(values) === JSON.stringify(untouched)) onCancel()
-    else setConfirming(true)
+    if (typed()) setConfirming(true)
+    else close()
   }
   const discardNote = dive
     ? "Your changes to this dive will be lost."
     : "This dive hasn't been saved."
+  const discard = () => {
+    setConfirming(false)
+    if (leave) {
+      onDiscard?.()
+      setLeave(null)
+      leave.proceed()
+    } else close()
+  }
+  const keep = () => {
+    setConfirming(false)
+    leave?.reset()
+    setLeave(null)
+  }
   // Kept on the phone once each change has rendered (see autosave.ts),
   // not from inside the state update, which React may run twice.
   const first = useRef(true)
@@ -486,9 +514,11 @@ export function DiveForm({
     }
     setSaving(true)
     setFailure(null)
+    leaving.current = true
     try {
       await onSave(values)
     } catch (caught) {
+      leaving.current = false
       setFailure(caught instanceof Error ? caught.message : String(caught))
       setSaving(false)
       // The alert is at the top, which may be scrolled out of sight.
@@ -1210,7 +1240,16 @@ export function DiveForm({
           </Card>
         </form>
 
-        <Drawer open={confirming} onOpenChange={setConfirming}>
+        {desk && (
+          <LeaveGuard
+            when={() => !leaving.current && typed()}
+            onBlock={setLeave}
+          />
+        )}
+        <Drawer
+          open={confirming || leave != null}
+          onOpenChange={(open) => !open && keep()}
+        >
           {desk ? (
             // A desktop dialog asks as shadcn's alert dialogs do.
             <DrawerContent>
@@ -1219,16 +1258,10 @@ export function DiveForm({
                 <DrawerDescription>{discardNote}</DrawerDescription>
               </DrawerHeader>
               <DrawerFooter>
-                <Button variant="outline" onClick={() => setConfirming(false)}>
+                <Button variant="outline" onClick={keep}>
                   Keep editing
                 </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    setConfirming(false)
-                    onCancel()
-                  }}
-                >
+                <Button variant="destructive" onClick={discard}>
                   Discard changes
                 </Button>
               </DrawerFooter>
@@ -1243,17 +1276,14 @@ export function DiveForm({
                 <Button
                   variant="outline"
                   className="h-12 rounded-[14px] text-base font-semibold text-destructive"
-                  onClick={() => {
-                    setConfirming(false)
-                    onCancel()
-                  }}
+                  onClick={discard}
                 >
                   Discard changes
                 </Button>
                 <Button
                   variant="outline"
                   className="h-12 rounded-[14px] text-base font-semibold"
-                  onClick={() => setConfirming(false)}
+                  onClick={keep}
                 >
                   Keep editing
                 </Button>
@@ -1506,4 +1536,38 @@ function SurfaceInterval({
       />
     </Field>
   )
+}
+
+interface Leave {
+  proceed: () => void
+  reset: () => void
+}
+
+// On a desktop the sidebar and Back stay in reach, where a phone's form
+// covers its tabs, so leaving with something typed asks first, as Cancel
+// does. Mounted only there, as it needs the router.
+function LeaveGuard({
+  when,
+  onBlock,
+}: {
+  when: () => boolean
+  onBlock: (leave: Leave | null) => void
+}) {
+  // One blocker for the form's life, asking the latest `when`, rather than
+  // a new one each keystroke as `when` changes.
+  const latest = useRef(when)
+  useEffect(() => {
+    latest.current = when
+  })
+  const shouldBlockFn = useCallback(() => latest.current(), [])
+  const blocker = useBlocker({
+    shouldBlockFn,
+    enableBeforeUnload: false,
+    withResolver: true,
+  })
+  const { status, proceed, reset } = blocker
+  useEffect(() => {
+    onBlock(status === "blocked" ? { proceed, reset } : null)
+  }, [status, proceed, reset, onBlock])
+  return null
 }

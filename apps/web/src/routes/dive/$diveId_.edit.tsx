@@ -98,10 +98,8 @@ function EditDive({
         await autosave.clear()
         close()
       }}
-      onCancel={() => {
-        void autosave.clear()
-        close()
-      }}
+      onCancel={close}
+      onDiscard={() => void autosave.clear()}
     />
   )
 }

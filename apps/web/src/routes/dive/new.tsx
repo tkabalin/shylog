@@ -71,10 +71,8 @@ function NewDive({
           state: { fromLog: router.state.location.state.fromLog },
         })
       }}
-      onCancel={() => {
-        void autosave.clear()
-        close()
-      }}
+      onCancel={close}
+      onDiscard={() => void autosave.clear()}
     />
   )
 }
