@@ -78,7 +78,6 @@ import type { LogView } from "@/data/log"
 import { longDate } from "@/format/dates"
 import { bar, depth, interval } from "@/format/figures"
 import { Haptic } from "@/lib/haptic"
-import { raiseKeyboard } from "@/lib/keyboard"
 
 import { formFigures } from "./calculated"
 import {
@@ -800,11 +799,7 @@ export function DiveForm({
             <PickRow
               label="Trip"
               value={trips.find((t) => t.id === values.tripId)?.name}
-              onClick={() => {
-                // A single choice's sheet has no field once it's chosen.
-                if (!values.tripId) raiseKeyboard()
-                setSheet("trip")
-              }}
+              onClick={() => setSheet("trip")}
             />
             <Block label="Tags" id="label-tags">
               <div className="flex flex-wrap gap-1.5">
@@ -1098,28 +1093,19 @@ export function DiveForm({
               icon={IconUsers}
               label="Buddies"
               {...namesValue(values.buddies)}
-              onClick={() => {
-                raiseKeyboard()
-                setSheet("buddies")
-              }}
+              onClick={() => setSheet("buddies")}
             />
             <PickRow
               icon={IconUserStar}
               label="Dive professionals"
               {...namesValue(values.diveProfessionals)}
-              onClick={() => {
-                raiseKeyboard()
-                setSheet("diveProfessionals")
-              }}
+              onClick={() => setSheet("diveProfessionals")}
             />
             <PickRow
               icon={IconBuildingStore}
               label="Dive centre"
               value={values.diveCentreId ? nameOf(values.diveCentreId) : null}
-              onClick={() => {
-                if (!values.diveCentreId) raiseKeyboard()
-                setSheet("diveCentre")
-              }}
+              onClick={() => setSheet("diveCentre")}
             />
           </Section>
 

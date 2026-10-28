@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { normaliseName } from "@shylog/core"
 import {
   IconBuildingStore,
@@ -66,6 +66,18 @@ export function NamesSheet({
   const [query, setQuery] = useState("")
   const [chipsHidden, setChipsHidden] = useState(false)
   const input = useRef<HTMLInputElement>(null)
+  // iOS raises the keyboard only for a focus inside the tap, and the field
+  // mounts within the row's tap that opens the sheet, so it takes focus
+  // there rather than from initialFocus a few frames later. Focus then goes
+  // back to the row on close, which the drawer no longer sees.
+  const opener = useRef<HTMLElement | null>(null)
+  const mountField = useCallback((field: HTMLInputElement | null) => {
+    input.current = field
+    // StrictMode attaches the ref twice, when the field already has focus.
+    if (!field || document.activeElement === field) return
+    opener.current = document.activeElement as HTMLElement | null
+    field.focus({ preventScroll: true })
+  }, [])
   // A single choice closes the sheet, which shows the names it opened with
   // until it's gone, so its rows and chip don't change as it slides away.
   const [held, setHeld] = useState<string[] | null>(null)
@@ -118,7 +130,7 @@ export function NamesSheet({
         if (!isOpen) setQuery("")
       }}
     >
-      <FullSheetContent initialFocus={input}>
+      <FullSheetContent initialFocus={input} finalFocus={opener}>
         <SheetBar
           title={title}
           end={
@@ -170,7 +182,7 @@ export function NamesSheet({
           })}
           {(multiple || !shown.length) && (
             <input
-              ref={input}
+              ref={mountField}
               type="text"
               value={query}
               onChange={(event) => setQuery(event.target.value)}

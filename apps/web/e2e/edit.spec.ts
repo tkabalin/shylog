@@ -102,3 +102,29 @@ test("keeps the form's values and offers Try again when the server can't be reac
   await expect(page.getByLabel("General")).toHaveValue("Kept while offline")
   await expect(page).toHaveURL(new RegExp(`/dive/${id}/edit$`))
 })
+
+// iOS raises the keyboard only for a focus inside the tap itself, so the
+// names sheet's field must have it before the row's click is over. Closing
+// gives focus back to the row.
+test("focuses the names sheet's field within the row's tap", async ({
+  page,
+}) => {
+  await page.goto("/dive/new")
+  await page.evaluate(() =>
+    window.addEventListener(
+      "click",
+      () =>
+        document.body.setAttribute(
+          "data-focused",
+          document.activeElement?.getAttribute("aria-label") ?? ""
+        ),
+      { once: true }
+    )
+  )
+  const row = page.getByRole("button", { name: /^Buddies,/ })
+  await row.click()
+  await expect(page.locator("body")).toHaveAttribute("data-focused", "Buddies")
+  await still(sheet(page))
+  await page.keyboard.press("Escape")
+  await expect(row).toBeFocused()
+})
