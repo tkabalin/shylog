@@ -166,7 +166,7 @@ Tags are a fixed list in the app code, not editable in the app. Each dive stores
 | Buddies | Pick or create, several allowed |  |  | `informationbeforedive/link` to `diver/buddy` |
 | Dive professionals | Pick or create, several allowed | Instructors, divemasters, and guides, with no finer role |  | `informationbeforedive/link` to `diver/buddy`; being a professional is kept in the database only |
 | Dive centre | Pick or create |  |  | `divesite/divebase`, linked from `<shylog>` |
-| Entry | Choice | Beach or shore, Pier, Small boat, Charter boat, Liveaboard, Barge, Landside, Hyperbaric facility, Other |  | `informationbeforedive/platform`: `beach-shore`, `pier`, `small-boat`, `charter-boat`, `live-aboard`, `barge`, `landside`, `hyperbaric-facility`, `other` |
+| Entry | Choice | Beach or shore, Small boat, Charter boat, Liveaboard, Pier, Barge, Landside, Hyperbaric facility, Other |  | `informationbeforedive/platform`: `beach-shore`, `pier`, `small-boat`, `charter-boat`, `live-aboard`, `barge`, `landside`, `hyperbaric-facility`, `other` |
 | Current | Choice | None, Very mild, Mild, Moderate, Hard, Very hard. Water flowing in one direction, separate from surge |  | `informationafterdive/current`: `no-current` to `very-hard-current` |
 | Surge | Choice | None, Mild, Moderate, Hard, Very hard. The strongest back-and-forth push from swell felt during the dive: Mild is a slight sway, Moderate needs finning or a handhold to stay put, Hard makes holding position difficult, Very hard makes it impossible |  | `<shylog>` |
 | Surface | Choice | Calm, Moving, Stormy |  | `<shylog>` |
