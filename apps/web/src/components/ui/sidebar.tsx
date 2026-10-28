@@ -680,6 +680,7 @@ function SidebarMenuSubButton({
 }
 
 export {
+  SIDEBAR_WIDTH,
   Sidebar,
   SidebarContent,
   SidebarFooter,

@@ -69,12 +69,20 @@ import { SiteSheet, type SiteRow } from "@/components/pickers/site-sheet"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Toggle } from "@/components/ui/toggle"
 import type { Dive } from "@/data/db"
 import type { LogView } from "@/data/log"
+import { useDesk } from "@/hooks/use-desk"
 import { longDate } from "@/format/dates"
 import { bar, depth, interval } from "@/format/figures"
 import { Haptic } from "@/lib/haptic"
@@ -204,6 +212,10 @@ export function DiveForm({
   const [failure, setFailure] = useState<string | null>(null)
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const desk = useDesk()
+  const discardNote = dive
+    ? "Your changes to this dive will be lost."
+    : "This dive hasn't been saved."
   // Kept on the phone once each change has rendered (see autosave.ts),
   // not from inside the state update, which React may run twice.
   const first = useRef(true)
@@ -1159,33 +1171,55 @@ export function DiveForm({
         </form>
 
         <Drawer open={confirming} onOpenChange={setConfirming}>
-          <DrawerContent className="md:mx-auto md:max-w-md md:border-x">
-            <DrawerTitle className="sr-only">Discard changes?</DrawerTitle>
-            <div className="flex flex-col gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-              <p className="pb-1 text-center text-[13px] text-muted-foreground">
-                {dive
-                  ? "Your changes to this dive will be lost."
-                  : "This dive hasn't been saved."}
-              </p>
-              <Button
-                variant="outline"
-                className="h-12 rounded-[14px] text-base font-semibold text-destructive"
-                onClick={() => {
-                  setConfirming(false)
-                  onCancel()
-                }}
-              >
-                Discard changes
-              </Button>
-              <Button
-                variant="outline"
-                className="h-12 rounded-[14px] text-base font-semibold"
-                onClick={() => setConfirming(false)}
-              >
-                Keep editing
-              </Button>
-            </div>
-          </DrawerContent>
+          {desk ? (
+            // A desktop dialog asks as shadcn's alert dialogs do.
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>Discard changes?</DrawerTitle>
+                <DrawerDescription>{discardNote}</DrawerDescription>
+              </DrawerHeader>
+              <DrawerFooter>
+                <Button variant="outline" onClick={() => setConfirming(false)}>
+                  Keep editing
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setConfirming(false)
+                    onCancel()
+                  }}
+                >
+                  Discard changes
+                </Button>
+              </DrawerFooter>
+            </DrawerContent>
+          ) : (
+            <DrawerContent>
+              <DrawerTitle className="sr-only">Discard changes?</DrawerTitle>
+              <div className="flex flex-col gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                <p className="pb-1 text-center text-[13px] text-muted-foreground">
+                  {discardNote}
+                </p>
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-[14px] text-base font-semibold text-destructive"
+                  onClick={() => {
+                    setConfirming(false)
+                    onCancel()
+                  }}
+                >
+                  Discard changes
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-12 rounded-[14px] text-base font-semibold"
+                  onClick={() => setConfirming(false)}
+                >
+                  Keep editing
+                </Button>
+              </div>
+            </DrawerContent>
+          )}
         </Drawer>
         <SiteSheet
           open={sheet === "site"}

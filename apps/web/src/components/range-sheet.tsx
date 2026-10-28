@@ -65,18 +65,13 @@ export default function RangeSheet({
 
   return (
     <Drawer showSwipeHandle open={open && mounted} onOpenChange={onOpenChange}>
-      {/* Edge to edge on a phone; wider screens get a centred sheet, as a
-          full-width one leaves the slider stretched across the window. */}
-      <DrawerContent
-        finalFocus={returnFocus}
-        className="md:mx-auto md:max-w-md md:border-x"
-      >
+      <DrawerContent finalFocus={returnFocus}>
         <DrawerHeader>
           <DrawerTitle>{label}</DrawerTitle>
         </DrawerHeader>
         {/* Only the handle and header drag the sheet down: a slide across that drifts
             down a little must not dismiss it. */}
-        <div data-base-ui-swipe-ignore className="px-6 pt-14 pb-12">
+        <div data-base-ui-swipe-ignore className="px-6 pt-14 pb-12 desk:pb-4">
           <Slider
             value={[draft.min, draft.max]}
             min={scale.min}
@@ -109,14 +104,14 @@ export default function RangeSheet({
         >
           <Button
             variant="outline"
-            className="flex-1"
+            className="flex-1 desk:flex-none"
             disabled={isFullRange(draft, scale)}
             onClick={() => setDraft(full)}
           >
             Reset
           </Button>
           <Button
-            className="flex-1"
+            className="flex-1 desk:flex-none"
             onClick={() => {
               onApply(isFullRange(draft, scale) ? undefined : draft)
               onOpenChange(false)

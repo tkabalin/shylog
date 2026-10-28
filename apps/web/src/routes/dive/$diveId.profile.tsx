@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useSyncExternalStore,
-  type MouseEvent,
-  type ReactNode,
-} from "react"
+import { useEffect, useRef, type MouseEvent, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { IconX } from "@tabler/icons-react"
 import {
@@ -23,6 +17,7 @@ import { useLog, type LogView } from "@/data/log"
 import { profileKey } from "@/data/samples"
 import { diveFigures } from "@/dive/figures"
 import { longDate } from "@/format/dates"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 declare module "@tanstack/react-router" {
   interface HistoryState {
@@ -43,13 +38,7 @@ export const Route = createFileRoute("/dive/$diveId/profile")({
 // quarter turn round: turned, it shows in landscape, even when locked.
 const portrait =
   "(orientation: portrait) and (pointer: coarse) and (max-width: 600px)"
-const subscribe = (change: () => void) => {
-  const query = matchMedia(portrait)
-  query.addEventListener("change", change)
-  return () => query.removeEventListener("change", change)
-}
-const useTurned = () =>
-  useSyncExternalStore(subscribe, () => matchMedia(portrait).matches)
+const useTurned = () => useMediaQuery(portrait)
 
 function FullProfilePage() {
   const { diveId } = Route.useParams()

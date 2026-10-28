@@ -1,8 +1,14 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer"
 import { cn } from "cn"
 
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { SIDEBAR_WIDTH } from "@/components/ui/sidebar"
+import { useDesk } from "@/hooks/use-desk"
+
 type DrawerContextProps = {
+  desk: boolean
   hasSnapPoints: boolean
   modal: DrawerPrimitive.Root.Props["modal"]
   showSwipeHandle: boolean
@@ -10,6 +16,11 @@ type DrawerContextProps = {
 }
 
 const DrawerContext = React.createContext<DrawerContextProps | null>(null)
+
+// Shylog: the desktop dialog's footer, which a sheet's bar actions are
+// portalled into (DrawerActions), so they sit below the content, as
+// shadcn's dialogs place them, and are tabbed to last.
+const DrawerActionsSlot = React.createContext<HTMLElement | null>(null)
 
 function useDrawer() {
   const context = React.useContext(DrawerContext)
@@ -21,6 +32,9 @@ function useDrawer() {
   return context
 }
 
+// Shylog: with a mouse on a wide screen (desk:) a sheet opens as a centred
+// dialog instead. The drawer is a dialog underneath, so its title, close and
+// change events work in either.
 function Drawer({
   modal = true,
   showSwipeHandle = false,
@@ -30,21 +44,30 @@ function Drawer({
 }: DrawerPrimitive.Root.Props & {
   showSwipeHandle?: boolean
 }) {
+  const desk = useDesk()
   const hasSnapPoints = snapPoints != null && snapPoints.length > 0
   const contextValue = React.useMemo(
-    () => ({ hasSnapPoints, modal, showSwipeHandle, swipeDirection }),
-    [hasSnapPoints, modal, showSwipeHandle, swipeDirection]
+    () => ({ desk, hasSnapPoints, modal, showSwipeHandle, swipeDirection }),
+    [desk, hasSnapPoints, modal, showSwipeHandle, swipeDirection]
   )
 
   return (
     <DrawerContext.Provider value={contextValue}>
-      <DrawerPrimitive.Root
-        data-slot="drawer"
-        modal={modal}
-        snapPoints={snapPoints}
-        swipeDirection={swipeDirection}
-        {...props}
-      />
+      {desk ? (
+        <Dialog
+          data-slot="drawer"
+          modal={modal}
+          {...(props as React.ComponentProps<typeof Dialog>)}
+        />
+      ) : (
+        <DrawerPrimitive.Root
+          data-slot="drawer"
+          modal={modal}
+          snapPoints={snapPoints}
+          swipeDirection={swipeDirection}
+          {...props}
+        />
+      )}
     </DrawerContext.Provider>
   )
 }
@@ -103,9 +126,17 @@ function DrawerContent({
   children,
   ...props
 }: DrawerPrimitive.Popup.Props) {
-  const { hasSnapPoints, modal, showSwipeHandle, swipeDirection } = useDrawer()
+  const { desk, hasSnapPoints, modal, showSwipeHandle, swipeDirection } =
+    useDrawer()
   const swipeAxis =
     swipeDirection === "down" || swipeDirection === "up" ? "y" : "x"
+
+  if (desk)
+    return (
+      <DeskContent className={className} {...props}>
+        {children}
+      </DeskContent>
+    )
 
   return (
     <DrawerPortal data-slot="drawer-portal">
@@ -128,7 +159,9 @@ function DrawerContent({
             "data-nested-drawer-open:overflow-hidden data-nested-drawer-open:brightness-95",
             // Bleed.
             "after:pointer-events-none after:absolute after:bg-(--drawer-bleed-background,var(--color-popover)) data-[swipe-axis=x]:after:inset-y-0 data-[swipe-axis=x]:after:w-(--bleed) data-[swipe-axis=y]:after:inset-x-0 data-[swipe-axis=y]:after:h-(--bleed) data-[swipe-direction=down]:after:top-full data-[swipe-direction=left]:after:right-full data-[swipe-direction=right]:after:left-full data-[swipe-direction=up]:after:bottom-full",
-            // Sizing.
+            // Sizing. Shylog: a touch screen wider than a phone gets a centred
+            // sheet rather than one edge to edge.
+            "data-[swipe-axis=y]:md:mx-auto data-[swipe-axis=y]:md:max-w-md data-[swipe-axis=y]:md:border-x",
             "[--drawer-content-height:var(--drawer-height,auto)] data-[swipe-axis=x]:[--drawer-content-width:75%] data-[swipe-axis=y]:[--drawer-content-max-height:calc(100dvh-6rem)] data-[swipe-axis=y]:data-snap-points:[--drawer-content-height:100dvh] data-[swipe-axis=x]:sm:[--drawer-content-width:24rem]",
             // Stack.
             "[--bleed:3rem] [--peek:1rem] [--stack-height:var(--drawer-frontmost-height,var(--drawer-height,0px))] [--stack-peek-offset:max(0px,calc((var(--nested-drawers)-var(--stack-progress))*var(--peek)))] [--stack-progress:clamp(0,var(--drawer-swipe-progress),1)] [--stack-scale-base:max(0,calc(1-(var(--nested-drawers)*var(--stack-step))))] [--stack-scale:clamp(0,calc(var(--stack-scale-base)+(var(--stack-step)*var(--stack-progress))),1)] [--stack-shrink:calc(1-var(--stack-scale))] [--stack-step:0.05]",
@@ -165,12 +198,56 @@ function DrawerContent({
   )
 }
 
+// Centred over the content beside the sidebar, where the form and the Log
+// sit, rather than over the whole window. Named drawer-popup, so
+// what waits on the sheet's entry (the names sheet's chips) does here too.
+function DeskContent({
+  className,
+  children,
+  ...props
+}: DrawerPrimitive.Popup.Props) {
+  const [actions, setActions] = React.useState<HTMLDivElement | null>(null)
+  return (
+    <DialogContent
+      showCloseButton={false}
+      className={cn(
+        "group/drawer-popup left-[calc(50%+var(--sidebar-width)/2)] flex max-h-[calc(100dvh-4rem)] flex-col gap-0 overflow-hidden p-0 select-none sm:max-w-md",
+        className
+      )}
+      {...(props as React.ComponentProps<typeof DialogContent>)}
+      // Portalled out of the sidebar's provider, so its width comes along.
+      style={{ "--sidebar-width": SIDEBAR_WIDTH } as React.CSSProperties}
+    >
+      <DrawerActionsSlot.Provider value={actions}>
+        <div
+          data-slot="drawer-content"
+          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[inherit] select-text"
+        >
+          {children}
+        </div>
+      </DrawerActionsSlot.Provider>
+      <div
+        ref={setActions}
+        data-slot="drawer-actions"
+        className="flex shrink-0 justify-end gap-2 border-t bg-muted/50 p-4 empty:hidden"
+      />
+    </DialogContent>
+  )
+}
+
+// Shylog: puts its children in the desktop dialog's footer; nothing on a
+// phone, where the sheet's bar holds them.
+function DrawerActions({ children }: { children: React.ReactNode }) {
+  const slot = React.useContext(DrawerActionsSlot)
+  return slot && createPortal(children, slot)
+}
+
 function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="drawer-header"
       className={cn(
-        "flex shrink-0 flex-col gap-0.5 p-4 pb-0 group-data-[swipe-axis=y]/drawer-popup:text-center md:gap-0.5 md:text-left",
+        "flex shrink-0 flex-col gap-0.5 p-4 pb-0 group-data-[swipe-axis=y]/drawer-popup:text-center",
         className
       )}
       {...props}
@@ -182,7 +259,11 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="drawer-footer"
-      className={cn("mt-auto flex shrink-0 flex-col gap-2 p-4 pt-0", className)}
+      // Shylog: as a desktop dialog, shadcn's dialog footer.
+      className={cn(
+        "mt-auto flex shrink-0 flex-col gap-2 p-4 pt-0 desk:mt-4 desk:flex-row desk:justify-end desk:border-t desk:bg-muted/50 desk:pt-4",
+        className
+      )}
       {...props}
     />
   )
@@ -222,6 +303,7 @@ export {
   DrawerTrigger,
   DrawerClose,
   DrawerContent,
+  DrawerActions,
   DrawerHeader,
   DrawerFooter,
   DrawerTitle,

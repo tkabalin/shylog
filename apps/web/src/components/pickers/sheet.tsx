@@ -1,4 +1,6 @@
 import {
+  createContext,
+  useContext,
   useEffect,
   useState,
   type ComponentProps,
@@ -9,12 +11,18 @@ import { cn } from "cn"
 
 import { IconSearch, IconX } from "@tabler/icons-react"
 
-import { DrawerContent, DrawerTitle } from "@/components/ui/drawer"
+import { Button } from "@/components/ui/button"
+import {
+  DrawerActions,
+  DrawerContent,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import { useDesk } from "@/hooks/use-desk"
 
 // How much of the screen the on-screen keyboard covers. iOS doesn't shrink
 // a full-height sheet for it, so its lists pad their ends by this much to
@@ -39,8 +47,9 @@ function useKeyboardInset() {
   return inset
 }
 
-// A picker sheet at full height, like an iOS page sheet: it stops a little
-// below the status bar, so the form behind still shows at the top.
+// A picker sheet at full height, like an iOS page sheet, stopping a little
+// below the status bar. As a dialog it keeps a fixed height, so the list
+// doesn't jump as a search narrows it.
 export function FullSheetContent({
   className,
   children,
@@ -49,7 +58,7 @@ export function FullSheetContent({
   return (
     <DrawerContent
       className={cn(
-        "h-[calc(100dvh-env(safe-area-inset-top)-0.75rem)] max-h-none md:mx-auto md:max-w-md md:border-x",
+        "h-[calc(100dvh-env(safe-area-inset-top)-0.75rem)] max-h-none desk:h-[min(40rem,calc(100dvh-4rem))]",
         className
       )}
       {...props}
@@ -74,8 +83,13 @@ function KeyboardInset({ children }: { children: ReactNode }) {
   )
 }
 
+// Set around a bar's actions once they sit in a desktop dialog's footer,
+// where BarButton draws a shadcn button instead of a text button.
+const InFooter = createContext(false)
+
 // The sheet's bar: an action either side of a centred title, as on the
-// boards' headers.
+// boards' headers. As a desktop dialog the title heads it and the actions
+// move to its footer, as shadcn's dialogs have them.
 export function SheetBar({
   title,
   start,
@@ -85,6 +99,21 @@ export function SheetBar({
   start?: ReactNode
   end?: ReactNode
 }) {
+  const desk = useDesk()
+  if (desk)
+    return (
+      <>
+        <div className="shrink-0 px-4 pt-4 pb-3">
+          <DrawerTitle>{title}</DrawerTitle>
+        </div>
+        <DrawerActions>
+          <InFooter.Provider value>
+            {start}
+            {end}
+          </InFooter.Provider>
+        </DrawerActions>
+      </>
+    )
   return (
     <div className="grid h-11 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-2">
       <span className="justify-self-start">{start}</span>
@@ -97,8 +126,19 @@ export function SheetBar({
 export function BarButton({
   className,
   strong,
+  back,
   ...props
-}: ComponentProps<"button"> & { strong?: boolean }) {
+}: ComponentProps<"button"> & { strong?: boolean; back?: boolean }) {
+  const footer = useContext(InFooter)
+  // In a footer a step back sits apart on the left, as a wizard's does.
+  if (footer)
+    return (
+      <Button
+        variant={strong ? "default" : "outline"}
+        className={back ? "mr-auto" : undefined}
+        {...props}
+      />
+    )
   return (
     <button
       type="button"
