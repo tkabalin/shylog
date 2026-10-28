@@ -98,7 +98,8 @@ function FullScreen({ dive, log }: { dive: Dive; log: LogView }) {
         ref={closeLink}
         onClick={close}
         aria-label="Close"
-        className="-ml-2.5 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-primary transition-opacity duration-150 hover:opacity-70 active:opacity-50"
+        // With a mouse, shadcn's ghost icon button, as a dialog's close is.
+        className="-ml-2.5 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-primary transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0 desk:-ml-1 desk:size-8 desk:rounded-lg desk:text-foreground desk:transition-[color,background-color,translate] desk:hover:bg-muted desk:hover:opacity-100 desk:active:translate-y-px desk:active:opacity-100 desk:[&_svg]:size-4.5"
       >
         <IconX aria-hidden className="size-5.5 stroke-[2.25]" />
       </Link>

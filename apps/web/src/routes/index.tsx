@@ -9,13 +9,14 @@ import {
   IconUpload,
 } from "@tabler/icons-react"
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { cn } from "cn"
 
 import { usePreloadChart } from "@/chart/load"
 import { FilterPills } from "@/components/filter-pills"
 import { LogHeader } from "@/components/log-header"
 import { MonthGroup } from "@/components/month-group"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Empty,
   EmptyContent,
@@ -193,70 +194,89 @@ function LogPage() {
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button
-                size="lg"
-                // The board's primary action: 48 px, rounder, semibold.
-                className="h-12 w-full rounded-[14px] text-base font-semibold"
-                nativeButton={false}
-                render={<Link to="/dive/new" state={{ fromLog: true }} />}
+              {/* Links styled as shadcn's buttons, so they're read as links. */}
+              <Link
+                to="/dive/new"
+                state={{ fromLog: true }}
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  // The board's primary action: 48 px, rounder, semibold.
+                  "h-12 w-full rounded-[14px] text-base font-semibold"
+                )}
               >
                 <IconPlus data-icon="inline-start" />
                 Log a dive
-              </Button>
-              <Button
-                variant="link"
-                size="lg"
-                nativeButton={false}
-                render={<Link to="/import" replace />}
+              </Link>
+              <Link
+                to="/import"
+                replace
+                className={buttonVariants({ variant: "link", size: "lg" })}
               >
                 <IconUpload data-icon="inline-start" />
                 Import from Subsurface
-              </Button>
+              </Link>
             </EmptyContent>
           </Empty>
         </>
       ) : (
         <>
           <LogHeader figures={figures}>
-            <InputGroup variant="filled">
-              <InputGroupAddon>
-                <IconSearch aria-hidden />
-              </InputGroupAddon>
-              <InputGroupInput
-                type="search"
-                aria-label="Search dives"
-                placeholder="Search"
-                enterKeyHint="search"
-                // Site and buddy names, which iOS would otherwise "correct".
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck={false}
-                value={query}
-                onChange={(event) => {
-                  setQuery(event.target.value)
-                  void navigate({
-                    search: (prev) => ({
-                      ...prev,
-                      q: event.target.value || undefined,
-                    }),
-                    replace: true,
-                  })
-                }}
-                // The keyboard's Search key closes it; results are live.
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") event.currentTarget.blur()
-                }}
-              />
-            </InputGroup>
+            {/* A desktop logs a dive from a button beside the search, in
+                the sticky bar so it stays in reach, as shadcn's headers
+                place their main action; a phone has the floating button. */}
+            <div className="flex items-center gap-2">
+              <InputGroup variant="filled" className="desk:h-9 desk:rounded-lg">
+                <InputGroupAddon>
+                  <IconSearch aria-hidden />
+                </InputGroupAddon>
+                <InputGroupInput
+                  type="search"
+                  aria-label="Search dives"
+                  placeholder="Search"
+                  enterKeyHint="search"
+                  // Site and buddy names, which iOS would otherwise "correct".
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  value={query}
+                  onChange={(event) => {
+                    setQuery(event.target.value)
+                    void navigate({
+                      search: (prev) => ({
+                        ...prev,
+                        q: event.target.value || undefined,
+                      }),
+                      replace: true,
+                    })
+                  }}
+                  // The keyboard's Search key closes it; results are live.
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") event.currentTarget.blur()
+                  }}
+                />
+              </InputGroup>
+              <Link
+                to="/dive/new"
+                state={{ fromLog: true }}
+                // cn, not cva's className, so hidden wins over inline-flex.
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "hidden desk:inline-flex"
+                )}
+              >
+                <IconPlus data-icon="inline-start" />
+                New dive
+              </Link>
+            </div>
             <div className="pt-1 pb-1.5">
               <FilterPills log={log} filters={filters} onChange={setFilters} />
             </div>
           </LogHeader>
           {update}
-          {/* Room below the last card for the floating button, which floats
-              at every width. Wide screens keep the list to a readable column. */}
-          <div className="flex flex-col gap-4 px-4 pt-3 pb-24 md:mx-auto md:w-full md:max-w-3xl">
+          {/* Room below the last card for the floating button. Wide screens
+              keep the list to a readable column. */}
+          <div className="flex flex-col gap-4 px-4 pt-3 pb-24 md:mx-auto md:w-full md:max-w-3xl desk:pb-8">
             {groups.length ? (
               groups.map((group) => (
                 <MonthGroup key={group.key} group={group} log={log} />
@@ -267,12 +287,13 @@ function LogPage() {
               </p>
             )}
           </div>
-          {/* The board's floating button, clear of the tab bar on phones. */}
+          {/* The board's floating button, clear of the tab bar; a desktop
+              has the header's New dive instead. */}
           <Link
             to="/dive/new"
             state={{ fromLog: true }}
             aria-label="Log a dive"
-            className="fixed right-5 bottom-[calc(3.75rem+max(0.5rem,env(safe-area-inset-bottom)))] z-10 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-[scale,opacity] duration-150 ease-out select-none [-webkit-touch-callout:none] active:scale-95 motion-reduce:active:scale-100 motion-reduce:active:opacity-80 desk:right-8 desk:bottom-8"
+            className="fixed right-[max(1.25rem,calc(env(safe-area-inset-right)+0.5rem))] bottom-[calc(3.75rem+max(0.5rem,env(safe-area-inset-bottom)))] z-10 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-[scale,opacity] duration-150 ease-out select-none [-webkit-touch-callout:none] active:scale-95 motion-reduce:active:scale-100 motion-reduce:active:opacity-80 desk:hidden"
           >
             <IconPlus aria-hidden className="size-6.5 stroke-[2.25]" />
           </Link>
