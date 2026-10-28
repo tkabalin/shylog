@@ -8,7 +8,6 @@ import {
 } from "react"
 import {
   IconArrowBackUp,
-  IconCalculator,
   IconCheck,
   IconChevronRight,
   IconDeviceWatch,
@@ -33,14 +32,17 @@ export type Icon = ComponentType<IconProps>
 
 export function Section({
   title,
+  note,
   children,
 }: {
   title: string
+  // Under the card, as an iOS group's footer.
+  note?: ReactNode
   children: ReactNode
 }) {
   const id = `form-${title.toLowerCase().replace(/\W+/g, "-")}`
   return (
-    <section aria-labelledby={id}>
+    <section aria-labelledby={id} className="group/section">
       <h2
         id={id}
         className="mb-2 px-1 text-[13px] font-semibold text-muted-foreground"
@@ -48,6 +50,7 @@ export function Section({
         {title}
       </h2>
       <Card className="gap-0 divide-y py-0">{children}</Card>
+      {note}
     </section>
   )
 }
@@ -101,6 +104,10 @@ export function Field({
   )
 }
 
+// A bar down the left of a row holding a marked value, in place of an icon
+// on each label, which made the form busy. The card clips it to its corners.
+const sourceBar = "has-data-source:shadow-[inset_3px_0_0_var(--primary)]"
+
 export function Row({
   children,
   className,
@@ -113,6 +120,7 @@ export function Row({
       className={cn(
         // A keyboard's place shows as a ring round the row, as shadcn's inputs
         // ring, since the row's own controls are borderless.
+        sourceBar,
         "flex min-h-11.5 items-center gap-3 px-4 desk:has-[:is(input,textarea,button):focus-visible]:ring-2 desk:has-[:is(input,textarea,button):focus-visible]:ring-ring/50 desk:has-[:is(input,textarea,button):focus-visible]:ring-inset",
         className
       )}
@@ -285,7 +293,7 @@ export function Block({
     <div
       role="group"
       aria-labelledby={id}
-      className={cn("flex flex-col gap-2 px-4 py-3", className)}
+      className={cn(sourceBar, "flex flex-col gap-2 px-4 py-3", className)}
     >
       <Label icon={icon} id={id}>
         {label}
@@ -442,14 +450,25 @@ export function Marker({
   source: "computer" | "calculated"
   computer: string
 }) {
-  const Icon = source === "computer" ? IconDeviceWatch : IconCalculator
-  const text =
-    source === "computer" ? `From the ${computer}` : "Calculated by Shylog"
   return (
-    <span className="inline-flex text-muted-foreground/60" title={text}>
-      <Icon aria-hidden className="size-3.75" />
-      <span className="sr-only">{text}</span>
+    <span data-source={source} className="sr-only">
+      {source === "computer" ? `From the ${computer}` : "Calculated by Shylog"}
     </span>
+  )
+}
+
+// The bar's key, under a card that has one.
+export function SourceNote({ computer }: { computer: boolean }) {
+  return (
+    <p className="mt-2 hidden items-start gap-2 px-1 text-[13px] text-muted-foreground group-has-data-source/section:flex">
+      <span
+        aria-hidden
+        className="mt-[3px] h-3.5 w-[3px] shrink-0 rounded-full bg-primary"
+      />
+      {computer
+        ? "From your dive computer or worked out by Shylog"
+        : "Worked out by Shylog"}
+    </p>
   )
 }
 

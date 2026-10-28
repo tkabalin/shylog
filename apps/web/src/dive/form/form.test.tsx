@@ -531,7 +531,7 @@ describe("the form on screen", () => {
     expect(maxDepth.value).toBe("32.7")
     expect(maxDepth.className).not.toMatch(/text-primary|accent/)
     const label = maxDepth.closest("div")!
-    expect(label.querySelector('[title="From the D4i"]')).not.toBeNull()
+    expect(label.querySelector('[data-source="computer"]')).not.toBeNull()
   })
 
   it("shows a save error with Try again, keeping the values", async () => {
