@@ -64,6 +64,7 @@ import {
   IntervalSheet,
   type IntervalChoice,
 } from "@/components/pickers/interval-sheet"
+import { DatePopover, TimePopover } from "@/components/pickers/date-time"
 import { countText } from "@/components/pickers/match"
 import { NamesSheet, type Candidate } from "@/components/pickers/names-sheet"
 import { OptionSheet, type Option } from "@/components/pickers/option-sheet"
@@ -680,34 +681,45 @@ export function DiveForm({
                 computerText("startTime", "")
               )}
             >
-              <Row className={pressedRow}>
+              <Row
+                className={cn(pressedRow, "has-data-popup-open:bg-muted/60")}
+              >
                 <Label icon={IconCalendar} htmlFor="field-date">
                   Date
                 </Label>
-                {/* The date reads as text; the native picker sits over it,
-                  invisible, so a tap anywhere on the value opens it. */}
-                <span className="relative flex h-11.5 min-w-0 flex-1 items-center justify-end has-[:focus-visible]:text-primary">
-                  <span
-                    aria-hidden
-                    className="text-base font-medium tabular-nums"
-                  >
-                    {longDate(`${values.date}T00:00:00`)}
-                  </span>
-                  <input
+                {desk ? (
+                  <DatePopover
                     id="field-date"
-                    type="date"
-                    required
                     value={values.date}
-                    // A date is always set: the picker's Reset puts the shown
-                    // date back rather than leaving the picker blank.
-                    onChange={(event) => {
-                      if (event.target.value) set("date")(event.target.value)
-                      else event.target.value = values.date
-                    }}
-                    onClick={openPicker}
-                    className="absolute inset-0 opacity-0"
+                    text={longDate(`${values.date}T00:00:00`)}
+                    onChange={set("date")}
                   />
-                </span>
+                ) : (
+                  /* The date reads as text; the native picker sits over it,
+                  invisible, so a tap anywhere on the value opens it. */
+                  <span className="relative flex h-11.5 min-w-0 flex-1 items-center justify-end has-[:focus-visible]:text-primary">
+                    <span
+                      aria-hidden
+                      className="text-base font-medium tabular-nums"
+                    >
+                      {longDate(`${values.date}T00:00:00`)}
+                    </span>
+                    <input
+                      id="field-date"
+                      type="date"
+                      required
+                      value={values.date}
+                      // A date is always set: the picker's Reset puts the shown
+                      // date back rather than leaving the picker blank.
+                      onChange={(event) => {
+                        if (event.target.value) set("date")(event.target.value)
+                        else event.target.value = values.date
+                      }}
+                      onClick={openPicker}
+                      className="absolute inset-0 opacity-0"
+                    />
+                  </span>
+                )}
               </Row>
             </Field>
             <Field under={errorLine("siteId")}>
@@ -724,7 +736,9 @@ export function DiveForm({
               </div>
             </Field>
             <Field under={errorLine("time")}>
-              <Row className={pressedRow}>
+              <Row
+                className={cn(pressedRow, "has-data-popup-open:bg-muted/60")}
+              >
                 <Label
                   icon={IconClock}
                   htmlFor="field-time"
@@ -732,33 +746,43 @@ export function DiveForm({
                 >
                   Start time
                 </Label>
-                {/* Shown as text like the date, with the native picker over
-                  it, so an empty time reads "Required" in every browser.
-                  An empty time starts the picker at 09:00 rather than now
-                  (see Add or edit in the spec), set before it opens. */}
-                <span className="relative flex h-11.5 min-w-0 flex-1 items-center justify-end has-[:focus-visible]:text-primary">
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "text-base font-medium tabular-nums",
-                      !values.time && "font-normal text-muted-foreground/60"
-                    )}
-                  >
-                    {values.time || (errors.time ? "—" : "Required")}
-                  </span>
-                  <input
+                {desk ? (
+                  <TimePopover
                     id="field-time"
-                    type="time"
                     value={values.time}
-                    // On the tap's release, not its touch-down, so a scroll that
-                    // starts on the row doesn't fill it in.
-                    onPointerUp={() => !values.time && set("time")("09:00")}
-                    onChange={(event) => set("time")(event.target.value)}
-                    onClick={openPicker}
-                    className="absolute inset-0 opacity-0"
+                    placeholder={errors.time ? "—" : "Required"}
+                    onChange={set("time")}
                     {...error("time")}
                   />
-                </span>
+                ) : (
+                  /* Shown as text like the date, with the native picker over
+                  it, so an empty time reads "Required" in every browser.
+                  An empty time starts the picker at 09:00 rather than now
+                  (see Add or edit in the spec), set before it opens. */
+                  <span className="relative flex h-11.5 min-w-0 flex-1 items-center justify-end has-[:focus-visible]:text-primary">
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "text-base font-medium tabular-nums",
+                        !values.time && "font-normal text-muted-foreground/60"
+                      )}
+                    >
+                      {values.time || (errors.time ? "—" : "Required")}
+                    </span>
+                    <input
+                      id="field-time"
+                      type="time"
+                      value={values.time}
+                      // On the tap's release, not its touch-down, so a scroll that
+                      // starts on the row doesn't fill it in.
+                      onPointerUp={() => !values.time && set("time")("09:00")}
+                      onChange={(event) => set("time")(event.target.value)}
+                      onClick={openPicker}
+                      className="absolute inset-0 opacity-0"
+                      {...error("time")}
+                    />
+                  </span>
+                )}
               </Row>
             </Field>
             {numberRow({
