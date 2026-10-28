@@ -26,10 +26,11 @@ function useStuck(scroller: string) {
       const offset = rect.top - element.getBoundingClientRect().top
       const isStuck = element.scrollTop > 0 && offset <= top + 0.5
       setStuck(isStuck)
-      // A stuck heading sits right under the bar; one lookup finds it.
+      // A stuck heading sits right under the bar; one lookup at its middle
+      // finds it, as wide screens cap the list to a centred column.
       const hit = isStuck
         ? (document
-            .elementFromPoint(rect.left + 1, rect.bottom + 1)
+            .elementFromPoint(rect.left + rect.width / 2, rect.bottom + 1)
             ?.closest<HTMLElement>("[data-month-heading]") ?? null)
         : null
       // A heading pushed up behind the bar keeps its (hidden) line until the
@@ -97,7 +98,7 @@ export function LogHeader({
   const h = hours(figures.seconds)
   return (
     <>
-      <header className="relative px-4 pt-[calc(0.75rem+env(safe-area-inset-top))]">
+      <header className="relative px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] md:mx-auto md:w-full md:max-w-3xl">
         <div className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-4 flex h-11 items-center">
           <SyncPill />
         </div>
@@ -134,7 +135,7 @@ export function LogHeader({
         ref={bar}
         data-log-bar
         data-stuck={stuck ? "" : undefined}
-        className="sticky top-[max(0.75rem,env(safe-area-inset-top))] z-10 border-b border-transparent bg-background px-4 transition-[border-color] duration-200 data-stuck:not-data-heading-stuck:border-border"
+        className="sticky top-[max(0.75rem,env(safe-area-inset-top))] z-10 border-b border-transparent bg-background px-4 transition-[border-color] duration-200 data-stuck:not-data-heading-stuck:border-border md:px-[max(1rem,calc((100%-46rem)/2))]"
       >
         {/* The status bar (or a margin, without one) above the bar once
             stuck, opaque over what is left of the count. */}

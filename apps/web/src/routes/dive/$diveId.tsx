@@ -114,11 +114,11 @@ function DivePage() {
   // The copy keeps deleted dives for Recently deleted, not for this page.
   if (!log || !dive || dive.deletedAt) {
     return (
-      <div className="flex flex-col gap-4 p-4 pt-[calc(1rem+env(safe-area-inset-top))]">
+      <div className="flex flex-col gap-2 p-4 pt-[calc(1rem+env(safe-area-inset-top))] md:mx-auto md:w-full md:max-w-3xl">
         <BackLink />
         <h1 className="text-xl font-semibold">Dive not found</h1>
         <p className="text-muted-foreground">
-          It may have been deleted, or the log on this phone is out of date.
+          It may have been deleted, or the log on this device is out of date.
         </p>
       </div>
     )
@@ -213,7 +213,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         ref={barRef}
         data-scrolled={scrolled ? "" : undefined}
         data-titled={titled ? "" : undefined}
-        className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-transparent bg-background px-2 pt-[env(safe-area-inset-top)] transition-[border-color] duration-200 data-scrolled:border-border"
+        className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-transparent bg-background px-2 pt-[env(safe-area-inset-top)] transition-[border-color] duration-200 data-scrolled:border-border md:px-[max(0.5rem,calc((100%-48rem)/2))]"
       >
         <BackLink />
         {/* A visual echo of the h1, which screen readers already have. */}
@@ -233,7 +233,9 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         </Link>
       </header>
 
-      <div className="flex flex-col gap-6 px-4 pt-5 pb-8">
+      {/* Wide screens keep the dive to a column, with the bar's actions
+          over it, as the form does. */}
+      <div className="flex flex-col gap-6 px-4 pt-5 pb-8 md:mx-auto md:w-full md:max-w-3xl">
         <section className="flex flex-col gap-1 px-1">
           <p className="flex min-h-5.5 items-center text-sm font-medium text-muted-foreground tabular-nums">
             {dive.ignored ? (

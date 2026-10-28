@@ -126,7 +126,7 @@ function LogPage() {
   )
 
   const update = blocked && (
-    <Alert className="mx-4 mt-3 w-auto">
+    <Alert className="mx-4 mt-3 w-auto md:mx-[max(1rem,calc((100%-46rem)/2))]">
       <AlertTitle>Update Shylog</AlertTitle>
       <AlertDescription>
         The server has a newer version, so syncing has stopped. Reload to get
@@ -255,8 +255,8 @@ function LogPage() {
           </LogHeader>
           {update}
           {/* Room below the last card for the floating button, which floats
-              at every width. */}
-          <div className="flex flex-col gap-4 px-4 pt-3 pb-24">
+              at every width. Wide screens keep the list to a readable column. */}
+          <div className="flex flex-col gap-4 px-4 pt-3 pb-24 md:mx-auto md:w-full md:max-w-3xl">
             {groups.length ? (
               groups.map((group) => (
                 <MonthGroup key={group.key} group={group} log={log} />

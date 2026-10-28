@@ -30,19 +30,19 @@ function EditDivePage() {
   if (!loaded || autosave.restored === undefined) return null
   if (!log || !dive || dive.deletedAt) {
     return (
-      <div className="flex flex-col gap-2 p-4 pt-[calc(1rem+env(safe-area-inset-top))]">
+      <div className="flex flex-col gap-2 p-4 pt-[calc(1rem+env(safe-area-inset-top))] md:mx-auto md:w-full md:max-w-3xl">
         {/* The form hides the tab bar, so this is the way out. */}
         <Link
           to="/"
           replace
-          className="-ml-1 inline-flex h-11 items-center gap-0.5 self-start text-base font-medium text-primary"
+          className="inline-flex h-11 items-center gap-0.5 self-start pr-2 pl-1 text-base font-medium text-primary"
         >
           <IconChevronLeft aria-hidden className="size-5.5 stroke-[2.25]" />
           Log
         </Link>
         <h1 className="text-xl font-semibold">Dive not found</h1>
         <p className="text-muted-foreground">
-          It may have been deleted, or the log on this phone is out of date.
+          It may have been deleted, or the log on this device is out of date.
         </p>
       </div>
     )
