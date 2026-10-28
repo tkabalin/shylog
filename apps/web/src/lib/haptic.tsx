@@ -6,7 +6,8 @@ export function Haptic() {
     <label
       aria-hidden
       onClick={() => navigator.vibrate?.(10)}
-      className="absolute inset-0 touch-manipulation"
+      // The control's own cursor, as the label sits over all of it.
+      className="absolute inset-0 cursor-[inherit] touch-manipulation"
     >
       {/* HACK: Safari has no Vibration API, but plays the system haptic when
           a real tap toggles a native switch, so the label hands the tap on to

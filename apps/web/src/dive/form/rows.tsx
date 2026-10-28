@@ -105,21 +105,29 @@ export function Row({
   className?: string
 }) {
   return (
-    <div className={cn("flex min-h-11.5 items-center gap-3 px-4", className)}>
+    <div
+      className={cn(
+        // A keyboard's place shows as a ring round the row, as shadcn's inputs
+        // ring, since the row's own controls are borderless.
+        "flex min-h-11.5 items-center gap-3 px-4 desk:has-[:is(input,textarea,button):focus-visible]:ring-2 desk:has-[:is(input,textarea,button):focus-visible]:ring-ring/50 desk:has-[:is(input,textarea,button):focus-visible]:ring-inset",
+        className
+      )}
+    >
       {children}
     </div>
   )
 }
 
-// A tappable row highlights as a whole while pressed, as the sheets' rows
-// do, since the tap flash is off app-wide (index.css).
+// A tappable row highlights as a whole while pressed (or, with a mouse,
+// while its control is hovered), as the sheets' rows do, since the tap
+// flash is off app-wide (index.css).
 export const pressedRow =
-  "transition-colors duration-150 has-[:active]:bg-muted has-[:active]:duration-0"
+  "transition-colors duration-150 control-hover:bg-muted/60 has-[:active]:bg-muted has-[:active]:duration-0"
 
 // Small inline buttons dim on touch-down and recover on release, as the
 // bar buttons do.
 const pressedButton =
-  "transition-opacity duration-150 active:opacity-50 active:duration-0"
+  "transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
 
 // The board's borderless, right-aligned input. 16 px text, so iOS doesn't
 // zoom in on focus. A dash only marks an empty box, so it goes once the
@@ -183,7 +191,7 @@ export function PickRow({
         aria-label={`${label}, ${value ?? "not set"}${more ? ` ${more}` : ""}`}
         aria-describedby={describedBy}
         aria-invalid={invalid || undefined}
-        className="flex h-11.5 min-w-0 flex-1 items-center justify-end gap-1 text-right text-base font-medium"
+        className="flex h-11.5 min-w-0 flex-1 items-center justify-end gap-1 text-right text-base font-medium desk:outline-none"
       >
         <span className={cn("truncate", !value && "text-muted-foreground/60")}>
           {value ?? "Choose"}
@@ -324,7 +332,7 @@ export function Segmented<V extends string>({
             "max-[374px]:text-[13px] max-[374px]:[&_svg]:hidden",
             // The label turns with the thumb, and dims on touch-down, before
             // the tap lands.
-            "text-muted-foreground transition-[color,opacity] duration-300 ease-drawer hover:bg-transparent hover:text-muted-foreground active:opacity-50 active:duration-0 aria-pressed:bg-transparent aria-pressed:text-foreground data-pressed:bg-transparent"
+            "cursor-pointer text-muted-foreground transition-[color,opacity] duration-300 ease-drawer hover:bg-transparent hover:text-muted-foreground active:opacity-50 active:duration-0 aria-pressed:bg-transparent aria-pressed:text-foreground data-pressed:bg-transparent"
           )}
         >
           {Icon && <Icon aria-hidden className="size-4" />}

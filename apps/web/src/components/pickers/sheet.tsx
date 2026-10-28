@@ -103,7 +103,7 @@ export function BarButton({
     <button
       type="button"
       className={cn(
-        "inline-flex h-11 items-center gap-0.5 px-2 text-base text-primary transition-opacity duration-150 active:opacity-50 active:duration-0 disabled:text-muted-foreground/60 disabled:active:opacity-100",
+        "inline-flex h-11 items-center gap-0.5 px-2 text-base text-primary transition-opacity duration-150 active:opacity-50 active:duration-0 enabled:hover:opacity-70 disabled:text-muted-foreground/60 disabled:active:opacity-100",
         strong ? "font-semibold" : "font-medium",
         className
       )}
@@ -187,7 +187,7 @@ export function SheetSearch({
             type="button"
             aria-label="Clear search"
             onClick={() => onChange("")}
-            className="relative inline-flex size-5 items-center justify-center rounded-full bg-muted-foreground/40 text-background transition-opacity duration-150 after:absolute after:-inset-3 active:opacity-50 active:duration-0"
+            className="relative inline-flex size-5 items-center justify-center rounded-full bg-muted-foreground/40 text-background transition-opacity duration-150 after:absolute after:-inset-3 hover:opacity-70 active:opacity-50 active:duration-0"
           >
             <IconX aria-hidden className="size-3.5 stroke-3" />
           </button>

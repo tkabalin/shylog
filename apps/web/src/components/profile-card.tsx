@@ -72,7 +72,7 @@ export function ProfileCard({
                 state={{ fromDive: true }}
                 resetScroll={false}
                 aria-label="Show the profile full screen"
-                className="-my-3 -mr-3 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-primary transition-opacity duration-150 select-none active:opacity-50"
+                className="-my-3 -mr-3 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-primary transition-opacity duration-150 select-none hover:opacity-70 active:opacity-50 active:duration-0"
               >
                 <IconArrowsMaximize aria-hidden className="size-4.5" />
               </Link>

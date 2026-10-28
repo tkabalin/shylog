@@ -34,7 +34,7 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
 // tint when a filter is set and dip when pressed, with the tap area grown
 // to 44px on touch screens (below desk:).
 const pillTrigger =
-  "relative flex h-9 w-fit shrink-0 items-center gap-1 rounded-full pr-2 pl-2.5 text-[13px] font-medium whitespace-nowrap transition-[color,background-color,scale] duration-150 ease-out outline-none select-none active:scale-[0.97] active:bg-muted after:absolute after:inset-x-0 after:-inset-y-1 focus-visible:ring-3 focus-visible:ring-ring/50 data-active:bg-primary/9 data-active:text-primary data-active:active:bg-primary/15 motion-reduce:active:scale-100 desk:after:hidden dark:data-active:bg-primary/14 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15em]"
+  "relative flex h-9 w-fit shrink-0 items-center gap-1 rounded-full pr-2 pl-2.5 text-[13px] font-medium whitespace-nowrap transition-[color,background-color,scale] duration-150 ease-out outline-none select-none active:scale-[0.97] not-data-active:hover:bg-muted/60 active:bg-muted after:absolute after:inset-x-0 after:-inset-y-1 focus-visible:ring-3 focus-visible:ring-ring/50 data-active:bg-primary/9 data-active:text-primary data-active:active:bg-primary/15 motion-reduce:active:scale-100 desk:after:hidden dark:data-active:bg-primary/14 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15em]"
 
 function SelectTrigger({
   className,

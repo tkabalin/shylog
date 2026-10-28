@@ -142,7 +142,7 @@ function BackLink() {
       to="/"
       replace
       onClick={(event) => backToLog(router, event)}
-      className="inline-flex h-11 items-center gap-0.5 justify-self-start pr-2 pl-1 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50"
+      className="inline-flex h-11 items-center gap-0.5 justify-self-start pr-2 pl-1 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
     >
       <IconChevronLeft aria-hidden className="size-5.5 stroke-[2.25]" />
       Log
@@ -226,7 +226,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         <Link
           to="/dive/$diveId/edit"
           params={{ diveId: dive.id }}
-          className="inline-flex h-11 items-center gap-1 justify-self-end px-2.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50 active:duration-0"
+          className="inline-flex h-11 items-center gap-1 justify-self-end px-2.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
         >
           <IconPencil aria-hidden className="size-[1.15em]" />
           Edit
@@ -295,7 +295,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
           <Link
             to="/dive/$diveId/edit"
             params={{ diveId: dive.id }}
-            className="-mt-2 flex min-h-11 items-center gap-2.5 rounded-xl bg-primary/8 px-3.5 text-sm transition-colors duration-150 active:bg-primary/14 active:duration-0"
+            className="-mt-2 flex min-h-11 items-center gap-2.5 rounded-xl bg-primary/8 px-3.5 text-sm transition-colors duration-150 hover:bg-primary/11 active:bg-primary/14 active:duration-0"
           >
             <IconArrowsDiff
               aria-hidden
