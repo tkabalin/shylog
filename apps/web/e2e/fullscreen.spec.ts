@@ -55,6 +55,19 @@ test("closes back to the dive scrolled where it was", async ({
   expect(await main.evaluate((el) => el.scrollTop)).toBe(200)
 })
 
+test("closes with Escape as with its Close link", async ({ page, request }) => {
+  const id = await diveId(request, 54)
+  await page.goto(`/dive/${id}`)
+  await expand(page).click()
+  await expect(readout(page)).toContainText("42.2m")
+  await page.keyboard.press("Escape")
+  await expect(page).toHaveURL(`/dive/${id}`)
+  await expect(screen(page)).toHaveCount(0)
+  // Popped, as Close pops it, so forward still reaches it.
+  await page.goForward()
+  await expect(page).toHaveURL(`/dive/${id}/profile`)
+})
+
 test("opened directly, closes to the dive in its place", async ({
   page,
   request,
