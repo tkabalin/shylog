@@ -12,12 +12,16 @@ import {
   IconCheck,
   IconChevronRight,
   IconDeviceWatch,
+  IconSelector,
   IconX,
   type IconProps,
 } from "@tabler/icons-react"
+import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "cn"
 
+import type { Option } from "@/components/pickers/option-sheet"
 import { Card } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Haptic } from "@/lib/haptic"
 
@@ -202,6 +206,63 @@ export function PickRow({
           className="size-4.5 shrink-0 text-muted-foreground/60"
         />
       </button>
+    </Row>
+  )
+}
+
+// A choice row on a desktop (desk:): shadcn's Select, dropping below the
+// value as a Windows form's does, where touch opens an option sheet (D29).
+// Not set leads the list where the field is optional, as in the sheet.
+export function SelectRow<V extends string>({
+  icon,
+  label,
+  value,
+  options,
+  optional = true,
+  onChange,
+}: {
+  icon?: Icon
+  label: string
+  value: V | null
+  options: Option<V>[]
+  optional?: boolean
+  onChange: (value: V | null) => void
+}) {
+  const text = options.find((option) => option.value === value)?.label
+  return (
+    // Tinted while its list is open, as shadcn's triggers stay pressed.
+    <Row className={cn(pressedRow, "has-data-popup-open:bg-muted/60")}>
+      <Label icon={icon}>{label}</Label>
+      <Select<V | null> value={value} onValueChange={onChange}>
+        <SelectPrimitive.Trigger
+          aria-label={`${label}, ${text ?? "not set"}`}
+          className="flex h-11.5 min-w-0 flex-1 cursor-pointer items-center justify-end gap-1 text-right text-base font-medium desk:outline-none"
+        >
+          <span className={cn("truncate", !text && "text-muted-foreground/60")}>
+            {text ?? "Choose"}
+          </span>
+          <IconSelector
+            aria-hidden
+            className="size-4 shrink-0 text-muted-foreground/60"
+          />
+        </SelectPrimitive.Trigger>
+        <SelectContent
+          align="end"
+          alignItemWithTrigger={false}
+          className="w-auto min-w-48"
+        >
+          {optional && (
+            <SelectItem value={null} className="text-muted-foreground">
+              Not set
+            </SelectItem>
+          )}
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </Row>
   )
 }

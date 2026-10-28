@@ -154,8 +154,8 @@ test.describe("at desktop width", () => {
 
   test("opens a sheet as a dialog over the content", async ({ page }) => {
     await page.goto("/dive/new")
-    await page.getByRole("button", { name: /^Type,/ }).click()
-    const dialog = page.getByRole("dialog", { name: "Type" })
+    await page.getByRole("button", { name: /^Surface interval/ }).click()
+    const dialog = page.getByRole("dialog", { name: "Surface interval" })
     await expect(dialog).toBeVisible()
     await expect(page.locator("[data-slot=drawer-swipe-handle]")).toHaveCount(0)
     // Centred beside the sidebar, over the form.
@@ -165,6 +165,19 @@ test.describe("at desktop width", () => {
 
     await page.keyboard.press("Escape")
     await expect(dialog).toBeHidden()
+  })
+
+  test("picks a choice from a select below its row", async ({ page }) => {
+    await page.goto("/dive/new")
+    const type = page.getByRole("combobox", { name: /^Type,/ })
+    await type.click()
+    const list = page.getByRole("listbox")
+    await expect(list).toBeVisible()
+    await list.getByRole("option", { name: "Training" }).click()
+    await expect(list).toBeHidden()
+    await expect(type).toHaveAccessibleName("Type, Training")
+    // No sheet opened for it.
+    await expect(page.getByRole("dialog")).toHaveCount(0)
   })
 
   test("returns controls to compact sizes", async ({ page }) => {
