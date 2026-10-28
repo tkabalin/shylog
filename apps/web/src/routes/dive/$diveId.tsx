@@ -268,7 +268,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         ref={barRef}
         data-scrolled={scrolled ? "" : undefined}
         data-titled={titled ? "" : undefined}
-        className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-transparent bg-background px-2 pt-[env(safe-area-inset-top)] transition-[border-color] duration-200 data-scrolled:border-border md:px-[max(0.5rem,calc((100%-48rem)/2))] desk:grid-cols-[minmax(0,1fr)_auto] desk:gap-x-4"
+        className="sticky top-0 z-30 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-transparent bg-background px-2 pt-[env(safe-area-inset-top)] transition-[border-color] duration-200 data-scrolled:border-border md:px-[max(0.5rem,calc((100%-48rem)/2))] desk:grid-cols-[minmax(0,1fr)_auto] desk:gap-x-4"
       >
         {desk ? (
           <DeskBar dive={dive} site={site?.name} />

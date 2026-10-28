@@ -30,6 +30,13 @@ function RootLayout() {
       >
         <Outlet />
       </SidebarInset>
+      {/* Opaque over the status bar, so iOS never draws its top edge blur:
+          WebKit drops it only for a fixed or sticky opaque full-width box at
+          the top, so this stays mounted. Pages' top bars sit above it (z-30). */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 top-0 z-20 h-[max(0.75rem,env(safe-area-inset-top))] bg-background desk:left-(--sidebar-width)"
+      />
       <BottomNav />
     </SidebarProvider>
   )

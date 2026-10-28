@@ -137,12 +137,6 @@ export function LogHeader({
         data-stuck={stuck ? "" : undefined}
         className="sticky top-[max(0.75rem,env(safe-area-inset-top))] z-10 border-b border-transparent bg-background px-4 transition-[border-color] duration-200 data-stuck:not-data-heading-stuck:border-border md:px-[max(1rem,calc((100%-46rem)/2))]"
       >
-        {/* The status bar (or a margin, without one) above the bar once
-            stuck, opaque over what is left of the count. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-full h-[max(0.75rem,env(safe-area-inset-top))] bg-background opacity-0 in-data-stuck:opacity-100"
-        />
         {children}
       </div>
     </>
