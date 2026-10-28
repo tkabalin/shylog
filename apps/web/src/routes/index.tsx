@@ -11,7 +11,7 @@ import {
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
-import { usePreloadChart } from "@/chart/load"
+import { useAfter, usePreloadChart } from "@/chart/load"
 import { FilterPills } from "@/components/filter-pills"
 import { LogHeader } from "@/components/log-header"
 import { MonthGroup } from "@/components/month-group"
@@ -30,6 +30,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group"
+import { Skeleton } from "@/components/ui/skeleton"
 import { sync, useLog } from "@/data/log"
 import {
   depthScale,
@@ -170,6 +171,7 @@ function LogPage() {
             </EmptyContent>
           </Empty>
         )}
+        {!(loaded && failed) && !blocked && <LogSkeleton />}
       </div>
     )
   }
@@ -299,6 +301,44 @@ function LogPage() {
           </Link>
         </>
       )}
+    </div>
+  )
+}
+
+// The count, its line, the bar, a month and its first cards, each where
+// it'll be, so nothing moves when the log arrives. Blank at first, as the
+// profile card is, so a quick start never flashes the sketch; a slow one
+// fades it in, linear so a brief one stays faint.
+function LogSkeleton() {
+  const late = useAfter(150)
+  if (!late) return null
+  return (
+    <div
+      aria-hidden
+      className="flex animate-in flex-col px-4 pt-3 duration-300 ease-linear fade-in-0 md:mx-auto md:w-full md:max-w-3xl"
+    >
+      <Skeleton className="mb-2 h-14 w-36" />
+      <div className="pt-0.5 pb-4">
+        <Skeleton className="h-6 w-60" />
+      </div>
+      <div className="flex gap-2">
+        <Skeleton className="h-11 flex-1 rounded-xl desk:h-9" />
+        <Skeleton className="hidden h-9 w-26 desk:block" />
+      </div>
+      {/* The pills, and the bar's border below them. */}
+      <div className="flex gap-1 border-b border-transparent pt-2 pb-2.5">
+        {["w-26", "w-20", "w-28"].map((width) => (
+          <Skeleton key={width} className={cn("h-9 rounded-full", width)} />
+        ))}
+      </div>
+      <div className="box-content flex h-6 items-center px-1 pt-3">
+        <Skeleton className="h-3 w-20" />
+      </div>
+      <div className="mt-2 flex flex-col gap-2">
+        {Array.from({ length: 6 }, (_, i) => (
+          <Skeleton key={i} className="h-21 w-full rounded-xl" />
+        ))}
+      </div>
     </div>
   )
 }
