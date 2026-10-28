@@ -60,7 +60,9 @@ export const DepthChart = memo(function DepthChart({
   return (
     <ChartContainer
       config={config}
-      className="aspect-auto w-full text-[10px]"
+      // The plot runs to the svg's right edge, so the line's last half
+      // stroke is drawn past it, into the card's padding.
+      className="aspect-auto w-full text-[10px] [&_.recharts-surface]:overflow-visible"
       style={{ height }}
       initialDimension={{ width, height }}
     >
@@ -73,6 +75,9 @@ export const DepthChart = memo(function DepthChart({
         <defs>
           <SpeedGradient id={gradient} model={model} />
         </defs>
+        {/* No allowDataOverflow: the points already end at time.max, and it
+            clips the line to the plot, halving the stroke where the descent
+            starts on the plot's left edge. */}
         <XAxis
           type="number"
           dataKey="time"
@@ -82,7 +87,6 @@ export const DepthChart = memo(function DepthChart({
           height={timeAxisHeight}
           axisLine={false}
           tickLine={false}
-          allowDataOverflow
           tick={(props: XAxisTickContentProps) => (
             <TimeTick
               x={Number(props.x)}
@@ -146,12 +150,15 @@ export const DepthChart = memo(function DepthChart({
 
 // Hard colour stops along the line: each segment takes the band of the
 // point it ends on, as Subsurface colours it. The gradient spans the
-// line's own box, from the first point's time to the last's.
+// line's own box, from the first point's time to the last's. A segment with
+// no time in it has no width here, and as the first stops its band would
+// colour the stroke's half left of the box, where the gradient pads.
 function SpeedGradient({ id, model }: { id: string; model: ProfileModel }) {
   const { points, speeds } = model
   const span = points.at(-1)!.time - points[0].time || 1
   const stops: { offset: number; band: SpeedBand }[] = []
   for (let i = 1; i < points.length; i++) {
+    if (points[i].time === points[i - 1].time) continue
     const band = speeds[i].band
     const from = (points[i - 1].time - points[0].time) / span
     const to = (points[i].time - points[0].time) / span
