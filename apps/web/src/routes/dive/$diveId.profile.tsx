@@ -116,8 +116,7 @@ function FullScreen({ dive, log }: { dive: Dive; log: LogView }) {
         <p className="text-sm text-muted-foreground">
           The profile couldn&apos;t be loaded.
         </p>
-        {/* 44 px in landscape too, past md:'s width. */}
-        <Button variant="outline" className="h-11" onClick={retry}>
+        <Button variant="outline" onClick={retry}>
           Try again
         </Button>
       </div>

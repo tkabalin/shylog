@@ -22,7 +22,7 @@ function RootLayout() {
       <SidebarInset
         id="main"
         className={cn(
-          "overflow-y-auto overscroll-y-none pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] md:pb-0",
+          "overflow-y-auto overscroll-y-none pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] desk:pb-0",
           onForm
             ? "pb-[env(safe-area-inset-bottom)]"
             : "pb-[calc(--spacing(12.25)+max(0.5rem,env(safe-area-inset-bottom)))]"

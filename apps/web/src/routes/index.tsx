@@ -272,7 +272,7 @@ function LogPage() {
             to="/dive/new"
             state={{ fromLog: true }}
             aria-label="Log a dive"
-            className="fixed right-5 bottom-[calc(3.75rem+max(0.5rem,env(safe-area-inset-bottom)))] z-10 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-[scale,opacity] duration-150 ease-out select-none [-webkit-touch-callout:none] active:scale-95 motion-reduce:active:scale-100 motion-reduce:active:opacity-80 md:right-8 md:bottom-8"
+            className="fixed right-5 bottom-[calc(3.75rem+max(0.5rem,env(safe-area-inset-bottom)))] z-10 flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-[scale,opacity] duration-150 ease-out select-none [-webkit-touch-callout:none] active:scale-95 motion-reduce:active:scale-100 motion-reduce:active:opacity-80 desk:right-8 desk:bottom-8"
           >
             <IconPlus aria-hidden className="size-6.5 stroke-[2.25]" />
           </Link>

@@ -4,6 +4,9 @@
 @import "@fontsource-variable/geist";
 
 @custom-variant dark (&:is(.dark *));
+/* Desktop chrome and compact controls need a wide screen and a mouse or
+   trackpad: a phone turned landscape is wide too, but still under a finger. */
+@custom-variant desk (@media (width >= 48rem) and (pointer: fine));
 
 @theme inline {
   --font-heading: var(--font-sans);
