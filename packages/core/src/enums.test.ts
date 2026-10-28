@@ -18,7 +18,8 @@ const uddfValues = (options: Record<string, { uddf: string }>) =>
 describe("UDDF values", () => {
   // Lists copied from the UDDF 3.2.1 documentation, leaving out its
   // "not specified" values, since Shylog omits unset choices, and carbon
-  // tanks, which Shylog doesn't offer.
+  // tanks, which Shylog doesn't offer. Shylog may list them in its own
+  // order, so they're compared sorted.
   it.each([
     [
       "program",
@@ -87,7 +88,7 @@ describe("UDDF values", () => {
       ],
     ],
   ])("maps every %s key to one UDDF string", (_, options, expected) => {
-    expect(uddfValues(options)).toEqual(expected)
+    expect(uddfValues(options).sort()).toEqual([...expected].sort())
     expect(new Set(uddfValues(options)).size).toBe(keysOf(options).length)
   })
 })
