@@ -23,7 +23,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 
 - Date and time use native `<input type="date">` and `<input type="time">`, not text fields.
 - `inputmode="numeric"` for whole numbers (duration, pressures); water temperature takes `inputmode="decimal"` too, so a negative one only arrives by import.
-- Touch targets are about 44 px below `md:`. Several chips, segmented buttons and inline actions on the boards are 28 to 36 px.
+- Touch targets are about 44 px on touch screens (below `desk:`). Several chips, segmented buttons and inline actions on the boards are 28 to 36 px.
 - Date, time, site, duration and max depth are all required. The board marks only the first three.
 - A new dive's date is prefilled with today; its start time is empty until tapped, then starts at 09:00; dive type comes from the new-dive defaults (Recreation unless changed).
 - Training agency and course name appear when the dive type is Training. The board has no Training state.
@@ -88,3 +88,7 @@ These were settled while planning the build (`docs/PLAN.md`, decisions D1 to D22
 - The header pill also has a "server unreachable" state, separate from offline.
 - A banner shows how many dives are waiting to sync and the age of the oldest.
 - A rejected draft shows the reason on its card, and an unsynced dive's number is shown as provisional.
+
+## Desktop
+
+- Every board is a 390 px phone screen, so desktop has no board. From `md:` up the Log, a dive and the form keep to a centred column (48rem, the form 36rem), with sticky bars still edge to edge. With a mouse (`desk:`) the app follows shadcn rather than the boards' iOS patterns: the sidebar replaces the tab bar, sheets open as dialogs centred over that column with their bar's actions in a footer (Cancel and Done or Add on the right, Back on the left), option sheets become Selects that drop below the row, and bars use outline and filled buttons (a `Log › site` breadcrumb with Edit, Cancel and Save on the form, New dive beside the Log's search instead of the floating button). Leaving a form by the sidebar or Back with something typed asks first, as Cancel does.
