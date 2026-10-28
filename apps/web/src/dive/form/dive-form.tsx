@@ -107,6 +107,7 @@ import {
   Row,
   RowInput,
   Section,
+  SourceNote,
   Reveal,
   Segmented,
   Unit,
@@ -673,7 +674,10 @@ export function DiveForm({
             </Card>
           )}
 
-          <Section title="Basics">
+          <Section
+            title="Basics"
+            note={<SourceNote computer={!!dive?.computerModel} />}
+          >
             <Field
               under={difference(
                 "startTime",

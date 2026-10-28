@@ -94,7 +94,7 @@ describe("values that differ from the computer", () => {
     const input = document.querySelector<HTMLInputElement>("#field-maxDepth")!
     expect(input.value).toBe("32.7")
     expect(
-      input.closest("div")!.querySelector('[title="From the D4i"]')
+      input.closest("div")!.querySelector('[data-source="computer"]')
     ).not.toBeNull()
 
     const values = await save(onSave)
@@ -132,14 +132,14 @@ describe("a field holding the computer's value", () => {
     show()
     const row = () =>
       document.querySelector("#field-averageDepth")!.closest("div")!
-    expect(row().querySelector('[title="From the D4i"]')).not.toBeNull()
+    expect(row().querySelector('[data-source="computer"]')).not.toBeNull()
     type(document.querySelector("#field-averageDepth"), "20")
-    expect(row().querySelector('[title="From the D4i"]')).toBeNull()
+    expect(row().querySelector('[data-source="computer"]')).toBeNull()
     click(button("Reset to the D4i value", row()))
     expect(
       document.querySelector<HTMLInputElement>("#field-averageDepth")!.value
     ).toBe("21")
-    expect(row().querySelector('[title="From the D4i"]')).not.toBeNull()
+    expect(row().querySelector('[data-source="computer"]')).not.toBeNull()
   })
 })
 
