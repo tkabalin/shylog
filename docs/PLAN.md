@@ -652,7 +652,7 @@ Still to do on the owner's phone:
 - the names sheet: that the keyboard rises with it (`lib/keyboard.ts` focuses a stand-in during the row's tap, since iOS ignores the sheet's own later `initialFocus`), that the chip area scrolls with the keyboard up, and that every sheet's last rows scroll above the keyboard (`--keyboard`, from `visualViewport`);
 - whether the keyboard pushes the form's sticky bar off screen when a low field is focused;
 - swipe-to-dismiss from a scrolled list;
-- the segmented controls' haptic tick (`lib/haptic.ts`): iOS has no Vibration API, so it clicks a hidden native switch, an undocumented Safari behaviour that a later iOS may drop; check it ticks on the phone, and that dropping it costs only the tick;
+- the segmented controls' and tags' haptic tick (`lib/haptic.tsx`): iOS has no Vibration API and stopped ticking for a switch clicked from script, so a transparent label over each option hands the real tap to a hidden native switch, an undocumented Safari behaviour that a later iOS may drop; check it ticks on the phone and that scrolling from an option still scrolls;
 - the segmented controls' 300 ms slide, and the month line under the Log's bar straight after a swipe back from a dive.
 
 Decisions taken while building:
