@@ -33,7 +33,7 @@ Everything is TypeScript, so one core package (draft upload and edit schemas, na
 
 | Layer | Choice | Notes |
 | --- | --- | --- |
-| UI components | React with shadcn/ui, preset `b1sAmWaNW`, with cyan as the theme and chart colour | Touch-size overrides on mobile, compact sizes from `md:` up. A thin Shylog theme layer overrides the preset's CSS variables only where needed (surfaces, the dark-mode accent, and Geist Mono; the preset brings Geist) |
+| UI components | React with shadcn/ui, preset `b1sAmWaNW`, with cyan as the theme and chart colour | Touch-size overrides on touch screens, compact sizes from `desk:` up (48rem wide with a mouse or trackpad). A thin Shylog theme layer overrides the preset's CSS variables only where needed (surfaces, the dark-mode accent, and Geist Mono; the preset brings Geist) |
 | Routing | TanStack Router | File-based routes with typed links and search params |
 | Build and PWA | Vite with vite-plugin-pwa | Precaches the app shell; installable |
 | Charts | shadcn charts (Recharts) | Matches the theme; switch the profile chart to uPlot if long dives feel slow |
@@ -564,7 +564,7 @@ The Difference rule runs on each measure against each field in its row.
 
 ## UI and mobile design
 
-The app is designed for a phone first, used on a boat with wet hands, and stretches to a desktop layout.
+The app is designed for a phone first, used on a boat with wet hands, and stretches to a desktop layout. Desktop is secondary but usable: from `md:` up the Log, a dive and its form keep to a centred column, and from `desk:` up the app follows shadcn rather than iOS: sheets open as dialogs centred over the content with their actions in a footer, choice fields (type, entry, current, surge, workload, thermal comfort) are Selects, and page bars use buttons (a breadcrumb and Edit on a dive, Cancel and Save on the form, New dive beside the Log's search in place of the floating button). As the sidebar stays in reach on a form, leaving one by it or Back with something typed asks to discard first, as Cancel does.
 
 ### Visual direction
 
@@ -693,9 +693,9 @@ Source: `core/profile.cpp` and `profile-widget/` (`profilescene.cpp`, `divecarte
 
 ### Mobile rules
 
-- The preset, with Button, Input, Select, and list rows overridden to touch size (about 44px) below `md:`.
+- The preset, with Button, Input, Select, and list rows overridden to touch size (about 44px) below `desk:`, so a phone turned sideways or a tablet keeps them.
 - Inputs use 16px text on mobile so iOS Safari does not zoom on focus.
-- Bottom navigation on phones; a sidebar from `md:` up.
+- Bottom navigation on phones and tablets; a sidebar from `desk:` up. `desk:` is 48rem wide with a fine pointer, as a width alone would hand a landscape phone the desktop chrome.
 - Sync status in the header is a small pill with the state and the number of waiting dives, hidden when everything is synced. Settings shows the last successful sync.
 - Every dive shows whether it is synced. A dive still on the device has a coloured outline and a cloud-off icon on its card, with screen-reader text, instead of a visible Not synced label, and can be edited or deleted anywhere. Its dive number is shown as provisional until the server assigns one. A synced dive can be changed only with a connection; offline, its Edit and Delete actions are disabled with a note saying why.
 - The theme follows the phone's light or dark setting, with an override in Settings.

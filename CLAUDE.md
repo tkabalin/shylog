@@ -43,7 +43,7 @@ The Claude Design hi-fi wireframes in `docs/design/hifi/` are the source of trut
 
 ## UI conventions
 
-- Phone first, used with wet hands: touch targets about 44px below `md:`, 16px input text, bottom navigation on phones, sidebar from `md:` up.
+- Phone first, used with wet hands: touch targets about 44px below `desk:` (48rem wide with a mouse or trackpad, not width alone), 16px input text, bottom navigation on touch screens, sidebar from `desk:` up. Use `md:` only for layout, such as width caps.
 - Sentence case headings, no serif fonts, tabular numerals for figures, one accent colour used sparingly.
 - Use Tailwind's colour palette everywhere (shadcn uses it too), unless something specific needs a colour Tailwind doesn't have.
 - shadcn components in `apps/web/src/components/ui/` are edited in place, never re-added; see `.claude/rules/shadcn.md`.
