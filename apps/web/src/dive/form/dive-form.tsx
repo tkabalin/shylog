@@ -107,7 +107,6 @@ import {
   differences,
   intervalParts,
   toFields,
-  type Errors,
   type FieldName,
   type FormValues,
   type NewEntity,
@@ -219,17 +218,8 @@ export function DiveForm({
   useEffect(() => {
     shown.current = true
   }, [])
-  // A number box holding text the browser can't read as a number (a comma
-  // in a temperature) reports an empty value, which would clear the field.
-  const [unreadable, setUnreadable] = useState<FieldName[]>([])
 
   const update = (next: Partial<FormValues>) => {
-    // A value set by Use or Reset replaces text the box couldn't read.
-    setUnreadable((was) =>
-      was.some((name) => name in next)
-        ? was.filter((name) => !(name in next))
-        : was
-    )
     setValues((was) => {
       // The compared fields typed in: a start time is its date and time.
       const changed = Object.keys(next).map((name) =>
@@ -253,12 +243,7 @@ export function DiveForm({
     (value: FormValues[K]) =>
       update({ [name]: value } as Partial<FormValues>)
 
-  const unreadableErrors: Errors = Object.fromEntries(
-    unreadable.map((name) => [name, "Use a point for decimals"])
-  )
-  const errors = showErrors
-    ? { ...toFields(values).errors, ...unreadableErrors }
-    : {}
+  const errors = showErrors ? toFields(values).errors : {}
   const meta = dive ? log.fieldMeta.get(dive.id) : undefined
   const computer = computerName(dive?.computerModel ?? null)
   const open = (dive ? differences(dive, meta) : []).filter(
@@ -464,7 +449,7 @@ export function DiveForm({
   )
 
   const save = async () => {
-    const found = { ...toFields(values).errors, ...unreadableErrors }
+    const found = toFields(values).errors
     const first = Object.keys(found)[0]
     if (first) {
       setShowErrors(true)
@@ -1054,19 +1039,11 @@ export function DiveForm({
                     id="field-minTemperature"
                     label="Min"
                     unit="°C"
-                    // Negative under ice, and the decimal pad has no minus.
-                    type="number"
-                    step="0.1"
+                    inputMode="decimal"
                     value={values.minTemperature}
-                    onChange={(event) => {
-                      const bad = event.target.validity.badInput
-                      setUnreadable((was) =>
-                        bad
-                          ? [...new Set([...was, "minTemperature" as const])]
-                          : was.filter((n) => n !== "minTemperature")
-                      )
-                      if (!bad) set("minTemperature")(event.target.value)
-                    }}
+                    onChange={(event) =>
+                      set("minTemperature")(event.target.value)
+                    }
                     placeholder="—"
                     className="pr-3"
                     after={source("minTemperature")}
@@ -1076,18 +1053,11 @@ export function DiveForm({
                     id="field-maxTemperature"
                     label="Max"
                     unit="°C"
-                    type="number"
-                    step="0.1"
+                    inputMode="decimal"
                     value={values.maxTemperature}
-                    onChange={(event) => {
-                      const bad = event.target.validity.badInput
-                      setUnreadable((was) =>
-                        bad
-                          ? [...new Set([...was, "maxTemperature" as const])]
-                          : was.filter((n) => n !== "maxTemperature")
-                      )
-                      if (!bad) set("maxTemperature")(event.target.value)
-                    }}
+                    onChange={(event) =>
+                      set("maxTemperature")(event.target.value)
+                    }
                     placeholder="—"
                     className="border-l pl-4"
                     after={source("maxTemperature")}

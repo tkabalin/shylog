@@ -138,8 +138,7 @@ export function RowInput({ className, ...props }: ComponentProps<"input">) {
         }
       }}
       className={cn(
-        // No spinner arrows on a number box (WebKit draws them).
-        "h-11.5 w-full min-w-0 flex-1 [appearance:textfield] bg-transparent text-right text-base font-medium text-ellipsis tabular-nums outline-none placeholder:font-normal placeholder:text-muted-foreground/60 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
+        "h-11.5 w-full min-w-0 flex-1 bg-transparent text-right text-base font-medium text-ellipsis tabular-nums outline-none placeholder:font-normal placeholder:text-muted-foreground/60",
         props.placeholder === "—" && "focus:placeholder:text-transparent",
         className
       )}

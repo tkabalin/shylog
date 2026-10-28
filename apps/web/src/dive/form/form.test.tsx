@@ -564,6 +564,29 @@ describe("the form on screen", () => {
     expect(onSave).toHaveBeenCalledTimes(2)
     expect(onSave.mock.calls[1][0].notes).toBe("Strong drift")
   })
+
+  // The decimal pad types the phone region's separator.
+  it("saves a water temperature typed with a comma", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    render(
+      <DiveForm
+        title="Edit dive"
+        log={log}
+        dive={dive}
+        original={fromDive(dive, log)}
+        initial={fromDive(dive, log)}
+        onSave={onSave}
+        onCancel={vi.fn()}
+      />
+    )
+    const min = document.querySelector<HTMLInputElement>(
+      "#field-minTemperature"
+    )
+    expect(min!.inputMode).toBe("decimal")
+    type(min, "21,5")
+    await act(async () => button("Save")!.click())
+    expect(toFields(onSave.mock.calls[0][0]).fields.minTemperature).toBe(21.5)
+  })
 })
 
 describe("Cancel", () => {
