@@ -653,6 +653,7 @@ Still to do on the owner's phone:
 - a comma typed in a water temperature (`type="number"`): it should show "Use a point for decimals", not vanish;
 - whether the keyboard pushes the form's sticky bar off screen when a low field is focused;
 - swipe-to-dismiss from a scrolled list;
+- the segmented controls' haptic tick (`lib/haptic.ts`): iOS has no Vibration API, so it clicks a hidden native switch, an undocumented Safari behaviour that a later iOS may drop; check it ticks on the phone, and that dropping it costs only the tick;
 - the segmented controls' 300 ms slide, and the month line under the Log's bar straight after a swipe back from a dive.
 
 Decisions taken while building:
