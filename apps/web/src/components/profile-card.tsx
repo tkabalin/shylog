@@ -129,7 +129,13 @@ function ProfilePlaceholder({
   bare?: boolean
 }) {
   return (
-    <div className={cn("flex flex-col gap-3", bare && "invisible")}>
+    <div
+      className={cn(
+        "flex flex-col gap-3",
+        // Faded in, as the Log's sketch is, once a load turns out slow.
+        bare ? "invisible" : "animate-in duration-300 ease-linear fade-in-0"
+      )}
+    >
       <div
         className="flex items-end justify-between pb-1"
         style={{ height: readoutHeight }}
