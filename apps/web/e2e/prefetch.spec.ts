@@ -34,23 +34,31 @@ test("starts the samples while a card is held", async ({ page, request }) => {
   await expect(page).toHaveURL(`/dive/${id}`)
 })
 
-// The profiles the phone keeps, read from its IndexedDB.
+// The profiles the phone keeps, read from its IndexedDB. It never makes the
+// database itself, and closes it at once: an empty one, held open, would
+// block the app's own upgrade, and its count would stay 0.
 const keptProfiles = (page: Page) =>
   page.evaluate(
     () =>
       new Promise<number>((resolve, reject) => {
         const open = indexedDB.open("shylog")
-        open.onerror = () => reject(open.error)
-        // None yet while the app hasn't made the store, so the poll waits.
+        // Not there yet: the app hasn't started, so the poll waits.
+        open.onupgradeneeded = () => open.transaction!.abort()
+        open.onerror = () =>
+          open.error?.name === "AbortError" ? resolve(0) : reject(open.error)
         open.onsuccess = () => {
           const db = open.result
-          if (!db.objectStoreNames.contains("profiles")) return resolve(0)
+          if (!db.objectStoreNames.contains("profiles")) {
+            db.close()
+            return resolve(0)
+          }
           const count = db
             .transaction("profiles")
             .objectStore("profiles")
             .count()
           count.onerror = () => reject(count.error)
           count.onsuccess = () => resolve(count.result)
+          count.transaction!.oncomplete = () => db.close()
         }
       })
   )
