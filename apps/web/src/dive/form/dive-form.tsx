@@ -99,6 +99,7 @@ import {
   PairInput,
   PickRow,
   pressedRow,
+  SelectRow,
   ResetButton,
   Row,
   RowInput,
@@ -790,11 +791,21 @@ export function DiveForm({
           </Section>
 
           <Section title="Dive">
-            <PickRow
-              label="Type"
-              value={diveTypes[values.diveType].label}
-              onClick={() => setSheet("diveType")}
-            />
+            {desk ? (
+              <SelectRow
+                label="Type"
+                value={values.diveType}
+                options={options(diveTypes)}
+                optional={false}
+                onChange={(value) => value && set("diveType")(value)}
+              />
+            ) : (
+              <PickRow
+                label="Type"
+                value={diveTypes[values.diveType].label}
+                onClick={() => setSheet("diveType")}
+              />
+            )}
             {values.diveType === "training" && (
               // Two rows of the card, so they keep its dividers.
               <Reveal className="divide-y">
@@ -1107,7 +1118,16 @@ export function DiveForm({
                 const label = choice.options.find(
                   (o) => o.value === value
                 )?.label
-                return (
+                return desk ? (
+                  <SelectRow
+                    key={name}
+                    icon={choice.icon}
+                    label={choice.title}
+                    value={value}
+                    options={choice.options as Option<string>[]}
+                    onChange={(next) => set(name)(next as never)}
+                  />
+                ) : (
                   <PickRow
                     key={name}
                     icon={choice.icon}
