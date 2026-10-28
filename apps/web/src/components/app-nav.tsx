@@ -36,10 +36,26 @@ declare module "@tanstack/react-router" {
   }
 }
 
+// A click a link handles itself: Ctrl, Cmd or Shift with a mouse opens the
+// link elsewhere, as it would anywhere else, rather than going back.
+export function plainClick(event: MouseEvent) {
+  return (
+    event.button === 0 &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.shiftKey &&
+    !event.altKey
+  )
+}
+
 // Back in history when the Log came before, so it returns with its scroll
 // position and filters, as a pushed screen pops; otherwise a fresh Log.
 export function backToLog(router: AnyRouter, event: MouseEvent) {
-  if (router.state.location.state.fromLog && router.history.canGoBack()) {
+  if (
+    plainClick(event) &&
+    router.state.location.state.fromLog &&
+    router.history.canGoBack()
+  ) {
     event.preventDefault()
     router.history.back()
   }

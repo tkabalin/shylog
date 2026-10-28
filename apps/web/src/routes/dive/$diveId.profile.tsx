@@ -10,6 +10,7 @@ import {
 
 import { useAfter, useChartLoads } from "@/chart/load"
 import { useSize } from "@/chart/size"
+import { plainClick } from "@/components/app-nav"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Dive } from "@/data/db"
@@ -67,17 +68,34 @@ function FullScreen({ dive, log }: { dive: Dive; log: LogView }) {
   // Back to the dive when it opened this, as a pushed screen pops;
   // otherwise the dive takes this screen's place.
   const close = (event: MouseEvent) => {
-    if (router.state.location.state.fromDive && router.history.canGoBack()) {
+    if (
+      plainClick(event) &&
+      router.state.location.state.fromDive &&
+      router.history.canGoBack()
+    ) {
       event.preventDefault()
       router.history.back()
     }
   }
+  // Escape closes it too, through the same link, as a dialog would. Once
+  // only: a second press before the page goes would go back past the dive.
+  const closeLink = useRef<HTMLAnchorElement>(null)
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return
+      document.removeEventListener("keydown", onKey)
+      closeLink.current?.click()
+    }
+    document.addEventListener("keydown", onKey)
+    return () => document.removeEventListener("keydown", onKey)
+  }, [])
   const bar = (
-    <div className="flex min-w-0 flex-1 items-center gap-1 self-center">
+    <div className="flex min-w-0 flex-1 items-center gap-1 self-center desk:gap-2">
       <Link
         to="/dive/$diveId"
         params={{ diveId: dive.id }}
         replace
+        ref={closeLink}
         onClick={close}
         aria-label="Close"
         className="-ml-2.5 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-primary transition-opacity duration-150 hover:opacity-70 active:opacity-50"
