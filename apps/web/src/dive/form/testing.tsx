@@ -13,10 +13,9 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
-// jsdom has neither matchMedia nor scrollIntoView, which the form uses a
-// frame after a save to bring an error or alert into view, nor scrollTo,
-// which turns the interval sheet's wheels; no motion preference is set,
-// and scrolling does nothing.
+// jsdom has neither matchMedia, which picks the phone or desktop layout and
+// the motion preference, nor scrollIntoView or scrollTo. Every query is
+// false, so the form renders as on a phone, and scrolling does nothing.
 Element.prototype.scrollIntoView ??= () => {}
 Element.prototype.scrollTo ??= () => {}
 window.matchMedia ??= (query: string) =>

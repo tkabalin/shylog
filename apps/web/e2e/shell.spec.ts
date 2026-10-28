@@ -152,6 +152,21 @@ test.describe("at desktop width", () => {
     await expect(current).toHaveAttribute("aria-current", "page")
   })
 
+  test("opens a sheet as a dialog over the content", async ({ page }) => {
+    await page.goto("/dive/new")
+    await page.getByRole("button", { name: /^Type,/ }).click()
+    const dialog = page.getByRole("dialog", { name: "Type" })
+    await expect(dialog).toBeVisible()
+    await expect(page.locator("[data-slot=drawer-swipe-handle]")).toHaveCount(0)
+    // Centred beside the sidebar, over the form.
+    const box = (await dialog.boundingBox())!
+    const main = (await page.locator("#main").boundingBox())!
+    expect(box.x + box.width / 2).toBeCloseTo(main.x + main.width / 2, 0)
+
+    await page.keyboard.press("Escape")
+    await expect(dialog).toBeHidden()
+  })
+
   test("returns controls to compact sizes", async ({ page }) => {
     await page.goto("/dev/ui")
     expect(await height(page.getByRole("button", { name: "Save" }))).toBe(32)

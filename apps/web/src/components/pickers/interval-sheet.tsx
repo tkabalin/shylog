@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useId, useRef, useState } from "react"
 import { IconCheck } from "@tabler/icons-react"
 import { cn } from "cn"
 
@@ -70,7 +70,7 @@ export function IntervalSheet({
 
   return (
     <Drawer showSwipeHandle open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="md:mx-auto md:max-w-md md:border-x">
+      <DrawerContent>
         <SheetBar
           title="Surface interval"
           start={
@@ -189,6 +189,7 @@ function Wheel({
   onChange: (value: number) => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const id = useId()
   const placed = useRef(false)
   const settle = useRef(0)
   useEffect(() => {
@@ -208,14 +209,33 @@ function Wheel({
   }, [value])
   useEffect(() => () => clearTimeout(settle.current), [])
   return (
-    <div className="relative flex w-28 items-center">
+    // The ring sits here, as the wheel's mask clips anything outside it.
+    <div className="relative flex w-28 items-center rounded-lg has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
       <div
         ref={ref}
         role="listbox"
         aria-label={label}
+        tabIndex={0}
+        aria-activedescendant={`${id}-${value}`}
         // A finger or a mouse wheel, not the scroll that places it.
         onPointerDown={onStart}
         onWheel={onStart}
+        // From a keyboard the arrows turn it a step, Home and End to its ends.
+        onKeyDown={(event) => {
+          const next = {
+            ArrowUp: value - 1,
+            ArrowDown: value + 1,
+            Home: 0,
+            End: count - 1,
+          }[event.key]
+          if (next == null) return
+          event.preventDefault()
+          // At an end it doesn't turn, so a Calculated choice stays.
+          const turned = Math.min(count - 1, Math.max(0, next))
+          if (turned === value) return
+          onStart()
+          onChange(turned)
+        }}
         onScroll={(event) => {
           const top = event.currentTarget.scrollTop
           clearTimeout(settle.current)
@@ -224,11 +244,12 @@ function Wheel({
             if (next !== value) onChange(next)
           }, 80)
         }}
-        className="h-55 w-14 snap-y snap-mandatory [scrollbar-width:none] overflow-y-scroll overscroll-contain [mask-image:linear-gradient(transparent,black_35%,black_65%,transparent)] py-22 [&::-webkit-scrollbar]:hidden"
+        className="h-55 w-14 snap-y snap-mandatory [scrollbar-width:none] overflow-y-scroll overscroll-contain [mask-image:linear-gradient(transparent,black_35%,black_65%,transparent)] py-22 outline-none [&::-webkit-scrollbar]:hidden"
       >
         {Array.from({ length: count }, (_, i) => (
           <button
             key={i}
+            id={`${id}-${i}`}
             type="button"
             role="option"
             aria-selected={i === value}

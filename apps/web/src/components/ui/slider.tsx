@@ -65,12 +65,18 @@ function Slider({
             index={index}
             getAriaLabel={getAriaLabel}
             getAriaValueText={getAriaValueText}
-            className="relative block size-5 shrink-0 rounded-full border border-ring bg-white shadow-sm ring-ring/50 transition-[color,box-shadow] select-none after:absolute after:-inset-3 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50 desk:size-3 desk:after:-inset-2"
+            className="relative block size-5 shrink-0 rounded-full border border-ring bg-white shadow-sm ring-ring/50 transition-colors select-none after:absolute after:-inset-3 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50 desk:size-3 desk:after:-inset-2"
           >
             {joinedLabel == null && thumbLabels?.[index] != null && (
               <span
                 aria-hidden
-                className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 text-sm font-medium whitespace-nowrap text-foreground tabular-nums"
+                className={cn(
+                  "pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 text-sm font-medium whitespace-nowrap text-foreground tabular-nums",
+                  // Shylog: at an end it lines up with the thumb's outer
+                  // edge, so "> 40 m" stays inside the track's padding.
+                  _values[index] <= min && "left-0 translate-x-0",
+                  _values[index] >= max && "right-0 left-auto translate-x-0"
+                )}
               >
                 {thumbLabels[index]}
               </span>

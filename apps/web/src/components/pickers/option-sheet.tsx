@@ -38,7 +38,7 @@ export function OptionSheet<V extends string>({
   }
   return (
     <Drawer showSwipeHandle open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="md:mx-auto md:max-w-md md:border-x">
+      <DrawerContent>
         <DrawerHeader className="pb-4">
           <DrawerTitle>{title}</DrawerTitle>
         </DrawerHeader>

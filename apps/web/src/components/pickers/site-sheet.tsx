@@ -27,6 +27,7 @@ import { cn } from "cn"
 import { Drawer } from "@/components/ui/drawer"
 import { Segmented } from "@/dive/form/rows"
 import { countryName } from "@/format/place"
+import { useDesk } from "@/hooks/use-desk"
 import type { NewEntity } from "@/dive/form/values"
 
 import {
@@ -285,7 +286,7 @@ export function SiteSheet({
           className={cn(
             "flex min-h-0 flex-1 flex-col",
             move &&
-              "animate-in duration-300 ease-drawer fade-in-50 motion-reduce:[--tw-enter-translate-x:0]",
+              "animate-in duration-300 ease-drawer fade-in-50 motion-reduce:[--tw-enter-translate-x:0] desk:duration-200",
             move === "back" && "slide-in-from-left-8",
             move === "forward" && "slide-in-from-right-16"
           )}
@@ -329,8 +330,13 @@ function BackButton({
   onClick: () => void
 }) {
   return (
-    <BarButton onClick={onClick} className="pl-0.5">
-      <IconChevronLeft aria-hidden className="size-5.5 stroke-[2.25]" />
+    <BarButton back onClick={onClick} className="pl-0.5">
+      {/* A desktop dialog's footer button takes its usual 16 px icon. */}
+      <IconChevronLeft
+        aria-hidden
+        data-icon="inline-start"
+        className="size-5.5 stroke-[2.25] in-data-[slot=button]:size-4 in-data-[slot=button]:stroke-2"
+      />
       {label}
     </BarButton>
   )
@@ -525,6 +531,7 @@ function NewSite({
   onCountry: () => void
   onBody: () => void
 }) {
+  const desk = useDesk()
   const [regionFocused, setRegionFocused] = useState(false)
   const regionInput = useRef<HTMLInputElement>(null)
   const regionText = tidyName(draft.region)
@@ -562,6 +569,9 @@ function NewSite({
           </label>
           <input
             id="site-name"
+            // With a keyboard at hand, typing starts in an empty name at once;
+            // a phone waits for a tap, so its keyboard doesn't jump up.
+            autoFocus={desk && !draft.name}
             value={draft.name}
             onChange={(event) =>
               onDraft({ ...draft, name: event.target.value })
