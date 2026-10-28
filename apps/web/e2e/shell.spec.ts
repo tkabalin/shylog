@@ -230,16 +230,50 @@ test.describe("at desktop width", () => {
     await expect(page).toHaveURL("/")
   })
 
-  test("turns the interval wheels from the keyboard", async ({ page }) => {
+  test("types the surface interval in boxes", async ({ page }) => {
     await page.goto("/dive/new")
-    await page.getByRole("button", { name: /^Surface interval/ }).click()
-    const hours = page.getByRole("listbox", { name: "Hours" })
-    await hours.focus()
+    const row = page.getByRole("button", { name: /^Surface interval/ })
+    await row.click()
+    await page.getByRole("textbox", { name: "Hours" }).fill("1")
+    await page.getByRole("textbox", { name: "Minutes" }).fill("45")
+    await page.getByRole("button", { name: "Done" }).click()
+    await expect(row).toHaveAccessibleName("Surface interval, 1 h 45 min")
+
+    // Past the 48 h cap the box shows what's saved; Enter is Done.
+    await row.click()
+    await page.getByRole("textbox", { name: "Hours" }).fill("48")
+    const minutes = page.getByRole("textbox", { name: "Minutes" })
+    await minutes.fill("30")
+    await expect(minutes).toHaveValue("0")
+    await minutes.press("Enter")
+    await expect(row).toHaveAccessibleName("Surface interval, 48 h 0 min")
+  })
+
+  test("picks the date and time from popovers", async ({ page }) => {
+    await page.goto("/dive/new")
+    const date = page.getByRole("button", { name: /^Date,/ })
+    await date.click()
+    await page.getByRole("button", { name: /, 15 \w+ \d{4}/ }).click()
+    await expect(date).toHaveAccessibleName(/^Date, \w{3} 15 /)
+    // It opens on the picked day, so the arrows move from there.
+    await date.click()
+    await page.keyboard.press("ArrowLeft")
+    await page.keyboard.press("Enter")
+    await expect(date).toHaveAccessibleName(/^Date, \w{3} 14 /)
+
+    // An empty time opens at 09:00, and each column sets it at once.
+    const time = page.getByRole("button", { name: /^Start time,/ })
+    await time.click()
+    await expect(time).toHaveAccessibleName("Start time, 09:00")
+    const minutes = page.getByRole("listbox", { name: "Minutes" })
+    await minutes.focus()
     await page.keyboard.press("ArrowDown")
-    await page.keyboard.press("ArrowDown")
-    await expect(
-      hours.getByRole("option", { name: "2", exact: true })
-    ).toHaveAttribute("aria-selected", "true")
+    await page
+      .getByRole("listbox", { name: "Hours" })
+      .getByRole("option", { name: "14" })
+      .click()
+    await page.keyboard.press("Escape")
+    await expect(time).toHaveAccessibleName("Start time, 14:01")
   })
 
   test("returns controls to compact sizes", async ({ page }) => {
