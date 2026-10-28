@@ -22,7 +22,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 ## Forms and inputs
 
 - Date and time use native `<input type="date">` and `<input type="time">`, not text fields.
-- `inputmode="numeric"` for whole numbers (duration, pressures); `type="number" step="0.1"` for water temperature, which can be negative.
+- `inputmode="numeric"` for whole numbers (duration, pressures); water temperature takes `inputmode="decimal"` too, so a negative one only arrives by import.
 - Touch targets are about 44 px below `md:`. Several chips, segmented buttons and inline actions on the boards are 28 to 36 px.
 - Date, time, site, duration and max depth are all required. The board marks only the first three.
 - A new dive's date is prefilled with today; its start time is empty until tapped, then starts at 09:00; dive type comes from the new-dive defaults (Recreation unless changed).
