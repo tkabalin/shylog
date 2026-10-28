@@ -579,7 +579,7 @@ export function DiveForm({
       <div className="flex min-h-full shrink-0 flex-col">
         {/* From md: up the form keeps a phone-like width, centred, with its
             bar's actions over it, so labels stay near their values. */}
-        <header className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b bg-background px-2 pt-[env(safe-area-inset-top)] md:px-[max(0.5rem,calc((100%-36rem)/2))] desk:grid-cols-[minmax(0,1fr)_auto]">
+        <header className="sticky top-0 z-30 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b bg-background px-2 pt-[env(safe-area-inset-top)] md:px-[max(0.5rem,calc((100%-36rem)/2))] desk:grid-cols-[minmax(0,1fr)_auto]">
           {desk ? (
             // As shadcn's page headers: the title, then the actions as
             // buttons, Save the filled one.
