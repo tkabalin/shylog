@@ -97,6 +97,35 @@ describe("the derived pass after each write", () => {
     expect(at(second).surfaceInterval).toBe(4505)
   })
 
+  // The first dive runs 08:05:44 to 08:42:16; its samples end by then, so a
+  // longer duration moves its end.
+  const moved = "2026-07-20T08:15:44"
+
+  it("recalculates the next dive's interval when the dive before it moves", async () => {
+    await patch(first, { startTime: moved })
+    // From 08:52:16 to 09:57:21.
+    expect(at(second).surfaceInterval).toBe(3905)
+  })
+
+  it("recalculates the next dive's interval when the dive before it lengthens", async () => {
+    await patch(first, { duration: 3000 })
+    // From 08:55:44 to 09:57:21.
+    expect(at(second).surfaceInterval).toBe(3697)
+  })
+
+  it("keeps a hand interval through changes to the dive before, until set back", async () => {
+    await patch(second, { surfaceInterval: 5000 })
+    await patch(first, { startTime: moved })
+    await patch(moved, { duration: 3000 })
+    expect(at(second).surfaceInterval).toBe(5000)
+    await patch(second, { surfaceInterval: "none" })
+    expect(at(second).surfaceInterval).toBeNull()
+
+    await patch(second, { surfaceInterval: null })
+    // From 09:05:44 to 09:57:21.
+    expect(at(second).surfaceInterval).toBe(3097)
+  })
+
   it("calculates average depth only for dives with samples and no imported or hand value", async () => {
     await addDive("dive-by-hand", "2026-10-01T10:00:00")
     expect(at("2026-10-01T10:00:00").averageDepth).toBeNull()
