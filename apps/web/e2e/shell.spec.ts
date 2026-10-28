@@ -180,6 +180,68 @@ test.describe("at desktop width", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0)
   })
 
+  test("moves between the Log, a dive and its form by header buttons", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    const card = page.locator("#main a[href^='/dive/dive-']").first()
+    const dive = (await card.getAttribute("href"))!
+    await card.click()
+    await expect(page).toHaveURL(dive)
+    // Once the dive has loaded, so the router knows the Log is behind it.
+    await expect(page.getByRole("link", { name: "Edit" })).toBeVisible()
+
+    // Pushed from the Log, so the breadcrumb pops back to it.
+    await page.getByRole("link", { name: "Log", exact: true }).last().click()
+    await expect(page).toHaveURL("/")
+    await page.goForward()
+    await expect(page).toHaveURL(dive)
+
+    await page.getByRole("link", { name: "Edit" }).click()
+    await expect(page).toHaveURL(`${dive}/edit`)
+    await page.goBack()
+    await expect(page).toHaveURL(dive)
+
+    await page.goto("/")
+    await page.getByRole("link", { name: "New dive" }).click()
+    await expect(page).toHaveURL("/dive/new")
+    await page.goBack()
+    await expect(page).toHaveURL("/")
+  })
+
+  test("asks before the sidebar leaves a form with something typed", async ({
+    page,
+  }) => {
+    await page.goto("/dive/new")
+    await page.getByRole("textbox", { name: "Weight" }).fill("6")
+    const log = page
+      .getByRole("navigation", { name: "Main" })
+      .getByRole("link", { name: "Log" })
+    const ask = page.getByRole("dialog", { name: "Discard changes?" })
+
+    await log.click()
+    await expect(ask).toBeVisible()
+    await ask.getByRole("button", { name: "Keep editing" }).click()
+    await expect(ask).toBeHidden()
+    await expect(page).toHaveURL("/dive/new")
+
+    await log.click()
+    await ask.getByRole("button", { name: "Discard changes" }).click()
+    await expect(page).toHaveURL("/")
+  })
+
+  test("turns the interval wheels from the keyboard", async ({ page }) => {
+    await page.goto("/dive/new")
+    await page.getByRole("button", { name: /^Surface interval/ }).click()
+    const hours = page.getByRole("listbox", { name: "Hours" })
+    await hours.focus()
+    await page.keyboard.press("ArrowDown")
+    await page.keyboard.press("ArrowDown")
+    await expect(
+      hours.getByRole("option", { name: "2", exact: true })
+    ).toHaveAttribute("aria-selected", "true")
+  })
+
   test("returns controls to compact sizes", async ({ page }) => {
     await page.goto("/dev/ui")
     expect(await height(page.getByRole("button", { name: "Save" }))).toBe(32)
