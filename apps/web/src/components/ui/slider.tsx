@@ -65,7 +65,7 @@ function Slider({
             index={index}
             getAriaLabel={getAriaLabel}
             getAriaValueText={getAriaValueText}
-            className="relative block size-5 shrink-0 rounded-full border border-ring bg-white shadow-sm ring-ring/50 transition-[color,box-shadow] select-none after:absolute after:-inset-3 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50 md:size-3 md:after:-inset-2"
+            className="relative block size-5 shrink-0 rounded-full border border-ring bg-white shadow-sm ring-ring/50 transition-[color,box-shadow] select-none after:absolute after:-inset-3 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50 desk:size-3 desk:after:-inset-2"
           >
             {joinedLabel == null && thumbLabels?.[index] != null && (
               <span

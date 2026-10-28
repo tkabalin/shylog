@@ -162,6 +162,30 @@ test.describe("at desktop width", () => {
   })
 })
 
+// Wider than 48rem but under a finger, so it keeps the phone's chrome.
+test.describe("on a phone turned landscape", () => {
+  // WebKit can't emulate a coarse pointer.
+  test.skip(({ browserName }) => browserName !== "chromium")
+  test.use({
+    viewport: { width: 844, height: 390 },
+    hasTouch: true,
+    isMobile: true,
+  })
+
+  test("keeps the bottom nav and touch sizes", async ({ page }) => {
+    await page.goto("/dev/ui")
+    await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible()
+    await expect(page.locator("[data-slot=sidebar]")).toBeHidden()
+    expect(
+      await height(page.getByRole("button", { name: "Save" }))
+    ).toBeGreaterThanOrEqual(44)
+    await expect(page.getByRole("textbox", { name: "Site" })).toHaveCSS(
+      "font-size",
+      "16px"
+    )
+  })
+})
+
 test("follows the system dark setting", async ({ page }) => {
   await page.emulateMedia({ colorScheme: "light" })
   await page.goto("/")

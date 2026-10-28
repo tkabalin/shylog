@@ -74,7 +74,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="bottom-nav fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t bg-background pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] md:hidden"
+      className="bottom-nav fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t bg-background pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] desk:hidden"
     >
       {destinations.map(({ to, label, icon: Icon }) => (
         // Icons only, so the label is the link's name for tests and VoiceOver.
@@ -97,13 +97,14 @@ export function BottomNav() {
   )
 }
 
-// From md: up the same destinations sit in a fixed sidebar.
+// On a wide screen with a mouse or trackpad (desk:) the same destinations
+// sit in a fixed sidebar.
 export function AppSidebar() {
   const logTab = useLogTab()
   return (
     <Sidebar
       collapsible="none"
-      className="sticky top-0 hidden h-svh shrink-0 border-r md:flex"
+      className="sticky top-0 hidden h-svh shrink-0 border-r desk:flex"
     >
       <SidebarContent>
         <SidebarGroup>
