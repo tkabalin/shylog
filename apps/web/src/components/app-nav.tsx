@@ -65,7 +65,8 @@ export function backToLog(router: AnyRouter, event: MouseEvent) {
 // there and tapping it goes back.
 function useLogTab() {
   const router = useRouter()
-  const onDive = !!useMatchRoute()({ to: "/dive/$diveId" })
+  // Its form and a new one too, opened from it.
+  const onDive = !!useMatchRoute()({ to: "/dive/$diveId", fuzzy: true })
   return (to: string) =>
     to === "/" && onDive
       ? {

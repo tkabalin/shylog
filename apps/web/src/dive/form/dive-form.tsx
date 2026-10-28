@@ -213,6 +213,13 @@ export function DiveForm({
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [confirming, setConfirming] = useState(false)
   const desk = useDesk()
+  // Asks first when something was typed, as an iOS edit sheet does: one
+  // stray tap shouldn't throw a dive away.
+  const cancel = () => {
+    const untouched = original ?? blank ?? initial
+    if (JSON.stringify(values) === JSON.stringify(untouched)) onCancel()
+    else setConfirming(true)
+  }
   const discardNote = dive
     ? "Your changes to this dive will be lost."
     : "This dive hasn't been saved."
@@ -541,32 +548,45 @@ export function DiveForm({
       <div className="flex min-h-full shrink-0 flex-col">
         {/* From md: up the form keeps a phone-like width, centred, with its
             bar's actions over it, so labels stay near their values. */}
-        <header className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b bg-background px-2 pt-[env(safe-area-inset-top)] md:px-[max(0.5rem,calc((100%-36rem)/2))]">
-          <button
-            type="button"
-            onClick={() => {
-              // Asks first when something was typed, as an iOS edit sheet
-              // does: one stray tap shouldn't throw a dive away.
-              const untouched = original ?? blank ?? initial
-              if (JSON.stringify(values) === JSON.stringify(untouched))
-                onCancel()
-              else setConfirming(true)
-            }}
-            className="inline-flex h-11 items-center justify-self-start px-2 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
-          >
-            Cancel
-          </button>
-          <h1 className="text-base font-semibold tracking-[-0.015em]">
-            {title}
-          </h1>
-          <button
-            type="button"
-            onClick={() => void save()}
-            disabled={saving}
-            className="inline-flex h-11 items-center justify-self-end px-2 text-base font-semibold text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50 active:duration-0 enabled:hover:opacity-70 disabled:text-muted-foreground/60"
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
+        <header className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b bg-background px-2 pt-[env(safe-area-inset-top)] md:px-[max(0.5rem,calc((100%-36rem)/2))] desk:grid-cols-[minmax(0,1fr)_auto]">
+          {desk ? (
+            // As shadcn's page headers: the title, then the actions as
+            // buttons, Save the filled one.
+            <>
+              <h1 className="min-w-0 truncate pl-4 text-base font-semibold tracking-[-0.015em]">
+                {title}
+              </h1>
+              <div className="mr-4 flex gap-2 justify-self-end">
+                <Button variant="outline" onClick={cancel}>
+                  Cancel
+                </Button>
+                <Button onClick={() => void save()} disabled={saving}>
+                  {saving ? "Saving…" : "Save"}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={cancel}
+                className="inline-flex h-11 items-center justify-self-start px-2 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
+              >
+                Cancel
+              </button>
+              <h1 className="text-base font-semibold tracking-[-0.015em]">
+                {title}
+              </h1>
+              <button
+                type="button"
+                onClick={() => void save()}
+                disabled={saving}
+                className="inline-flex h-11 items-center justify-self-end px-2 text-base font-semibold text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50 active:duration-0 enabled:hover:opacity-70 disabled:text-muted-foreground/60"
+              >
+                {saving ? "Saving…" : "Save"}
+              </button>
+            </>
+          )}
         </header>
 
         <form

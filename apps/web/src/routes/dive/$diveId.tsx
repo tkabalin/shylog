@@ -63,6 +63,15 @@ import { backToLog } from "@/components/app-nav"
 import { IconSurfaceCalm, IconSurfaceStormy } from "@/components/icons"
 import { ProfileCard } from "@/components/profile-card"
 import { Badge } from "@/components/ui/badge"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import type { Dive } from "@/data/db"
 import { currentLog, useLog, type LogView } from "@/data/log"
@@ -81,6 +90,7 @@ import {
   temperatureRange,
 } from "@/format/figures"
 import { fullPlace } from "@/format/place"
+import { useDesk } from "@/hooks/use-desk"
 
 export const Route = createFileRoute("/dive/$diveId")({
   component: DivePage,
@@ -129,6 +139,50 @@ function DivePage() {
     <>
       <DiveDetail dive={dive} log={log} />
       <Outlet />
+    </>
+  )
+}
+
+// On a desktop (desk:) the bar reads as shadcn's page headers do: where
+// the dive sits as a breadcrumb, and Edit as an outline button.
+function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
+  const router = useRouter()
+  return (
+    <>
+      <Breadcrumb className="min-w-0 pl-4">
+        <BreadcrumbList className="flex-nowrap">
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              className="-mx-1 rounded-sm px-1 outline-offset-2"
+              render={
+                <Link
+                  to="/"
+                  replace
+                  onClick={(event) => backToLog(router, event)}
+                />
+              }
+            >
+              Log
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem className="min-w-0">
+            <BreadcrumbPage className="truncate">{site}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      {/* A link styled as shadcn's button, so it's still read as a link. */}
+      <Link
+        to="/dive/$diveId/edit"
+        params={{ diveId: dive.id }}
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "mr-4 justify-self-end"
+        )}
+      >
+        <IconPencil data-icon="inline-start" />
+        Edit
+      </Link>
     </>
   )
 }
@@ -201,6 +255,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
   const figures = diveFigures(dive, log)
   const differing = differences(dive, log.fieldMeta.get(dive.id))
   const { barRef, title, scrolled, titled } = useBar()
+  const desk = useDesk()
 
   const visibility =
     dive.visibility != null
@@ -213,24 +268,30 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         ref={barRef}
         data-scrolled={scrolled ? "" : undefined}
         data-titled={titled ? "" : undefined}
-        className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-transparent bg-background px-2 pt-[env(safe-area-inset-top)] transition-[border-color] duration-200 data-scrolled:border-border md:px-[max(0.5rem,calc((100%-48rem)/2))]"
+        className="sticky top-0 z-10 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-transparent bg-background px-2 pt-[env(safe-area-inset-top)] transition-[border-color] duration-200 data-scrolled:border-border md:px-[max(0.5rem,calc((100%-48rem)/2))] desk:grid-cols-[minmax(0,1fr)_auto] desk:gap-x-4"
       >
-        <BackLink />
-        {/* A visual echo of the h1, which screen readers already have. */}
-        <span
-          aria-hidden
-          className="max-w-50 translate-y-1 truncate text-base font-semibold tracking-[-0.015em] opacity-0 transition-[opacity,translate] duration-200 ease-out in-data-titled:translate-y-0 in-data-titled:opacity-100 motion-reduce:translate-y-0"
-        >
-          {site?.name}
-        </span>
-        <Link
-          to="/dive/$diveId/edit"
-          params={{ diveId: dive.id }}
-          className="inline-flex h-11 items-center gap-1 justify-self-end px-2.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
-        >
-          <IconPencil aria-hidden className="size-[1.15em]" />
-          Edit
-        </Link>
+        {desk ? (
+          <DeskBar dive={dive} site={site?.name} />
+        ) : (
+          <>
+            <BackLink />
+            {/* A visual echo of the h1, which screen readers already have. */}
+            <span
+              aria-hidden
+              className="max-w-50 translate-y-1 truncate text-base font-semibold tracking-[-0.015em] opacity-0 transition-[opacity,translate] duration-200 ease-out in-data-titled:translate-y-0 in-data-titled:opacity-100 motion-reduce:translate-y-0"
+            >
+              {site?.name}
+            </span>
+            <Link
+              to="/dive/$diveId/edit"
+              params={{ diveId: dive.id }}
+              className="inline-flex h-11 items-center gap-1 justify-self-end px-2.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
+            >
+              <IconPencil aria-hidden className="size-[1.15em]" />
+              Edit
+            </Link>
+          </>
+        )}
       </header>
 
       {/* Wide screens keep the dive to a column, with the bar's actions
