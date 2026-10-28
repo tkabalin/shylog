@@ -3,7 +3,9 @@ import { IconCheck } from "@tabler/icons-react"
 import { cn } from "cn"
 
 import { Drawer, DrawerContent } from "@/components/ui/drawer"
+import { Input } from "@/components/ui/input"
 import { interval } from "@/format/figures"
+import { useDesk } from "@/hooks/use-desk"
 
 import { BarButton, SheetBar } from "./sheet"
 
@@ -33,6 +35,7 @@ export function IntervalSheet({
   calculated: number | "none" | undefined
   onChange: (value: IntervalChoice) => void
 }) {
+  const desk = useDesk()
   const [draft, setDraft] = useState(value)
   // The wheels show the figure by hand, or else the calculated one, which
   // stays put (dimmed) while No previous dive is chosen.
@@ -67,6 +70,10 @@ export function IntervalSheet({
   const start = () => {
     if (!draft || draft === "none") byHand(minutes)
   }
+  const done = () => {
+    onChange(draft)
+    onOpenChange(false)
+  }
 
   return (
     <Drawer showSwipeHandle open={open} onOpenChange={onOpenChange}>
@@ -77,44 +84,66 @@ export function IntervalSheet({
             <BarButton onClick={() => onOpenChange(false)}>Cancel</BarButton>
           }
           end={
-            <BarButton
-              strong
-              onClick={() => {
-                onChange(draft)
-                onOpenChange(false)
-              }}
-            >
+            <BarButton strong onClick={done}>
               Done
             </BarButton>
           }
         />
         <div className="flex flex-col pb-[max(1rem,env(safe-area-inset-bottom))]">
-          {/* A drag on the wheels turns them, never pulls the sheet. */}
-          <div
-            data-base-ui-swipe-ignore
-            className={cn(
-              "relative mx-4 my-2 flex items-center justify-center gap-2 transition-opacity duration-200 ease-out",
-              draft === "none" && "opacity-40"
-            )}
-          >
-            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-11 -translate-y-1/2 rounded-lg bg-muted" />
-            <Wheel
-              label="Hours"
-              count={longest / 60 + 1}
-              value={Math.floor(minutes / 60)}
-              unit="h"
-              onStart={start}
-              onChange={(h) => byHand(h * 60 + (minutes % 60))}
-            />
-            <Wheel
-              label="Minutes"
-              count={60}
-              value={minutes % 60}
-              unit="min"
-              onStart={start}
-              onChange={(m) => byHand(Math.floor(minutes / 60) * 60 + m)}
-            />
-          </div>
+          {desk ? (
+            // With a keyboard, two boxes to type in; wheels are for a finger.
+            <div
+              className={cn(
+                "mx-4 my-3 flex items-center justify-center gap-4 transition-opacity duration-200 ease-out",
+                draft === "none" && "opacity-40"
+              )}
+            >
+              <NumberBox
+                label="Hours"
+                value={Math.floor(minutes / 60)}
+                max={longest / 60}
+                unit="h"
+                onChange={(h) => byHand(h * 60 + (minutes % 60))}
+                onEnter={done}
+              />
+              <NumberBox
+                label="Minutes"
+                value={minutes % 60}
+                // At the 48 h cap no minutes are left to add.
+                max={minutes >= longest ? 0 : 59}
+                unit="min"
+                onChange={(m) => byHand(Math.floor(minutes / 60) * 60 + m)}
+                onEnter={done}
+              />
+            </div>
+          ) : (
+            /* A drag on the wheels turns them, never pulls the sheet. */
+            <div
+              data-base-ui-swipe-ignore
+              className={cn(
+                "relative mx-4 my-2 flex items-center justify-center gap-2 transition-opacity duration-200 ease-out",
+                draft === "none" && "opacity-40"
+              )}
+            >
+              <div className="pointer-events-none absolute inset-x-0 top-1/2 h-11 -translate-y-1/2 rounded-lg bg-muted" />
+              <Wheel
+                label="Hours"
+                count={longest / 60 + 1}
+                value={Math.floor(minutes / 60)}
+                unit="h"
+                onStart={start}
+                onChange={(h) => byHand(h * 60 + (minutes % 60))}
+              />
+              <Wheel
+                label="Minutes"
+                count={60}
+                value={minutes % 60}
+                unit="min"
+                onStart={start}
+                onChange={(m) => byHand(Math.floor(minutes / 60) * 60 + m)}
+              />
+            </div>
+          )}
           <Choice
             label="Calculated"
             detail={
@@ -268,5 +297,50 @@ function Wheel({
         {unit}
       </span>
     </div>
+  )
+}
+
+// One part of the interval to type, in whole numbers. The text stays as
+// typed while the box has focus, so clearing it to type afresh doesn't put a
+// 0 back, but a figure past the cap shows the cap, as that's what's saved.
+function NumberBox({
+  label,
+  value,
+  max,
+  unit,
+  onChange,
+  onEnter,
+}: {
+  label: string
+  value: number
+  max: number
+  unit: string
+  onChange: (value: number) => void
+  onEnter: () => void
+}) {
+  const [text, setText] = useState<string | null>(null)
+  return (
+    <label className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Input
+        inputMode="numeric"
+        aria-label={label}
+        value={text ?? String(value)}
+        onFocus={(event) => event.currentTarget.select()}
+        onBlur={() => setText(null)}
+        onChange={(event) => {
+          // Digits only, so "1,5" can't save as some other figure.
+          if (/\D/.test(event.target.value)) return
+          const n = event.target.value ? Number(event.target.value) : 0
+          setText(n > max ? String(max) : event.target.value)
+          onChange(Math.min(max, n))
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") onEnter()
+        }}
+        // The form's 16px values, not a desktop input's 14px.
+        className="w-20 text-right text-base font-medium text-foreground tabular-nums desk:text-base"
+      />
+      {unit}
+    </label>
   )
 }
