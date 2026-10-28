@@ -649,7 +649,7 @@ Still to do on the owner's phone:
 
 - the native `<input type="checkbox" switch>` (Nitrox, Ignore this dive): that Safari draws its own switch, with the haptic, at the board's size and in cyan-400 in dark mode, and that its colour fading on the way off matches a switch in the Settings app;
 - the invisible date and time inputs over their text: that a tap anywhere on the row opens the iOS picker, the time picker starts at 09:00, and VoiceOver reads and opens them;
-- the names sheet: that the keyboard rises with it (`lib/keyboard.ts` focuses a stand-in during the row's tap, since iOS ignores the sheet's own later `initialFocus`), that the chip area scrolls with the keyboard up, and that every sheet's last rows scroll above the keyboard (`--keyboard`, from `visualViewport`);
+- the names sheet: that the keyboard rises with it (its field takes focus as it mounts, inside the row's tap, since iOS ignores a later `initialFocus` and a hidden stand-in didn't work either), that the chip area scrolls with the keyboard up, and that every sheet's last rows scroll above the keyboard (`--keyboard`, from `visualViewport`);
 - whether the keyboard pushes the form's sticky bar off screen when a low field is focused;
 - swipe-to-dismiss from a scrolled list;
 - the segmented controls' and tags' haptic tick (`lib/haptic.tsx`): iOS has no Vibration API and stopped ticking for a switch clicked from script, so a transparent label over each option hands the real tap to a hidden native switch, an undocumented Safari behaviour that a later iOS may drop; check it ticks on the phone and that scrolling from an option still scrolls;
