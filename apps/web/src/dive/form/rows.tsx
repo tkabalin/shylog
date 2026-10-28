@@ -19,7 +19,7 @@ import { cn } from "cn"
 
 import { Card } from "@/components/ui/card"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { haptic } from "@/lib/haptic"
+import { Haptic } from "@/lib/haptic"
 
 // The pieces of EditDiveHifi's form: a section heading over a card of rows,
 // each row a muted label on the left and its value, right-aligned, in the
@@ -289,10 +289,7 @@ export function Segmented<V extends string>({
     <ToggleGroup
       aria-labelledby={labelledBy}
       value={value ? [value] : []}
-      onValueChange={(next) => {
-        haptic()
-        onChange((next[0] as V | undefined) ?? null)
-      }}
+      onValueChange={(next) => onChange((next[0] as V | undefined) ?? null)}
       spacing={0.5}
       className={cn(
         "relative grid w-full auto-cols-fr grid-flow-col rounded-[10px] bg-muted p-0.5",
@@ -332,6 +329,7 @@ export function Segmented<V extends string>({
         >
           {Icon && <Icon aria-hidden className="size-4" />}
           <span className="truncate">{label}</span>
+          <Haptic />
         </ToggleGroupItem>
       ))}
     </ToggleGroup>
