@@ -27,8 +27,9 @@ function EditDivePage() {
   const { log, loaded } = useLog()
   const autosave = useAutosave<Kept>(diveId)
   const dive = log?.dive.get(diveId)
-  if (!loaded || autosave.restored === undefined) return null
-  if (!log || !dive || dive.deletedAt) {
+  // Nothing until the first sync has filled the log, as on the detail.
+  if (!loaded || !log || autosave.restored === undefined) return null
+  if (!dive || dive.deletedAt) {
     return (
       <div className="flex flex-col gap-2 p-4 pt-[calc(1rem+env(safe-area-inset-top))] md:mx-auto md:w-full md:max-w-3xl">
         {/* The form hides the tab bar, so this is the way out. */}

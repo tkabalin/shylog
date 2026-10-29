@@ -127,9 +127,11 @@ function DivePage() {
   const { diveId } = Route.useParams()
   const { log, loaded } = useLog()
   const dive = log?.dive.get(diveId)
-  if (!loaded) return null
+  // Nothing until the first sync has filled the log, so a fresh phone
+  // doesn't say the dive is missing.
+  if (!loaded || !log) return null
   // A deleted dive still opens, from Recently deleted, to be restored.
-  if (!log || !dive) {
+  if (!dive) {
     return (
       <div className="flex flex-col gap-2 p-4 pt-[calc(1rem+env(safe-area-inset-top))] md:mx-auto md:w-full md:max-w-3xl">
         <BackLink />
