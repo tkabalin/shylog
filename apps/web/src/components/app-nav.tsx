@@ -51,14 +51,19 @@ export function plainClick(event: MouseEvent) {
 // Back in history when the Log came before, so it returns with its scroll
 // position and filters, as a pushed screen pops; otherwise a fresh Log.
 export function backToLog(router: AnyRouter, event: MouseEvent) {
-  if (
-    plainClick(event) &&
-    router.state.location.state.fromLog &&
-    router.history.canGoBack()
-  ) {
+  if (plainClick(event) && logBehind(router)) {
     event.preventDefault()
     router.history.back()
   }
+}
+
+const logBehind = (router: AnyRouter) =>
+  !!router.state.location.state.fromLog && router.history.canGoBack()
+
+// The same from code, for a dive that has just been deleted.
+export function closeToLog(router: AnyRouter) {
+  if (logBehind(router)) router.history.back()
+  else void router.navigate({ to: "/", replace: true })
 }
 
 // A dive's detail is pushed from the Log, so the Log stays the current tab

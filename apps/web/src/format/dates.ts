@@ -27,3 +27,28 @@ export const longDate = (startTime: string) =>
 export const clockTime = (startTime: string) => startTime.slice(11, 16)
 
 export const year = (startTime: string) => startTime.slice(0, 4)
+
+// When a dive was deleted: an instant the server stamped, so unlike a dive's
+// own time it is read in the phone's zone, as "today" is.
+const localDay = (date: Date) =>
+  `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+
+// The deleted dive's pill: "Deleted 2 Aug".
+export const deletedDay = (deletedAt: string) => {
+  const date = new Date(deletedAt)
+  return `${date.getDate()} ${months[date.getMonth()]}`
+}
+
+// Recently deleted's groups: today, yesterday, then by month, with the
+// year once it isn't this one.
+export function deletedGroup(deletedAt: string, now = new Date()) {
+  const date = new Date(deletedAt)
+  const yesterday = new Date(now)
+  yesterday.setDate(now.getDate() - 1)
+  if (localDay(date) === localDay(now)) return "Deleted today"
+  if (localDay(date) === localDay(yesterday)) return "Deleted yesterday"
+  const month = date.toLocaleString("en-GB", { month: "long" })
+  return date.getFullYear() === now.getFullYear()
+    ? `Deleted in ${month}`
+    : `Deleted in ${month} ${date.getFullYear()}`
+}
