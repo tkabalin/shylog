@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   type ComponentProps,
   type ComponentType,
@@ -440,12 +441,21 @@ export function Reveal({
 }) {
   const shown = useContext(FormShown)
   const [animate] = useState(() => shown.current)
+  // Opened a frame after it mounts rather than by @starting-style, which
+  // WebKit can skip when the mount is a long task (fifty dive rows).
+  const [open, setOpen] = useState(!animate)
+  useEffect(() => {
+    if (open) return
+    const frame = requestAnimationFrame(() => setOpen(true))
+    return () => cancelAnimationFrame(frame)
+  }, [open])
   return (
     <div
       className={cn(
-        "grid grid-rows-[1fr] opacity-100",
+        "grid",
+        open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         animate &&
-          "transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-opacity starting:grid-rows-[0fr] starting:opacity-0"
+          "transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-opacity"
       )}
     >
       <div className={cn("min-h-0 overflow-hidden", className)}>{children}</div>
