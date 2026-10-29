@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  ago,
   cardDay,
   clockTime,
   deletedDay,
   deletedGroup,
+  instant,
   longDate,
   monthKey,
   monthLabel,
@@ -58,6 +60,24 @@ describe("dates", () => {
     expect(deletedGroup(at(2026, 10, 31), new Date(2026, 10, 1, 8))).toBe(
       "Deleted yesterday"
     )
+  })
+
+  it("gives backup times as today, yesterday or a date", () => {
+    const now = new Date(2026, 9, 29, 9)
+    expect(instant(at(2026, 10, 29, 2), now)).toBe("Today 02:00")
+    expect(instant(at(2026, 10, 28, 2), now)).toBe("Yesterday 02:00")
+    expect(instant(at(2026, 8, 2), now)).toBe("2 Aug")
+    expect(instant(at(2025, 8, 2), now)).toBe("2 Aug 2025")
+  })
+
+  it("says how long ago the last sync was", () => {
+    const now = new Date(2026, 9, 29, 9)
+    const before = (minutes: number) =>
+      new Date(now.getTime() - minutes * 60_000).toISOString()
+    expect(ago(before(0.5), now)).toBe("just now")
+    expect(ago(before(2), now)).toBe("2 min ago")
+    expect(ago(before(180), now)).toBe("3 h ago")
+    expect(ago(at(2026, 10, 27, 9), now)).toBe("27 Oct")
   })
 
   it("dates a deleted dive's pill by day and month", () => {

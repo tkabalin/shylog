@@ -55,6 +55,10 @@ export function Section({
   )
 }
 
+// The You tab's cards set their labels in the text colour at 15 px, as
+// SettingsHifi does, where the dive form's are muted.
+export const PlainLabels = createContext(false)
+
 export function Label({
   icon: Icon,
   children,
@@ -72,12 +76,16 @@ export function Label({
   className?: string
 }) {
   const Tag = htmlFor ? "label" : "span"
+  const plain = useContext(PlainLabels)
   return (
     <span className={cn("flex shrink-0 items-center gap-1.5", className)}>
       <Tag
         htmlFor={htmlFor}
         id={id}
-        className="flex items-center gap-1.5 text-sm text-muted-foreground"
+        className={cn(
+          "flex items-center gap-1.5",
+          plain ? "text-[15px]" : "text-sm text-muted-foreground"
+        )}
       >
         {Icon && <Icon aria-hidden className="size-[1.15em] shrink-0" />}
         {children}
@@ -184,10 +192,13 @@ export function PickRow({
   onClick,
   describedBy,
   invalid,
+  empty = "Choose",
 }: {
   icon?: Icon
   label: string
   value: string | null | undefined
+  // What an unset value reads as.
+  empty?: string
   // How many more are chosen ("+ 12"), kept clear of the value's ellipsis.
   more?: string
   onClick: () => void
@@ -206,7 +217,7 @@ export function PickRow({
         className="flex h-11.5 min-w-0 flex-1 items-center justify-end gap-1 text-right text-base font-medium desk:outline-none"
       >
         <span className={cn("truncate", !value && "text-muted-foreground/60")}>
-          {value ?? "Choose"}
+          {value ?? empty}
         </span>
         {more && <span className="shrink-0 tabular-nums">{more}</span>}
         <IconChevronRight

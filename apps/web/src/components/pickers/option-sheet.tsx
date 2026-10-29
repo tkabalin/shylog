@@ -13,6 +13,15 @@ export interface Option<V extends string> {
   label: string
 }
 
+// A choice field's options from core's enum, in its order.
+export const options = <V extends string>(
+  choices: Record<V, { label: string }>
+): Option<V>[] =>
+  (Object.keys(choices) as V[]).map((value) => ({
+    value,
+    label: choices[value].label,
+  }))
+
 // A choice field's options as a bottom sheet (D29): a tick on the chosen
 // one, and Not set first where the field is optional. Picking closes it.
 export function OptionSheet<V extends string>({

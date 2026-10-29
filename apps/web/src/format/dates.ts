@@ -52,3 +52,29 @@ export function deletedGroup(deletedAt: string, now = new Date()) {
     ? `Deleted in ${month}`
     : `Deleted in ${month} ${date.getFullYear()}`
 }
+
+const pad = (n: number) => String(n).padStart(2, "0")
+
+// A server instant on the You tab, in the phone's zone: "Today 02:00",
+// "Yesterday 02:00", then "2 Aug", with the year once it isn't this one.
+export function instant(at: string, now = new Date()) {
+  const date = new Date(at)
+  const time = `${pad(date.getHours())}:${pad(date.getMinutes())}`
+  const yesterday = new Date(now)
+  yesterday.setDate(now.getDate() - 1)
+  if (localDay(date) === localDay(now)) return `Today ${time}`
+  if (localDay(date) === localDay(yesterday)) return `Yesterday ${time}`
+  const day = `${date.getDate()} ${months[date.getMonth()]}`
+  return date.getFullYear() === now.getFullYear()
+    ? day
+    : `${day} ${date.getFullYear()}`
+}
+
+// How long ago, for "Last sync 2 min ago"; a day or more gives the date.
+export function ago(at: string, now = new Date()) {
+  const minutes = Math.floor((now.getTime() - new Date(at).getTime()) / 60_000)
+  if (minutes < 1) return "just now"
+  if (minutes < 60) return `${minutes} min ago`
+  if (minutes < 24 * 60) return `${Math.floor(minutes / 60)} h ago`
+  return instant(at, now)
+}

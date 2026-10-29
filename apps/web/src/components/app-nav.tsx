@@ -6,9 +6,9 @@ import {
 } from "@tanstack/react-router"
 import type { MouseEvent } from "react"
 import {
-  IconAdjustmentsHorizontal,
   IconChartBar,
   IconNotebook,
+  IconScubaMask,
   IconUpload,
 } from "@tabler/icons-react"
 
@@ -26,7 +26,8 @@ const destinations = [
   { to: "/", label: "Log", icon: IconNotebook },
   { to: "/stats", label: "Stats", icon: IconChartBar },
   { to: "/import", label: "Import", icon: IconUpload },
-  { to: "/settings", label: "Settings", icon: IconAdjustmentsHorizontal },
+  // Once Settings: the diver's own things and the log's upkeep (D30).
+  { to: "/you", label: "You", icon: IconScubaMask },
 ] as const
 
 declare module "@tanstack/react-router" {

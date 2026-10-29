@@ -104,11 +104,15 @@ jobs:
           context: .
           load: true
           tags: shylog:ci
+          # As publish passes it, so publish reuses this build's cache.
+          build-args: VITE_REVISION=${{ github.sha }}
           cache-from: type=gha
           # Only main writes the cache, so PR builds can't evict the layers
           # publish reuses.
           cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max' || '' }}
-      - run: .github/scripts/smoke-image.sh shylog:ci
+      - run: .github/scripts/smoke-image.sh shylog:ci "$REVISION"
+        env:
+          REVISION: ${{ github.sha }}
 
   # Publishes only from main and only once every check has passed. It
   # rebuilds from the image job's cache, so with the pinned base images and
@@ -135,6 +139,7 @@ jobs:
         with:
           context: .
           push: true
+          build-args: VITE_REVISION=${{ github.sha }}
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:sha-${{ github.sha }}

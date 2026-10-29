@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test"
 
-// A tour of the Log and a dive's detail that fails on anything the browser
-// reports: console warnings and errors, uncaught exceptions, error responses.
+// A tour of the Log, a dive's detail and the You tab's screens that fails on
+// anything the browser reports: console warnings and errors, uncaught
+// exceptions, error responses.
 test("leaves the console clean", async ({ page }) => {
   const seen: string[] = []
   page.on("console", (message) => {
@@ -36,6 +37,24 @@ test("leaves the console clean", async ({ page }) => {
   ).toBeVisible()
   await page.goto("/dive/dive-missing")
   await expect(page.getByText("Dive not found")).toBeVisible()
+
+  await page.goto("/you")
+  await expect(
+    page.getByRole("heading", { name: "You", exact: true })
+  ).toBeVisible()
+  await page.getByRole("link", { name: /^Sites/ }).click()
+  await page.locator("main a[href^='/you/entities/site/']").first().click()
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
+  await page
+    .getByRole("button", { name: "Merge a duplicate into this" })
+    .click()
+  await expect(page.getByRole("dialog")).toBeVisible()
+  await page.keyboard.press("Escape")
+  await page.goto("/you/entities?kind=person")
+  await page.goto("/you/deleted")
+  await expect(
+    page.getByText(/^(Nothing deleted|A restored dive goes back)/)
+  ).toBeVisible()
 
   expect(seen).toEqual([])
 })

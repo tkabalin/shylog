@@ -16,7 +16,12 @@ COPY packages/core/package.json packages/core/
 FROM manifests AS build
 RUN pnpm install --frozen-lockfile --offline
 COPY . .
-RUN pnpm --filter @shylog/web build && pnpm --filter @shylog/server build
+RUN pnpm --filter @shylog/server build
+# The commit the image is built from, which the You tab shows as the version.
+# Declared after the server's build, so the revision alone never rebuilds
+# the server; every commit ships a new web bundle.
+ARG VITE_REVISION=dev
+RUN pnpm --filter @shylog/web build
 
 # The server's runtime dependencies alone. fetch filled node_modules with
 # every package, so it starts empty. Core is bundled into the server's build,
