@@ -54,6 +54,7 @@ import {
   createFileRoute,
   Link,
   Outlet,
+  useLocation,
   useRouter,
 } from "@tanstack/react-router"
 import { cn } from "cn"
@@ -76,6 +77,7 @@ import { Card } from "@/components/ui/card"
 import type { Dive } from "@/data/db"
 import { currentLog, useLog, type LogView } from "@/data/log"
 import { loadProfile, retryProfile } from "@/data/samples"
+import { useSaveCelebration } from "@/dive/celebration"
 import { diveFigures } from "@/dive/figures"
 import { computerName, differences } from "@/dive/form/values"
 import { clockTime, longDate } from "@/format/dates"
@@ -256,6 +258,19 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
   const differing = differences(dive, log.fieldMeta.get(dive.id))
   const { barRef, title, scrolled, titled } = useBar()
   const desk = useDesk()
+  const saved = useLocation({ select: (location) => !!location.state.saved })
+  const headline = useRef<HTMLDListElement>(null)
+  useSaveCelebration(dive, saved, headline)
+  // A reload keeps history state, so the entry drops saved once read, or
+  // every refresh of the dive would celebrate it again.
+  const router = useRouter()
+  useEffect(() => {
+    if (!saved) return
+    router.history.replace(router.state.location.href, {
+      ...router.state.location.state,
+      saved: undefined,
+    })
+  }, [saved, router])
 
   const visibility =
     dive.visibility != null
@@ -330,7 +345,11 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
           </p>
         </section>
 
-        <dl aria-label="Headline figures" className="grid grid-cols-3 px-1">
+        <dl
+          ref={headline}
+          aria-label="Headline figures"
+          className="grid grid-cols-3 px-1"
+        >
           <Headline
             icon={IconArrowBarToDown}
             term="Max depth"

@@ -46,8 +46,25 @@ test("adds a dive with a new site and buddy, which uploads and gets its number @
   const id = page.url().split("/").pop()!
   restore((request) => deleteDive(request, id))
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(name)
-  // Numbered once the server has it.
-  await expect(page.getByText(/^Dive \d+$/)).toBeVisible()
+  // Bubbles celebrate the save, and it's numbered once the server has it.
+  const bubbles = page.locator("body > .fixed[aria-hidden=true]")
+  // Bubbles start a frame after the dive shows and clear once they've
+  // risen, so none is counted once, two frames on, never awaited.
+  const frames = () =>
+    page.evaluate(
+      () =>
+        new Promise((done) =>
+          requestAnimationFrame(() => requestAnimationFrame(done))
+        )
+    )
+  await expect(bubbles).toHaveCount(1)
+  const number = page.getByText(/^Dive \d+$/)
+  await expect(number).toBeVisible()
+  // A reload isn't a save, so it plays nothing.
+  await page.reload()
+  await expect(number).toBeVisible()
+  await frames()
+  expect(await bubbles.count()).toBe(0)
   await expect(page.getByText("E2E Buddy")).toBeVisible()
   const log = await getLog(page.request)
   expect(log.dives.find((dive) => dive.id === id)?.maxDepth).toBe(18.5)
@@ -58,6 +75,10 @@ test("adds a dive with a new site and buddy, which uploads and gets its number @
   await expect(page).toHaveURL(/\/$/)
   await page.goForward()
   await expect(page).toHaveURL(new RegExp(`/dive/${id}$`))
+  // The save celebrates once: back on the dive, nothing plays.
+  await expect(number).toBeVisible()
+  await frames()
+  expect(await bubbles.count()).toBe(0)
 })
 
 test("edits a dive's notes, which changes the log's version @writes", async ({
