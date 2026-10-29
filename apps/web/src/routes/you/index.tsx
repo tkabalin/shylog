@@ -22,16 +22,19 @@ import { useHealth } from "@/data/health"
 import { useLastSync } from "@/data/last-sync"
 import { useLog, type LogView } from "@/data/log"
 import {
+  ErrorLine,
   Label,
   PlainLabels,
   Row,
   RowInput,
   Section,
   Segmented,
+  Unit,
 } from "@/dive/form/rows"
 import { ago, instant } from "@/format/dates"
 import { countText } from "@/components/pickers/match"
-import { DivingSection } from "@/you/diving"
+import { parseMaxPo2 } from "@/you/defaults"
+import { DefaultsSection } from "@/you/defaults-section"
 import { kindLabels } from "@/you/kinds"
 import { listRow, pressable, RowContent, SaveLine } from "@/you/parts"
 
@@ -225,7 +228,9 @@ function YouPage() {
           ))}
         </Section>
 
-        {log && <DivingSection settings={log.settings} />}
+        {log && <Preferences settings={log.settings} />}
+
+        {log && <DefaultsSection settings={log.settings} />}
 
         <PlainLabels.Provider value>
           <Section title="This phone">
@@ -338,6 +343,81 @@ function DiverCard({ settings }: { settings?: Settings }) {
         onSave={save}
         onCancel={() => {
           setName(base)
+          setFailure(undefined)
+        }}
+      />
+    </div>
+  )
+}
+
+// Log-wide preferences, apart from the defaults below so neither save
+// puts back what another phone changed in the other.
+function Preferences({ settings }: { settings: Settings }) {
+  const stored = settings.maxPo2.toFixed(1)
+  const [maxPo2, setMaxPo2] = useState(stored)
+  const [base, setBase] = useState(stored)
+  const [error, setError] = useState<string>()
+  const [busy, setBusy] = useState(false)
+  const [failure, setFailure] = useState<string>()
+  const changed = maxPo2 !== base
+  // A sync that brings a new value shows it unless one is being typed.
+  if (!changed && stored !== base) {
+    setBase(stored)
+    setMaxPo2(stored)
+  }
+  const save = async () => {
+    const { error: found, value } = parseMaxPo2(maxPo2)
+    setError(found)
+    if (value === undefined) return
+    // A comma for a point, say: nothing to send.
+    if (value === parseMaxPo2(base).value) {
+      setMaxPo2(base)
+      return
+    }
+    setBusy(true)
+    setFailure(undefined)
+    try {
+      await commit(apiClient().api.settings.$put({ json: { maxPo2: value } }))
+      setBase(maxPo2)
+    } catch (error) {
+      setFailure(error instanceof Error ? error.message : String(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div>
+      <PlainLabels.Provider value>
+        <Section title="Preferences">
+          <div>
+            <Row>
+              <Label htmlFor="you-maxPo2">Maximum PO₂</Label>
+              <RowInput
+                id="you-maxPo2"
+                inputMode="decimal"
+                value={maxPo2}
+                onChange={(event) => {
+                  setMaxPo2(event.target.value)
+                  setError(undefined)
+                }}
+                placeholder="1.4"
+                aria-invalid={!!error || undefined}
+                aria-describedby={error ? "error-maxPo2" : undefined}
+              />
+              <Unit>bar</Unit>
+            </Row>
+            <ErrorLine id="error-maxPo2" message={error} />
+          </div>
+        </Section>
+      </PlainLabels.Provider>
+      <SaveLine
+        shown={changed}
+        busy={busy}
+        error={failure}
+        onSave={save}
+        onCancel={() => {
+          setMaxPo2(base)
+          setError(undefined)
           setFailure(undefined)
         }}
       />

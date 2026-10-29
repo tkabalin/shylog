@@ -23,20 +23,20 @@ import {
 import { useDesk } from "@/hooks/use-desk"
 
 import {
-  divingValues,
-  parseDiving,
-  type DivingErrors,
-  type DivingValues,
+  defaultsValues,
+  parseDefaults,
+  type DefaultsErrors,
+  type DefaultsValues,
 } from "./defaults"
 import { SaveLine } from "./parts"
 
-// Maximum PO₂ and the new-dive defaults, in the dive form's own controls
-// rather than the board's preset lists (NOTES), saved together.
-export function DivingSection({ settings }: { settings: Settings }) {
+// The new-dive defaults, in the dive form's own controls rather than the
+// board's preset lists (NOTES), saved together.
+export function DefaultsSection({ settings }: { settings: Settings }) {
   const desk = useDesk()
-  const saved = divingValues(settings)
+  const saved = defaultsValues(settings)
   const [values, setValues] = useState(saved)
-  const [errors, setErrors] = useState<DivingErrors>({})
+  const [errors, setErrors] = useState<DefaultsErrors>({})
   const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<string>()
   const [typeOpen, setTypeOpen] = useState(false)
@@ -55,43 +55,35 @@ export function DivingSection({ settings }: { settings: Settings }) {
   }
 
   const set =
-    <K extends keyof DivingValues>(name: K) =>
-    (value: DivingValues[K]) => {
+    <K extends keyof DefaultsValues>(name: K) =>
+    (value: DefaultsValues[K]) => {
       setValues((was) => ({ ...was, [name]: value }))
       setErrors((was) => ({ ...was, [name]: undefined }))
     }
   const text =
-    (name: keyof DivingValues) => (event: { target: { value: string } }) =>
+    (name: keyof DefaultsValues) => (event: { target: { value: string } }) =>
       set(name)(event.target.value as never)
-  const invalid = (name: keyof DivingValues) => ({
+  const invalid = (name: keyof DefaultsValues) => ({
     "aria-invalid": !!errors[name] || undefined,
     "aria-describedby": errors[name] ? `error-${name}` : undefined,
   })
 
   const save = async () => {
-    const { errors: found, request } = parseDiving(values)
+    const { errors: found, request } = parseDefaults(values)
     setErrors(found)
     if (!request) return
-    // Only the part that changed, so a save here never puts back a maximum
-    // PO₂ another phone changed since this screen opened. The defaults go
-    // as a whole, as the server replaces them so.
-    const was = parseDiving(base).request
-    const changes = {
-      ...(request.maxPo2 !== was?.maxPo2 && { maxPo2: request.maxPo2 }),
-      ...(JSON.stringify(request.newDiveDefaults) !==
-        JSON.stringify(was?.newDiveDefaults) && {
-        newDiveDefaults: request.newDiveDefaults,
-      }),
-    }
-    // A comma for a point, say: nothing to send.
-    if (!Object.keys(changes).length) {
+    // A comma for a point, say: nothing to send. The defaults go as a
+    // whole, as the server replaces them so.
+    if (
+      JSON.stringify(request) === JSON.stringify(parseDefaults(base).request)
+    ) {
       setValues(base)
       return
     }
     setBusy(true)
     setFailure(undefined)
     try {
-      await commit(apiClient().api.settings.$put({ json: changes }))
+      await commit(apiClient().api.settings.$put({ json: request }))
       setBase(values)
     } catch (error) {
       setFailure(error instanceof Error ? error.message : String(error))
@@ -104,31 +96,7 @@ export function DivingSection({ settings }: { settings: Settings }) {
     <PlainLabels.Provider value>
       <FormShown.Provider value={shown}>
         <div>
-          <Section
-            title="Diving"
-            note={
-              <p className="mt-2 px-1 text-[13px] leading-normal text-muted-foreground">
-                Everything under Maximum PO₂ fills in on every new dive. Empty a
-                field or choose Not set to leave it blank.
-              </p>
-            }
-          >
-            <div>
-              <Row>
-                <Label htmlFor="you-maxPo2">Maximum PO₂</Label>
-                <RowInput
-                  id="you-maxPo2"
-                  inputMode="decimal"
-                  value={values.maxPo2}
-                  onChange={text("maxPo2")}
-                  placeholder="1.4"
-                  {...invalid("maxPo2")}
-                />
-                <Unit>bar</Unit>
-              </Row>
-              <ErrorLine id="error-maxPo2" message={errors.maxPo2} />
-            </div>
-
+          <Section title="New dive defaults">
             <div className="flex flex-col gap-2 px-4 py-3">
               <Label id="you-cylinder">Cylinder</Label>
               <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-end max-[374px]:grid-cols-1 max-[374px]:gap-2">

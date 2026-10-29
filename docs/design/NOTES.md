@@ -90,7 +90,7 @@ These were settled while planning the build (`docs/PLAN.md`, decisions D1 to D22
 - The import summary counts included freedives separately when there are any. The review board folds them into "new".
 - Entities are created only from the dive form's pickers; the entity screens list, rename, merge and delete.
 - The entity list has no kind tabs: each kind opens from its row on You, which already lists all five, so `EntitiesHifi`'s tabs repeated it (and five no longer fit).
-- The boards' explanatory notes on You, the entity list and entity detail are cut where the screen or the next step already says it. An entity's note shows only when Delete is disabled and Recently deleted keeps only the re-import note. Restore is a words-only pill.
+- The boards' explanatory notes on You, the entity list and entity detail are cut where the screen or the next step already says it. An entity's note shows only when Delete is disabled, Recently deleted keeps only the re-import note, and Defaults is titled New dive defaults instead of carrying a note. Restore is a words-only pill.
 - The Icon key is a reference, not a screen. Each board's Essential icon set is what gets built; the key's Essential column is a vocabulary, not a per-screen rule.
 - The tank-pressure lane is not built; neither computer records pressure.
 
