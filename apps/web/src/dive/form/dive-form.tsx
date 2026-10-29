@@ -46,6 +46,7 @@ import {
   IconScubaDivingTank,
   IconSun,
   IconTemperatureSnow,
+  IconTrash,
   IconUsers,
   IconUserStar,
   IconWeight,
@@ -75,6 +76,7 @@ import {
 import { SiteSheet, type SiteRow } from "@/components/pickers/site-sheet"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { DeleteSheet } from "@/dive/delete-sheet"
 import { Card } from "@/components/ui/card"
 import {
   Drawer,
@@ -194,6 +196,7 @@ export function DiveForm({
   onSave,
   onCancel,
   onDiscard,
+  onDeleted,
 }: {
   title: string
   log: LogView
@@ -209,6 +212,9 @@ export function DiveForm({
   // Closes the form; onDiscard first drops what was typed.
   onCancel: () => void
   onDiscard?: () => void
+  // An existing dive's Delete dive, as EditDiveHifi ends; called once it's
+  // deleted.
+  onDeleted?: () => void
 }) {
   const [values, setValues] = useState(initial)
   const [showErrors, setShowErrors] = useState(false)
@@ -216,6 +222,7 @@ export function DiveForm({
   const [failure, setFailure] = useState<string | null>(null)
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const desk = useDesk()
   // Asks first when something was typed, as an iOS edit sheet does: one
   // stray tap shouldn't throw a dive away.
@@ -1262,7 +1269,30 @@ export function DiveForm({
               />
             </div>
           </Card>
+          {dive && onDeleted && (
+            <button
+              type="button"
+              onClick={() => setDeleting(true)}
+              className="inline-flex h-11 items-center gap-1.5 self-center px-4 text-[15px] font-medium text-destructive transition-opacity duration-150 select-none hover:opacity-70 active:opacity-50 active:duration-0"
+            >
+              <IconTrash aria-hidden className="size-[1.15em]" />
+              Delete dive
+            </button>
+          )}
         </form>
+        {dive && onDeleted && (
+          <DeleteSheet
+            open={deleting}
+            onOpenChange={setDeleting}
+            diveId={dive.id}
+            draft={!!dive.draft}
+            onDeleted={() => {
+              // Lets LeaveGuard pass: what was typed went with the dive.
+              leaving.current = true
+              onDeleted()
+            }}
+          />
+        )}
 
         {desk && (
           <LeaveGuard

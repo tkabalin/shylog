@@ -76,7 +76,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { DeleteSheet } from "@/dive/delete-sheet"
+import { DeleteSheet, takeLeave } from "@/dive/delete-sheet"
 import { useBack } from "@/you/bar"
 import { restore } from "@/dive/restore"
 import type { Dive } from "@/data/db"
@@ -126,6 +126,15 @@ const none = "—"
 function DivePage() {
   const { diveId } = Route.useParams()
   const { log, loaded } = useLog()
+  const router = useRouter()
+  const goBack = useBack()
+  // Deleted from its form, which came back here: on to whatever opened
+  // the dive, as a delete from this page does. A draft is gone by now.
+  useEffect(() => {
+    if (takeLeave(diveId) && !goBack()) closeToLog(router)
+    // Once, as the form hands back.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const dive = log?.dive.get(diveId)
   // Nothing until the first sync has filled the log, so a fresh phone
   // doesn't say the dive is missing.

@@ -15,6 +15,16 @@ import { db } from "@/data/db"
 import { draftChanged, upload } from "@/data/upload"
 import { useDesk } from "@/hooks/use-desk"
 
+// A dive deleted from its form: the form goes back to the detail, which
+// then leaves as a delete from the detail does (see takeLeave).
+let leaving: string | null = null
+export const leaveAfterDelete = (diveId: string) => void (leaving = diveId)
+export function takeLeave(diveId: string) {
+  if (leaving !== diveId) return false
+  leaving = null
+  return true
+}
+
 // DiveDetailHifi's confirmation. A synced dive goes to Recently deleted; a
 // draft never reached the server, so it goes for good. Calls `onDeleted`
 // once the server has it, before the sync drops it from the log.
