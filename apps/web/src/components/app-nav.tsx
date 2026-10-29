@@ -2,6 +2,7 @@ import {
   Link,
   useMatchRoute,
   useRouter,
+  useRouterState,
   type AnyRouter,
 } from "@tanstack/react-router"
 import type { MouseEvent } from "react"
@@ -34,6 +35,10 @@ declare module "@tanstack/react-router" {
   interface HistoryState {
     // Set by a Log card, so the dive's page knows the Log is behind it.
     fromLog?: true
+    // Set by a screen inside You on what it pushes, so Back can go back.
+    pushed?: true
+    // A deleted dive opened from Recently deleted, which is behind it.
+    fromDeleted?: true
   }
 }
 
@@ -68,19 +73,29 @@ export function closeToLog(router: AnyRouter) {
 }
 
 // A dive's detail is pushed from the Log, so the Log stays the current tab
-// there and tapping it goes back.
+// there and tapping it goes back. One opened from Recently deleted keeps
+// You current instead.
 function useLogTab() {
   const router = useRouter()
   // Its form and a new one too, opened from it.
   const onDive = !!useMatchRoute()({ to: "/dive/$diveId", fuzzy: true })
-  return (to: string) =>
-    to === "/" && onDive
-      ? {
-          "data-status": "active",
-          "aria-current": "page" as const,
-          onClick: (event: MouseEvent) => backToLog(router, event),
-        }
-      : {}
+  const fromDeleted = !!useRouterState({
+    select: (state) => state.location.state.fromDeleted,
+  })
+  const active = { "data-status": "active", "aria-current": "page" as const }
+  return (
+    to: string
+  ): Partial<typeof active> & { onClick?: (event: MouseEvent) => void } =>
+    onDive && fromDeleted
+      ? to === "/you"
+        ? active
+        : {}
+      : to === "/" && onDive
+        ? {
+            ...active,
+            onClick: (event: MouseEvent) => backToLog(router, event),
+          }
+        : {}
 }
 
 // Phones get a bottom bar, as on the Log board. The dive form covers it,

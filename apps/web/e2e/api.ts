@@ -111,3 +111,10 @@ export async function putSettings(
   })
   if (!res.ok()) throw new Error(`PUT: ${res.status()} ${await res.text()}`)
 }
+
+export async function restoreDive(request: APIRequestContext, id: string) {
+  const res = await request.post(`/api/dives/${id}/restore`, {
+    headers: headers(),
+  })
+  if (!res.ok()) throw new Error(`Restore: ${res.status()}`)
+}

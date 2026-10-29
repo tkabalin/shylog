@@ -10,7 +10,7 @@ import {
   IconServerOff,
   IconVersions,
 } from "@tabler/icons-react"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
 import { apiClient } from "@/api/client"
@@ -19,7 +19,7 @@ import { Card } from "@/components/ui/card"
 import { commit } from "@/data/edits"
 import { useHealth } from "@/data/health"
 import { useLastSync } from "@/data/last-sync"
-import { useLog } from "@/data/log"
+import { useLog, type LogView } from "@/data/log"
 import {
   Label,
   PlainLabels,
@@ -31,7 +31,7 @@ import {
 import { ago, instant } from "@/format/dates"
 import { countText } from "@/components/pickers/match"
 import { DivingSection } from "@/you/diving"
-import { listRow, RowContent, SaveLine } from "@/you/parts"
+import { listRow, pressable, RowContent, SaveLine } from "@/you/parts"
 
 export const Route = createFileRoute("/you/")({
   component: YouPage,
@@ -42,6 +42,9 @@ const revision =
   (import.meta.env.VITE_REVISION as string | undefined)?.slice(0, 7) ?? "dev"
 
 const none = "—"
+
+const deletedCount = (log: LogView) =>
+  [...log.dive.values()].filter((dive) => dive.deletedAt).length
 
 // SettingsHifi as the You tab (D30): the diver's own things first, then
 // the log's upkeep, then preferences.
@@ -151,6 +154,17 @@ function YouPage() {
               }
             />
           </div>
+          <Link
+            to="/you/deleted"
+            state={{ pushed: true }}
+            className={cn(listRow, pressable)}
+          >
+            <RowContent
+              label="Recently deleted"
+              value={log ? deletedCount(log) : none}
+              chevron
+            />
+          </Link>
         </Section>
 
         <Section title="Download">

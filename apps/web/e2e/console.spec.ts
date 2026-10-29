@@ -53,7 +53,7 @@ test("leaves the console clean", async ({ page }) => {
   await page.goto("/you/entities?kind=person")
   await page.goto("/you/deleted")
   await expect(
-    page.getByText(/^(Nothing deleted|A restored dive goes back)/)
+    page.getByText(/^(Nothing deleted|Deleted dives still stop)/)
   ).toBeVisible()
 
   expect(seen).toEqual([])
