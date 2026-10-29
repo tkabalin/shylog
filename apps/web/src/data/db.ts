@@ -34,6 +34,13 @@ export interface Blocked {
   version: string
 }
 
+// When the last sync reached the server, for the You tab: kept apart from
+// the log's own meta, which a 304 leaves untouched.
+export interface Synced {
+  key: "synced"
+  at: string
+}
+
 // A dive's samples and events, fetched the first time its detail opens,
 // with a digest of the figures the server keeps from them (see samples.ts),
 // so a profile an import later replaces is fetched again.
@@ -55,7 +62,7 @@ export class LogDb extends Dexie {
   links!: Dexie.Table<Link, [string, string, string]>
   fieldMeta!: Dexie.Table<FieldMeta, [string, string]>
   cards!: EntityTable<Card, "id">
-  meta!: Dexie.Table<Meta | Blocked, string>
+  meta!: Dexie.Table<Meta | Blocked | Synced, string>
   profiles!: EntityTable<CachedProfile, "diveId">
 
   constructor(name = "shylog") {

@@ -26,6 +26,7 @@ import {
   type QueueDb,
 } from "./drafts"
 import { downloadProfiles } from "./samples"
+import { noteSynced, readLastSync } from "./last-sync"
 import { upload } from "./upload"
 import { syncLog } from "./sync"
 
@@ -328,6 +329,7 @@ export function sync() {
   syncing ??= syncLog()
     .then(async (result) => {
       if (state.failed) set({ ...state, failed: false })
+      await noteSynced()
       if (result === "updated" || (await behind())) await loadLog()
       if (result === "blocked" && !state.blocked)
         set({ ...state, blocked: true })
@@ -352,6 +354,8 @@ export function sync() {
 }
 
 export function startSync() {
+  // The last sync kept from an earlier launch, once.
+  void readLastSync().catch(() => {})
   void sync()
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") void sync()
