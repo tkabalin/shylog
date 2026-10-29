@@ -24,6 +24,7 @@ interface Health {
   diveCount: number
   lastSnapshotAt: string | null
   lastExportAt: string | null
+  server: string
 }
 
 const health = async (app: {
@@ -53,7 +54,7 @@ function dataDir() {
 }
 
 describe("GET /api/health", () => {
-  it("reports the WAL, integrity, dive count and backup times", async () => {
+  it("reports the WAL, integrity, dive count, backup times and server", async () => {
     expect(await health(testApp({ db: seededDb() }))).toEqual({
       walBytes: 0,
       integrity: "ok",
@@ -61,6 +62,7 @@ describe("GET /api/health", () => {
       diveCount: 46,
       lastSnapshotAt: null,
       lastExportAt: null,
+      server: "shylog",
     })
   })
 
