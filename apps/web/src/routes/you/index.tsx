@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react"
-import type { Settings } from "@shylog/core"
+import { entityKinds, type Settings } from "@shylog/core"
 import {
   IconAlertTriangle,
   IconCloudCheck,
@@ -17,6 +17,7 @@ import { apiClient } from "@/api/client"
 import { useTheme } from "@/components/theme-provider"
 import { Card } from "@/components/ui/card"
 import { commit } from "@/data/edits"
+import { entitiesOf } from "@/data/entities"
 import { useHealth } from "@/data/health"
 import { useLastSync } from "@/data/last-sync"
 import { useLog, type LogView } from "@/data/log"
@@ -31,6 +32,7 @@ import {
 import { ago, instant } from "@/format/dates"
 import { countText } from "@/components/pickers/match"
 import { DivingSection } from "@/you/diving"
+import { kindLabels } from "@/you/kinds"
 import { listRow, pressable, RowContent, SaveLine } from "@/you/parts"
 
 export const Route = createFileRoute("/you/")({
@@ -166,6 +168,30 @@ function YouPage() {
             />
           </Link>
         </Section>
+
+        {log && (
+          <Section title="Sites, people and trips">
+            {entityKinds.map((kind) => {
+              const { title, icon } = kindLabels[kind]
+              return (
+                <Link
+                  key={kind}
+                  to="/you/entities"
+                  search={{ kind }}
+                  state={{ pushed: true }}
+                  className={cn(listRow, pressable)}
+                >
+                  <RowContent
+                    icon={icon}
+                    label={title}
+                    value={countText(entitiesOf(log, kind).length)}
+                    chevron
+                  />
+                </Link>
+              )
+            })}
+          </Section>
+        )}
 
         <Section title="Download">
           {/* Built with the UDDF export; shown now so the section is

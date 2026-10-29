@@ -606,8 +606,8 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - Diver name and certifications, under the page title with no heading of their own
   - Sync status, with save waiting dives to a file when there are drafts
   - Your log: dive count, times of the last snapshot and export, and Recently deleted
-  - Download: a fresh UDDF export or a database snapshot
   - Sites, people and trips
+  - Download: a fresh UDDF export or a database snapshot
   - Diving: maximum PO₂ and new-dive defaults
   - This phone: storage protection with help for keeping data safe, and appearance (system, light, dark)
   - About: version (the short commit the build came from, or `dev`) and server (`TS_HOSTNAME`)
@@ -704,7 +704,7 @@ Source: `core/profile.cpp` and `profile-widget/` (`profilescene.cpp`, `divecarte
 - Number fields use `inputmode="decimal"` for a numeric keypad, and whole-number fields `inputmode="numeric"`. Water temperature uses the decimal keypad too, although it has no minus key: sub-zero water is rare enough that a negative temperature only arrives by import. The decimal separator follows the phone's region, so the app converts a comma to a point before parsing.
 - Navigation history matches a native app, so an edge swipe never lands somewhere stale or steps through tabs:
   - **Push** only to go one level deeper, to a screen you back out of: Log → dive, dive → Edit, the new-dive button → Add, You → Sites, people and trips → an entity, You → Recently deleted → a deleted dive, You → Certifications → a card's viewer, a dive → its full-screen profile, and a restore's link → the restored dive.
-  - **Replace** for moves sideways and for leaving a finished step: tabs and links into another tab; filters, search, and tabs within a screen (the Log, the entity list's tabs and search, the Stats year); saving a new dive, whose detail takes the form's place so the form can never be reopened and saved twice; each import step (upload, review, summary), so back from the summary can't reach an applied review; a merge, whose survivor takes the merged-away entity's place; and redirects to a fresh screen, such as the dive's Log link when the Log isn't behind it.
+  - **Replace** for moves sideways and for leaving a finished step: tabs and links into another tab; filters, search, and tabs within a screen (the Log, the entity list's search, the Stats year); saving a new dive, whose detail takes the form's place so the form can never be reopened and saved twice; each import step (upload, review, summary), so back from the summary can't reach an applied review; a merge, whose survivor takes the merged-away entity's place; and redirects to a fresh screen, such as the dive's Log link when the Log isn't behind it.
   - **Go back in history** to close a screen whose parent is the entry behind it: the dive's Log link and the Log tab after opening a dive from the Log, Edit's Save and Cancel, and an entity's Delete.
   - Sheets, pickers, drawers, and dialogs add no history entry. Forward after going back is left alone, since a page can't remove forward entries.
 

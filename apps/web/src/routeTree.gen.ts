@@ -21,6 +21,8 @@ import { Route as YouIndexRouteImport } from './routes/you/index'
 import { Route as YouDeletedRouteImport } from './routes/you/deleted'
 import { Route as DiveDiveIdProfileRouteImport } from './routes/dive/$diveId.profile'
 import { Route as DiveDiveIdEditRouteImport } from './routes/dive/$diveId_.edit'
+import { Route as YouEntitiesIndexRouteImport } from './routes/you/entities/index'
+import { Route as YouEntitiesKindIdRouteImport } from './routes/you/entities/$kind.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +84,16 @@ const DiveDiveIdEditRoute = DiveDiveIdEditRouteImport.update({
   path: '/dive/$diveId/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const YouEntitiesIndexRoute = YouEntitiesIndexRouteImport.update({
+  id: '/you/entities/',
+  path: '/you/entities/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const YouEntitiesKindIdRoute = YouEntitiesKindIdRouteImport.update({
+  id: '/you/entities/$kind/$id',
+  path: '/you/entities/$kind/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +108,8 @@ export interface FileRoutesByFullPath {
   '/you/': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
   '/dive/$diveId/edit': typeof DiveDiveIdEditRoute
+  '/you/entities/': typeof YouEntitiesIndexRoute
+  '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +124,8 @@ export interface FileRoutesByTo {
   '/you': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
   '/dive/$diveId/edit': typeof DiveDiveIdEditRoute
+  '/you/entities': typeof YouEntitiesIndexRoute
+  '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +141,8 @@ export interface FileRoutesById {
   '/you/': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
   '/dive/$diveId_/edit': typeof DiveDiveIdEditRoute
+  '/you/entities/': typeof YouEntitiesIndexRoute
+  '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +159,8 @@ export interface FileRouteTypes {
     | '/you/'
     | '/dive/$diveId/profile'
     | '/dive/$diveId/edit'
+    | '/you/entities/'
+    | '/you/entities/$kind/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +175,8 @@ export interface FileRouteTypes {
     | '/you'
     | '/dive/$diveId/profile'
     | '/dive/$diveId/edit'
+    | '/you/entities'
+    | '/you/entities/$kind/$id'
   id:
     | '__root__'
     | '/'
@@ -169,6 +191,8 @@ export interface FileRouteTypes {
     | '/you/'
     | '/dive/$diveId/profile'
     | '/dive/$diveId_/edit'
+    | '/you/entities/'
+    | '/you/entities/$kind/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,6 +207,8 @@ export interface RootRouteChildren {
   YouDeletedRoute: typeof YouDeletedRoute
   YouIndexRoute: typeof YouIndexRoute
   DiveDiveIdEditRoute: typeof DiveDiveIdEditRoute
+  YouEntitiesIndexRoute: typeof YouEntitiesIndexRoute
+  YouEntitiesKindIdRoute: typeof YouEntitiesKindIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -271,6 +297,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DiveDiveIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/you/entities/': {
+      id: '/you/entities/'
+      path: '/you/entities'
+      fullPath: '/you/entities/'
+      preLoaderRoute: typeof YouEntitiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/you/entities/$kind/$id': {
+      id: '/you/entities/$kind/$id'
+      path: '/you/entities/$kind/$id'
+      fullPath: '/you/entities/$kind/$id'
+      preLoaderRoute: typeof YouEntitiesKindIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -298,6 +338,8 @@ const rootRouteChildren: RootRouteChildren = {
   YouDeletedRoute: YouDeletedRoute,
   YouIndexRoute: YouIndexRoute,
   DiveDiveIdEditRoute: DiveDiveIdEditRoute,
+  YouEntitiesIndexRoute: YouEntitiesIndexRoute,
+  YouEntitiesKindIdRoute: YouEntitiesKindIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
