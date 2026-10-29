@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ImportRouteImport } from './routes/import'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as DevCardsRouteImport } from './routes/dev.cards'
 import { Route as DevProfileRouteImport } from './routes/dev.profile'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
 const ImportRoute = ImportRouteImport.update({
   id: '/import',
   path: '/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StatsRoute = StatsRouteImport.update({
@@ -98,6 +104,7 @@ const YouEntitiesKindIdRoute = YouEntitiesKindIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/import': typeof ImportRoute
+  '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/dev/cards': typeof DevCardsRoute
   '/dev/profile': typeof DevProfileRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/import': typeof ImportRoute
+  '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/dev/cards': typeof DevCardsRoute
   '/dev/profile': typeof DevProfileRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/import': typeof ImportRoute
+  '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/dev/cards': typeof DevCardsRoute
   '/dev/profile': typeof DevProfileRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/import'
+    | '/settings'
     | '/stats'
     | '/dev/cards'
     | '/dev/profile'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/import'
+    | '/settings'
     | '/stats'
     | '/dev/cards'
     | '/dev/profile'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/import'
+    | '/settings'
     | '/stats'
     | '/dev/cards'
     | '/dev/profile'
@@ -198,6 +210,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ImportRoute: typeof ImportRoute
+  SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
   DevCardsRoute: typeof DevCardsRoute
   DevProfileRoute: typeof DevProfileRoute
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       path: '/import'
       fullPath: '/import'
       preLoaderRoute: typeof ImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stats': {
@@ -329,6 +349,7 @@ const DiveDiveIdRouteWithChildren = DiveDiveIdRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ImportRoute: ImportRoute,
+  SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
   DevCardsRoute: DevCardsRoute,
   DevProfileRoute: DevProfileRoute,
