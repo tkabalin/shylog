@@ -67,8 +67,9 @@ function NewDive({
           params: { diveId },
           replace: true,
           // The Log behind the form is behind the dive now, so its Log
-          // link goes back to it rather than stacking a second Log.
-          state: { fromLog: router.state.location.state.fromLog },
+          // link goes back to it rather than stacking a second Log. Saved
+          // has the dive's page celebrate it (see dive/celebration.ts).
+          state: { fromLog: router.state.location.state.fromLog, saved: true },
         })
       }}
       onCancel={close}
