@@ -320,7 +320,11 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
                 <span className="sr-only">Ignored</span>
               </>
             ) : (
-              dive.number != null && `Dive ${dive.number}`
+              dive.number != null && (
+                <span className="inline-flex h-5.5 items-center rounded-full bg-primary/12 px-2.5 text-[13px] font-semibold text-primary">
+                  Dive {dive.number}
+                </span>
+              )
             )}
           </p>
           <h1

@@ -29,6 +29,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Training agency and course name appear when the dive type is Training. The board has no Training state.
 - A failed save keeps the form's values and offers to try again.
 - Dive type options are the spec's list. The Settings board's "Technical" and "Work" don't exist.
+- `DiveDetailHifi` shows the dive number as plain grey text; the detail shows it as a cyan pill.
 - No board has ignored dives. `EditDiveHifi` needs the Ignore this dive switch at the end of the form, and `LogHifi2` cards and the `DiveDetailHifi` title show an eye-off icon in place of the dive number, with "Ignored" as screen-reader text.
 - `LogHifi2` has no depth or duration filter. Add Depth and Duration pills after the board's existing filter pills, styled the same, each opening a sheet with a range slider and Reset and Apply (see Log in the spec).
 
