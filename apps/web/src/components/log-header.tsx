@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react"
 import { IconArrowBarToDown, IconHourglass } from "@tabler/icons-react"
 
 import { countText } from "@/components/pickers/match"
+import { RollingNumber, useFrameLater } from "@/components/rolling-number"
 import { SyncPill } from "@/components/sync-pill"
 import { depth, hours } from "@/format/figures"
 import type { headerFigures } from "@/log/filters"
@@ -95,6 +96,8 @@ export function LogHeader({
     return () => observer.disconnect()
   }, [bar])
   const n = figures.count
+  // In step with the digits, which start rolling a frame later.
+  const noun = useFrameLater(n)
   const h = hours(figures.seconds)
   return (
     <>
@@ -104,11 +107,12 @@ export function LogHeader({
         </div>
         <p className="flex h-16 items-baseline gap-2 whitespace-nowrap tabular-nums">
           <span className="text-[52px] leading-14 font-semibold tracking-[-0.05em]">
-            {/* "1,280", grouped as dates and figures elsewhere are. */}
-            {countText(n)}
+            {/* "1,280", grouped as dates and figures elsewhere are. A filter
+                or a sync that changes it rolls the digits that change. */}
+            <RollingNumber value={n} text={countText(n)} />
           </span>
           <span className="text-[17px] font-medium text-muted-foreground">
-            {n === 1 ? "dive logged" : "dives logged"}
+            {noun === 1 ? "dive logged" : "dives logged"}
           </span>
         </p>
         <p className="flex flex-wrap items-center gap-x-3.5 pt-0.5 pb-4 text-base text-muted-foreground tabular-nums">
