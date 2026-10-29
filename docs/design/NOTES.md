@@ -45,6 +45,11 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - `SettingsHifi` is the You tab (D30): titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. Sites, people and trips comes before Download, as merging duplicates is routine and the downloads are a rare manual backup. The rest keeps the board's order.
 - An entity detail's "All N dives" lists the rest of its dives in place rather than opening the Log.
 - Recently deleted's restore toast is shadcn's Sonner, styled as the board's.
+- The entity list's tabs are words only: five tabs with `EntitiesHifi`'s icons don't fit at 390 px once Regions is added.
+- A region's detail shows dives, sites and last dive, as a dive centre's does, and its list row counts sites. On a site or dive centre the region is picked from the existing ones (D6), not typed.
+- Entity detail's Save sits in the bar where the board leaves the right slot empty; the You sections' Save and Cancel sit under their card, as they have no bar. Every new sheet keeps shadcn's centred 16 px title, as the dive form's do, rather than the boards' left-aligned 18 px.
+- Gear is marked with the scuba tank, as the scuba mask is the You tab's icon. The Icon key's Cylinder entry also names the tank, but no screen draws a cylinder icon.
+- The Download rows are drawn, disabled, until the UDDF export exists; the Offline storage row comes with the offline work.
 - New-dive defaults use the dive form's controls (material, volume in litres, Nitrox and oxygen percentage), not the board's preset lists, and a new dive is filled from them. `EditDiveHifi` leaves them blank.
 - Dive professionals are labelled "Dive professionals", with no instructor or divemaster role, and the people list shows names only, without the boards' role subtitles.
 
@@ -84,6 +89,8 @@ These were settled while planning the build (`docs/PLAN.md`, decisions D1 to D22
 - The upload card shows an indeterminate "Reading your export" state. The board's "48 of 72 dives" progress bar implies streaming that the server does not do.
 - The import summary counts included freedives separately when there are any. The review board folds them into "new".
 - Entities are created only from the dive form's pickers; the entity screens list, rename, merge and delete.
+- The entity list has no kind tabs: each kind opens from its row on You, which already lists all five, so `EntitiesHifi`'s tabs repeated it (and five no longer fit).
+- The boards' explanatory notes on You, the entity list and entity detail are cut where the screen or the next step already says it. An entity's note shows only when Delete is disabled and Recently deleted keeps only the re-import note. Restore is a words-only pill.
 - The Icon key is a reference, not a screen. Each board's Essential icon set is what gets built; the key's Essential column is a vocabulary, not a per-screen rule.
 - The tank-pressure lane is not built; neither computer records pressure.
 
