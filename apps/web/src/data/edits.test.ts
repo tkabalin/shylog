@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import { saveEdit, unreachable } from "./edits"
+import {
+  deleteDive,
+  Refused,
+  restoreDive,
+  saveEdit,
+  unreachable,
+} from "./edits"
 import { currentLog, sync } from "./log"
 
 vi.mock("./log", () => ({
@@ -57,5 +63,38 @@ describe("saveEdit", () => {
     const down = async () => new Response("Bad Gateway", { status: 502 })
     await expect(saveEdit("dive-a", edit, down)).rejects.toThrow(unreachable)
     expect(sync).not.toHaveBeenCalled()
+  })
+})
+
+describe("deleteDive and restoreDive", () => {
+  it("move a dive to Recently deleted and back, then sync", async () => {
+    const calls: string[] = []
+    const fetch = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        calls.push(`${init?.method} ${new URL(String(input)).pathname}`)
+        return Response.json({ version: "v2" })
+      }
+    )
+    await deleteDive("dive-a", fetch)
+    await restoreDive("dive-a", fetch)
+    expect(calls).toEqual([
+      "DELETE /api/dives/dive-a",
+      "POST /api/dives/dive-a/restore",
+    ])
+    expect(sync).toHaveBeenCalledTimes(2)
+  })
+
+  it("keeps what else a refusal says", async () => {
+    const fetch = async () =>
+      Response.json(
+        {
+          error: "There is already a site called Long Beach",
+          conflict: { id: "site-b" },
+        },
+        { status: 409 }
+      )
+    const error = await deleteDive("dive-a", fetch).catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(Refused)
+    expect((error as Refused).details.conflict).toEqual({ id: "site-b" })
   })
 })
