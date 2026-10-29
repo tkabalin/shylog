@@ -1,7 +1,7 @@
 import { defaultSettings, settingsSchema } from "@shylog/core"
 import { describe, expect, it } from "vitest"
 
-import { divingValues, parseDiving } from "./defaults"
+import { defaultsValues, parseDefaults, parseMaxPo2 } from "./defaults"
 
 const settings = settingsSchema.parse({
   maxPo2: 1.4,
@@ -17,11 +17,10 @@ const settings = settingsSchema.parse({
   },
 })
 
-describe("the Diving section", () => {
+describe("the Defaults section", () => {
   it("shows the defaults in the form's units and saves them back", () => {
-    const values = divingValues(settings)
+    const values = defaultsValues(settings)
     expect(values).toEqual({
-      maxPo2: "1.4",
       cylinderMaterial: "aluminium",
       cylinderVolume: "11.1",
       startPressure: "200",
@@ -31,20 +30,17 @@ describe("the Diving section", () => {
       diveType: "recreation",
       visibilityMode: "metres",
     })
-    expect(parseDiving(values).request).toEqual({
-      maxPo2: 1.4,
+    expect(parseDefaults(values).request).toEqual({
       newDiveDefaults: settings.newDiveDefaults,
     })
   })
 
   it("takes a comma decimal and treats an empty field as no default", () => {
-    const { request } = parseDiving({
-      ...divingValues(defaultSettings),
-      maxPo2: "1,6",
+    const { request } = parseDefaults({
+      ...defaultsValues(defaultSettings),
       cylinderVolume: "12,2",
     })
     expect(request).toEqual({
-      maxPo2: 1.6,
       newDiveDefaults: {
         cylinderVolume: 12_200,
         nitrox: false,
@@ -54,9 +50,8 @@ describe("the Diving section", () => {
   })
 
   it("refuses what no dive could use, under each field", () => {
-    const { errors, request } = parseDiving({
-      ...divingValues(defaultSettings),
-      maxPo2: "2.5",
+    const { errors, request } = parseDefaults({
+      ...defaultsValues(defaultSettings),
       cylinderVolume: "25",
       startPressure: "-1",
       weight: "lots",
@@ -65,11 +60,21 @@ describe("the Diving section", () => {
     })
     expect(request).toBeUndefined()
     expect(errors).toEqual({
-      maxPo2: "From 1.0 to 2.0 bar, in steps of 0.1",
       cylinderVolume: "Up to 20 L",
       startPressure: "Can't be negative",
       weight: "Not a number",
       oxygen: "Required for nitrox",
     })
+  })
+})
+
+describe("the Preferences section", () => {
+  it("takes a comma decimal and refuses what no dive could use", () => {
+    expect(parseMaxPo2("1,6")).toEqual({ value: 1.6 })
+    expect(parseMaxPo2("2.5").error).toBe(
+      "From 1.0 to 2.0 bar, in steps of 0.1"
+    )
+    expect(parseMaxPo2("lots").error).toBe("Not a number")
+    expect(parseMaxPo2(" ").error).toBe("Required")
   })
 })

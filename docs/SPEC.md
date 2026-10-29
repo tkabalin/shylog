@@ -608,7 +608,8 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - Your log: dive count, times of the last snapshot and export, and Recently deleted
   - Sites, people and trips
   - Download: a fresh UDDF export or a database snapshot
-  - Diving: maximum PO₂ and new-dive defaults
+  - Preferences: maximum PO₂
+  - New dive defaults
   - This phone: storage protection with help for keeping data safe, and appearance (system, light, dark)
   - About: version (the short commit the build came from, or `dev`) and server (`TS_HOSTNAME`)
 - **Sites, people and trips** (from You): sites, regions, people, dive centres, and trips, each a list opened from its row on You, with search (people are listed by name only), and suggested likely duplicates (such as "2 Mile Reef" for Two Mile Reef) to merge: two names are likely duplicates when their normalised keys match after number words become digits, when one is an initialled form of the other such as "Sam N" for Sam Naidoo, or when one starts with the whole of the other, at least five characters long ("Coral Edge" for Coral Edge Diving, but not two trips that only both start "Sodwana,"). New sites, regions, people, dive centres, and trips are created from the dive form's pickers, not here. Each one's detail shows its fields and its own figures, leaving out ignored dives (dives, deepest, last dive; dives together for a person; dives, sites, and last dive for a dive centre or a region; dives, days, and deepest for a trip, whose dates come from its dives), its three latest dives with an All action that lists the rest in place, with rename, merge a duplicate into it, and delete where allowed (see Rules for edits). Changes save with an explicit Save action, and a rename that collides shows the error under the field with a Merge instead action.
