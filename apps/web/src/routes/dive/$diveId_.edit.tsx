@@ -3,6 +3,7 @@ import { IconChevronLeft } from "@tabler/icons-react"
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
 
 import type { Dive } from "@/data/db"
+import { leaveAfterDelete } from "@/dive/delete-sheet"
 import { useLog, type LogView } from "@/data/log"
 import { useAutosave } from "@/dive/form/autosave"
 import { DiveForm } from "@/dive/form/dive-form"
@@ -101,6 +102,12 @@ function EditDive({
       }}
       onCancel={close}
       onDiscard={() => void autosave.clear()}
+      // Back to the detail, which then leaves for whatever opened it.
+      onDeleted={() => {
+        void autosave.clear()
+        leaveAfterDelete(diveId)
+        close()
+      }}
     />
   )
 }

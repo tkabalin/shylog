@@ -100,6 +100,27 @@ test("restores from the list with a toast that opens the dive @writes", async ({
   ).toHaveCount(0)
 })
 
+test("deletes from the edit form, back past the detail to the Log @writes", async ({
+  page,
+  restore,
+}) => {
+  const id = await diveId(page.request, 54)
+  restore((request) => restoreDive(request, id))
+  await page.goto("/")
+  await page.locator(`main a[href='/dive/${id}']`).click()
+  await page.getByRole("link", { name: "Edit" }).click()
+  await expect(page.getByRole("heading", { name: "Edit dive" })).toBeVisible()
+  await page.getByRole("button", { name: "Delete dive" }).click()
+  await still(sheet(page))
+  await sheet(page).getByRole("button", { name: "Delete dive" }).click()
+  // The Log the dive was opened from, not the deleted dive's page.
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole("heading", { name: "Log" })).toBeAttached()
+  expect(
+    (await getLog(page.request)).dives.find((dive) => dive.id === id)?.deletedAt
+  ).toBeTruthy()
+})
+
 test("deletes a draft for good, with the draft wording", async ({ page }) => {
   // The draft never reaches the server, so it stays on the phone.
   await page.route("**/api/ops", (route) => route.abort())
