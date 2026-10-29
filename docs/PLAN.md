@@ -700,12 +700,41 @@ Deferred, or to watch:
 
 **Not in this milestone**: cards (milestone 12), downloads and the export alert (milestone 13), sync states (milestone 16).
 
-- [ ] Delete sheet, deleted state, Recently deleted, restore toast
-- [ ] You sections with Save
-- [ ] Entities list with tabs, search, duplicate suggestions
-- [ ] Entity detail with figures, Save, merge, delete
-- [ ] Appearance override
-- [ ] Tests and screenshots listed above
+- [x] Delete sheet, deleted state, Recently deleted, restore toast
+- [x] You sections with Save
+- [x] Entities list with tabs, search, duplicate suggestions
+- [x] Entity detail with figures, Save, merge, delete
+- [x] Appearance override
+- [x] Tests and screenshots listed above
+
+**Notes for the next session** (written 29 October 2026, branch `feat/you-entities-deleted`)
+
+Still to do on the owner's phone:
+
+- the full-screen profile's entrance and the Log count's roll from a real tap: both now start a frame after their render, as headless WebKit skipped a transition begun inside the tap's long task; check they run from the start;
+- the deleted dive's banner folding away on Restore while the profile card relayouts, and the entity detail's first "All N dives" reveal with about 50 rows;
+- the restore toast above the tab bar and the home bar, its View link, and Sonner's swipe to dismiss;
+- the native switch and segmented controls on the You tab (Nitrox, Visibility as, Appearance), and the Save line easing open under a card as the keyboard is up.
+
+Decisions taken while building:
+
+- The fourth tab is You with a scuba mask (D30); Gear moved to the scuba tank so one icon means one thing. `/settings` redirects to `/you`. About's version is the image's commit (`VITE_REVISION`, a Docker build argument CI fills; `dev` locally) and its server `TS_HOSTNAME` from `/api/health`.
+- Sections with fields get Save and Cancel under their card, easing open on the first change; an entity detail's Save is in its bar. Each save sends only what changed (the Diving section sends maximum PO₂ and the defaults apart, so it never puts back another phone's change), keeps anything typed while it saves, and shows defaults at their stored precision.
+- The entity list's five tabs are words only (icons didn't fit at 390 px). A region's detail shows dives, sites and last dive; on a site or dive centre the region is picked, not typed (D6). Likely duplicates read "share a prefix" as one name starting with the whole other (spec updated); only a letter is an initial; sites are suggested within a country but can be merged across countries (regions only within one). Entities only a draft has created are listed but can't be renamed, merged or deleted until they upload, and a trip a draft uses can't be deleted.
+- Dive lists on an entity show ignored dives too (the figures still leave them out), three then 50 at a time; Recently deleted pages 50 at a time and groups by today, yesterday and month. "Used by" names dives in Recently deleted apart.
+- A merge or delete leaves its screen as soon as the server has it (`commit` with `settle: false`), so no "Not found" flashes. A draft deleted while its upload was in flight is deleted on the server too.
+- "Last sync" lives in its own store (`data/last-sync.ts`), so the five-minute check doesn't re-render every screen; `/api/health` is asked again after each sync.
+- Every new sheet keeps shadcn's centred 16 px title, as the form's do. Delete sheets' dark CTA is red-600 for contrast. The restore toast's Sonner styles need `!important`, as Sonner's CSS isn't layered.
+- Motion added on request: the Log count rolls its changed digits (`components/rolling-number.tsx`), the full-screen profile eases in, and the restore fold on the detail; and from find-animation-opportunities: the Save line, a restored card folding away, and each batch of an entity's dives easing open.
+
+Deferred, or to watch:
+
+- Milestone 16: offline guards on the synced-data controls (Delete, Restore, Save, merge) with the "needs a connection" notes; meanwhile a request offline fails with "Couldn’t reach Shylog". The sync card's other states and the drafts row.
+- Milestone 12: the Certifications row in the diver card. Milestone 13: the Download rows and the export alert. Milestone 16: the Offline storage row.
+- The Log count's width snaps when a place is added or dropped (iOS eases it); a group heading in Recently deleted snaps away after its last card folds.
+- `log.spec.ts`'s "scrolls the count away" failed once in WebKit under the parallel run and passed three times alone.
+- Carried over from milestone 10: the e2e `@writes` uploads leave their sites and buddies, and their soft-deleted dives sit in Recently deleted for the rest of the run (`delete.spec.ts` now finds its own dive by name); `prefetch.spec.ts` timing; pressures on the number pad.
+- Carried over from earlier milestones: everything under milestone 10's "Deferred, or to watch" not done here (the iOS checks, Node and Tailscale bumps, the derived pass reading every dive's samples, `minimumReleaseAge` to seven days, sharding Playwright).
 
 ## Milestone 12: Certification cards
 
