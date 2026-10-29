@@ -44,7 +44,7 @@ import {
   IconPool,
   IconRestore,
   IconRipple,
-  IconScubaMask,
+  IconScubaDivingTank,
   IconSun,
   IconTrash,
   IconTemperatureSnow,
@@ -644,7 +644,11 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
               term: "Notable animals",
               value: dive.notableAnimals,
             },
-            { icon: IconScubaMask, term: "Gear", value: dive.gearDetails },
+            {
+              icon: IconScubaDivingTank,
+              term: "Gear",
+              value: dive.gearDetails,
+            },
             { icon: IconNotes, term: "General", value: dive.notes },
           ]}
         />

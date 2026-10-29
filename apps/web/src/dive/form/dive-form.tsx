@@ -43,7 +43,7 @@ import {
   IconPool,
   IconRipple,
   IconRuler,
-  IconScubaMask,
+  IconScubaDivingTank,
   IconSun,
   IconTemperatureSnow,
   IconUsers,
@@ -1231,7 +1231,7 @@ export function DiveForm({
             <NoteField
               name="gearDetails"
               label="Gear"
-              icon={IconScubaMask}
+              icon={IconScubaDivingTank}
               placeholder="Any problems with your gear?"
               value={values.gearDetails}
               onChange={set("gearDetails")}
