@@ -2,10 +2,12 @@
 # Starts the built image as Compose runs it (read-only, as the node user, on
 # a bind-mounted data folder) and checks the server, the web app, the time
 # zone and the backup CLI work inside it.
-# Usage: .github/scripts/smoke-image.sh <image>
+# Usage: .github/scripts/smoke-image.sh <image> [commit]
 set -euo pipefail
 
-image=${1:?Usage: smoke-image.sh <image>}
+image=${1:?Usage: smoke-image.sh <image> [commit]}
+# The commit the image was built from, which the You tab shows as its version.
+revision=${2:-}
 data=$(mktemp -d)
 # The container's node user is not the runner's user.
 chmod 777 "$data"
@@ -40,6 +42,10 @@ page=$(get /)
 grep -q '<title>Shylog CI</title>' <<<"$page"
 asset=$(grep -o '/assets/[^"]*\.js' <<<"$page" | head -n 1)
 get "$asset" >/dev/null
+# The build argument reached the bundle, so About doesn't say "dev".
+if [[ -n $revision ]]; then
+  docker exec "$container" grep -rqF "${revision:0:7}" apps/web/dist/assets
+fi
 # Node's own ICU data answers TZ, so the slim image needs no tzdata.
 docker exec "$container" node -e \
   'process.exit(new Date(2026, 0, 1).getTimezoneOffset() === -120 ? 0 : 1)'

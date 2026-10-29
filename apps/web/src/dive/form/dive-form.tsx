@@ -67,7 +67,11 @@ import {
 import { DatePopover, TimePopover } from "@/components/pickers/date-time"
 import { countText } from "@/components/pickers/match"
 import { NamesSheet, type Candidate } from "@/components/pickers/names-sheet"
-import { OptionSheet, type Option } from "@/components/pickers/option-sheet"
+import {
+  OptionSheet,
+  options,
+  type Option,
+} from "@/components/pickers/option-sheet"
 import { SiteSheet, type SiteRow } from "@/components/pickers/site-sheet"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -151,14 +155,6 @@ type Sheet =
   | "surge"
   | "workload"
   | "thermalComfort"
-
-const options = <V extends string>(
-  choices: Record<V, { label: string }>
-): Option<V>[] =>
-  (Object.keys(choices) as V[]).map((value) => ({
-    value,
-    label: choices[value].label,
-  }))
 
 const choiceSheets = {
   entry: { title: "Entry", icon: IconPool, options: options(entries) },

@@ -1,6 +1,6 @@
 import { expect, test, type Locator } from "@playwright/test"
 
-const tabs = ["Log", "Stats", "Import", "Settings"]
+const tabs = ["Log", "Stats", "Import", "You"]
 
 async function height(locator: Locator) {
   const box = await locator.boundingBox()
@@ -109,12 +109,14 @@ test.describe("at phone width", () => {
   }) => {
     await page.goto("/")
     const nav = page.getByRole("navigation", { name: "Main" })
-    for (const tab of ["Stats", "Settings", "Log"]) {
+    for (const tab of ["Stats", "You", "Log"]) {
       await nav.getByRole("link", { name: tab }).click()
-      await expect(page.getByRole("heading", { name: tab })).toBeAttached()
+      await expect(
+        page.getByRole("heading", { name: tab, exact: true })
+      ).toBeAttached()
     }
     await page.goBack()
-    expect(page.url()).not.toMatch(/\/(stats|settings)$/)
+    expect(page.url()).not.toMatch(/\/(stats|you)$/)
   })
 
   test("sizes controls for touch and inputs at 16px", async ({ page }) => {

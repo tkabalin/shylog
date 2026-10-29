@@ -100,3 +100,14 @@ export async function uploadDive(
   if (!res.ok())
     throw new Error(`POST /api/ops: ${res.status()} ${await res.text()}`)
 }
+
+export async function putSettings(
+  request: APIRequestContext,
+  settings: Record<string, unknown>
+) {
+  const res = await request.put("/api/settings", {
+    headers: headers(),
+    data: settings,
+  })
+  if (!res.ok()) throw new Error(`PUT: ${res.status()} ${await res.text()}`)
+}
