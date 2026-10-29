@@ -155,7 +155,7 @@ function DivePage() {
 function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
   const router = useRouter()
   const goBack = useBack()
-  const fromDeleted = !!router.state.location.state.fromDeleted
+  const parent = useParent()
   return (
     <>
       <Breadcrumb className="min-w-0 pl-4">
@@ -164,9 +164,9 @@ function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
             <BreadcrumbLink
               className="-mx-1 rounded-sm px-1 outline-offset-2"
               render={
-                fromDeleted ? (
+                parent ? (
                   <Link
-                    to="/you/deleted"
+                    to={parent.to}
                     replace
                     onClick={(event) => void goBack(event)}
                   />
@@ -179,12 +179,20 @@ function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
                 )
               }
             >
-              {fromDeleted ? "Recently deleted" : "Log"}
+              {parent?.desk ?? "Log"}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem className="min-w-0">
-            <BreadcrumbPage className="truncate">{site}</BreadcrumbPage>
+            {/* Under an entity that may be the site itself, so the dive
+                is named by its number or date. */}
+            <BreadcrumbPage className="truncate">
+              {parent?.to === "/you"
+                ? dive.number != null
+                  ? `Dive ${dive.number}`
+                  : longDate(dive.startTime)
+                : site}
+            </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -210,20 +218,38 @@ function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
 const backLink =
   "inline-flex h-11 items-center gap-0.5 justify-self-start pr-2 pl-1 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
 
+// A screen inside You the dive was pushed from: Recently deleted, or an
+// entity's detail, which Back returns to; with nothing behind, a fresh
+// list or You takes the dive's place.
+function useParent() {
+  const { fromDeleted, parent } = useRouter().state.location.state
+  if (fromDeleted)
+    return {
+      label: "Deleted",
+      desk: "Recently deleted",
+      to: "/you/deleted" as const,
+    }
+  if (parent) return { label: parent, desk: parent, to: "/you" as const }
+  return null
+}
+
 function BackLink() {
   const router = useRouter()
   const goBack = useBack()
-  const fromDeleted = !!router.state.location.state.fromDeleted
-  if (fromDeleted)
+  const parent = useParent()
+  if (parent)
     return (
       <Link
-        to="/you/deleted"
+        to={parent.to}
         replace
         onClick={(event) => void goBack(event)}
-        className={backLink}
+        className={cn(backLink, "min-w-0")}
       >
-        <IconChevronLeft aria-hidden className="size-5.5 stroke-[2.25]" />
-        Deleted
+        <IconChevronLeft
+          aria-hidden
+          className="size-5.5 shrink-0 stroke-[2.25]"
+        />
+        <span className="truncate">{parent.label}</span>
       </Link>
     )
   return (
@@ -306,7 +332,11 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
       saved: undefined,
     })
   }, [saved, router])
+  const goBack = useBack()
   const [deleting, setDeleting] = useState(false)
+  // Back to the entity it was opened from, or its Log, or a fresh Log
+  // takes its place.
+  const leave = () => goBack() || closeToLog(router)
   const [restoring, setRestoring] = useState(false)
 
   const visibility =
@@ -698,8 +728,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
           onOpenChange={setDeleting}
           diveId={dive.id}
           draft={!!dive.draft}
-          // Its Log is behind it, or a fresh one takes its place.
-          onDeleted={() => closeToLog(router)}
+          onDeleted={leave}
         />
       </div>
     </div>

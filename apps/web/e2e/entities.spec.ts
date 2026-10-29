@@ -1,0 +1,132 @@
+import { expect, type APIRequestContext, type Page } from "@playwright/test"
+
+import { deleteEntity, diveId, getLog, patchDive, putEntity, test } from "./api"
+import { still } from "./ui"
+
+const unique = () => Date.now().toString(36)
+
+// A site nothing uses, removed again when the test ends.
+async function newSite(
+  page: Page,
+  restore: (undo: (request: APIRequestContext) => Promise<void>) => void,
+  name: string,
+  fields: Record<string, unknown> = {}
+) {
+  const id = `site-${crypto.randomUUID()}`
+  await putEntity(page.request, "site", id, {
+    name,
+    countryCode: "ZA",
+    ...fields,
+  })
+  restore((request) => deleteEntity(request, "site", id))
+  return id
+}
+
+test("renames a site with Save @writes", async ({ page, restore }) => {
+  const name = `E2E Site ${unique()}`
+  const id = await newSite(page, restore, name)
+  await page.goto(`/you/entities?kind=site&q=${encodeURIComponent(name)}`)
+  await page.getByRole("link", { name: new RegExp(`^${name},`) }).click()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(name)
+  const save = page.getByRole("button", { name: "Save", exact: true })
+  await expect(save).toHaveCount(0)
+
+  await page.getByLabel("Name").fill(`${name} North`)
+  await save.click()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    `${name} North`
+  )
+  await expect(save).toHaveCount(0)
+  const log = await getLog(page.request)
+  expect(log.sites.find((site) => site.id === id)?.name).toBe(`${name} North`)
+  // Back returns to the list it was opened from.
+  await page.getByRole("link", { name: "Sites", exact: true }).click()
+  await expect(page).toHaveURL(/\/you\/entities\?/)
+})
+
+test("offers Merge instead for a rename that collides @writes", async ({
+  page,
+  restore,
+}) => {
+  const tag = unique()
+  const keep = await newSite(page, restore, `E2E Keep ${tag}`)
+  const other = await newSite(page, restore, `E2E Other ${tag}`)
+  await page.goto(`/you/entities/site/${other}`)
+  await page.getByLabel("Name").fill(`e2e keep ${tag}`)
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  await expect(
+    page.getByText(`There is already a site called E2E Keep ${tag}`)
+  ).toBeVisible()
+  await page.getByRole("button", { name: "Merge instead" }).click()
+  // The survivor takes the merged-away site's place.
+  await expect(page).toHaveURL(new RegExp(`/you/entities/site/${keep}$`))
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    `E2E Keep ${tag}`
+  )
+  const log = await getLog(page.request)
+  expect(log.sites.some((site) => site.id === other)).toBe(false)
+})
+
+test("merges a duplicate, moving its dives @writes", async ({
+  page,
+  restore,
+}) => {
+  const tag = unique()
+  const dive = await diveId(page.request, 63)
+  const before = (await getLog(page.request)).dives.find(
+    (one) => one.id === dive
+  )!.siteId
+  const keep = await newSite(page, restore, `E2E Two Mile ${tag}`)
+  const duplicate = await newSite(page, restore, `E2E 2 Mile ${tag}`)
+  restore((request) => patchDive(request, dive, { siteId: before }))
+  await patchDive(page.request, dive, { siteId: duplicate })
+
+  await page.goto(`/you/entities/site/${keep}`)
+  await page
+    .getByRole("button", { name: "Merge a duplicate into this" })
+    .click()
+  const sheet = page.getByRole("dialog")
+  await still(sheet)
+  await sheet.getByRole("textbox").fill(tag)
+  await sheet.getByRole("radio", { name: new RegExp(`2 Mile ${tag}`) }).click()
+  await expect(sheet).toContainText(
+    `1 dive moves to E2E Two Mile ${tag} and “E2E 2 Mile ${tag}” is removed.`
+  )
+  await sheet.getByRole("button", { name: `Merge “E2E 2 Mile ${tag}”` }).click()
+  await expect(sheet).toHaveCount(0)
+
+  const log = await getLog(page.request)
+  expect(log.dives.find((one) => one.id === dive)?.siteId).toBe(keep)
+  expect(log.sites.some((site) => site.id === duplicate)).toBe(false)
+  // The moved dive is now this site's one dive.
+  await expect(
+    page.getByRole("region", { name: "Dives" }).getByRole("link")
+  ).toHaveCount(1)
+  await page.goto(`/you/entities?kind=site&q=${tag}`)
+  // Once the list is there, so the check isn't on an empty page.
+  await expect(
+    page.getByRole("link", { name: new RegExp(`^E2E Two Mile ${tag},`) })
+  ).toBeVisible()
+  await expect(page.getByText(`E2E 2 Mile ${tag}`)).toHaveCount(0)
+})
+
+test("lists regions with their sites count @writes", async ({
+  page,
+  restore,
+}) => {
+  const tag = unique()
+  const region = `region-${crypto.randomUUID()}`
+  await putEntity(page.request, "region", region, {
+    name: `E2E Region ${tag}`,
+    countryCode: "ZA",
+  })
+  restore((request) => deleteEntity(request, "region", region))
+  await newSite(page, restore, `E2E Reef ${tag}`, { regionId: region })
+
+  await page.goto("/you")
+  await page.getByRole("link", { name: /^Regions/ }).click()
+  await expect(page).toHaveURL(/kind=region/)
+  await expect(
+    page.getByRole("link", { name: `E2E Region ${tag}, 1 site` })
+  ).toBeVisible()
+})

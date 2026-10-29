@@ -118,3 +118,35 @@ export async function restoreDive(request: APIRequestContext, id: string) {
   })
   if (!res.ok()) throw new Error(`Restore: ${res.status()}`)
 }
+
+export async function putEntity(
+  request: APIRequestContext,
+  kind: string,
+  id: string,
+  fields: Record<string, unknown>
+) {
+  const res = await request.put(`/api/entities/${kind}/${id}`, {
+    headers: headers(),
+    data: fields,
+  })
+  if (!res.ok()) throw new Error(`PUT: ${res.status()} ${await res.text()}`)
+}
+
+// Gone already, merged or deleted, is fine for an undo.
+export async function deleteEntity(
+  request: APIRequestContext,
+  kind: string,
+  id: string
+) {
+  const res = await request.delete(`/api/entities/${kind}/${id}`, {
+    headers: headers(),
+  })
+  // A 409 also refuses one still in use, which must not pass as undone.
+  const text = await res.text()
+  if (
+    !res.ok() &&
+    res.status() !== 404 &&
+    !(res.status() === 409 && /was (merged|deleted)/.test(text))
+  )
+    throw new Error(`DELETE: ${res.status()} ${text}`)
+}

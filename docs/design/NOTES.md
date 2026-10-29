@@ -42,7 +42,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 
 ## You (Settings on the boards) and people
 
-- `SettingsHifi` is the You tab (D30): titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. The rest keeps the board's order.
+- `SettingsHifi` is the You tab (D30): titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. Sites, people and trips comes before Download, as merging duplicates is routine and the downloads are a rare manual backup. The rest keeps the board's order.
 - An entity detail's "All N dives" lists the rest of its dives in place rather than opening the Log.
 - Recently deleted's restore toast is shadcn's Sonner, styled as the board's.
 - New-dive defaults use the dive form's controls (material, volume in litres, Nitrox and oxygen percentage), not the board's preset lists, and a new dive is filled from them. `EditDiveHifi` leaves them blank.

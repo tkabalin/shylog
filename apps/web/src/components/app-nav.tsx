@@ -39,6 +39,8 @@ declare module "@tanstack/react-router" {
     pushed?: true
     // A deleted dive opened from Recently deleted, which is behind it.
     fromDeleted?: true
+    // A dive opened from an entity's detail, whose name its Back link says.
+    parent?: string
   }
 }
 
@@ -73,20 +75,21 @@ export function closeToLog(router: AnyRouter) {
 }
 
 // A dive's detail is pushed from the Log, so the Log stays the current tab
-// there and tapping it goes back. One opened from Recently deleted keeps
-// You current instead.
+// there and tapping it goes back. One opened from Recently deleted or an
+// entity keeps You current instead.
 function useLogTab() {
   const router = useRouter()
   // Its form and a new one too, opened from it.
   const onDive = !!useMatchRoute()({ to: "/dive/$diveId", fuzzy: true })
-  const fromDeleted = !!useRouterState({
-    select: (state) => state.location.state.fromDeleted,
+  // Opened from a screen inside You, which is behind it.
+  const fromYou = useRouterState({
+    select: ({ location: { state } }) => !!(state.fromDeleted || state.parent),
   })
   const active = { "data-status": "active", "aria-current": "page" as const }
   return (
     to: string
   ): Partial<typeof active> & { onClick?: (event: MouseEvent) => void } =>
-    onDive && fromDeleted
+    onDive && fromYou
       ? to === "/you"
         ? active
         : {}
