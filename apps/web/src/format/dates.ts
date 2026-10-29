@@ -10,7 +10,9 @@ const format = (options: Intl.DateTimeFormatOptions) =>
 const weekdayDay = format({ weekday: "short", day: "numeric" })
 const monthYear = format({ month: "long", year: "numeric" })
 // Three letters, as the spec and boards write them; en-GB gives "Sept".
-const months = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ")
+export const months = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(
+  " "
+)
 
 // A card leaves out the month, which its group's heading gives: "Sat 25".
 export const cardDay = (startTime: string) =>

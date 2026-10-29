@@ -51,6 +51,9 @@ export interface LogView {
   trips: Map<string, Trip>
   links: Map<string, DiveLinks>
   fieldMeta: Map<string, Map<string, FieldMeta>>
+  // Entities only a draft has created, which the server doesn't know yet,
+  // so they can't be renamed, merged or deleted.
+  pending: Set<string>
 }
 
 export interface LogState {
@@ -138,6 +141,14 @@ function draftDive(draft: Draft): Dive {
 function addEntities(log: LogView, draft: Draft) {
   for (const entity of draft.entities) {
     const { id } = entity
+    const map = {
+      site: log.sites,
+      region: log.regions,
+      diveCentre: log.diveCentres,
+      person: log.people,
+      trip: log.trips,
+    }[entity.kind]
+    if (!map.has(id)) log.pending.add(id)
     if (entity.kind === "site") {
       const site = entityFields.site.parse(entity.fields)
       if (!log.sites.has(id))
@@ -262,6 +273,7 @@ export async function readLog(
       trips: byId(trips),
       links: linkMap,
       fieldMeta: metaMap,
+      pending: new Set(),
     }
     for (const draft of drafts) {
       try {
