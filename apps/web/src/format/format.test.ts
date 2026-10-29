@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest"
 
-import { cardDay, clockTime, longDate, monthKey, monthLabel } from "./dates"
+import {
+  cardDay,
+  clockTime,
+  deletedDay,
+  deletedGroup,
+  longDate,
+  monthKey,
+  monthLabel,
+} from "./dates"
 import {
   depth,
   gasDetail,
@@ -33,6 +41,27 @@ describe("dates", () => {
     // Just after midnight local time at the site, wherever the phone is.
     expect(cardDay("2026-01-01T00:05:00")).toBe("Thu 1")
     expect(cardDay("2025-12-31T23:55:00")).toBe("Wed 31")
+  })
+
+  // Built from the phone's own zone, as the server's instants are read.
+  const at = (...parts: [number, number, number, number?]) =>
+    new Date(parts[0], parts[1] - 1, parts[2], parts[3] ?? 12).toISOString()
+
+  it("groups deleted dives by today, yesterday, then month", () => {
+    const now = new Date(2026, 9, 29, 9)
+    expect(deletedGroup(at(2026, 10, 29, 0), now)).toBe("Deleted today")
+    expect(deletedGroup(at(2026, 10, 28, 23), now)).toBe("Deleted yesterday")
+    expect(deletedGroup(at(2026, 10, 2), now)).toBe("Deleted in October")
+    expect(deletedGroup(at(2026, 8, 2), now)).toBe("Deleted in August")
+    expect(deletedGroup(at(2025, 12, 31), now)).toBe("Deleted in December 2025")
+    // Yesterday across the turn of a month.
+    expect(deletedGroup(at(2026, 10, 31), new Date(2026, 10, 1, 8))).toBe(
+      "Deleted yesterday"
+    )
+  })
+
+  it("dates a deleted dive's pill by day and month", () => {
+    expect(deletedDay(at(2026, 8, 2))).toBe("2 Aug")
   })
 })
 

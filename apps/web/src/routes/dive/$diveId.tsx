@@ -42,9 +42,11 @@ import {
   IconNotes,
   IconPencil,
   IconPool,
+  IconRestore,
   IconRipple,
   IconScubaMask,
   IconSun,
+  IconTrash,
   IconTemperatureSnow,
   IconUsers,
   IconUserStar,
@@ -60,7 +62,7 @@ import {
 import { cn } from "cn"
 
 import { loadChart, retryChart } from "@/chart/load"
-import { backToLog } from "@/components/app-nav"
+import { backToLog, closeToLog } from "@/components/app-nav"
 import { IconSurfaceCalm, IconSurfaceStormy } from "@/components/icons"
 import { ProfileCard } from "@/components/profile-card"
 import { Badge } from "@/components/ui/badge"
@@ -74,13 +76,15 @@ import {
 } from "@/components/ui/breadcrumb"
 import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { DeleteSheet } from "@/dive/delete-sheet"
+import { restore } from "@/dive/restore"
 import type { Dive } from "@/data/db"
 import { currentLog, useLog, type LogView } from "@/data/log"
 import { loadProfile, retryProfile } from "@/data/samples"
 import { useSaveCelebration } from "@/dive/celebration"
 import { diveFigures } from "@/dive/figures"
 import { computerName, differences } from "@/dive/form/values"
-import { clockTime, longDate } from "@/format/dates"
+import { clockTime, deletedDay, longDate } from "@/format/dates"
 import {
   bar,
   depth,
@@ -123,8 +127,8 @@ function DivePage() {
   const { log, loaded } = useLog()
   const dive = log?.dive.get(diveId)
   if (!loaded) return null
-  // The copy keeps deleted dives for Recently deleted, not for this page.
-  if (!log || !dive || dive.deletedAt) {
+  // A deleted dive still opens, from Recently deleted, to be restored.
+  if (!log || !dive) {
     return (
       <div className="flex flex-col gap-2 p-4 pt-[calc(1rem+env(safe-area-inset-top))] md:mx-auto md:w-full md:max-w-3xl">
         <BackLink />
@@ -173,18 +177,21 @@ function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      {/* A link styled as shadcn's button, so it's still read as a link. */}
-      <Link
-        to="/dive/$diveId/edit"
-        params={{ diveId: dive.id }}
-        className={cn(
-          buttonVariants({ variant: "outline" }),
-          "mr-4 justify-self-end"
-        )}
-      >
-        <IconPencil data-icon="inline-start" />
-        Edit
-      </Link>
+      {/* A link styled as shadcn's button, so it's still read as a link.
+          A deleted dive is restored before it can be edited. */}
+      {!dive.deletedAt && (
+        <Link
+          to="/dive/$diveId/edit"
+          params={{ diveId: dive.id }}
+          className={cn(
+            buttonVariants({ variant: "outline" }),
+            "mr-4 justify-self-end"
+          )}
+        >
+          <IconPencil data-icon="inline-start" />
+          Edit
+        </Link>
+      )}
     </>
   )
 }
@@ -271,6 +278,8 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
       saved: undefined,
     })
   }, [saved, router])
+  const [deleting, setDeleting] = useState(false)
+  const [restoring, setRestoring] = useState(false)
 
   const visibility =
     dive.visibility != null
@@ -297,14 +306,16 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
             >
               {site?.name}
             </span>
-            <Link
-              to="/dive/$diveId/edit"
-              params={{ diveId: dive.id }}
-              className="inline-flex h-11 items-center gap-1 justify-self-end px-2.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
-            >
-              <IconPencil aria-hidden className="size-[1.15em]" />
-              Edit
-            </Link>
+            {!dive.deletedAt && (
+              <Link
+                to="/dive/$diveId/edit"
+                params={{ diveId: dive.id }}
+                className="inline-flex h-11 items-center gap-1 justify-self-end px-2.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
+              >
+                <IconPencil aria-hidden className="size-[1.15em]" />
+                Edit
+              </Link>
+            )}
           </>
         )}
       </header>
@@ -314,7 +325,12 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
       <div className="flex flex-col gap-6 px-4 pt-5 pb-8 md:mx-auto md:w-full md:max-w-3xl">
         <section className="flex flex-col gap-1 px-1">
           <p className="flex min-h-5.5 items-center text-sm font-medium text-muted-foreground tabular-nums">
-            {dive.ignored ? (
+            {dive.deletedAt ? (
+              <span className="inline-flex h-5.5 items-center gap-1 rounded-full bg-muted pr-2 pl-1.5 text-xs font-medium">
+                <IconTrash aria-hidden className="size-3.5" />
+                Deleted {deletedDay(dive.deletedAt)}
+              </span>
+            ) : dive.ignored ? (
               <>
                 <IconEyeOff aria-hidden className="size-4" />
                 <span className="sr-only">Ignored</span>
@@ -374,30 +390,71 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
           />
         </dl>
 
-        {differing.length > 0 && (
-          // Leads to the form, where each value can be used or dismissed.
-          <Link
-            to="/dive/$diveId/edit"
-            params={{ diveId: dive.id }}
-            className="-mt-2 flex min-h-11 items-center gap-2.5 rounded-xl bg-primary/8 px-3.5 text-sm transition-colors duration-150 hover:bg-primary/11 active:bg-primary/14 active:duration-0"
+        {dive.deletedAt || restoring ? (
+          // Once restored it folds away, margin and all, rather than the
+          // page jumping up under the thumb that tapped Restore.
+          <div
+            onTransitionEnd={(event) => {
+              if (event.target === event.currentTarget && !dive.deletedAt)
+                setRestoring(false)
+            }}
+            className={cn(
+              "-mt-2 grid grid-rows-[1fr] opacity-100 transition-[grid-template-rows,opacity,margin] duration-200 ease-out motion-reduce:transition-opacity",
+              !dive.deletedAt && "-mt-6 grid-rows-[0fr] opacity-0"
+            )}
           >
-            <IconArrowsDiff
-              aria-hidden
-              className="size-4.5 shrink-0 text-primary"
-            />
-            <span className="flex-1">
-              {differing.length}{" "}
-              {differing.length === 1 ? "value differs" : "values differ"} from{" "}
-              {/* Kept together, so the model never sits alone on a line. */}
-              <span className="whitespace-nowrap">
-                the {computerName(dive.computerModel)}
+            <div className="min-h-0 overflow-hidden">
+              <div className="flex min-h-12 items-center gap-2.5 rounded-xl bg-muted py-1.5 pr-1.5 pl-3.5 text-sm">
+                <span className="flex-1 text-muted-foreground">
+                  Not in your log, stats or export
+                </span>
+                <button
+                  type="button"
+                  disabled={restoring}
+                  onClick={async () => {
+                    setRestoring(true)
+                    // Kept until the fold ends. A failure, or a sync that
+                    // didn't land, leaves it as it was to try again.
+                    const back = await restore(dive.id, site?.name)
+                    if (!back || currentLog()?.dive.get(dive.id)?.deletedAt)
+                      setRestoring(false)
+                  }}
+                  // Reaches 44px tall, as the cards' Restore does.
+                  className="relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-primary/12 pr-3 pl-2.5 font-medium text-primary transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50"
+                >
+                  <IconRestore aria-hidden className="size-4" />
+                  Restore
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          differing.length > 0 && (
+            // Leads to the form, where each value can be used or dismissed.
+            <Link
+              to="/dive/$diveId/edit"
+              params={{ diveId: dive.id }}
+              className="-mt-2 flex min-h-11 items-center gap-2.5 rounded-xl bg-primary/8 px-3.5 text-sm transition-colors duration-150 hover:bg-primary/11 active:bg-primary/14 active:duration-0"
+            >
+              <IconArrowsDiff
+                aria-hidden
+                className="size-4.5 shrink-0 text-primary"
+              />
+              <span className="flex-1">
+                {differing.length}{" "}
+                {differing.length === 1 ? "value differs" : "values differ"}{" "}
+                from{" "}
+                {/* Kept together, so the model never sits alone on a line. */}
+                <span className="whitespace-nowrap">
+                  the {computerName(dive.computerModel)}
+                </span>
               </span>
-            </span>
-            <span className="inline-flex items-center gap-0.5 font-medium text-primary">
-              Review
-              <IconChevronRight aria-hidden className="size-4" />
-            </span>
-          </Link>
+              <span className="inline-flex items-center gap-0.5 font-medium text-primary">
+                Review
+                <IconChevronRight aria-hidden className="size-4" />
+              </span>
+            </Link>
+          )
         )}
 
         <ProfileCard dive={dive} mod={figures.mod} />
@@ -590,6 +647,27 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
             { icon: IconScubaMask, term: "Gear", value: dive.gearDetails },
             { icon: IconNotes, term: "General", value: dive.notes },
           ]}
+        />
+
+        {!dive.deletedAt && (
+          <button
+            type="button"
+            onClick={() => setDeleting(true)}
+            className="inline-flex h-11 items-center gap-1.5 self-center px-4 text-[15px] font-medium text-destructive transition-opacity duration-150 select-none hover:opacity-70 active:opacity-50 active:duration-0"
+          >
+            <IconTrash aria-hidden className="size-[1.15em]" />
+            Delete dive
+          </button>
+        )}
+        {/* Mounted whatever the dive's state, so the sync that marks it
+            deleted doesn't tear the sheet away before the page closes. */}
+        <DeleteSheet
+          open={deleting}
+          onOpenChange={setDeleting}
+          diveId={dive.id}
+          draft={!!dive.draft}
+          // Its Log is behind it, or a fresh one takes its place.
+          onDeleted={() => closeToLog(router)}
         />
       </div>
     </div>
