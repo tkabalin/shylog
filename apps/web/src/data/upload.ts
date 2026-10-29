@@ -16,10 +16,13 @@ import { syncLog } from "./sync"
 
 // The reason a refused request carries (see onError in the server's app),
 // or none for a body that isn't one, such as a proxy's error page.
+export const reasonIn = (body: unknown) => {
+  const error = (body as { error?: unknown } | undefined)?.error
+  return typeof error === "string" ? error : undefined
+}
+
 export async function serverMessage(res: { json(): Promise<unknown> }) {
-  const body = (await res.json().catch(() => undefined)) as
-    { error?: unknown } | undefined
-  return typeof body?.error === "string" ? body.error : undefined
+  return reasonIn(await res.json().catch(() => undefined))
 }
 
 // Sends the drafts one at a time, oldest first, each as one request (Flow
