@@ -1,6 +1,13 @@
-import { useEffect, useRef, type MouseEvent, type ReactNode } from "react"
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react"
 import { createPortal } from "react-dom"
 import { IconX } from "@tabler/icons-react"
+import { cn } from "cn"
 import {
   createFileRoute,
   Link,
@@ -149,6 +156,14 @@ function FullScreen({ dive, log }: { dive: Dive; log: LogView }) {
     )
   }
 
+  // Settled a frame after it mounts, not by @starting-style: WebKit can skip
+  // a transition begun inside the long task of the tap that opened it.
+  const [entered, setEntered] = useState(false)
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setEntered(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
   // Over the whole app, which it takes out of reach (and out of the
   // accessibility tree) while it's open.
   useEffect(() => {
@@ -160,9 +175,15 @@ function FullScreen({ dive, log }: { dive: Dive; log: LogView }) {
   }, [])
 
   return createPortal(
+    // It settles in from the centre, as a modal does, rather than growing
+    // from the button, since a phone often shows it turned a quarter. It
+    // closes at once: holding the route open for an exit isn't worth it.
     <div
       data-slot="full-profile"
-      className="fixed inset-0 z-50 bg-background pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]"
+      className={cn(
+        "fixed inset-0 z-50 bg-background pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] transition-[opacity,scale] duration-200 ease-out",
+        !entered && "scale-98 opacity-0 motion-reduce:scale-100"
+      )}
     >
       <div ref={frame} className="relative h-full w-full overflow-hidden">
         <div
