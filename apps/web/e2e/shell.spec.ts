@@ -119,6 +119,11 @@ test.describe("at phone width", () => {
     expect(page.url()).not.toMatch(/\/(stats|you)$/)
   })
 
+  test("sends the old Settings address to You", async ({ page }) => {
+    await page.goto("/settings")
+    await expect(page).toHaveURL(/\/you$/)
+  })
+
   test("sizes controls for touch and inputs at 16px", async ({ page }) => {
     await page.goto("/dev/ui")
     const controls = [
