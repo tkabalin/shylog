@@ -77,6 +77,7 @@ import {
 import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { DeleteSheet } from "@/dive/delete-sheet"
+import { useBack } from "@/you/bar"
 import { restore } from "@/dive/restore"
 import type { Dive } from "@/data/db"
 import { currentLog, useLog, type LogView } from "@/data/log"
@@ -153,6 +154,8 @@ function DivePage() {
 // the dive sits as a breadcrumb, and Edit as an outline button.
 function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
   const router = useRouter()
+  const goBack = useBack()
+  const fromDeleted = !!router.state.location.state.fromDeleted
   return (
     <>
       <Breadcrumb className="min-w-0 pl-4">
@@ -161,14 +164,22 @@ function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
             <BreadcrumbLink
               className="-mx-1 rounded-sm px-1 outline-offset-2"
               render={
-                <Link
-                  to="/"
-                  replace
-                  onClick={(event) => backToLog(router, event)}
-                />
+                fromDeleted ? (
+                  <Link
+                    to="/you/deleted"
+                    replace
+                    onClick={(event) => void goBack(event)}
+                  />
+                ) : (
+                  <Link
+                    to="/"
+                    replace
+                    onClick={(event) => backToLog(router, event)}
+                  />
+                )
               }
             >
-              Log
+              {fromDeleted ? "Recently deleted" : "Log"}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -196,8 +207,25 @@ function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
   )
 }
 
+const backLink =
+  "inline-flex h-11 items-center gap-0.5 justify-self-start pr-2 pl-1 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
+
 function BackLink() {
   const router = useRouter()
+  const goBack = useBack()
+  const fromDeleted = !!router.state.location.state.fromDeleted
+  if (fromDeleted)
+    return (
+      <Link
+        to="/you/deleted"
+        replace
+        onClick={(event) => void goBack(event)}
+        className={backLink}
+      >
+        <IconChevronLeft aria-hidden className="size-5.5 stroke-[2.25]" />
+        Deleted
+      </Link>
+    )
   return (
     // With no Log behind it, a fresh Log takes the dive's place, so swiping
     // back doesn't reopen it.
@@ -205,7 +233,7 @@ function BackLink() {
       to="/"
       replace
       onClick={(event) => backToLog(router, event)}
-      className="inline-flex h-11 items-center gap-0.5 justify-self-start pr-2 pl-1 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
+      className={backLink}
     >
       <IconChevronLeft aria-hidden className="size-5.5 stroke-[2.25]" />
       Log
