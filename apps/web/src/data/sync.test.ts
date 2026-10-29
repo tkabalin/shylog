@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { Log } from "@/api/client"
 
-import { LogDb } from "./db"
+import { LogDb, type Meta } from "./db"
+import { lastSync, noteSynced, readLastSync } from "./last-sync"
 import { syncLog } from "./sync"
 
 const dive = (id: string, startTime: string) =>
@@ -173,7 +174,8 @@ describe("syncLog", () => {
     await syncLog({ db, fetch: server(() => log("v1")) })
     const fetch = vi.fn(async () => {
       // The other tab lands v3 before this tab's older v2 reply arrives.
-      await db.meta.update("log", { version: "v3" })
+      const meta = (await db.meta.get("log")) as Meta
+      await db.meta.put({ ...meta, version: "v3" })
       return Response.json(log("v2", { dives: [] }))
     })
     expect(await syncLog({ db, fetch })).toBe("updated")
@@ -188,5 +190,20 @@ describe("syncLog", () => {
     )
     await expect(syncLog({ db, fetch })).rejects.toThrow("403")
     expect(await db.dives.count()).toBe(1)
+  })
+})
+
+describe("readLastSync", () => {
+  it("knows when a sync last reached the server", async () => {
+    expect(lastSync()).toBeUndefined()
+    await db.meta.put({ key: "synced", at: "2026-10-29T08:00:00.000Z" })
+    await readLastSync(db)
+    expect(lastSync()).toBe("2026-10-29T08:00:00.000Z")
+    // A newer time this launch noted isn't replaced by the stored one.
+    await noteSynced(db)
+    const noted = lastSync()
+    await db.meta.put({ key: "synced", at: "2026-10-29T08:00:00.000Z" })
+    await readLastSync(db)
+    expect(lastSync()).toBe(noted)
   })
 })

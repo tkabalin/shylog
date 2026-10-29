@@ -12,6 +12,7 @@ import {
   type QueueDb,
 } from "./drafts"
 import { loadLog } from "./log"
+import { noteSynced } from "./last-sync"
 import { syncLog } from "./sync"
 
 // The reason a refused request carries (see onError in the server's app),
@@ -57,6 +58,7 @@ export async function uploadDrafts({
         // One the copy still lacks (an app too old for the server's schema)
         // keeps its draft, which a resend finds already applied.
         await syncLog({ db, fetch })
+        await noteSynced(db)
         // A sync already under way may have written an older log first, so
         // one more fetch before keeping the draft.
         if (!(await db.dives.get(draft.id))) await syncLog({ db, fetch })
