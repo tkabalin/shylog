@@ -538,7 +538,7 @@ describe("the form on screen", () => {
     const onSave = vi
       .fn()
       .mockRejectedValueOnce(
-        new Error("Couldn't reach Shylog. Check your connection.")
+        new Error("Couldn’t reach Shylog. Check your connection.")
       )
       .mockResolvedValueOnce(undefined)
     render(
@@ -556,7 +556,7 @@ describe("the form on screen", () => {
     await act(async () => button("Save")!.click())
     // A frame on, the alert scrolls into view (reading matchMedia).
     await act(() => new Promise(requestAnimationFrame))
-    expect(document.body.textContent).toContain("Couldn't reach Shylog")
+    expect(document.body.textContent).toContain("Couldn’t reach Shylog")
     expect(
       document.querySelector<HTMLTextAreaElement>("#field-notes")!.value
     ).toBe("Strong drift")

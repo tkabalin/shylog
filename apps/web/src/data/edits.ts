@@ -5,7 +5,7 @@ import { apiClient } from "@/api/client"
 import { currentLog, sync } from "./log"
 import { reasonIn } from "./upload"
 
-export const unreachable = "Couldn't reach Shylog. Check your connection."
+export const unreachable = "Couldn’t reach Shylog. Check your connection."
 
 // A request the server refused, with what else it said, such as the entity
 // a rename collides with.
@@ -28,7 +28,7 @@ export async function saveFailure(res: {
     Record<string, unknown> | undefined
   const message =
     reasonIn(body) ??
-    (res.status >= 500 ? unreachable : `Couldn't save (${res.status})`)
+    (res.status >= 500 ? unreachable : `Couldn’t save (${res.status})`)
   return new Refused(message, body ?? {})
 }
 

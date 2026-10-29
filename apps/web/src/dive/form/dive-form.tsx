@@ -629,7 +629,7 @@ export function DiveForm({
           {failure && (
             <Alert id="save-failure" variant="destructive">
               <IconAlertTriangle aria-hidden />
-              <AlertTitle>Couldn't save</AlertTitle>
+              <AlertTitle>Couldn’t save</AlertTitle>
               {/* Only the icon and title in red, so the reason reads calmly. */}
               <AlertDescription className="text-muted-foreground">
                 {failure}
