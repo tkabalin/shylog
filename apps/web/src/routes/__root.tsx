@@ -4,6 +4,7 @@ import { cn } from "cn"
 
 import { AppSidebar, BottomNav, useOnForm } from "@/components/app-nav"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { Toaster } from "@/components/ui/sonner"
 
 export const Route = createRootRoute({
   component: RootLayout,
@@ -38,6 +39,7 @@ function RootLayout() {
         className="pointer-events-none fixed inset-x-0 top-0 z-20 h-[max(0.75rem,env(safe-area-inset-top))] bg-background desk:left-(--sidebar-width)"
       />
       <BottomNav />
+      <Toaster />
     </SidebarProvider>
   )
 }
