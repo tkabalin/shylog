@@ -46,6 +46,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D27 | Log and detail details (added 22 October 2026) | SAC's sample figures (time under water and mean depth) are stored on the dive when its samples are written and sent in `/api/log`, so the detail's SAC needs no samples. The Log's count and strip scroll away with the list like an iOS large title, leaving the search and filter bar stuck under the status bar; nothing animates height. Range filters round the dive to whole metres and minutes before comparing. A card's place is the site's region, or its country when the site has none, and the detail shows "region, country" or the country. The search narrows the cards but not the header figures, which follow the filter pills only. Opening a dive from the Log doesn't animate; the card-to-detail morph was dropped. |
 | D28 | Profiles on the phone and full screen (added 26 October 2026) | Samples are no longer only on demand (D2 still keeps them out of `/api/log`): after each sync the phone downloads the profiles it lacks through `GET /api/samples?ids=`, 25 dives a request, so charts open at once and work offline. The chart's code loads once the Log is idle and the Profile card no longer suspends, so a cached dive draws within a few frames, with no skeleton. An expand button opens the chart full screen as its own screen, drawn a quarter turn round when the phone reports portrait. Landscape layouts for the rest of the app are deferred to a later milestone. |
 | D29 | Dive form pickers (added 27 October 2026) | Every picker is a bottom sheet: choice fields as option lists, the site picker at full height with its country and body-of-water lists pushed inside it, and buddies, dive professionals, the dive centre and the trip as rows opening a full-height sheet with the most recently used first, instead of the board's suggestions inside the card, which the keyboard hides. Computer values that differ show on their own line under each field. The surface interval opens a sheet with hours and minutes wheels, Calculated and No previous dive. A new dive's start time is empty and its picker starts at 09:00 (see Add or edit in the spec). |
+| D30 | The You tab (added 29 October 2026) | The fourth tab, drawn as Settings, is called You, with a scuba mask icon (the owner's choice), as dive apps keep certification cards under the diver's profile. The page follows `SettingsHifi` with the diver name card (and certifications, milestone 12) moved to the top without a heading, and alerts above everything. About's version is the short commit the image was built from (a Docker build argument CI fills), `dev` in development, and its server name is `TS_HOSTNAME`, sent in `/api/health`. An entity's detail lists its three latest dives and its All action lists the rest in place, with no Log filter. The restore toast is shadcn's Sonner. Recently deleted groups by today, yesterday, then month. |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -63,7 +64,7 @@ Where a board shows something the spec does not and no decision above covers it,
 | 8 | 5 | Read-only app: Log and dive detail | 4 |
 | 9 | 5 | Profile chart | 8 |
 | 10 | 6 | Editing: the dive form and pickers | 6, 8 |
-| 11 | 6 | Editing: delete and restore, Settings, entities | 10 |
+| 11 | 6 | Editing: delete and restore, You, entities | 10 |
 | 12 | 6 | Certification cards | 11 |
 | 13 | 7 | UDDF export | 6 |
 | 14 | 8 | Statistics: figures and charts | 9 |
@@ -681,26 +682,26 @@ Deferred, or to watch:
 - Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a hand dive at Nitrox no keeps air on import (milestone 20); the derived pass reads every dive's samples on every write.
 - Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
 
-## Milestone 11: Editing, delete and restore, Settings, entities
+## Milestone 11: Editing, delete and restore, You, entities
 
-**Goal**: dives can be deleted and restored, Settings shows its sections with working values, and sites, regions, people, dive centres and trips can be browsed, renamed, merged and deleted.
+**Goal**: dives can be deleted and restored, the You tab shows its sections with working values, and sites, regions, people, dive centres and trips can be browsed, renamed, merged and deleted.
 
-**Implements**: Rules for edits, Screens (Settings, Sites people and trips, Recently deleted), Mobile rules (Settings shows last sync), Backups (item 3 and 6 as UI, download rows wired in milestone 13), decisions D6, D7, D20. Screens: `SettingsHifi` (all sections; Download rows disabled until milestone 13; Sync card static "All synced" until milestone 16), `EntitiesHifi` (plus a Regions tab), `EntityDetailHifi` (with Save, D7), `RecentlyDeletedHifi` (with the re-import note), `DiveDetailHifi` delete sheet and deleted state.
+**Implements**: Rules for edits, Screens (You, Sites people and trips, Recently deleted), Mobile rules (You shows last sync), Backups (item 3 and 6 as UI, download rows wired in milestone 13), decisions D6, D7, D20, D30. Screens: `SettingsHifi` as You (all sections but certifications and offline storage; Download rows disabled until milestone 13; Sync card static "All synced" until milestone 16), `EntitiesHifi` (plus a Regions tab), `EntityDetailHifi` (with Save, D7), `RecentlyDeletedHifi` (with the re-import note), `DiveDetailHifi` delete sheet and deleted state.
 
-**Touches**: `apps/web/src/routes/settings/` (sections, You, Diving with the form's controls, Your log, Sites people and trips, This phone with appearance, About), `apps/web/src/routes/entities/` (list with tabs and search, duplicate suggestions, detail with figures, Save, merge sheet, delete), `apps/web/src/routes/deleted/`, `apps/web/src/data/entities.ts`, `apps/web/src/theme.ts` (system, light, dark), tests.
+**Touches**: `apps/web/src/routes/you/` (sections, You, Diving with the form's controls, Your log, Sites people and trips, This phone with appearance, About), `apps/web/src/routes/entities/` (list with tabs and search, duplicate suggestions, detail with figures, Save, merge sheet, delete), `apps/web/src/routes/deleted/`, `apps/web/src/data/entities.ts`, `apps/web/src/theme.ts` (system, light, dark), tests.
 
 **Acceptance**
 
 - `delete.spec.ts`: deleting a synced dive shows the sheet, moves it to Recently deleted grouped by "Deleted today", the detail shows "Not in your log, stats or export" with Restore, restoring shows the toast with a link and the dive gets its number back; deleting a draft removes it for good with the draft wording.
 - `entities.test.ts`: duplicate suggestions flag "2 Mile Reef" for "Two Mile Reef" and "Sam N" for "Sam Naidoo" (rule: number words, initials and normalised prefixes); person figures are dives together, as buddy and buddy since (D20); site figures are dives, deepest, last dive; every entity figure leaves out ignored dives (D23); trip dates come from its dives; delete is disabled with the explanation when used, counting deleted dives.
 - `entities.spec.ts`: rename a site with Save; a colliding rename shows the error with "Merge instead"; merge moves the dives and the merged name disappears; the Regions tab lists regions with their sites count.
-- `settings.spec.ts`: diver name and max PO₂ save with Save; new-dive defaults use the form's controls and fill a new dive; appearance override applies at once; About shows version and `TS_HOSTNAME`; the Your log dive count includes ignored dives.
-- Screenshots of Settings, each entities tab, an entity detail with the merge sheet, and Recently deleted at 390 px against the boards.
+- `you.spec.ts`: diver name and max PO₂ save with Save; new-dive defaults use the form's controls and fill a new dive; appearance override applies at once; About shows version and `TS_HOSTNAME`; the Your log dive count includes ignored dives.
+- Screenshots of You, each entities tab, an entity detail with the merge sheet, and Recently deleted at 390 px against the boards.
 
 **Not in this milestone**: cards (milestone 12), downloads and the export alert (milestone 13), sync states (milestone 16).
 
 - [ ] Delete sheet, deleted state, Recently deleted, restore toast
-- [ ] Settings sections with Save
+- [ ] You sections with Save
 - [ ] Entities list with tabs, search, duplicate suggestions
 - [ ] Entity detail with figures, Save, merge, delete
 - [ ] Appearance override
@@ -730,7 +731,7 @@ Deferred, or to watch:
 
 ## Milestone 13: UDDF export
 
-**Goal**: the whole log is written as valid UDDF nightly and on demand, opens in Subsurface, and the Settings download and alert rows work.
+**Goal**: the whole log is written as valid UDDF nightly and on demand, opens in Subsurface, and the You tab's download and alert rows work.
 
 **Implements**: UDDF export (Data model), Units (export column), v1 fields (export column of both tables), Server (UDDF export), Backups (items 1 and 6), Testing (Schema validation), Screens (Settings Download and alerts), decisions D3, D4.
 
@@ -745,7 +746,7 @@ Deferred, or to watch:
 - `nightly.test.ts` (extended): the export is written after the snapshot through a temp file and re-parse; a failed export leaves the previous file, logs, and `/api/health` reports it; the next night retries.
 - `export.test.ts`: `GET /api/export/uddf` rewrites the file and streams it; `GET /api/export/snapshot` streams a `VACUUM INTO` copy; `POST /api/export/run` rewrites without a body and clears the failure.
 - The owner opens the export in Subsurface and confirms every dive, site, buddy and mix appears (noted in the milestone notes).
-- Settings: the Download rows work, "Last UDDF export" updates, a failed export shows the alert with Export now.
+- You: the Download rows work, "Last UDDF export" updates, a failed export shows the alert with Export now.
 
 **Not in this milestone**: pass-through of imported standard elements (milestone 20), the queued-ops file (milestone 17).
 
@@ -754,7 +755,7 @@ Deferred, or to watch:
 - [ ] Nightly export with temp file, fsync, re-parse, rename
 - [ ] Export endpoints (D4)
 - [ ] Vendored XSD and `test:xsd` script in CI
-- [ ] Settings Download rows and export alert
+- [ ] You tab Download rows and export alert
 - [ ] Subsurface opens the export
 - [ ] Tests listed above
 
@@ -819,7 +820,7 @@ Deferred, or to watch:
 
 - `sync-states.test.ts`: `navigator.onLine` false gives offline; a failed fetch while online gives server unreachable; an upload in flight gives syncing; an empty queue gives synced and hides the pill; the banner shows the count and the age of the oldest draft.
 - `offline.spec.ts` (Playwright with `context.setOffline`): the app loads from the cache with the Log and a dive detail with cached samples; a new dive saved offline shows the outline, cloud-off icon, screen-reader text and a provisional number; back online it uploads and gets its number; a synced dive's Edit and Delete are disabled with the note; a rejected draft shows its reason on the card; the stats chunk works offline.
-- `storage.test.ts`: persist is requested on first launch; the Settings row shows Protected or the help sheet; the sheet's copy matches the board.
+- `storage.test.ts`: persist is requested on first launch; the You tab's row shows Protected or the help sheet; the sheet's copy matches the board.
 - Screenshots of the pill states, the draft card and the storage sheet at 390 px.
 
 **Not in this milestone**: the update flow and queue export (milestone 17).

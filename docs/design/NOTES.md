@@ -40,8 +40,11 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Copy from last dive is one row like the form's own: the title with its icon, and the last dive's site on the right. The board's two-line card with the dive number and date is simplified away.
 - Tag chips and segmented controls are 40 to 44 px tall; the ✓/✕ buttons and chip remove buttons keep their size with a 44 px tap area.
 
-## Settings and people
+## You (Settings on the boards) and people
 
+- `SettingsHifi` is the You tab (D30): titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. The rest keeps the board's order.
+- An entity detail's "All N dives" lists the rest of its dives in place rather than opening the Log.
+- Recently deleted's restore toast is shadcn's Sonner, styled as the board's.
 - New-dive defaults use the dive form's controls (material, volume in litres, Nitrox and oxygen percentage), not the board's preset lists, and a new dive is filled from them. `EditDiveHifi` leaves them blank.
 - Dive professionals are labelled "Dive professionals", with no instructor or divemaster role, and the people list shows names only, without the boards' role subtitles.
 
