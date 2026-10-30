@@ -753,11 +753,34 @@ Deferred, or to watch:
 
 **Not in this milestone**: offline disabling of add, edit and delete (milestone 16).
 
-- [ ] Card list and empty state
-- [ ] Viewer with pinch zoom, dots, Wake Lock
-- [ ] Add and edit with the one-or-separate choice and reorder
-- [ ] Image cache in Dexie
-- [ ] Tests and screenshots listed above
+- [x] Card list and empty state
+- [x] Viewer with pinch zoom, dots, Wake Lock
+- [x] Add and edit with the one-or-separate choice and reorder
+- [x] Image cache in Dexie
+- [x] Tests and screenshots listed above
+
+**Notes for the next session** (written 30 October 2026, branch `feat/certification-cards`)
+
+Still to do on the owner's phone:
+
+- the viewer's gestures: a flick between pages, tapping and sliding along the page dots, pinch about the fingers and the snap back from past 4x or below 1x, a pan with momentum, catching a page mid-spring, and a call or the home bar taking a gesture (pointercancel) part-way; the zoomed page should be sharp once it stops;
+- the long press that lifts a page in Edit card: that a plain swipe still scrolls the strip, the lift needs no second try, and nothing stays lifted after the system takes the touch;
+- the photo picker from the add button (iOS turns HEIC into JPEG for the PNG, JPEG and WebP filter), a HEIC picked from Files becoming a JPEG upright, and the screen staying on in the viewer, with the hint saying so only while it does (Low Power Mode refuses the lock);
+- a card opened with no signal after a sync, never opened before on that phone.
+
+Decisions taken while building:
+
+- D31: cards under You at `/you/certifications`, the viewer a child route portalled over the list (as the full-screen profile is), the add button straight to the photo picker, New and Edit card full-height sheets, long-press reorder, Motion for the gestures, and every page downloaded after each sync.
+- Images are kept in Dexie as `cardImages`, keyed by card and hash (schema version 4, whose upgrade makes the next sync fetch the whole log so cards get their place in the list). A page is fetched with `?v=<hash>`; the viewer and the download share a fetch; a saved page is kept under the hash the server will give it (the first 16 hex digits of its SHA-256) and held from pruning for ten minutes by a `heldUntil` on its row, which every tab's sync reads, so a sync whose log predates the save doesn't drop it. Object URLs are made once per page and forgotten, not revoked, once no card names them. A full disk stops the download for good, as for profiles.
+- Card saving and deleting live in `data/card-edits.ts`, apart from `data/cards.ts`, which the sync imports, so there is no import cycle through `commit`. The viewer and the full-screen profile share `hooks/use-full-screen.ts` (the app made inert, and the entrance a frame after mount, which only the profile animates; the viewer opens at once). A picked image is known by its first bytes, never its name or the type the browser gives. HEIC or HEIF, which iOS hands over from Files and a computer picks as is, becomes a JPEG through the browser's own decoder (Safari's; Chrome and Firefox refuse it in the sheet), with the long edge kept to 4096 px and its EXIF left behind. Screenshots are PNG and go up untouched. On a desktop the file dialog names `.heic` and `.heif`; a phone's doesn't, or iOS would stop turning Photos' HEIC into JPEG.
+- The viewer's motion values write the transforms directly (no motion components), so its chunk carries only Motion's animation code (about 32 KB gzipped); the sheet, with `Reorder`, loads once the viewer is up (so Edit opens at once) or on the press of the list's add button. Ctrl-scroll (a trackpad's pinch) zooms on a desktop, and the arrow keys turn the pages. The viewer has no hint line, as the gestures are the ones the phone's photo viewer uses. The page dots keep the board's 15 px pitch, and the whole strip under them is one 44 px target, as iOS's page control is: a tap either side of the shown dot turns a page, and a slide along it scrubs.
+- Separate cards save one at a time, each with its own id kept across a retry, and only the last waits for the log. Leaving a sheet with picked screenshots or edits asks first; delete asks in a sheet.
+
+Deferred, or to watch:
+
+- A very small screenshot shows at its own size in the viewer rather than scaled up, which would blur it.
+- Milestone 16: offline guards on add, edit and delete, and the Certifications list's offline note.
+- Carried over from milestone 11: everything under its "Deferred, or to watch" still open (the phone checks, the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days, sharding Playwright).
 
 ## Milestone 13: UDDF export
 
