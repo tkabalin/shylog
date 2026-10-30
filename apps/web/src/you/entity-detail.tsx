@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react"
+import { useMemo, useRef, useState, type ReactNode } from "react"
 import {
   bodiesOfWater,
   defaultWaterType,
@@ -25,6 +25,7 @@ import {
 import { Link, useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { LeaveGuard, type Leave } from "@/components/leave-guard"
 import { countText, nameLimit, tidyName } from "@/components/pickers/match"
 import {
   BarButton,
@@ -161,6 +162,10 @@ export function EntityDetail({
   // hundreds of rows at once.
   const [shownDives, setShownDives] = useState(3)
   const changed = fieldsOf[kind].some((field) => values[field] !== base[field])
+  // Set as a merge or delete takes this screen away, so LeaveGuard lets
+  // them go; a move elsewhere it held waits on Discard changes?.
+  const leaving = useRef(false)
+  const [leave, setLeave] = useState<Leave | null>(null)
   // A sync that changes it shows the change unless something is typed.
   if (!changed && JSON.stringify(saved) !== JSON.stringify(base)) {
     setBase(saved)
@@ -295,6 +300,7 @@ export function EntityDetail({
     try {
       // Away before the sync takes this one out of the log.
       await mergeEntity(kind, id, conflict.id, { settle: false })
+      leaving.current = true
       void router.navigate({
         to: "/you/entities/$kind/$id",
         params: { kind, id: conflict.id },
@@ -312,6 +318,7 @@ export function EntityDetail({
     setDeleteError(undefined)
     try {
       await deleteEntity(kind, id, { settle: false })
+      leaving.current = true
       // Back to the list it was opened from, or a fresh one.
       if (!goBack())
         void router.navigate({
@@ -715,6 +722,53 @@ export function EntityDetail({
         into={{ id, name: saved.name }}
         candidates={candidates}
       />
+
+      {desk && (
+        <>
+          <LeaveGuard
+            when={() => !leaving.current && changed}
+            onBlock={setLeave}
+          />
+          {/* Asked as the dive form asks, in shadcn's alert dialog shape. */}
+          <Drawer
+            open={leave != null}
+            onOpenChange={(open) => {
+              if (open) return
+              leave?.reset()
+              setLeave(null)
+            }}
+          >
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>Discard changes?</DrawerTitle>
+                <DrawerDescription>
+                  Your changes to this {label.one} will be lost.
+                </DrawerDescription>
+              </DrawerHeader>
+              <DrawerFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    leave?.reset()
+                    setLeave(null)
+                  }}
+                >
+                  Keep editing
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setLeave(null)
+                    leave?.proceed()
+                  }}
+                >
+                  Discard changes
+                </Button>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
+        </>
+      )}
 
       <Drawer
         showSwipeHandle
