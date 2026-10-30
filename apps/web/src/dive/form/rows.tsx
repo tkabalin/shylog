@@ -239,6 +239,7 @@ export function SelectRow<V extends string>({
   value,
   options,
   optional = true,
+  empty = "Choose",
   onChange,
 }: {
   icon?: Icon
@@ -246,6 +247,8 @@ export function SelectRow<V extends string>({
   value: V | null
   options: Option<V>[]
   optional?: boolean
+  // What an unset value reads as, as PickRow's.
+  empty?: string
   onChange: (value: V | null) => void
 }) {
   const text = options.find((option) => option.value === value)?.label
@@ -259,7 +262,7 @@ export function SelectRow<V extends string>({
           className="flex h-11.5 min-w-0 flex-1 cursor-pointer items-center justify-end gap-1 text-right text-base font-medium desk:outline-none"
         >
           <span className={cn("truncate", !text && "text-muted-foreground/60")}>
-            {text ?? "Choose"}
+            {text ?? empty}
           </span>
           <IconSelector
             aria-hidden
