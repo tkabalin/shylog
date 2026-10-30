@@ -34,9 +34,12 @@ export function PageBar({
   const { label, ...to } = back
   return (
     <header className="sticky top-0 z-30 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center bg-background px-2 pt-[env(safe-area-inset-top)]">
+      {/* Exact, or the parent would match this screen's path and claim to
+          be the current page. */}
       <Link
         {...(to as LinkProps)}
         replace
+        activeOptions={{ exact: true }}
         onClick={(event) => void goBack(event)}
         className="inline-flex h-11 items-center gap-0.5 justify-self-start pr-2 pl-0.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
       >
