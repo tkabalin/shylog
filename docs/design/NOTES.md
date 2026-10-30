@@ -30,6 +30,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - A failed save keeps the form's values and offers to try again.
 - Dive type options are the spec's list. The Settings board's "Technical" and "Work" don't exist.
 - `DiveDetailHifi` shows the dive number as plain grey text; the detail shows it as a cyan pill.
+- `DiveDetailHifi`'s Figures card has no bars and shows Gas. The detail drops Gas there (it is under Cylinder and gas), gives SAC rate a full-width first row with a comparison against the last five dives, and puts bars on Max PO₂ and CNS beside their labels, with info buttons on CNS, OTU and the SAC comparison.
 - No board has ignored dives. `EditDiveHifi` needs the Ignore this dive switch at the end of the form, and `LogHifi2` cards and the `DiveDetailHifi` title show an eye-off icon in place of the dive number, with "Ignored" as screen-reader text.
 - `LogHifi2` has no depth or duration filter. Add Depth and Duration pills after the board's existing filter pills, styled the same, each opening a sheet with a range slider and Reset and Apply (see Log in the spec).
 

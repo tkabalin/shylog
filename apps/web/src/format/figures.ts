@@ -38,8 +38,6 @@ export const litres = (millilitres: number) =>
   String(Math.round(millilitres / 100) / 10)
 
 // A gas from its oxygen in tenths of a per cent, null meaning air.
-export const gasName = (oxygen: number | null) =>
-  oxygen == null ? "Air" : `EANx${tenthsToPercent(oxygen)}`
 export const gasDetail = (oxygen: number | null) =>
   oxygen == null ? "Air" : `Nitrox ${tenthsToPercent(oxygen).toFixed(1)}%`
 
