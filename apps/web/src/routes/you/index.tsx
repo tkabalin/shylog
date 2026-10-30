@@ -85,7 +85,7 @@ function YouPage() {
 
         {/* Drawn before the first sync too, so nothing moves down when the
             log arrives. */}
-        <DiverCard settings={log?.settings} />
+        <DiverCard settings={log?.settings} cards={log?.cards.length} />
 
         <Card className="flex-row items-center gap-3 px-4 py-3.5">
           <span
@@ -275,9 +275,15 @@ function Alert({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-// The diver's name, under the title with no heading of its own (D30).
-// Certifications join it with the cards.
-function DiverCard({ settings }: { settings?: Settings }) {
+// The diver's name and certification cards, under the title with no
+// heading of their own (D30).
+function DiverCard({
+  settings,
+  cards,
+}: {
+  settings?: Settings
+  cards?: number
+}) {
   const stored = settings?.diverName ?? ""
   const [name, setName] = useState(stored)
   const [base, setBase] = useState(stored)
@@ -328,15 +334,17 @@ function DiverCard({ settings }: { settings?: Settings }) {
             className="text-ellipsis"
           />
         </Row>
-        {/* Built with the certification cards (milestone 12); shown now so
-            the card is where it will be. */}
-        <button
-          type="button"
-          disabled
-          className={cn(listRow, "text-muted-foreground/60")}
+        <Link
+          to="/you/certifications"
+          state={{ pushed: true }}
+          className={cn(listRow, pressable)}
         >
-          <RowContent label="Certifications" />
-        </button>
+          <RowContent
+            label="Certifications"
+            value={cards != null ? countText(cards) : null}
+            chevron
+          />
+        </Link>
       </Card>
       <SaveFailure error={failure} />
     </div>
