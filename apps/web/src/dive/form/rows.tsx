@@ -410,7 +410,7 @@ export function Segmented<V extends string>({
           key={option}
           value={option}
           className={cn(
-            "relative h-10 min-w-0 gap-1.5 rounded-lg px-1 text-sm font-medium",
+            "relative h-10 min-w-0 gap-1.5 rounded-lg px-1 text-sm font-medium tabular-nums",
             compact && "gap-1 px-0.5 text-[13px]",
             // Below 375 px the words need the icons' room to fit.
             "max-[374px]:text-[13px] max-[374px]:[&_svg]:hidden",
