@@ -137,6 +137,16 @@ test("shows the version and the server's name", async ({ page }) => {
   await expect(row(page, "Server")).toContainText(health.server)
 })
 
+test("never marks the back link as the current page", async ({ page }) => {
+  await page.goto("/you/entities?kind=site")
+  // The bar's, not the tab bar's, which is current here.
+  const back = page
+    .locator("header")
+    .getByRole("link", { name: "You", exact: true })
+  await expect(back).toBeVisible()
+  await expect(back).not.toHaveAttribute("aria-current", "page")
+})
+
 test("counts ignored dives in Your log @writes", async ({ page, restore }) => {
   const id = await diveId(page.request, 63)
   restore((request) => patchDive(request, id, { ignored: false }))
