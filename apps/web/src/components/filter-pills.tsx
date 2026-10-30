@@ -116,18 +116,32 @@ export function FilterPills({
       aria-label="Filters"
       className="-mx-4 flex [scrollbar-width:none] gap-1 overflow-x-auto px-3.5 py-1"
     >
-      {/* First, so it shows without scrolling the row. */}
-      {any && (
-        <button
-          type="button"
-          aria-label="Clear filters"
-          onClick={() => onChange({})}
-          className={cn(pillTrigger, "pr-2.5 text-foreground")}
-        >
-          <IconX aria-hidden />
-          Clear
-        </button>
-      )}
+      {/* First, so it shows without scrolling the row. It folds in and out
+          rather than mounting, so the pills slide over instead of jumping;
+          -mr-1 folds the gap after it too. */}
+      <div
+        inert={!any}
+        className={cn(
+          "grid shrink-0 transition-[grid-template-columns,opacity,margin] duration-200 ease-out motion-reduce:transition-opacity",
+          any
+            ? "grid-cols-[1fr] opacity-100"
+            : "-mr-1 grid-cols-[0fr] opacity-0"
+        )}
+      >
+        {/* Room for the focus ring and the taller hit area, which the
+            fold would otherwise clip. */}
+        <div className="-mx-[3px] -my-1 min-w-0 overflow-hidden px-[3px] py-1">
+          <button
+            type="button"
+            aria-label="Clear filters"
+            onClick={() => onChange({})}
+            className={cn(pillTrigger, "pr-2.5 text-foreground")}
+          >
+            <IconX aria-hidden />
+            Clear
+          </button>
+        </div>
+      </div>
       <FilterSelect
         name="Year"
         label="All years"

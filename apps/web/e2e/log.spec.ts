@@ -90,7 +90,15 @@ test("clears every filter at once, and only shows Clear while one is set", async
   const clear = page.getByRole("button", { name: "Clear filters" })
   await clear.click()
   await expect(page).toHaveURL("/?q=reef")
-  await expect(clear).toHaveCount(0)
+  // Folded away but still there, so it can slide back in: inert (which
+  // Playwright's role queries don't see), and no wider than the gap.
+  const fold = page.locator(
+    "div[inert]:has(> div > [aria-label='Clear filters'])"
+  )
+  await expect(fold).toHaveCount(1)
+  await expect
+    .poll(() => fold.evaluate((el) => el.getBoundingClientRect().width))
+    .toBe(0)
 })
 
 test("scrolls the count away and sticks the bar to the top", async ({
