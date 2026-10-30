@@ -5,9 +5,11 @@ import {
   latestSchemaVersion,
 } from "@shylog/core"
 
+import { downloadCardImages, forgetCardUrls } from "./cards"
 import {
   db as defaultDb,
   type Blocked,
+  type Card,
   type Dive,
   type DiveCentre,
   type FieldMeta,
@@ -51,6 +53,8 @@ export interface LogView {
   trips: Map<string, Trip>
   links: Map<string, DiveLinks>
   fieldMeta: Map<string, Map<string, FieldMeta>>
+  // Certification cards in the server's order.
+  cards: Card[]
   // Entities only a draft has created, which the server doesn't know yet,
   // so they can't be renamed, merged or deleted.
   pending: Set<string>
@@ -201,17 +205,27 @@ export async function readLog(
       blocked: !!blocked && blocked.schemaVersion > latestSchemaVersion,
     }
     if (!meta) return { ...state, log: null }
-    const [dives, sites, regions, people, centres, trips, links, fieldMeta] =
-      await Promise.all([
-        db.dives.toArray(),
-        db.sites.toArray(),
-        db.regions.toArray(),
-        db.people.toArray(),
-        db.diveCentres.toArray(),
-        db.trips.toArray(),
-        db.links.toArray(),
-        db.fieldMeta.toArray(),
-      ])
+    const [
+      dives,
+      sites,
+      regions,
+      people,
+      centres,
+      trips,
+      links,
+      fieldMeta,
+      cards,
+    ] = await Promise.all([
+      db.dives.toArray(),
+      db.sites.toArray(),
+      db.regions.toArray(),
+      db.people.toArray(),
+      db.diveCentres.toArray(),
+      db.trips.toArray(),
+      db.links.toArray(),
+      db.fieldMeta.toArray(),
+      db.cards.toArray(),
+    ])
     // Shown, and opened, before they upload; a draft wins over a mirror row
     // with its id, which is the same dive edited since it uploaded.
     const dive = byId(dives)
@@ -273,6 +287,13 @@ export async function readLog(
       trips: byId(trips),
       links: linkMap,
       fieldMeta: metaMap,
+      // A card kept before places were (schema 3) goes last until the full
+      // sync the upgrade asks for, rather than unsorting the rest.
+      cards: cards.sort(
+        (a, b) =>
+          (a.position ?? Number.MAX_SAFE_INTEGER) -
+          (b.position ?? Number.MAX_SAFE_INTEGER)
+      ),
       pending: new Set(),
     }
     for (const draft of drafts) {
@@ -318,6 +339,7 @@ export async function loadLog(
 ) {
   try {
     set({ ...(await readLog(db, queue)), failed: state.failed })
+    if (state.log) forgetCardUrls(state.log.cards)
   } catch (error) {
     console.warn("Couldn't read the log copy", error)
     set({ ...state, loaded: true })
@@ -349,6 +371,8 @@ export function sync() {
       // not from a server whose schema this app doesn't understand.
       if (state.log && result !== "blocked") {
         void downloadProfiles([...state.log.dive.values()])
+        // Every card's pages too, so they open with no signal.
+        void downloadCardImages(state.log.cards)
         // A draft whose upload failed earlier, or whose acceptance wasn't
         // seen, goes again now the server answers. Full retry comes with
         // the offline work.

@@ -166,6 +166,7 @@ export function testLog({
     ]),
     links: linkMap,
     fieldMeta,
+    cards: [],
     pending: new Set(),
   }
 }
