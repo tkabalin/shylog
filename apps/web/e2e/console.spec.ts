@@ -55,6 +55,10 @@ test("leaves the console clean", async ({ page }) => {
   await expect(
     page.getByText(/^(Nothing deleted|Deleted dives still stop)/)
   ).toBeVisible()
+  await page.goto("/you/certifications")
+  await expect(
+    page.getByRole("button", { name: /^(Choose screenshots|Add a card)$/ })
+  ).toBeVisible()
 
   expect(seen).toEqual([])
 })

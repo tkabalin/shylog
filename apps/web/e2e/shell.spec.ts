@@ -1,5 +1,9 @@
 import { expect, test, type Locator } from "@playwright/test"
 
+import { deleteCard, getLog, putCard, test as withData } from "./api"
+import { png } from "./png"
+import { still } from "./ui"
+
 const tabs = ["Log", "Stats", "Import", "You"]
 
 async function height(locator: Locator) {
@@ -427,4 +431,60 @@ test.describe("screenshots", () => {
       })
     }
   }
+})
+
+withData.describe("certification cards at desktop width", () => {
+  withData.use({ viewport: { width: 1024, height: 768 } })
+
+  withData(
+    "adds from the bar, edits over the viewer, and drags without a hold @writes",
+    async ({ page, restore }) => {
+      const id = `card-desk${Date.now().toString(36)}`
+      restore((request) => deleteCard(request, id))
+      await putCard(page.request, id, "Desk card", [
+        png(300, 400, [30, 60, 120]),
+        png(400, 300, [240, 240, 245]),
+      ])
+      const before = (await getLog(page.request)).cards.find(
+        (one) => one.id === id
+      )!
+
+      await page.goto("/you/certifications")
+      await expect(
+        page.locator("header").getByRole("button", { name: "Add card" })
+      ).toBeVisible()
+
+      await page.getByRole("link", { name: /^Desk card/ }).click()
+      const viewer = page.getByRole("dialog", { name: "Desk card" })
+      await viewer.getByRole("button", { name: "Edit card" }).click()
+      const edit = page.getByRole("dialog", { name: "Edit card" })
+      await still(edit)
+      // The viewer covers the sidebar, so the dialog centres on the window.
+      const box = (await edit.boundingBox())!
+      expect(box.x + box.width / 2).toBeCloseTo(512, 0)
+
+      // A mouse drags a page at once, with no long press first.
+      const first = (await edit.locator("img").first().boundingBox())!
+      const at: [number, number] = [
+        first.x + first.width / 2,
+        first.y + first.height / 2,
+      ]
+      await page.mouse.move(...at)
+      await page.mouse.down()
+      for (let i = 1; i <= 12; i++) {
+        await page.mouse.move(at[0] + i * 20, at[1])
+        await page.waitForTimeout(30)
+      }
+      await page.mouse.up()
+      await edit.getByRole("button", { name: "Save" }).click()
+      await expect(edit).toBeHidden()
+      await expect
+        .poll(
+          async () =>
+            (await getLog(page.request)).cards.find((one) => one.id === id)
+              ?.images
+        )
+        .toEqual([...before.images].reverse())
+    }
+  )
 })
