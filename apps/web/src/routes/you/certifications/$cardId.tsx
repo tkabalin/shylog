@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react"
+import { Suspense, useEffect, useRef, useState, type PointerEvent } from "react"
 import { createPortal } from "react-dom"
-import { IconX } from "@tabler/icons-react"
+import { IconPencil, IconX } from "@tabler/icons-react"
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router"
 import { cn } from "cn"
 
@@ -9,6 +9,7 @@ import { useLog } from "@/data/log"
 import { useFullScreen } from "@/hooks/use-full-screen"
 import { useBack } from "@/you/bar"
 import { CardPages } from "@/you/cards/card-pages"
+import { CardSheet, loadCardSheet } from "@/you/cards/load-sheet"
 
 // CertsHifi's viewer: a card full screen over the list, which stays as it
 // was underneath. Pushed from the list (see Navigation history).
@@ -37,6 +38,9 @@ function Viewer({ card }: { card: Card }) {
   const many = card.images.length > 1
 
   useFullScreen()
+  // Edit card's sheet loads once the card is up, so Edit opens it at once
+  // rather than on a press that waits for the download.
+  useEffect(() => void loadCardSheet(), [])
 
   // The screen stays on while the card is shown, where the phone allows it.
   // The lock goes when the app is hidden, so it is taken again when it
@@ -75,9 +79,13 @@ function Viewer({ card }: { card: Card }) {
   // keys turn the pages. Once only for Escape: a second press before the
   // page goes would go back past the list.
   const closeLink = useRef<HTMLAnchorElement>(null)
+  // Edit card over the viewer, a fresh sheet each time it opens.
+  const [editing, setEditing] = useState(false)
+  const [edits, setEdits] = useState(0)
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.defaultPrevented) return
+      // The keys belong to the sheet while it's open.
+      if (event.defaultPrevented || editing) return
       if (event.key === "Escape") {
         document.removeEventListener("keydown", onKey)
         closeLink.current?.click()
@@ -89,7 +97,7 @@ function Viewer({ card }: { card: Card }) {
     }
     document.addEventListener("keydown", onKey)
     return () => document.removeEventListener("keydown", onKey)
-  }, [card.images.length])
+  }, [card.images.length, editing])
 
   return createPortal(
     // Dark whatever the theme, as a photo viewer is. It opens and closes
@@ -118,7 +126,31 @@ function Viewer({ card }: { card: Card }) {
         >
           {card.name}
         </h2>
+        <button
+          type="button"
+          aria-label="Edit card"
+          onPointerDown={() => void loadCardSheet()}
+          onClick={() => {
+            setEdits((was) => was + 1)
+            setEditing(true)
+          }}
+          className="inline-flex size-11 items-center justify-center rounded-full bg-white/10 transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
+        >
+          <IconPencil aria-hidden className="size-4.5" />
+        </button>
       </div>
+      {edits > 0 && (
+        <Suspense>
+          <CardSheet
+            key={edits}
+            open={editing}
+            onOpenChange={setEditing}
+            card={card}
+            // The list takes the viewer's place as the card goes.
+            onDeleted={() => closeLink.current?.click()}
+          />
+        </Suspense>
+      )}
       <CardPages card={card} page={shown} onPage={setPage} />
       {many && (
         <PageControl

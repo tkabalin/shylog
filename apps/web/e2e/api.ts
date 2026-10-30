@@ -150,3 +150,31 @@ export async function deleteEntity(
   )
     throw new Error(`DELETE: ${res.status()} ${text}`)
 }
+
+// A card with its pages, sent as the app sends one.
+export async function putCard(
+  request: APIRequestContext,
+  id: string,
+  name: string,
+  images: Buffer[]
+) {
+  const form = new FormData()
+  form.append("name", name)
+  for (const image of images)
+    form.append(
+      "images",
+      new Blob([new Uint8Array(image)], { type: "image/png" }),
+      "card.png"
+    )
+  const res = await request.put(`/api/cards/${id}`, {
+    headers: headers(),
+    multipart: form,
+  })
+  if (!res.ok()) throw new Error(`PUT: ${res.status()} ${await res.text()}`)
+}
+
+// Deleting a card twice changes nothing, so an undo can always ask.
+export async function deleteCard(request: APIRequestContext, id: string) {
+  const res = await request.delete(`/api/cards/${id}`, { headers: headers() })
+  if (!res.ok()) throw new Error(`DELETE: ${res.status()}`)
+}
