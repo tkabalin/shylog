@@ -233,6 +233,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                 label="Dive type"
                 value={values.diveType}
                 options={options(diveTypes)}
+                empty="Not set"
                 onChange={(value) => pick("diveType", value)}
               />
             ) : (
