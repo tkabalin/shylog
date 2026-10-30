@@ -14,7 +14,6 @@ import {
 import {
   depth,
   gasDetail,
-  gasName,
   hours,
   interval,
   litres,
@@ -116,9 +115,7 @@ describe("figures", () => {
   })
 
   it("names the gas", () => {
-    expect(gasName(null)).toBe("Air")
-    expect(gasName(320)).toBe("EANx32")
-    expect(gasName(324)).toBe("EANx32.4")
+    expect(gasDetail(null)).toBe("Air")
     expect(gasDetail(320)).toBe("Nitrox 32.0%")
   })
 

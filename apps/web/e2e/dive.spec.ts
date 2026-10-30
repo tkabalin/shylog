@@ -25,15 +25,27 @@ test("shows fixture dive 63's figures", async ({ page, request }) => {
   await expect(figure(page, "Water temperature")).toHaveText(
     /^\d+(\.\d)?\u00a0–\u00a0\d+(\.\d)?°C$/
   )
-  // No cylinder pressures in the export, so no SAC.
-  await expect(figure(page, "SAC rate")).toHaveText("—")
-  await expect(figure(page, "Gas").first()).toHaveText("EANx32")
+  // No cylinder pressures in the export, so no SAC row at all.
+  await expect(figure(page, "SAC rate")).toHaveCount(0)
+  await expect(figure(page, "Gas")).toHaveText("Nitrox 32.0%")
   await expect(figure(page, "Max PO₂")).toHaveText("1.38bar")
   await expect(figure(page, "MOD at 1.4 bar")).toHaveText("33.2m")
   // Subsurface's own figures for the dive (packages/core/test/subsurface.ts).
   await expect(figure(page, "CNS at end")).toHaveText("15%")
   await expect(figure(page, "OTU")).toHaveText("41")
   await expect(page.getByText("Suunto D4i")).toBeVisible()
+})
+
+test("explains the OTU limit when its info is tapped", async ({
+  page,
+  request,
+}) => {
+  await page.goto(`/dive/${await diveId(request, 63)}`)
+  await page.getByRole("button", { name: "About OTU" }).click()
+  const note = page.getByText("NOAA’s limit for repeated days of diving")
+  await expect(note).toBeVisible()
+  await page.keyboard.press("Escape")
+  await expect(note).toBeHidden()
 })
 
 test("sends the Log link to a fresh Log when the dive was opened directly", async ({
@@ -131,10 +143,50 @@ test("shows a dive with no samples with its figures and the no-profile note @wri
   await expect(figure(page, "Max depth")).toHaveText("18.6m")
   await expect(figure(page, "Duration")).toHaveText("41min")
   await expect(figure(page, "Avg depth")).toHaveText("—")
-  await expect(figure(page, "Gas").first()).toHaveText("Air")
+  await expect(figure(page, "Gas")).toHaveText("Air")
   await expect(figure(page, "CNS at end")).toHaveText("—")
   await expect(page.getByText("No dive computer profile.")).toBeVisible()
   await expect(page.getByText("Two green turtles")).toBeVisible()
+})
+
+test("sets a dive's SAC rate against the five before it @writes", async ({
+  page,
+  request,
+  restore,
+}) => {
+  const log = await getLog(request)
+  const siteId = log.sites.find((site) => site.name === "Sodwana")!.id
+  const ids: string[] = []
+  // Six dives with pressures, a day apart, the last breathing the least.
+  for (const [day, endPressure] of [60, 70, 50, 80, 60, 100].entries()) {
+    const id = `dive-${crypto.randomUUID()}`
+    ids.push(id)
+    restore((request) => deleteDive(request, id))
+    await uploadDive(request, id, {
+      startTime: `2026-10-${String(day + 20)}T09:30:00`,
+      siteId,
+      duration: 2700,
+      maxDepth: 18,
+      averageDepth: 12,
+      cylinderVolume: 12000,
+      startPressure: 200,
+      endPressure,
+    })
+  }
+
+  // The first has no earlier rates, so its SAC shows alone.
+  await page.goto(`/dive/${ids[0]}`)
+  await expect(figure(page, "SAC rate")).toHaveText(/^\d+\.\dL\/min$/)
+  await expect(
+    page.getByRole("button", { name: "About the SAC comparison" })
+  ).toHaveCount(0)
+
+  await page.goto(`/dive/${ids[5]}`)
+  await expect(figure(page, "SAC rate")).toContainText(
+    "lower than your last 5 dives"
+  )
+  await page.getByRole("button", { name: "About the SAC comparison" }).click()
+  await expect(page.getByText("Against your recent dives")).toBeVisible()
 })
 
 test.describe("screenshots", () => {

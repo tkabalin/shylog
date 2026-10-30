@@ -24,7 +24,9 @@ import {
   IconArrowBarToDown,
   IconArrowBarToDownDashed,
   IconArrowsHorizontal,
+  IconArrowDown,
   IconArrowsDiff,
+  IconArrowUp,
   IconArrowWaveRightUp,
   IconBarbell,
   IconBuildingStore,
@@ -38,6 +40,7 @@ import {
   IconEyeOff,
   IconFish,
   IconHourglass,
+  IconInfoCircle,
   IconMap,
   IconNotes,
   IconPencil,
@@ -76,6 +79,14 @@ import {
 } from "@/components/ui/breadcrumb"
 import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { DeleteSheet, takeLeave } from "@/dive/delete-sheet"
 import { useBack } from "@/you/bar"
 import { restore } from "@/dive/restore"
@@ -83,14 +94,13 @@ import type { Dive } from "@/data/db"
 import { currentLog, useLog, type LogView } from "@/data/log"
 import { loadProfile, retryProfile } from "@/data/samples"
 import { useSaveCelebration } from "@/dive/celebration"
-import { diveFigures } from "@/dive/figures"
+import { diveFigures, recentSac } from "@/dive/figures"
 import { computerName, differences } from "@/dive/form/values"
 import { clockTime, deletedDay, longDate } from "@/format/dates"
 import {
   bar,
   depth,
   gasDetail,
-  gasName,
   interval,
   litres,
   minutes,
@@ -530,6 +540,13 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
 
         <Section title="Figures">
           <Card className="gap-0 py-0">
+            {/* A row of its own, for the width its comparison needs. The
+                gas the board shows here is under Cylinder and gas. */}
+            {figures.sac != null && (
+              <dl className="border-b">
+                <SacFigure sac={figures.sac} rates={recentSac(dive, log)} />
+              </dl>
+            )}
             <dl className="grid grid-cols-2 *:border-border *:even:border-l *:nth-[n+3]:border-t">
               <Figure
                 term="Water temperature"
@@ -538,11 +555,6 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
                   dive.maxTemperature
                 )}
                 unit="°C"
-              />
-              <Figure
-                term="SAC rate"
-                value={figures.sac != null ? figures.sac.toFixed(1) : null}
-                unit="L/min"
               />
               <Figure
                 term="Surface interval"
@@ -555,14 +567,21 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
                 unit="min"
               />
               <Figure
-                term="Gas"
-                value={gasName(dive.nitrox ? dive.oxygen : null)}
-              />
-              <Figure
                 term="Max PO₂"
                 value={figures.maxPo2 != null ? bar(figures.maxPo2) : null}
                 unit="bar"
                 warn={figures.po2Over}
+                // Up to just past the setting, so its mark sits near the end.
+                meter={
+                  figures.maxPo2 != null && (
+                    <Meter
+                      value={figures.maxPo2}
+                      max={figures.limit + 0.2}
+                      mark={figures.limit}
+                      over={figures.po2Over}
+                    />
+                  )
+                }
               />
               <Figure
                 term={`MOD at ${figures.limit} bar`}
@@ -573,10 +592,30 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
                 term="CNS at end"
                 value={dive.cns != null ? String(dive.cns) : null}
                 unit="%"
+                warn={dive.cns != null && dive.cns > 100}
+                info={
+                  <Info term="CNS" title="CNS oxygen clock">
+                    Shown against NOAA’s 100% limit. It carries over between
+                    dives and halves every 90 minutes at the surface.
+                  </Info>
+                }
+                meter={
+                  dive.cns != null && (
+                    <Meter value={dive.cns} max={100} over={dive.cns > 100} />
+                  )
+                }
               />
               <Figure
                 term="OTU"
                 value={dive.otu != null ? String(dive.otu) : null}
+                // No bar: NOAA's limit is per day, and a bar for one dive
+                // would look safe on a day that went past it.
+                info={
+                  <Info term="OTU" title="Oxygen tolerance units">
+                    NOAA’s limit for repeated days of diving is 300 OTU a day,
+                    across all the day’s dives. A single day allows up to 850.
+                  </Info>
+                }
               />
             </dl>
           </Card>
@@ -790,20 +829,30 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
+// Bars sit on the label's line rather than under it, so a cell with one is
+// no taller than its neighbour.
 function Figure({
   term,
   value,
   unit,
   warn,
+  info,
+  meter,
 }: {
   term: string
   value: string | null
   unit?: string
   warn?: boolean
+  info?: ReactNode
+  meter?: ReactNode
 }) {
   return (
     <div className="flex flex-col-reverse gap-px px-4 py-3">
-      <dt className="text-xs text-muted-foreground">{term}</dt>
+      <dt className="flex min-h-4 items-center gap-1 text-xs whitespace-nowrap text-muted-foreground">
+        {term}
+        {info}
+        {meter}
+      </dt>
       <dd
         className={cn(
           "text-lg leading-6 font-semibold tracking-[-0.02em] tabular-nums",
@@ -827,6 +876,155 @@ function Figure({
         )}
       </dd>
     </div>
+  )
+}
+
+// How far a figure is towards its limit. The number beside it says it all
+// for a screen reader, so the bar is hidden from one. It fills the line
+// after the label, so the bars in a column end together.
+function Meter({
+  value,
+  max,
+  mark,
+  over,
+}: {
+  value: number
+  max: number
+  mark?: number
+  over?: boolean
+}) {
+  return (
+    <span aria-hidden className="flex min-w-11 flex-1 pl-2">
+      <span className="relative h-1 w-full rounded-full bg-foreground/8">
+        <span
+          className={cn(
+            "absolute inset-y-0 left-0 rounded-full",
+            over ? "bg-destructive" : "bg-primary"
+          )}
+          style={{ width: `${Math.min(value / max, 1) * 100}%` }}
+        />
+        {mark != null && (
+          <span
+            className="absolute -inset-y-0.75 -ml-px w-0.5 rounded-[1px] bg-foreground/55"
+            style={{ left: `${(mark / max) * 100}%` }}
+          />
+        )}
+      </span>
+    </span>
+  )
+}
+
+// Tapped, not hovered, so it works on a phone. The icon's hit area reaches
+// 44px around it.
+function Info({
+  term,
+  title,
+  children,
+}: {
+  term: string
+  title: string
+  children: ReactNode
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger
+        aria-label={`About ${term}`}
+        className="relative inline-grid size-4 shrink-0 place-items-center rounded-full outline-offset-2 transition-opacity duration-150 after:absolute after:-inset-3.5 hover:opacity-70 active:opacity-50 active:duration-0"
+      >
+        <IconInfoCircle aria-hidden className="size-[15px]" />
+      </PopoverTrigger>
+      <PopoverContent>
+        <PopoverHeader>
+          <PopoverTitle>{title}</PopoverTitle>
+          <PopoverDescription>{children}</PopoverDescription>
+        </PopoverHeader>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+// SAC means little alone, since it's personal, so it's set against the
+// diver's recent dives: how far from their average, and where it falls in
+// their range. Without five earlier rates it shows alone.
+function SacFigure({ sac, rates }: { sac: number; rates: number[] | null }) {
+  const average = rates && rates.reduce((a, b) => a + b, 0) / rates.length
+  // Rounded as shown, so a difference that shows as 0.0 has no arrow.
+  const difference = average != null ? Number((sac - average).toFixed(1)) : 0
+  const Arrow = difference < 0 ? IconArrowDown : IconArrowUp
+  const away =
+    difference === 0
+      ? "the same as"
+      : `${Math.abs(difference).toFixed(1)} ${difference < 0 ? "lower" : "higher"} than`
+  return (
+    <div className="flex flex-col-reverse gap-px px-4 py-3">
+      <dt className="flex min-h-4 items-center gap-1 text-xs text-muted-foreground">
+        SAC rate
+        {rates && average != null && (
+          <>
+            <Info term="the SAC comparison" title="Against your recent dives">
+              The band is the range of your 5 dives with a SAC rate before this
+              one, the line their average, and the dot this dive. Lower uses
+              less gas.
+            </Info>
+            <Spread rates={rates} average={average} sac={sac} />
+          </>
+        )}
+      </dt>
+      <dd className="flex items-baseline text-lg leading-6 font-semibold tracking-[-0.02em] tabular-nums">
+        {sac.toFixed(1)}
+        <span className="ml-0.5 text-[13px] font-medium tracking-normal text-muted-foreground">
+          L/min
+        </span>
+        {rates && (
+          <span className="ml-auto self-center pl-3 text-[13px] font-medium tracking-normal text-muted-foreground">
+            <span aria-hidden className="inline-flex items-center gap-0.5">
+              {difference !== 0 && <Arrow className="size-3.5 stroke-[2.25]" />}
+              {Math.abs(difference).toFixed(1)} vs last 5
+            </span>
+            <span className="sr-only">, {away} your last 5 dives</span>
+          </span>
+        )}
+      </dd>
+    </div>
+  )
+}
+
+// The five earlier rates' range as a band, their average as a line, and
+// this dive as a dot, padded so the dot never sits on the strip's end.
+function Spread({
+  rates,
+  average,
+  sac,
+}: {
+  rates: number[]
+  average: number
+  sac: number
+}) {
+  const low = Math.min(...rates)
+  const high = Math.max(...rates)
+  const pad = Math.max((Math.max(high, sac) - Math.min(low, sac)) * 0.15, 0.3)
+  const start = Math.min(low, sac) - pad
+  const span = Math.max(high, sac) + pad - start
+  const at = (rate: number) => ((rate - start) / span) * 100
+  return (
+    <span
+      aria-hidden
+      className="relative ml-auto h-3 w-[58%] max-w-60 shrink-0"
+    >
+      <span className="absolute inset-x-0 top-[5px] h-0.5 rounded-full bg-foreground/8" />
+      <span
+        className="absolute top-[3px] h-1.5 rounded-full bg-primary/35"
+        style={{ left: `${at(low)}%`, width: `${at(high) - at(low)}%` }}
+      />
+      <span
+        className="absolute inset-y-px -ml-px w-0.5 rounded-[1px] bg-foreground/55"
+        style={{ left: `${at(average)}%` }}
+      />
+      <span
+        className="absolute top-0.5 -ml-1 size-2 rounded-full bg-primary ring-2 ring-card"
+        style={{ left: `${at(sac)}%` }}
+      />
+    </span>
   )
 }
 
