@@ -362,7 +362,12 @@ export function EntityDetail({
 
   // Always in the bar and off until an edit, as the dive form's Save and
   // iOS's edit screens are, so nothing pops in with the first keystroke.
-  const saveButton = (
+  // A desktop's is filled, as the form's header draws it.
+  const saveButton = desk ? (
+    <Button disabled={!changed || pending || busy} onClick={save}>
+      Save
+    </Button>
+  ) : (
     <BarButton strong disabled={!changed || pending || busy} onClick={save}>
       Save
     </BarButton>
@@ -372,7 +377,8 @@ export function EntityDetail({
     <div className="flex flex-col">
       <PageBar
         back={{ label: label.title, to: "/you/entities", search: { kind } }}
-        end={desk ? undefined : saveButton}
+        crumb={saved.name}
+        end={saveButton}
       />
       <div className="flex flex-col gap-6 px-4 pt-3 pb-10 md:mx-auto md:w-full md:max-w-xl">
         <section className="flex flex-col gap-1 px-1">
@@ -497,24 +503,6 @@ export function EntityDetail({
             <p role="alert" className="mt-2 px-1 text-[13px] text-destructive">
               {error}
             </p>
-          )}
-          {desk && changed && !pending && (
-            <div className="mt-3 flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setValues(base)
-                  setNameError(undefined)
-                  setConflict(undefined)
-                  setError(undefined)
-                }}
-              >
-                Cancel
-              </Button>
-              <Button disabled={busy} onClick={save}>
-                Save
-              </Button>
-            </div>
           )}
         </div>
 

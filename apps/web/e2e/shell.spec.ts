@@ -237,6 +237,32 @@ test.describe("at desktop width", () => {
     await expect(page).toHaveURL("/")
   })
 
+  test("moves through You's screens by breadcrumbs", async ({ page }) => {
+    await page.goto("/you")
+    await page.getByRole("link", { name: /^Sites/ }).click()
+    await expect(page).toHaveURL("/you/entities?kind=site")
+    const site = page.locator("#main a[href^='/you/entities/site/']").first()
+    const href = (await site.getAttribute("href"))!
+    await site.click()
+    await expect(page).toHaveURL(href)
+    // The site's Save is the header's filled button, off until an edit.
+    await expect(
+      page.getByRole("button", { name: "Save", exact: true })
+    ).toBeDisabled()
+    const crumbs = page.getByRole("navigation", { name: "breadcrumb" })
+    await expect(crumbs.locator("[aria-current=page]")).toHaveText(
+      (await page.getByRole("heading", { level: 1 }).textContent())!
+    )
+
+    // Pushed from the list, so each breadcrumb pops back to it.
+    await crumbs.getByRole("link", { name: "Sites" }).click()
+    await expect(page).toHaveURL("/you/entities?kind=site")
+    await crumbs.getByRole("link", { name: "You" }).click()
+    await expect(page).toHaveURL("/you")
+    await page.goForward()
+    await expect(page).toHaveURL("/you/entities?kind=site")
+  })
+
   test("types the surface interval in boxes", async ({ page }) => {
     await page.goto("/dive/new")
     const row = page.getByRole("button", { name: /^Surface interval/ })
