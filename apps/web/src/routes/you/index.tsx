@@ -36,7 +36,7 @@ import { countText } from "@/components/pickers/match"
 import { parseMaxPo2 } from "@/you/defaults"
 import { DefaultsSection } from "@/you/defaults-section"
 import { kindLabels } from "@/you/kinds"
-import { listRow, pressable, RowContent, SaveLine } from "@/you/parts"
+import { listRow, pressable, RowContent, SaveFailure } from "@/you/parts"
 
 export const Route = createFileRoute("/you/")({
   component: YouPage,
@@ -281,7 +281,6 @@ function DiverCard({ settings }: { settings?: Settings }) {
   const stored = settings?.diverName ?? ""
   const [name, setName] = useState(stored)
   const [base, setBase] = useState(stored)
-  const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<string>()
   const changed = name !== base
   // A sync that brings a new name shows it unless one is being typed.
@@ -289,21 +288,23 @@ function DiverCard({ settings }: { settings?: Settings }) {
     setBase(stored)
     setName(stored)
   }
+  // Saved as the field is left (Return leaves it too).
   const save = async () => {
-    setBusy(true)
+    const typed = name
+    const sent = typed.trim()
+    if (sent === base) {
+      setName(base)
+      return
+    }
     setFailure(undefined)
     try {
-      const sent = name
-      await commit(
-        apiClient().api.settings.$put({ json: { diverName: sent.trim() } })
-      )
-      setBase(sent.trim())
+      await commit(apiClient().api.settings.$put({ json: { diverName: sent } }))
+      setBase(sent)
       // Anything typed while it saved stays.
-      setName((was) => (was === sent ? sent.trim() : was))
+      setName((was) => (was === typed ? sent : was))
     } catch (error) {
+      setName((was) => (was === typed ? base : was))
       setFailure(error instanceof Error ? error.message : String(error))
-    } finally {
-      setBusy(false)
     }
   }
   return (
@@ -318,6 +319,7 @@ function DiverCard({ settings }: { settings?: Settings }) {
             id="you-diverName"
             value={name}
             onChange={(event) => setName(event.target.value)}
+            onBlur={() => void save()}
             placeholder="Your name"
             autoComplete="name"
             autoCapitalize="words"
@@ -336,16 +338,7 @@ function DiverCard({ settings }: { settings?: Settings }) {
           <RowContent label="Certifications" />
         </button>
       </Card>
-      <SaveLine
-        shown={changed}
-        busy={busy}
-        error={failure}
-        onSave={save}
-        onCancel={() => {
-          setName(base)
-          setFailure(undefined)
-        }}
-      />
+      <SaveFailure error={failure} />
     </div>
   )
 }
@@ -357,7 +350,6 @@ function Preferences({ settings }: { settings: Settings }) {
   const [maxPo2, setMaxPo2] = useState(stored)
   const [base, setBase] = useState(stored)
   const [error, setError] = useState<string>()
-  const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<string>()
   const changed = maxPo2 !== base
   // A sync that brings a new value shows it unless one is being typed.
@@ -365,8 +357,11 @@ function Preferences({ settings }: { settings: Settings }) {
     setBase(stored)
     setMaxPo2(stored)
   }
+  // Saved as the field is left. A value it refuses stays, with the
+  // problem under it, until it's corrected.
   const save = async () => {
-    const { error: found, value } = parseMaxPo2(maxPo2)
+    const typed = maxPo2
+    const { error: found, value } = parseMaxPo2(typed)
     setError(found)
     if (value === undefined) return
     // A comma for a point, say: nothing to send.
@@ -374,15 +369,13 @@ function Preferences({ settings }: { settings: Settings }) {
       setMaxPo2(base)
       return
     }
-    setBusy(true)
     setFailure(undefined)
     try {
       await commit(apiClient().api.settings.$put({ json: { maxPo2: value } }))
-      setBase(maxPo2)
+      setBase(typed)
     } catch (error) {
+      setMaxPo2((was) => (was === typed ? base : was))
       setFailure(error instanceof Error ? error.message : String(error))
-    } finally {
-      setBusy(false)
     }
   }
   return (
@@ -400,6 +393,7 @@ function Preferences({ settings }: { settings: Settings }) {
                   setMaxPo2(event.target.value)
                   setError(undefined)
                 }}
+                onBlur={() => void save()}
                 placeholder="1.4"
                 aria-invalid={!!error || undefined}
                 aria-describedby={error ? "error-maxPo2" : undefined}
@@ -410,22 +404,12 @@ function Preferences({ settings }: { settings: Settings }) {
           </div>
         </Section>
       </PlainLabels.Provider>
-      <SaveLine
-        shown={changed}
-        busy={busy}
-        error={failure}
-        onSave={save}
-        onCancel={() => {
-          setMaxPo2(base)
-          setError(undefined)
-          setFailure(undefined)
-        }}
-      />
+      <SaveFailure error={failure} />
     </div>
   )
 }
 
-// Applies at once and stays on this phone, so it needs no Save.
+// Applies at once and stays on this phone, never reaching the server.
 function Appearance() {
   const { theme, setTheme } = useTheme()
   return (

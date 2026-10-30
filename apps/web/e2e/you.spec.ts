@@ -12,31 +12,28 @@ async function keepSettings(
   return settings
 }
 
-// Each section's Save line stays mounted, folded away, until it changes.
-const visible = (page: Page, name: string) =>
-  page.getByRole("button", { name, exact: true }).locator("visible=true")
-
 const row = (page: Page, label: string) =>
   page.locator("div", { has: page.getByText(label, { exact: true }) }).last()
 
-test("saves the diver name and maximum PO₂ with Save @writes", async ({
+const settings = async (page: Page) => (await getLog(page.request)).settings
+
+test("saves the diver name and maximum PO₂ as their field is left @writes", async ({
   page,
   restore,
 }) => {
   await keepSettings(page, restore)
   await page.goto("/you")
-  const save = visible(page, "Save")
-  await expect(save).toHaveCount(0)
 
+  // Return leaves the field, as on the phone's keyboard.
   await page.getByLabel("Diver name").fill("E2E Diver")
-  await save.click()
-  await expect(save).toHaveCount(0)
-  expect((await getLog(page.request)).settings.diverName).toBe("E2E Diver")
+  await page.getByLabel("Diver name").press("Enter")
+  await expect
+    .poll(async () => (await settings(page)).diverName)
+    .toBe("E2E Diver")
 
   await page.getByLabel("Maximum PO₂").fill("1,5")
-  await save.click()
-  await expect(save).toHaveCount(0)
-  expect((await getLog(page.request)).settings.maxPo2).toBe(1.5)
+  await page.getByLabel("Maximum PO₂").blur()
+  await expect.poll(async () => (await settings(page)).maxPo2).toBe(1.5)
   // Shown as saved once the page reloads from the server's copy.
   await page.reload()
   await expect(page.getByLabel("Diver name")).toHaveValue("E2E Diver")
@@ -52,13 +49,28 @@ test("shows a refused value under its field and keeps it @writes", async ({
   const { maxPo2 } = await keepSettings(page, restore)
   await page.goto("/you")
   await page.getByLabel("Maximum PO₂").fill("2.5")
-  await visible(page, "Save").click()
+  await page.getByLabel("Maximum PO₂").blur()
   await expect(
     page.getByText("From 1.0 to 2.0 bar, in steps of 0.1")
   ).toBeVisible()
   await expect(page.getByLabel("Maximum PO₂")).toHaveValue("2.5")
-  await visible(page, "Cancel").click()
-  await expect(page.getByLabel("Maximum PO₂")).toHaveValue(maxPo2.toFixed(1))
+  expect((await settings(page)).maxPo2).toBe(maxPo2)
+})
+
+test("puts the saved value back when a save fails @writes", async ({
+  page,
+  restore,
+}) => {
+  const { diverName } = await keepSettings(page, restore)
+  await page.goto("/you")
+  await page.route("**/api/settings", (route) =>
+    route.request().method() === "PUT" ? route.abort() : route.fallback()
+  )
+  await page.getByLabel("Diver name").fill("E2E Unsaved")
+  await page.getByLabel("Diver name").blur()
+  await expect(page.getByRole("alert")).toBeVisible()
+  await expect(page.getByLabel("Diver name")).toHaveValue(diverName)
+  expect((await settings(page)).diverName).toBe(diverName)
 })
 
 test("sets new-dive defaults in the form's controls, which fill a new dive @writes", async ({
@@ -67,20 +79,27 @@ test("sets new-dive defaults in the form's controls, which fill a new dive @writ
 }) => {
   await keepSettings(page, restore)
   await page.goto("/you")
+  // A tap saves at once.
   await page.getByRole("button", { name: "Steel" }).click()
+  await expect
+    .poll(async () => (await settings(page)).newDiveDefaults.cylinderMaterial)
+    .toBe("steel")
   await page.getByLabel("Volume").fill("12")
+  // Nitrox waits for its oxygen rather than calling it missing.
   await page.getByLabel("Nitrox").check()
+  await expect(page.getByText("Required for nitrox")).toHaveCount(0)
   await page.getByLabel("Oxygen").fill("32")
   await page.getByLabel("Weight").fill("6")
-  await visible(page, "Save").click()
-  await expect(visible(page, "Save")).toHaveCount(0)
-  expect((await getLog(page.request)).settings.newDiveDefaults).toMatchObject({
-    cylinderMaterial: "steel",
-    cylinderVolume: 12_000,
-    nitrox: true,
-    oxygen: 320,
-    weight: 6,
-  })
+  await page.getByLabel("Weight").blur()
+  await expect
+    .poll(async () => (await settings(page)).newDiveDefaults)
+    .toMatchObject({
+      cylinderMaterial: "steel",
+      cylinderVolume: 12_000,
+      nitrox: true,
+      oxygen: 320,
+      weight: 6,
+    })
 
   await page.goto("/dive/new")
   await expect(page.getByRole("button", { name: "Steel" })).toHaveAttribute(
