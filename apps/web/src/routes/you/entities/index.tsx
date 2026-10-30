@@ -142,6 +142,8 @@ function EntitiesPage() {
           value={q}
           onChange={(next) => setSearch({ q: next || undefined })}
           label={`Search ${label.title.toLowerCase()}`}
+          // A desktop's as compact as the Log's.
+          className="desk:h-9 desk:rounded-lg"
         />
       </div>
       {/* Nothing until the first sync has filled the log, so a fresh
