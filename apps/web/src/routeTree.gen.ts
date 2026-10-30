@@ -19,9 +19,11 @@ import { Route as DevUiRouteImport } from './routes/dev.ui'
 import { Route as DiveDiveIdRouteImport } from './routes/dive/$diveId'
 import { Route as DiveNewRouteImport } from './routes/dive/new'
 import { Route as YouIndexRouteImport } from './routes/you/index'
+import { Route as YouCertificationsRouteRouteImport } from './routes/you/certifications/route'
 import { Route as YouDeletedRouteImport } from './routes/you/deleted'
 import { Route as DiveDiveIdProfileRouteImport } from './routes/dive/$diveId.profile'
 import { Route as DiveDiveIdEditRouteImport } from './routes/dive/$diveId_.edit'
+import { Route as YouCertificationsCardIdRouteImport } from './routes/you/certifications/$cardId'
 import { Route as YouEntitiesIndexRouteImport } from './routes/you/entities/index'
 import { Route as YouEntitiesKindIdRouteImport } from './routes/you/entities/$kind.$id'
 
@@ -75,6 +77,11 @@ const YouIndexRoute = YouIndexRouteImport.update({
   path: '/you/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const YouCertificationsRouteRoute = YouCertificationsRouteRouteImport.update({
+  id: '/you/certifications',
+  path: '/you/certifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const YouDeletedRoute = YouDeletedRouteImport.update({
   id: '/you/deleted',
   path: '/you/deleted',
@@ -89,6 +96,11 @@ const DiveDiveIdEditRoute = DiveDiveIdEditRouteImport.update({
   id: '/dive/$diveId_/edit',
   path: '/dive/$diveId/edit',
   getParentRoute: () => rootRouteImport,
+} as any)
+const YouCertificationsCardIdRoute = YouCertificationsCardIdRouteImport.update({
+  id: '/$cardId',
+  path: '/$cardId',
+  getParentRoute: () => YouCertificationsRouteRoute,
 } as any)
 const YouEntitiesIndexRoute = YouEntitiesIndexRouteImport.update({
   id: '/you/entities/',
@@ -106,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/you/certifications': typeof YouCertificationsRouteRouteWithChildren
   '/dev/cards': typeof DevCardsRoute
   '/dev/profile': typeof DevProfileRoute
   '/dev/ui': typeof DevUiRoute
@@ -115,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/you/': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
   '/dive/$diveId/edit': typeof DiveDiveIdEditRoute
+  '/you/certifications/$cardId': typeof YouCertificationsCardIdRoute
   '/you/entities/': typeof YouEntitiesIndexRoute
   '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
 }
@@ -123,6 +137,7 @@ export interface FileRoutesByTo {
   '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/you/certifications': typeof YouCertificationsRouteRouteWithChildren
   '/dev/cards': typeof DevCardsRoute
   '/dev/profile': typeof DevProfileRoute
   '/dev/ui': typeof DevUiRoute
@@ -132,6 +147,7 @@ export interface FileRoutesByTo {
   '/you': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
   '/dive/$diveId/edit': typeof DiveDiveIdEditRoute
+  '/you/certifications/$cardId': typeof YouCertificationsCardIdRoute
   '/you/entities': typeof YouEntitiesIndexRoute
   '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
 }
@@ -141,6 +157,7 @@ export interface FileRoutesById {
   '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/you/certifications': typeof YouCertificationsRouteRouteWithChildren
   '/dev/cards': typeof DevCardsRoute
   '/dev/profile': typeof DevProfileRoute
   '/dev/ui': typeof DevUiRoute
@@ -150,6 +167,7 @@ export interface FileRoutesById {
   '/you/': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
   '/dive/$diveId_/edit': typeof DiveDiveIdEditRoute
+  '/you/certifications/$cardId': typeof YouCertificationsCardIdRoute
   '/you/entities/': typeof YouEntitiesIndexRoute
   '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
 }
@@ -160,6 +178,7 @@ export interface FileRouteTypes {
     | '/import'
     | '/settings'
     | '/stats'
+    | '/you/certifications'
     | '/dev/cards'
     | '/dev/profile'
     | '/dev/ui'
@@ -169,6 +188,7 @@ export interface FileRouteTypes {
     | '/you/'
     | '/dive/$diveId/profile'
     | '/dive/$diveId/edit'
+    | '/you/certifications/$cardId'
     | '/you/entities/'
     | '/you/entities/$kind/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -177,6 +197,7 @@ export interface FileRouteTypes {
     | '/import'
     | '/settings'
     | '/stats'
+    | '/you/certifications'
     | '/dev/cards'
     | '/dev/profile'
     | '/dev/ui'
@@ -186,6 +207,7 @@ export interface FileRouteTypes {
     | '/you'
     | '/dive/$diveId/profile'
     | '/dive/$diveId/edit'
+    | '/you/certifications/$cardId'
     | '/you/entities'
     | '/you/entities/$kind/$id'
   id:
@@ -194,6 +216,7 @@ export interface FileRouteTypes {
     | '/import'
     | '/settings'
     | '/stats'
+    | '/you/certifications'
     | '/dev/cards'
     | '/dev/profile'
     | '/dev/ui'
@@ -203,6 +226,7 @@ export interface FileRouteTypes {
     | '/you/'
     | '/dive/$diveId/profile'
     | '/dive/$diveId_/edit'
+    | '/you/certifications/$cardId'
     | '/you/entities/'
     | '/you/entities/$kind/$id'
   fileRoutesById: FileRoutesById
@@ -212,6 +236,7 @@ export interface RootRouteChildren {
   ImportRoute: typeof ImportRoute
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
+  YouCertificationsRouteRoute: typeof YouCertificationsRouteRouteWithChildren
   DevCardsRoute: typeof DevCardsRoute
   DevProfileRoute: typeof DevProfileRoute
   DevUiRoute: typeof DevUiRoute
@@ -296,6 +321,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof YouIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/you/certifications': {
+      id: '/you/certifications'
+      path: '/you/certifications'
+      fullPath: '/you/certifications'
+      preLoaderRoute: typeof YouCertificationsRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/you/deleted': {
       id: '/you/deleted'
       path: '/you/deleted'
@@ -317,6 +349,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DiveDiveIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/you/certifications/$cardId': {
+      id: '/you/certifications/$cardId'
+      path: '/$cardId'
+      fullPath: '/you/certifications/$cardId'
+      preLoaderRoute: typeof YouCertificationsCardIdRouteImport
+      parentRoute: typeof YouCertificationsRouteRoute
+    }
     '/you/entities/': {
       id: '/you/entities/'
       path: '/you/entities'
@@ -333,6 +372,20 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface YouCertificationsRouteRouteChildren {
+  YouCertificationsCardIdRoute: typeof YouCertificationsCardIdRoute
+}
+
+const YouCertificationsRouteRouteChildren: YouCertificationsRouteRouteChildren =
+  {
+    YouCertificationsCardIdRoute: YouCertificationsCardIdRoute,
+  }
+
+const YouCertificationsRouteRouteWithChildren =
+  YouCertificationsRouteRoute._addFileChildren(
+    YouCertificationsRouteRouteChildren,
+  )
 
 interface DiveDiveIdRouteChildren {
   DiveDiveIdProfileRoute: typeof DiveDiveIdProfileRoute
@@ -351,6 +404,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImportRoute: ImportRoute,
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
+  YouCertificationsRouteRoute: YouCertificationsRouteRouteWithChildren,
   DevCardsRoute: DevCardsRoute,
   DevProfileRoute: DevProfileRoute,
   DevUiRoute: DevUiRoute,

@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-  type ReactNode,
-} from "react"
+import { useEffect, useRef, type MouseEvent, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { IconX } from "@tabler/icons-react"
 import { cn } from "cn"
@@ -25,6 +19,7 @@ import { useLog, type LogView } from "@/data/log"
 import { profileKey } from "@/data/samples"
 import { diveFigures } from "@/dive/figures"
 import { longDate } from "@/format/dates"
+import { useFullScreen } from "@/hooks/use-full-screen"
 import { useMediaQuery } from "@/hooks/use-media-query"
 
 declare module "@tanstack/react-router" {
@@ -156,23 +151,7 @@ function FullScreen({ dive, log }: { dive: Dive; log: LogView }) {
     )
   }
 
-  // Settled a frame after it mounts, not by @starting-style: WebKit can skip
-  // a transition begun inside the long task of the tap that opened it.
-  const [entered, setEntered] = useState(false)
-  useEffect(() => {
-    const frame = requestAnimationFrame(() => setEntered(true))
-    return () => cancelAnimationFrame(frame)
-  }, [])
-
-  // Over the whole app, which it takes out of reach (and out of the
-  // accessibility tree) while it's open.
-  useEffect(() => {
-    const app = document.getElementById("root")!
-    app.inert = true
-    return () => {
-      app.inert = false
-    }
-  }, [])
+  const entered = useFullScreen()
 
   return createPortal(
     // It settles in from the centre, as a modal does, rather than growing
