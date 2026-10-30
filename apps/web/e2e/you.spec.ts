@@ -17,6 +17,25 @@ const row = (page: Page, label: string) =>
 
 const settings = async (page: Page) => (await getLog(page.request)).settings
 
+// The settings in the phone's copy of the log, which a new dive is filled
+// from: the server can hold a save before the sync after it lands here.
+const mirrored = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<unknown>((resolve, reject) => {
+        const open = indexedDB.open("shylog")
+        open.onupgradeneeded = () => open.transaction!.abort()
+        open.onerror = () => reject(open.error)
+        open.onsuccess = () => {
+          const db = open.result
+          const get = db.transaction("meta").objectStore("meta").get("log")
+          get.onerror = () => reject(get.error)
+          get.onsuccess = () => resolve(get.result?.settings)
+          get.transaction!.oncomplete = () => db.close()
+        }
+      })
+  )
+
 test("saves the diver name and maximum PO₂ as their field is left @writes", async ({
   page,
   restore,
@@ -100,6 +119,10 @@ test("sets new-dive defaults in the form's controls, which fill a new dive @writ
       oxygen: 320,
       weight: 6,
     })
+  // Leaving sooner cuts that sync off, and the form opens on the old ones.
+  await expect
+    .poll(() => mirrored(page))
+    .toMatchObject({ newDiveDefaults: { weight: 6 } })
 
   await page.goto("/dive/new")
   await expect(page.getByRole("button", { name: "Steel" })).toHaveAttribute(
