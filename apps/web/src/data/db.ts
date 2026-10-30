@@ -13,6 +13,8 @@ export type Trip = Log["trips"][number]
 export type Link = Log["links"][number]
 export type FieldMeta = Log["fieldMeta"][number]
 export type Card = Log["cards"][number]
+// Kept with its place in the list, as the table orders rows by id.
+export type StoredCard = Card & { position: number }
 export type Settings = Log["settings"]
 
 // What the mirror knows about itself: the version it holds (its ETag), the
@@ -49,6 +51,16 @@ export interface CachedProfile extends Profile {
   digest: string
 }
 
+// A card's page as fetched, under the hash the log names it by, so a page
+// that changed is a new row and one that didn't is never fetched again.
+export interface CardImage {
+  cardId: string
+  hash: string
+  blob: Blob
+  // Until when a save keeps it from pruning, before its log names it.
+  heldUntil?: number
+}
+
 // One table per collection of /api/log, mirroring it, so the log reads
 // offline. Bump the version when a table or index changes.
 export class LogDb extends Dexie {
@@ -61,9 +73,10 @@ export class LogDb extends Dexie {
   trips!: EntityTable<Trip, "id">
   links!: Dexie.Table<Link, [string, string, string]>
   fieldMeta!: Dexie.Table<FieldMeta, [string, string]>
-  cards!: EntityTable<Card, "id">
+  cards!: EntityTable<StoredCard, "id">
   meta!: Dexie.Table<Meta | Blocked | Synced, string>
   profiles!: EntityTable<CachedProfile, "diveId">
+  cardImages!: Dexie.Table<CardImage, [string, string]>
 
   constructor(name = "shylog") {
     super(name)
@@ -84,6 +97,11 @@ export class LogDb extends Dexie {
     // The digest as an index too, so the background download can see which
     // profiles are kept, and which are stale, without reading any samples.
     this.version(3).stores({ profiles: "diveId, [diveId+digest]" })
+    // Cards kept before this have no place in the list, and an unchanged
+    // server answers 304, so the next sync is made to fetch the whole log.
+    this.version(4)
+      .stores({ cardImages: "[cardId+hash], heldUntil" })
+      .upgrade((tx) => tx.table("meta").update("log", { version: "" }))
   }
 }
 

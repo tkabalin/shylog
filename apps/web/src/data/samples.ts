@@ -137,7 +137,7 @@ let next: [readonly Dive[], DownloadOptions] | undefined
 // would fetch the same batch only to drop it. Other failures retry next sync.
 let full = false
 // Dexie reports a full disk as an abort's inner error, a mock as itself.
-const isQuota = (error: unknown): boolean =>
+export const isQuota = (error: unknown): boolean =>
   error instanceof Object &&
   ((error as { name?: unknown }).name === "QuotaExceededError" ||
     isQuota((error as { inner?: unknown }).inner))

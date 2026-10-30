@@ -9,6 +9,7 @@ import {
   type LogDb,
   type Meta,
 } from "./db"
+import { pruneCardImages } from "./cards"
 import { pruneProfiles } from "./samples"
 
 export type SyncResult = "updated" | "unchanged" | "blocked"
@@ -42,32 +43,39 @@ export async function syncLog(
     })
     return "blocked"
   }
-  await db.transaction("rw", [...collections, "meta", "profiles"], async () => {
-    // Another tab may have written a newer log while this one fetched.
-    const now = (await db.meta.get("log")) as Meta | undefined
-    if (now?.version !== meta?.version) return
-    await Promise.all(collections.map((name) => db[name].clear()))
-    await Promise.all([
-      db.dives.bulkPut(log.dives),
-      db.sites.bulkPut(log.sites),
-      db.countries.bulkPut(log.countries.map((code) => ({ code }))),
-      db.regions.bulkPut(log.regions),
-      db.people.bulkPut(log.people),
-      db.diveCentres.bulkPut(log.diveCentres),
-      db.trips.bulkPut(log.trips),
-      db.links.bulkPut(log.links),
-      db.fieldMeta.bulkPut(log.fieldMeta),
-      db.cards.bulkPut(log.cards),
-      pruneProfiles(db, new Set(log.dives.map((dive) => dive.id))),
-    ])
-    await db.meta.delete("blocked")
-    await db.meta.put({
-      key: "log",
-      version: log.version,
-      schemaVersion: log.schemaVersion,
-      serverTime: log.serverTime,
-      settings: log.settings,
-    })
-  })
+  await db.transaction(
+    "rw",
+    [...collections, "meta", "profiles", "cardImages"],
+    async () => {
+      // Another tab may have written a newer log while this one fetched.
+      const now = (await db.meta.get("log")) as Meta | undefined
+      if (now?.version !== meta?.version) return
+      await Promise.all(collections.map((name) => db[name].clear()))
+      await Promise.all([
+        db.dives.bulkPut(log.dives),
+        db.sites.bulkPut(log.sites),
+        db.countries.bulkPut(log.countries.map((code) => ({ code }))),
+        db.regions.bulkPut(log.regions),
+        db.people.bulkPut(log.people),
+        db.diveCentres.bulkPut(log.diveCentres),
+        db.trips.bulkPut(log.trips),
+        db.links.bulkPut(log.links),
+        db.fieldMeta.bulkPut(log.fieldMeta),
+        db.cards.bulkPut(
+          log.cards.map((card, position) => ({ ...card, position }))
+        ),
+        pruneProfiles(db, new Set(log.dives.map((dive) => dive.id))),
+        pruneCardImages(db, log.cards),
+      ])
+      await db.meta.delete("blocked")
+      await db.meta.put({
+        key: "log",
+        version: log.version,
+        schemaVersion: log.schemaVersion,
+        serverTime: log.serverTime,
+        settings: log.settings,
+      })
+    }
+  )
   return "updated"
 }

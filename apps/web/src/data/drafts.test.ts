@@ -200,7 +200,7 @@ describe("drafts", () => {
     await queue.open()
     await db.open()
     expect(queue.verno).toBe(1)
-    expect(db.verno).toBe(3)
+    expect(db.verno).toBe(4)
 
     await saveDraft("dive-new", fields(), [site], queue)
     await syncLog({ db, fetch: vi.fn(async () => Response.json(log("v1"))) })
