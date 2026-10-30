@@ -28,15 +28,16 @@ test("renames a site with Save @writes", async ({ page, restore }) => {
   await page.goto(`/you/entities?kind=site&q=${encodeURIComponent(name)}`)
   await page.getByRole("link", { name: new RegExp(`^${name},`) }).click()
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(name)
+  // In the bar from the start, and off until something changes.
   const save = page.getByRole("button", { name: "Save", exact: true })
-  await expect(save).toHaveCount(0)
+  await expect(save).toBeDisabled()
 
   await page.getByLabel("Name").fill(`${name} North`)
   await save.click()
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     `${name} North`
   )
-  await expect(save).toHaveCount(0)
+  await expect(save).toBeDisabled()
   const log = await getLog(page.request)
   expect(log.sites.find((site) => site.id === id)?.name).toBe(`${name} North`)
   // Back returns to the list it was opened from.
