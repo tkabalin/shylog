@@ -360,8 +360,10 @@ export function EntityDetail({
       : region.name
   }
 
-  const saveButton = changed && !pending && (
-    <BarButton strong disabled={busy} onClick={save}>
+  // Always in the bar and off until an edit, as the dive form's Save and
+  // iOS's edit screens are, so nothing pops in with the first keystroke.
+  const saveButton = (
+    <BarButton strong disabled={!changed || pending || busy} onClick={save}>
       Save
     </BarButton>
   )
