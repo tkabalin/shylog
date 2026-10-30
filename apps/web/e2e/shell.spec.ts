@@ -263,6 +263,24 @@ test.describe("at desktop width", () => {
     await expect(page).toHaveURL("/you/entities?kind=site")
   })
 
+  test("picks a site's region and body of water from selects", async ({
+    page,
+  }) => {
+    await page.goto("/you/entities?kind=site")
+    await page.locator("#main a[href^='/you/entities/site/']").first().click()
+    const body = page.getByRole("combobox", { name: /^Body of water,/ })
+    await body.click()
+    await page.getByRole("option", { name: "Lake or quarry" }).click()
+    await expect(body).toHaveAccessibleName("Body of water, Lake or quarry")
+    // The water follows the body, as in the sheet.
+    await expect(page.getByRole("button", { name: "Fresh" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    )
+    await expect(page.getByRole("combobox", { name: /^Region,/ })).toBeVisible()
+    await expect(page.getByRole("dialog")).toHaveCount(0)
+  })
+
   test("asks before the sidebar leaves an entity with an edit", async ({
     page,
   }) => {

@@ -27,6 +27,7 @@ import { cn } from "cn"
 
 import { LeaveGuard, type Leave } from "@/components/leave-guard"
 import { countText, nameLimit, tidyName } from "@/components/pickers/match"
+import { options } from "@/components/pickers/option-sheet"
 import {
   BarButton,
   FullSheetContent,
@@ -69,6 +70,7 @@ import {
   RowInput,
   Section,
   Segmented,
+  SelectRow,
   type Icon,
 } from "@/dive/form/rows"
 import { clockTime, longDate, months } from "@/format/dates"
@@ -470,25 +472,53 @@ export function EntityDetail({
                 onClick={() => setSheet("country")}
               />
             )}
-            {(kind === "site" || kind === "diveCentre") && (
-              <PickRow
-                label="Region"
-                value={regionName(values.regionId)}
-                empty="Not set"
-                onClick={() => setSheet("region")}
-              />
-            )}
+            {/* A desktop picks from a Select, as the dive form's choices
+                are, where touch opens a sheet. */}
+            {(kind === "site" || kind === "diveCentre") &&
+              (desk ? (
+                <SelectRow
+                  label="Region"
+                  value={values.regionId}
+                  options={regionsHere.map((region) => ({
+                    value: region.id,
+                    label: regionName(region.id)!,
+                  }))}
+                  empty="Not set"
+                  onChange={(region) => set("regionId", region)}
+                />
+              ) : (
+                <PickRow
+                  label="Region"
+                  value={regionName(values.regionId)}
+                  empty="Not set"
+                  onClick={() => setSheet("region")}
+                />
+              ))}
             {kind === "site" && (
               <>
-                <PickRow
-                  label="Body of water"
-                  value={
-                    values.bodyOfWater &&
-                    bodiesOfWater[values.bodyOfWater].label
-                  }
-                  empty="Not set"
-                  onClick={() => setSheet("body")}
-                />
+                {desk ? (
+                  <SelectRow
+                    label="Body of water"
+                    value={values.bodyOfWater}
+                    options={options(bodiesOfWater)}
+                    empty="Not set"
+                    onChange={(body) => {
+                      set("bodyOfWater", body)
+                      // As a new site's does, the water follows the body.
+                      if (body) set("waterType", defaultWaterType(body))
+                    }}
+                  />
+                ) : (
+                  <PickRow
+                    label="Body of water"
+                    value={
+                      values.bodyOfWater &&
+                      bodiesOfWater[values.bodyOfWater].label
+                    }
+                    empty="Not set"
+                    onClick={() => setSheet("body")}
+                  />
+                )}
                 <Row className="py-1.5">
                   <Label id="entity-water">Water</Label>
                   <span className="flex-1" />
