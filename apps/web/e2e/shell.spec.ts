@@ -263,6 +263,32 @@ test.describe("at desktop width", () => {
     await expect(page).toHaveURL("/you/entities?kind=site")
   })
 
+  test("asks before the sidebar leaves an entity with an edit", async ({
+    page,
+  }) => {
+    await page.goto("/you/entities?kind=site")
+    const site = page.locator("#main a[href^='/you/entities/site/']").first()
+    const url = (await site.getAttribute("href"))!
+    await site.click()
+    await expect(page).toHaveURL(url)
+    const name = page.getByRole("textbox", { name: "Name" })
+    await name.fill("Somewhere else")
+    const log = page
+      .getByRole("navigation", { name: "Main" })
+      .getByRole("link", { name: "Log" })
+    const ask = page.getByRole("dialog", { name: "Discard changes?" })
+
+    await log.click()
+    await ask.getByRole("button", { name: "Keep editing" }).click()
+    await expect(ask).toBeHidden()
+    await expect(page).toHaveURL(url)
+    await expect(name).toHaveValue("Somewhere else")
+
+    await log.click()
+    await ask.getByRole("button", { name: "Discard changes" }).click()
+    await expect(page).toHaveURL("/")
+  })
+
   test("types the surface interval in boxes", async ({ page }) => {
     await page.goto("/dive/new")
     const row = page.getByRole("button", { name: /^Surface interval/ })
