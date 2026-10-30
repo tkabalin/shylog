@@ -379,6 +379,33 @@ describe("a new dive", () => {
     const ignored = document.querySelector<HTMLInputElement>("#field-ignored")!
     expect(ignored.checked).toBe(false)
   })
+
+  it("says Copied for a moment after copying the last dive", () => {
+    vi.useFakeTimers()
+    try {
+      const log = testLog({ dives: [testDive({ id: "dive-last" })] })
+      render(
+        <DiveForm
+          title="New dive"
+          log={log}
+          initial={newDiveValues(log.settings, "2026-10-27")}
+          onSave={vi.fn()}
+          onCancel={vi.fn()}
+        />
+      )
+      const row = button(/Copy from last dive/)!
+      // Both labels stay in the row to cross-fade; the other is hidden.
+      const label = () =>
+        row.querySelector("span[aria-hidden=false]")?.textContent
+      expect(label()).toBe("Copy from last dive")
+      click(row)
+      expect(label()).toBe("Copied")
+      act(() => vi.advanceTimersByTime(1500))
+      expect(label()).toBe("Copy from last dive")
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
 
 describe("a synced dive", () => {

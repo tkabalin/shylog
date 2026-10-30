@@ -30,6 +30,7 @@ import {
   IconBarbell,
   IconBuildingStore,
   IconCalendar,
+  IconCheck,
   IconChevronRight,
   IconClock,
   IconClockPause,
@@ -223,6 +224,14 @@ export function DiveForm({
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // Copy from last dive fills fields mostly off screen, so its row says it
+  // worked for a moment.
+  const [copied, setCopied] = useState(false)
+  useEffect(() => {
+    if (!copied) return
+    const timer = setTimeout(() => setCopied(false), 1500)
+    return () => clearTimeout(timer)
+  }, [copied])
   const desk = useDesk()
   // Asks first when something was typed, as an iOS edit sheet does: one
   // stray tap shouldn't throw a dive away.
@@ -657,14 +666,51 @@ export function DiveForm({
             <Card className="py-0">
               <button
                 type="button"
-                onClick={() => update(copyFromDive(values, latest, log))}
+                onClick={() => {
+                  update(copyFromDive(values, latest, log))
+                  setCopied(true)
+                }}
                 className="flex min-h-11.5 w-full items-center gap-3 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
               >
                 {/* One row like the form's own; the last dive's site, which
-                    is what it's remembered by, gives way to the title. */}
-                <span className="flex shrink-0 items-center gap-2 text-base font-medium text-primary">
-                  <IconCopy aria-hidden className="size-4.5" />
-                  Copy from last dive
+                    is what it's remembered by, gives way to the title. Each
+                    icon and label is stacked on its pair to cross-fade, a
+                    slight blur blending the two into one change. */}
+                <span className="grid shrink-0 grid-cols-[auto_auto] items-center gap-2 text-base font-medium text-primary [&>*]:transition-[scale,opacity,filter] [&>*]:duration-200 [&>*]:ease-out">
+                  <IconCopy
+                    aria-hidden
+                    className={cn(
+                      "col-start-1 row-start-1 size-4.5",
+                      copied &&
+                        "scale-90 opacity-0 blur-[2px] motion-reduce:scale-100"
+                    )}
+                  />
+                  <IconCheck
+                    aria-hidden
+                    className={cn(
+                      "col-start-1 row-start-1 size-4.5",
+                      !copied &&
+                        "scale-90 opacity-0 blur-[2px] motion-reduce:scale-100"
+                    )}
+                  />
+                  <span
+                    aria-hidden={copied}
+                    className={cn(
+                      "col-start-2 row-start-1",
+                      copied && "opacity-0 blur-[2px]"
+                    )}
+                  >
+                    Copy from last dive
+                  </span>
+                  <span
+                    aria-hidden={!copied}
+                    className={cn(
+                      "col-start-2 row-start-1",
+                      !copied && "opacity-0 blur-[2px]"
+                    )}
+                  >
+                    Copied
+                  </span>
                 </span>
                 <span className="min-w-0 flex-1 truncate text-right text-base text-muted-foreground">
                   {log.sites.get(latest.siteId)?.name}
