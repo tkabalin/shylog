@@ -28,16 +28,15 @@ import {
   type DefaultsErrors,
   type DefaultsValues,
 } from "./defaults"
-import { SaveLine } from "./parts"
+import { SaveFailure } from "./parts"
 
 // The new-dive defaults, in the dive form's own controls rather than the
-// board's preset lists (NOTES), saved together.
+// board's preset lists (NOTES), saved together as each one changes.
 export function DefaultsSection({ settings }: { settings: Settings }) {
   const desk = useDesk()
   const saved = defaultsValues(settings)
   const [values, setValues] = useState(saved)
   const [errors, setErrors] = useState<DefaultsErrors>({})
-  const [busy, setBusy] = useState(false)
   const [failure, setFailure] = useState<string>()
   const [typeOpen, setTypeOpen] = useState(false)
   // Oxygen is open from the start when nitrox is saved; only a switch
@@ -54,43 +53,63 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
     setValues(saved)
   }
 
-  const set =
-    <K extends keyof DefaultsValues>(name: K) =>
-    (value: DefaultsValues[K]) => {
-      setValues((was) => ({ ...was, [name]: value }))
+  // The values the server last took. Saves run one at a time against it,
+  // so a tap just after leaving a field can't land before that field.
+  const last = useRef(saved)
+  const queue = useRef(Promise.resolve())
+  // Including what a sync brings from another phone.
+  useEffect(() => {
+    last.current = base
+  }, [base])
+  const save = (next: DefaultsValues, { waiting = false } = {}) => {
+    const { errors: found, request } = parseDefaults(next)
+    // Nitrox just switched on waits for its oxygen rather than calling it
+    // missing; leaving the field empty says so.
+    if (waiting && found.oxygen) {
+      setErrors({ ...found, oxygen: undefined })
+      return
+    }
+    setErrors(found)
+    if (!request) return
+    queue.current = queue.current.then(async () => {
+      // A comma for a point, say: nothing to send. The defaults go as a
+      // whole, as the server replaces them so.
+      if (
+        JSON.stringify(request) ===
+        JSON.stringify(parseDefaults(last.current).request)
+      )
+        return
+      setFailure(undefined)
+      try {
+        await commit(apiClient().api.settings.$put({ json: request }))
+        last.current = next
+        setBase(next)
+      } catch (error) {
+        setValues(last.current)
+        setErrors({})
+        setFailure(error instanceof Error ? error.message : String(error))
+      }
+    })
+  }
+
+  // A tap saves at once; typing saves as its field is left.
+  const pick = <K extends keyof DefaultsValues>(
+    name: K,
+    value: DefaultsValues[K]
+  ) => {
+    const next = { ...values, [name]: value }
+    setValues(next)
+    save(next, { waiting: name === "nitrox" })
+  }
+  const text =
+    (name: keyof DefaultsValues) => (event: { target: { value: string } }) => {
+      setValues((was) => ({ ...was, [name]: event.target.value }))
       setErrors((was) => ({ ...was, [name]: undefined }))
     }
-  const text =
-    (name: keyof DefaultsValues) => (event: { target: { value: string } }) =>
-      set(name)(event.target.value as never)
   const invalid = (name: keyof DefaultsValues) => ({
     "aria-invalid": !!errors[name] || undefined,
     "aria-describedby": errors[name] ? `error-${name}` : undefined,
   })
-
-  const save = async () => {
-    const { errors: found, request } = parseDefaults(values)
-    setErrors(found)
-    if (!request) return
-    // A comma for a point, say: nothing to send. The defaults go as a
-    // whole, as the server replaces them so.
-    if (
-      JSON.stringify(request) === JSON.stringify(parseDefaults(base).request)
-    ) {
-      setValues(base)
-      return
-    }
-    setBusy(true)
-    setFailure(undefined)
-    try {
-      await commit(apiClient().api.settings.$put({ json: request }))
-      setBase(values)
-    } catch (error) {
-      setFailure(error instanceof Error ? error.message : String(error))
-    } finally {
-      setBusy(false)
-    }
-  }
 
   return (
     <PlainLabels.Provider value>
@@ -114,7 +133,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                   <Segmented
                     labelledBy="you-material"
                     value={values.cylinderMaterial}
-                    onChange={set("cylinderMaterial")}
+                    onChange={(value) => pick("cylinderMaterial", value)}
                     options={[
                       { value: "steel", label: "Steel" },
                       { value: "aluminium", label: "Aluminium" },
@@ -128,6 +147,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                   inputMode="decimal"
                   value={values.cylinderVolume}
                   onChange={text("cylinderVolume")}
+                  onBlur={() => save(values)}
                   placeholder="—"
                   className="border-l pl-4 max-[374px]:border-l-0 max-[374px]:pl-0"
                   {...invalid("cylinderVolume")}
@@ -148,6 +168,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                   inputMode="numeric"
                   value={values.startPressure}
                   onChange={text("startPressure")}
+                  onBlur={() => save(values)}
                   placeholder="—"
                   {...invalid("startPressure")}
                 />
@@ -165,7 +186,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                 <Switch
                   id="you-nitrox"
                   checked={values.nitrox}
-                  onCheckedChange={set("nitrox")}
+                  onCheckedChange={(value) => pick("nitrox", value)}
                 />
               </div>
               {values.nitrox && (
@@ -177,6 +198,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                     inputMode="decimal"
                     value={values.oxygen}
                     onChange={text("oxygen")}
+                    onBlur={() => save(values)}
                     placeholder="—"
                     {...invalid("oxygen")}
                   />
@@ -197,6 +219,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                   inputMode="decimal"
                   value={values.weight}
                   onChange={text("weight")}
+                  onBlur={() => save(values)}
                   placeholder="—"
                   {...invalid("weight")}
                 />
@@ -210,7 +233,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                 label="Dive type"
                 value={values.diveType}
                 options={options(diveTypes)}
-                onChange={set("diveType")}
+                onChange={(value) => pick("diveType", value)}
               />
             ) : (
               <PickRow
@@ -231,7 +254,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                 labelledBy="you-visibility"
                 value={values.visibilityMode}
                 // One of the two is always chosen, so a second tap keeps it.
-                onChange={(mode) => mode && set("visibilityMode")(mode)}
+                onChange={(mode) => mode && pick("visibilityMode", mode)}
                 options={[
                   { value: "metres", label: "Metres" },
                   { value: "rating", label: "Low, average, high" },
@@ -239,24 +262,14 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
               />
             </div>
           </Section>
-          <SaveLine
-            shown={changed}
-            busy={busy}
-            error={failure}
-            onSave={save}
-            onCancel={() => {
-              setValues(base)
-              setErrors({})
-              setFailure(undefined)
-            }}
-          />
+          <SaveFailure error={failure} />
           <OptionSheet
             open={typeOpen}
             onOpenChange={setTypeOpen}
             title="Dive type"
             options={options(diveTypes)}
             value={values.diveType}
-            onChange={set("diveType")}
+            onChange={(value) => pick("diveType", value)}
           />
         </div>
       </FormShown.Provider>
