@@ -40,15 +40,19 @@ async function pick(page: Page, files: typeof shots) {
   return sheet
 }
 
-// A finger's drag across the page, from one point to another.
+// A finger's drag across the page, from one point to another, a frame a
+// step, as a finger moves: all at once, a drag can end before Motion has
+// seen it move.
 async function drag(page: Page, from: [number, number], to: [number, number]) {
   await page.mouse.move(...from)
   await page.mouse.down()
-  for (let i = 1; i <= 8; i++)
+  for (let i = 1; i <= 8; i++) {
     await page.mouse.move(
       from[0] + ((to[0] - from[0]) * i) / 8,
       from[1] + ((to[1] - from[1]) * i) / 8
     )
+    await page.waitForTimeout(16)
+  }
   await page.mouse.up()
 }
 
@@ -215,6 +219,54 @@ test("leaves out a HEIC the browser can't open, and says why", async ({
   await expect(sheet.locator("img")).toHaveCount(1)
   await sheet.getByRole("button", { name: "Cancel" }).click()
   await page.getByRole("button", { name: "Discard card" }).click()
+})
+
+test("puts a new card first and moves one by dragging it @writes", async ({
+  page,
+  restore,
+}) => {
+  const prefix = `Order ${unique()}`
+  restore(cleanUp(prefix))
+  const [first, second, third] = [`${prefix} A`, `${prefix} B`, `${prefix} C`]
+  await putCard(page.request, `card-${unique()}c`, third, [shots[0]!.buffer])
+  await putCard(page.request, `card-${unique()}a`, first, [shots[0]!.buffer])
+  await putCard(page.request, `card-${unique()}b`, second, [shots[1]!.buffer])
+  const ours = async () =>
+    (await getLog(page.request)).cards
+      .map((card) => card.name)
+      .filter((name) => name.startsWith(prefix))
+  expect(await ours()).toEqual([second, first, third])
+
+  await page.goto("/you/certifications")
+  const row = (name: string) =>
+    page.getByRole("link", { name: new RegExp(`^${name}`) })
+  const from = (await row(second).boundingBox())!
+  const to = (await row(first).boundingBox())!
+  await drag(
+    page,
+    [from.x + from.width / 2, from.y + from.height / 2],
+    [from.x + from.width / 2, to.y + to.height * 0.9]
+  )
+  await expect.poll(ours).toEqual([first, second, third])
+  // The drag didn't open the card, and a plain click still does.
+  await expect(page).toHaveURL(/\/you\/certifications$/)
+  await row(first).click()
+  await expect(page.getByRole("dialog", { name: first })).toBeVisible()
+
+  // You shows the first three as tiles, in this order, each opening its
+  // viewer, which closes back to You.
+  await page.goto("/you")
+  const tiles = page.locator("main a[href^='/you/certifications/card-']")
+  await expect(tiles).toHaveCount(3)
+  await expect(tiles.nth(0)).toHaveAccessibleName(first)
+  await expect(tiles.nth(1)).toHaveAccessibleName(second)
+  await tiles.nth(1).click()
+  const viewer = page.getByRole("dialog", { name: second })
+  await expect(viewer).toBeVisible()
+  await viewer.getByRole("link", { name: "Close" }).click()
+  await expect(page).toHaveURL(/\/you$/)
+  await page.getByRole("link", { name: /^All certifications/ }).click()
+  await expect(page).toHaveURL(/\/you\/certifications$/)
 })
 
 test("keeps the screen on where the browser can @writes", async ({

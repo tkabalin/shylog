@@ -3,7 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { Log } from "@/api/client"
 
-import { readPicks, saveCard, sniffImage } from "./card-edits"
+import {
+  deleteCard,
+  orderCards,
+  readPicks,
+  saveCard,
+  sniffImage,
+} from "./card-edits"
 import {
   downloadCardImages,
   forgetCardImages,
@@ -311,6 +317,32 @@ describe("the next sync", () => {
     expect(imageUrl("card-ow", 0, "aaaa", { db, fetch })).toBe(url)
     forgetCardUrls([])
     expect(imageUrl("card-ow", 0, "aaaa", { db, fetch })).not.toBe(url)
+  })
+})
+
+describe("deleteCard and orderCards", () => {
+  it("send the card's id, and the whole order, saying why they're refused", async () => {
+    const sent: [string, RequestInit][] = []
+    const fetch = vi.fn(
+      async (input: RequestInfo | URL, init?: RequestInit) => {
+        sent.push([new URL(String(input)).pathname, init!])
+        return Response.json(
+          { error: "The cards have changed; try again" },
+          { status: 409 }
+        )
+      }
+    )
+    await expect(orderCards(["card-b", "card-a"], fetch)).rejects.toThrow(
+      "The cards have changed; try again"
+    )
+    await expect(deleteCard("card-a", fetch)).rejects.toThrow()
+    expect(sent.map(([url, init]) => [url, init.method])).toEqual([
+      ["/api/cards/order", "PUT"],
+      ["/api/cards/card-a", "DELETE"],
+    ])
+    expect(JSON.parse(String(sent[0]![1].body))).toEqual({
+      ids: ["card-b", "card-a"],
+    })
   })
 })
 

@@ -20,6 +20,7 @@ import { commit } from "@/data/edits"
 import { entitiesOf } from "@/data/entities"
 import { useHealth } from "@/data/health"
 import { useLastSync } from "@/data/last-sync"
+import type { Card as CertCard } from "@/data/db"
 import { useLog, type LogView } from "@/data/log"
 import {
   ErrorLine,
@@ -35,6 +36,7 @@ import { ago, instant } from "@/format/dates"
 import { countText } from "@/components/pickers/match"
 import { parseMaxPo2 } from "@/you/defaults"
 import { DefaultsSection } from "@/you/defaults-section"
+import { CardImage } from "@/you/cards/card-image"
 import { kindLabels } from "@/you/kinds"
 import { listRow, pressable, RowContent, SaveFailure } from "@/you/parts"
 
@@ -85,7 +87,7 @@ function YouPage() {
 
         {/* Drawn before the first sync too, so nothing moves down when the
             log arrives. */}
-        <DiverCard settings={log?.settings} cards={log?.cards.length} />
+        <DiverCard settings={log?.settings} cards={log?.cards} />
 
         <Card className="flex-row items-center gap-3 px-4 py-3.5">
           <span
@@ -275,14 +277,14 @@ function Alert({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-// The diver's name and certification cards, under the title with no
-// heading of their own (D30).
+// The diver's name and the first certification cards, under the title
+// with no heading of their own (D30, D32).
 function DiverCard({
   settings,
   cards,
 }: {
   settings?: Settings
-  cards?: number
+  cards?: CertCard[]
 }) {
   const stored = settings?.diverName ?? ""
   const [name, setName] = useState(stored)
@@ -334,14 +336,41 @@ function DiverCard({
             className="text-ellipsis"
           />
         </Row>
+        {cards?.length ? (
+          // The first three in the owner's order, each straight to its
+          // viewer, as a dive centre asks for the latest.
+          <ul className="grid grid-cols-3 gap-2.5 px-4 pt-3.5 pb-3">
+            {cards.slice(0, 3).map((card) => (
+              <li key={card.id} className="min-w-0">
+                <Link
+                  to="/you/certifications/$cardId"
+                  params={{ cardId: card.id }}
+                  state={{ pushed: true }}
+                  className="flex flex-col gap-1.5 rounded-[7px] outline-offset-2 transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
+                >
+                  {/* A bank card's shape, which an eCard keeps. */}
+                  <CardImage
+                    cardId={card.id}
+                    n={0}
+                    hash={card.images[0]!}
+                    className="aspect-[1.586] w-full rounded-[7px] bg-muted object-cover ring-1 ring-foreground/10"
+                  />
+                  <span className="line-clamp-2 text-[13px] leading-snug font-medium tracking-[-0.01em] break-words">
+                    {card.name}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <Link
           to="/you/certifications"
           state={{ pushed: true }}
           className={cn(listRow, pressable)}
         >
           <RowContent
-            label="Certifications"
-            value={cards != null ? countText(cards) : null}
+            label={cards?.length ? "All certifications" : "Certifications"}
+            value={cards != null ? countText(cards.length) : null}
             chevron
           />
         </Link>

@@ -66,6 +66,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Patterns need the "All patterns" list and a tap through to the groups behind each one. The board shows static findings.
 - Recently deleted keeps the board's restore note and adds that deleted dives keep blocking re-imports.
 - Adding and editing a card both need a connection. The board only disables the list's add button.
+- You shows the first three cards as tiles under the diver name, with an All certifications row (D32); `SettingsHifi` has a single Certifications row. The list's rows move by a long press; the board has no order.
 - The list's add button opens the photo picker straight away, and New card and Edit card open as full-height sheets (D31). Delete card asks first in a sheet; the board deletes at once.
 
 ## Import
