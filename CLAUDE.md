@@ -57,6 +57,8 @@ The Claude Design hi-fi wireframes in `docs/design/hifi/` are the source of trut
 - For UI work, run the app and take a Playwright screenshot at phone width (390px) to compare with the matching design screen.
 - Use conventional commits.
 - Do not push without asking.
+- Make the call on a question with a clear answer instead of leaving it as "your call" in a PR. Drifting from the boards, the spec or the plan is never a reason against a change on its own: weigh it on its merits and update the docs with it.
+- When something can only be checked on the owner's phone (iOS chrome, pickers, haptics), say so before building it and offer a throwaway test first. Code that didn't work on the phone is removed, not left in.
 - Git worktrees should be placed in `.claude/worktrees`
 
 ## Code Style
