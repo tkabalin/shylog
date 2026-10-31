@@ -131,3 +131,93 @@ test("lists regions with their sites count @writes", async ({
     page.getByRole("link", { name: `E2E Region ${tag}, 1 site` })
   ).toBeVisible()
 })
+
+// A person nothing uses yet, removed again when the test ends.
+async function newPerson(
+  page: Page,
+  restore: (undo: (request: APIRequestContext) => Promise<void>) => void,
+  name: string
+) {
+  const id = `person-${crypto.randomUUID()}`
+  await putEntity(page.request, "person", id, { name })
+  restore((request) => deleteEntity(request, "person", id))
+  return id
+}
+
+// Dive 63 with `extra` added to its buddies, put back when the test ends.
+async function addBuddy(
+  page: Page,
+  restore: (undo: (request: APIRequestContext) => Promise<void>) => void,
+  extra: string
+) {
+  const dive = await diveId(page.request, 63)
+  const buddies = (await getLog(page.request)).links
+    .filter((link) => link.diveId === dive && link.type === "buddy")
+    .sort((a, b) => a.position - b.position)
+    .map((link) => link.target)
+  restore((request) => patchDive(request, dive, { buddies }))
+  await patchDive(page.request, dive, { buddies: [...buddies, extra] })
+  return dive
+}
+
+test("deletes a person nothing uses @writes", async ({ page, restore }) => {
+  const name = `E2E Person ${unique()}`
+  const id = await newPerson(page, restore, name)
+  await page.goto(`/you/entities?kind=person&q=${encodeURIComponent(name)}`)
+  await page.getByRole("link", { name: new RegExp(`^${name}`) }).click()
+  await page.getByRole("button", { name: "Delete person" }).click()
+  const ask = page.getByRole("alertdialog", { name: `Delete ${name}?` })
+  await still(ask)
+  await ask.getByRole("button", { name: "Delete person" }).click()
+  // Back to the list it was opened from.
+  await expect(page).toHaveURL(/\/you\/entities\?kind=person/)
+  const log = await getLog(page.request)
+  expect(log.people.some((person) => person.id === id)).toBe(false)
+})
+
+test("won't delete a person a dive uses, and says why @writes", async ({
+  page,
+  restore,
+}) => {
+  const id = await newPerson(page, restore, `E2E Buddy ${unique()}`)
+  await addBuddy(page, restore, id)
+  await page.goto(`/you/entities/person/${id}`)
+  await expect(
+    page.getByRole("button", { name: "Delete person" })
+  ).toBeDisabled()
+  await expect(
+    page.getByText(/^Used by 1 dive, so it can’t be deleted/)
+  ).toBeVisible()
+})
+
+test("merges a duplicate buddy, moving their dives @writes", async ({
+  page,
+  restore,
+}) => {
+  const tag = unique()
+  const keep = await newPerson(page, restore, `E2E Sam ${tag}`)
+  const duplicate = await newPerson(page, restore, `E2E Samuel ${tag}`)
+  const dive = await addBuddy(page, restore, duplicate)
+
+  await page.goto(`/you/entities/person/${keep}`)
+  await page
+    .getByRole("button", { name: "Merge a duplicate into this" })
+    .click()
+  const sheet = page.getByRole("dialog")
+  await still(sheet)
+  await sheet.getByRole("textbox").fill(tag)
+  await sheet.getByRole("radio", { name: new RegExp(`Samuel ${tag}`) }).click()
+  await sheet.getByRole("button", { name: `Merge “E2E Samuel ${tag}”` }).click()
+  await expect(sheet).toHaveCount(0)
+
+  const log = await getLog(page.request)
+  const buddies = log.links
+    .filter((link) => link.diveId === dive && link.type === "buddy")
+    .map((link) => link.target)
+  expect(buddies).toContain(keep)
+  expect(buddies).not.toContain(duplicate)
+  expect(log.people.some((person) => person.id === duplicate)).toBe(false)
+  await expect(
+    page.getByRole("region", { name: "Dives" }).getByRole("link")
+  ).toHaveCount(1)
+})
