@@ -4,6 +4,7 @@ import {
   IconAlertTriangle,
   IconCertificate,
   IconCloudCheck,
+  IconCloudPause,
   IconDatabase,
   IconFileTypeXml,
   IconServer,
@@ -59,7 +60,7 @@ const deletedCount = (log: LogView) =>
 // SettingsHifi as the You tab (D30): sync status first, then the diver's
 // own things, then the log's upkeep, then preferences.
 function YouPage() {
-  const { log, loaded, failed } = useLog()
+  const { log, loaded, failed, blocked } = useLog()
   const syncedAt = useLastSync()
   // Rendered again each minute, so "2 min ago" doesn't sit at "just now"
   // until the next five-minute sync.
@@ -93,12 +94,16 @@ function YouPage() {
             aria-hidden
             className={cn(
               "inline-flex size-9 shrink-0 items-center justify-center rounded-full",
-              failed
+              failed || blocked
                 ? "bg-muted text-muted-foreground"
                 : "bg-primary/12 text-primary"
             )}
           >
-            {failed ? (
+            {/* A newer server answers, so the sync "succeeds" while taking
+                nothing: it says paused, not All synced. */}
+            {blocked ? (
+              <IconCloudPause className="size-[19px] stroke-[1.9]" />
+            ) : failed ? (
               <IconServerOff className="size-[19px] stroke-[1.9]" />
             ) : syncedAt ? (
               <IconCloudCheck className="size-[19px] stroke-[1.9]" />
@@ -111,11 +116,13 @@ function YouPage() {
               role="status"
               className="text-base font-semibold tracking-[-0.01em]"
             >
-              {failed
-                ? "Can’t reach the server"
-                : syncedAt
-                  ? "All synced"
-                  : "Syncing"}
+              {blocked
+                ? "Syncing paused"
+                : failed
+                  ? "Can’t reach the server"
+                  : syncedAt
+                    ? "All synced"
+                    : "Syncing"}
             </span>
             <span className="text-[13px] text-muted-foreground tabular-nums">
               {syncedAt
