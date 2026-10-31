@@ -9,7 +9,8 @@ paths:
 
 - Build every transition and animation with the animate skill, starting from its `RECIPES.md` when one matches. Motion a finger drives (drags, swipes, pinch, springs with momentum) also follows apple-design.
 - Where animate says to hand a component to `pick-ui-library`, use shadcn and Base UI instead. That skill isn't installed.
-- Run animate's frequency gate against Shylog's use. Tab switches, opening a dive from the Log, and theme changes don't animate. Sheets, pickers, and dialogs get a standard transition. Rare moments, like a finished import, can carry a little delight.
+- Run animate's frequency gate against Shylog's use. Tab switches, opening an item from a list or a tile (a dive from the Log, a card from Certifications or You), and theme changes don't animate. Full-screen viewers open and close at once. Sheets, pickers, and dialogs get a standard transition. Rare moments, like a finished import, can carry a little delight.
+- What a finger drags keeps up with it: in a reorder, the neighbours making room and the drop settling use a critically damped spring of about 0.12 s visual duration. 0.25 s read as sluggish (PR #26).
 - No stagger on lists that are opened often (the Log, sites, people). The "Everything entering at once" rows in animate and review-animations don't apply to them.
 - Put the curves (`--ease-out`, `--ease-in-out`, `--ease-drawer`) in `index.css` once, as Tailwind theme tokens, the first time one is needed. Don't repeat `cubic-bezier()` values in components.
 - Rebuild the wireframes' motion instead of copying it: keep what moves and roughly how long it takes, then follow animate. The Log's `max-height` collapse is not rebuilt: its count scrolls away with the list like an iOS large title and the compact line fades in, so nothing animates height mid-scroll (D27), and the Edit dive switch moves its knob with `transform`, not `left`.
