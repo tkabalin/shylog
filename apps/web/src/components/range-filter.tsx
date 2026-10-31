@@ -1,23 +1,18 @@
-import {
-  lazy,
-  Suspense,
-  useEffect,
-  useRef,
-  useState,
-  type ComponentType,
-} from "react"
+import { useEffect, useRef, useState, type ComponentType } from "react"
 import type { IconProps } from "@tabler/icons-react"
 import { cn } from "cn"
 
 import type { Scale } from "@/components/range-sheet"
 import { pillTrigger } from "@/components/ui/select"
+import { preloadable } from "@/lib/preloadable"
 import type { Range } from "@/log/filters"
 
 // The drawer and slider are about a third of the Log's code and only needed
 // once a pill is tapped, so they load when the browser is idle after the Log
 // renders, or on the press that opens one, whichever comes first.
-const loadSheet = () => import("@/components/range-sheet")
-const RangeSheet = lazy(loadSheet)
+const { Component: RangeSheet, preload: loadSheet } = preloadable(() =>
+  import("@/components/range-sheet").then((module) => module.default)
+)
 
 export function usePreloadRangeSheet() {
   useEffect(() => {
@@ -78,14 +73,12 @@ export function RangeFilter({
         {value ? rangeLabel(value, scale, unit) : label}
       </button>
       {used && (
-        <Suspense>
-          <RangeSheet
-            {...sheet}
-            open={open}
-            onOpenChange={setOpen}
-            returnFocus={pill}
-          />
-        </Suspense>
+        <RangeSheet
+          {...sheet}
+          open={open}
+          onOpenChange={setOpen}
+          returnFocus={pill}
+        />
       )}
     </>
   )

@@ -1,4 +1,4 @@
-import { Suspense, useRef, useState } from "react"
+import { useRef, useState } from "react"
 import {
   IconCertificate,
   IconChevronRight,
@@ -131,14 +131,12 @@ function CertificationsPage() {
         }}
       />
       {adding && (
-        <Suspense>
-          <CardSheet
-            key={adding.id}
-            open={open}
-            onOpenChange={setOpen}
-            picked={adding.picked}
-          />
-        </Suspense>
+        <CardSheet
+          key={adding.id}
+          open={open}
+          onOpenChange={setOpen}
+          picked={adding.picked}
+        />
       )}
       {/* Nothing until the first sync has filled the log, so a fresh phone
           doesn't say there are no cards. */}
