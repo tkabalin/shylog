@@ -145,6 +145,34 @@ test("edits a dive's notes, which changes the log's version @writes", async ({
   await expect(page).toHaveURL(/\/$/)
 })
 
+test("ignores a dive from the form, which takes away its number @writes", async ({
+  page,
+  restore,
+}) => {
+  const id = await diveId(page.request, 63)
+  restore((request) => patchDive(request, id, { ignored: false }))
+  await page.goto(`/dive/${id}`)
+  const number = page.getByText(/^Dive \d+$/)
+  await expect(number).toBeVisible()
+  await page.getByRole("link", { name: "Edit" }).click()
+  // A native checkbox, so Safari plays its haptic (see ui/switch.tsx).
+  const ignore = page.getByRole("checkbox", { name: /^Ignore this dive/ })
+  await expect(ignore).not.toBeChecked()
+  await ignore.click()
+  await expect(ignore).toBeChecked()
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+
+  await expect(page).toHaveURL(new RegExp(`/dive/${id}$`))
+  // Once the sync after the save has landed.
+  await expect(page.getByText("Ignored", { exact: true })).toBeAttached()
+  await expect(number).toHaveCount(0)
+  const log = await getLog(page.request)
+  expect(log.dives.find((dive) => dive.id === id)).toMatchObject({
+    ignored: true,
+    number: null,
+  })
+})
+
 test("keeps the form's values and offers Try again when the server can't be reached", async ({
   page,
 }) => {
