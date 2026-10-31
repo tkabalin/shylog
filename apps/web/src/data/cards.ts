@@ -87,6 +87,40 @@ export function imageUrl(
   return url
 }
 
+// How many cards the You tab shows, by their first page.
+export const youCards = 3
+
+// The You tab's pages, decoded and held. WebKit decodes a full-size
+// screenshot as its tile mounts, blank meanwhile, unless an image it is
+// still holding has already decoded it.
+const held = new Map<string, HTMLImageElement>()
+
+// Read and decoded as the log is, so the tab draws its cards at once, the
+// first time it opens after a launch too.
+export function warmCardImages(cards: readonly Card[], options?: Options) {
+  const shown = new Map(
+    cards
+      .slice(0, youCards)
+      .map((card) => [keyOf(card.id, card.images[0]!), card])
+  )
+  for (const key of held.keys()) if (!shown.has(key)) held.delete(key)
+  for (const [key, card] of shown) {
+    if (held.has(key)) continue
+    const image = new Image()
+    held.set(key, image)
+    imageUrl(card.id, 0, card.images[0]!, options)
+      .then((url) => {
+        image.src = url
+        return image.decode()
+      })
+      // Offline before the page was ever kept: the next sync's read tries
+      // again.
+      .catch(() => {
+        if (held.get(key) === image) held.delete(key)
+      })
+  }
+}
+
 // A page's object URL, read without waiting once it has been made, so a
 // card seen before draws on its first render.
 export function useCardImage(
@@ -184,5 +218,6 @@ async function download(
 export function forgetCardImages() {
   urls.clear()
   failed.clear()
+  held.clear()
   downloadCardImages.reset()
 }

@@ -10,6 +10,7 @@ import {
   forgetCardUrls,
   imageUrl,
   retryCardImage,
+  warmCardImages,
 } from "./cards"
 import { LogDb } from "./db"
 import { QueueDb } from "./drafts"
@@ -83,6 +84,8 @@ beforeEach(() => {
     blobs.set(url, blob)
     return url
   }
+  // Nor does it decode images.
+  HTMLImageElement.prototype.decode = () => Promise.resolve()
 })
 afterEach(async () => {
   await db.delete()
@@ -111,6 +114,34 @@ describe("imageUrl", () => {
       imageUrl("card-ow", 1, "bbbb", { db, fetch })
     ).resolves.toMatch(/^blob:/)
     expect(imageRequests(fetch)).toHaveLength(1)
+  })
+
+  it("warms and decodes the first page of each card the You tab shows", async () => {
+    const cards = ["a", "b", "c", "d"].map((id) =>
+      card(`card-${id}`, [`${id}1`, `${id}2`])
+    )
+    const fetch = server(() => log("v1", cards))
+    await syncLog({ db, fetch })
+    const decoded: string[] = []
+    HTMLImageElement.prototype.decode = function () {
+      decoded.push(this.src)
+      return Promise.resolve()
+    }
+    warmCardImages(cards, { db, fetch })
+    await vi.waitFor(() => expect(decoded).toHaveLength(3))
+    expect(imageRequests(fetch).sort()).toEqual([
+      "/api/cards/card-a/images/0?v=a1",
+      "/api/cards/card-b/images/0?v=b1",
+      "/api/cards/card-c/images/0?v=c1",
+    ])
+    expect(await Promise.all(decoded.map(text))).toEqual(
+      expect.arrayContaining(["a1", "b1", "c1"])
+    )
+
+    // Warmed again after a sync, only a card new to the three is read.
+    warmCardImages([cards[3]!, ...cards.slice(0, 2)], { db, fetch })
+    await vi.waitFor(() => expect(decoded).toHaveLength(4))
+    expect(imageRequests(fetch)).toContain("/api/cards/card-d/images/0?v=d1")
   })
 
   it("keeps a failure until it is retried, so a re-render can't loop", async () => {
