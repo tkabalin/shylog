@@ -1,4 +1,4 @@
-import { cardImageMaxBytes } from "@shylog/core"
+import { cardImageMaxBytes, type CardOrder } from "@shylog/core"
 
 import { apiClient } from "@/api/client"
 
@@ -174,3 +174,13 @@ export const deleteCard = (cardId: string, fetch?: typeof globalThis.fetch) =>
   commit(apiClient(fetch).api.cards[":id"].$delete({ param: { id: cardId } }), {
     settle: false,
   })
+
+// The cards in the owner's order, every card named once. Resolves once the
+// log has it, so the list can let go of the order it shows meanwhile.
+export const orderCards = (ids: string[], fetch?: typeof globalThis.fetch) =>
+  // The log's ids, which the server only ever stores as card ids.
+  commit(
+    apiClient(fetch).api.cards.order.$put({
+      json: { ids: ids as CardOrder["ids"] },
+    })
+  )

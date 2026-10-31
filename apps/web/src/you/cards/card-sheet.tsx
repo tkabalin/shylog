@@ -1,13 +1,7 @@
-import { useEffect, useRef, useState, type PointerEvent, type Ref } from "react"
+import { useEffect, useRef, useState, type Ref } from "react"
 import { cardMaxPages, newId } from "@shylog/core"
 import { IconPhotoPlus, IconTrash, IconX } from "@tabler/icons-react"
-import {
-  AnimatePresence,
-  motion,
-  MotionConfig,
-  Reorder,
-  useDragControls,
-} from "motion/react"
+import { AnimatePresence, motion, MotionConfig, Reorder } from "motion/react"
 import { cn } from "cn"
 
 import {
@@ -30,6 +24,7 @@ import { Segmented } from "@/dive/form/rows"
 import { useDesk } from "@/hooks/use-desk"
 import { CardImage } from "@/you/cards/card-image"
 import { accept } from "@/you/cards/load-sheet"
+import { useLift } from "@/you/cards/use-lift"
 
 // A page in the sheet: one the card has (by its hash and place on the
 // server), or a picked file. Each picked file has a card id of its own for
@@ -438,14 +433,7 @@ const strip = { type: "spring", bounce: 0, visualDuration: 0.12 } as const
 // sidebar too, so as dialogs they centre on the window, not the column.
 const overViewer = "desk:left-1/2"
 
-// How long a press holds before the page lifts, and how far a finger can
-// drift meanwhile before it counts as a scroll instead.
-const holdMs = 350
-const slop = 8
-
-// A page in the strip. A long press lifts it to drag along the strip; a
-// plain swipe still scrolls, since the drag only starts once lifted. A
-// mouse scrolls nothing by dragging, so its drag lifts the page at once.
+// A page in the strip, lifted by a long press to drag along it (useLift).
 function Shot({
   ref,
   page,
@@ -460,100 +448,18 @@ function Shot({
   label: string
   onRemove: () => void
 }) {
-  const controls = useDragControls()
-  const [lifted, setLifted] = useState(false)
-  // Read by the touch listener, which the lift must reach in the same task:
-  // a render later, iOS could already be scrolling the strip.
-  const liftedNow = useRef(false)
-  const lift = (on: boolean) => {
-    liftedNow.current = on
-    setLifted(on)
-  }
-  const item = useRef<HTMLDivElement>(null)
-  const hold = useRef<{
-    timer?: number
-    x: number
-    y: number
-    mouse: boolean
-  } | null>(null)
-
-  const cancel = () => {
-    if (hold.current) clearTimeout(hold.current.timer)
-    hold.current = null
-  }
-
-  // Once lifted, a finger's move drags rather than scrolls the strip. Not
-  // passive, so it can stop the scroll; React's touch handlers are. A page
-  // removed mid-press drops its hold, so no drag starts on a page gone.
-  useEffect(() => {
-    const element = item.current!
-    const stop = (event: TouchEvent) => {
-      if (liftedNow.current) event.preventDefault()
-    }
-    element.addEventListener("touchmove", stop, { passive: false })
-    return () => {
-      element.removeEventListener("touchmove", stop)
-      cancel()
-    }
-  }, [])
-  const down = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return
-    if ((event.target as Element).closest("button")) return
-    const native = event.nativeEvent
-    cancel()
-    const mouse = event.pointerType === "mouse"
-    hold.current = {
-      x: event.clientX,
-      y: event.clientY,
-      mouse,
-      timer: mouse
-        ? undefined
-        : window.setTimeout(() => {
-            hold.current = null
-            lift(true)
-            controls.start(native)
-          }, holdMs),
-    }
-  }
-  const move = (event: PointerEvent<HTMLDivElement>) => {
-    const start = hold.current
-    if (
-      !start ||
-      Math.hypot(event.clientX - start.x, event.clientY - start.y) <= slop
-    )
-      return
-    cancel()
-    if (start.mouse) {
-      lift(true)
-      controls.start(event.nativeEvent)
-    }
-  }
+  const { item, ref: liftRef, lifted } = useLift()
 
   return (
     <Reorder.Item
       as="div"
       ref={(element: HTMLDivElement | null) => {
-        item.current = element
+        liftRef(element)
         if (typeof ref === "function") ref(element)
         else if (ref) ref.current = element
       }}
       value={page}
-      dragListener={false}
-      dragControls={controls}
-      onDragEnd={() => lift(false)}
-      onPointerDown={down}
-      onPointerMove={move}
-      // A press the system takes (a scroll it started) drops the page too;
-      // the drag never began, so no drag end would.
-      onPointerUp={() => {
-        cancel()
-        lift(false)
-      }}
-      onPointerCancel={() => {
-        cancel()
-        lift(false)
-      }}
-      onContextMenu={(event) => event.preventDefault()}
+      {...item}
       // Added and removed, it fades; opacity alone, which Motion hands to
       // the compositor, as the drag already moves it on the main thread.
       initial={{ opacity: 0 }}
