@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef, useState, type PointerEvent } from "react"
+import { useEffect, useRef, useState, type PointerEvent } from "react"
 import { createPortal } from "react-dom"
 import { IconPencil, IconX } from "@tabler/icons-react"
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router"
@@ -140,16 +140,14 @@ function Viewer({ card }: { card: Card }) {
         </button>
       </div>
       {edits > 0 && (
-        <Suspense>
-          <CardSheet
-            key={edits}
-            open={editing}
-            onOpenChange={setEditing}
-            card={card}
-            // The list takes the viewer's place as the card goes.
-            onDeleted={() => closeLink.current?.click()}
-          />
-        </Suspense>
+        <CardSheet
+          key={edits}
+          open={editing}
+          onOpenChange={setEditing}
+          card={card}
+          // The list takes the viewer's place as the card goes.
+          onDeleted={() => closeLink.current?.click()}
+        />
       )}
       <CardPages card={card} page={shown} onPage={setPage} />
       {many && (

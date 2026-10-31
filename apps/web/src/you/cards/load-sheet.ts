@@ -1,5 +1,6 @@
-import { lazy } from "react"
 import { cardImageTypes } from "@shylog/core"
+
+import { preloadable } from "@/lib/preloadable"
 
 // The image types the server takes, for the photo picker. A computer's
 // file dialog hides HEIC unless it is named; a phone's mustn't name it, or
@@ -9,7 +10,6 @@ export const accept = (desk: boolean) =>
 
 // The sheet carries Motion's drag and layout code, needed only once a card
 // is added or edited, so it loads on the press that opens it.
-export const loadCardSheet = () => import("./card-sheet")
-export const CardSheet = lazy(() =>
-  loadCardSheet().then((module) => ({ default: module.CardSheet }))
+export const { Component: CardSheet, preload: loadCardSheet } = preloadable(
+  () => import("./card-sheet").then((module) => module.CardSheet)
 )
