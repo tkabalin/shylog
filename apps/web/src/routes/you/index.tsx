@@ -115,7 +115,11 @@ function YouPage() {
                   : "Syncing"}
             </span>
             <span className="text-[13px] text-muted-foreground tabular-nums">
-              {syncedAt ? `Last sync ${ago(syncedAt)}` : "Fetching your log"}
+              {syncedAt
+                ? `Last sync ${ago(syncedAt)}`
+                : failed
+                  ? "No sync yet"
+                  : "Fetching your log"}
             </span>
           </span>
         </Card>

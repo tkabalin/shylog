@@ -211,6 +211,17 @@ test("says when the server can't be reached, keeping the last sync", async ({
   await foreground(page, "All synced")
 })
 
+test("says when the server can't be reached before the first sync", async ({
+  page,
+}) => {
+  await page.route("**/api/log", (route) => route.abort())
+  await page.goto("/you")
+  await expect(page.getByRole("status")).toHaveText("Can’t reach the server")
+  await expect(page.getByText("No sync yet")).toBeVisible()
+  // A later sync may still be asking as the test ends.
+  await page.unrouteAll({ behavior: "ignoreErrors" })
+})
+
 test("warns that saving is paused after a failed database check", async ({
   page,
 }) => {
