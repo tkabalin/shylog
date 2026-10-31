@@ -124,6 +124,42 @@ test("keeps the form's values and offers Try again when the server can't be reac
   await expect(page).toHaveURL(new RegExp(`/dive/${id}/edit$`))
 })
 
+// iOS often kills a backgrounded home-screen app mid-entry; reopening the
+// form brings back what was typed, and discarding forgets it.
+test("brings back a new dive's typing after the app is reopened", async ({
+  page,
+}) => {
+  await page.goto("/dive/new")
+  await page.getByLabel("General").fill("Kept through a reload")
+  // Written once typing pauses, read straight from the phone's storage.
+  const kept = () =>
+    page.evaluate(
+      () =>
+        new Promise((resolve) => {
+          const open = indexedDB.open("shylog-queue")
+          open.onsuccess = () => {
+            const get = open.result
+              .transaction("forms")
+              .objectStore("forms")
+              .get("new")
+            get.onsuccess = () => {
+              resolve(get.result?.values.values.notes ?? null)
+              open.result.close()
+            }
+          }
+        })
+    )
+  await expect.poll(kept).toBe("Kept through a reload")
+
+  await page.reload()
+  await expect(page.getByLabel("General")).toHaveValue("Kept through a reload")
+  await page.getByRole("button", { name: "Cancel" }).click()
+  await page.getByRole("button", { name: "Discard changes" }).click()
+  await expect.poll(kept).toBeNull()
+  await page.getByRole("link", { name: "Log a dive" }).click()
+  await expect(page.getByLabel("General")).toHaveValue("")
+})
+
 // iOS raises the keyboard only for a focus inside the tap itself, so the
 // names sheet's field must have it before the row's click is over. Closing
 // gives focus back to the row.
