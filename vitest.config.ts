@@ -29,6 +29,15 @@ export default defineConfig({
           functions: 100,
           lines: 100,
         },
+        // Sync, drafts and upload, where a regression silently loses data.
+        // A few points under the 2026-10-31 audit's figures; the React hooks
+        // here are covered by Playwright instead.
+        "apps/web/src/data/**": {
+          statements: 80,
+          branches: 70,
+          functions: 75,
+          lines: 85,
+        },
       },
     },
     projects: [
