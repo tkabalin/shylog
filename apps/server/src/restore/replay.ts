@@ -13,7 +13,12 @@ import {
 } from "../apply/entity.ts"
 import { mergeEntity } from "../apply/merge.ts"
 import { putSettings } from "../apply/settings.ts"
-import { removeCard, writeCard, type Image } from "../cards/store.ts"
+import {
+  removeCard,
+  writeCard,
+  writeOrder,
+  type Image,
+} from "../cards/store.ts"
 import { migrations, schemaVersion } from "../db/migrate.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
@@ -102,12 +107,21 @@ const entries: Record<
   putCard: {
     apply: (
       db,
-      { id, name, images }: { id: string; name: string; images: Image[] }
-    ) => writeCard(db, id, name, images),
+      {
+        id,
+        name,
+        images,
+        first = false,
+      }: { id: string; name: string; images: Image[]; first?: boolean }
+    ) => writeCard(db, id, name, images, first),
     derived: false,
   },
   deleteCard: {
     apply: (db, { id }: { id: string }) => removeCard(db, id),
+    derived: false,
+  },
+  orderCards: {
+    apply: (db, { ids }: { ids: string[] }) => writeOrder(db, ids),
     derived: false,
   },
 }

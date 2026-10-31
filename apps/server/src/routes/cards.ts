@@ -5,6 +5,7 @@ import { Readable } from "node:stream"
 import {
   cardFieldsSchema,
   cardImageMaxBytes,
+  cardOrderSchema,
   cardMaxPages,
   idSchema,
 } from "@shylog/core"
@@ -17,11 +18,12 @@ import {
   readCards,
   saveCard,
   sniff,
+  writeOrder,
   type Page,
 } from "../cards/store.ts"
 import { prepared } from "../db/prepared.ts"
 import { factory } from "../factory.ts"
-import { parse } from "../validate.ts"
+import { json, parse } from "../validate.ts"
 import { change } from "./change.ts"
 
 // Every page at its largest, plus the name and multipart framing.
@@ -44,6 +46,22 @@ async function page(sent: string | File, i: number): Promise<Page> {
 export const cards = factory
   .createApp()
   .get("/cards", (c) => c.json(readCards(c.var.deps.db)))
+  // Before /cards/:id, which would take "order" for a card's id.
+  .put("/cards/order", json(cardOrderSchema), (c) => {
+    const { db } = c.var.deps
+    const { ids } = c.req.valid("json")
+    return c.json(
+      change(
+        db,
+        () => writeOrder(db, ids),
+        {
+          type: "orderCards",
+          payload: { ids },
+        },
+        false
+      )
+    )
+  })
   .put(
     "/cards/:id",
     bodyLimit({

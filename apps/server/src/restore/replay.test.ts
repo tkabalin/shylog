@@ -32,7 +32,8 @@ function liveApp() {
   const app = testApp({ db, env: { SHYLOG_DATA_DIR: dir } })
   const putCard = (
     name: string,
-    images: (Uint8Array<ArrayBuffer> | string)[]
+    images: (Uint8Array<ArrayBuffer> | string)[],
+    id = "card-padi"
   ) => {
     const form = new FormData()
     form.append("name", name)
@@ -42,7 +43,7 @@ function liveApp() {
         typeof image === "string" ? image : new Blob([image])
       )
     }
-    return app.request("/api/cards/card-padi", {
+    return app.request(`/api/cards/${id}`, {
       method: "PUT",
       headers: { ...apiHeaders, Origin: origin },
       body: form,
@@ -119,6 +120,11 @@ describe("replay", () => {
     const second = cards[0].images[1]
     await ok(putCard("PADI Open Water Diver", [second]))
     await ok(putCard("PADI Open Water Diver", [second, png(3)]))
+    // New, so first, then put after the PADI card.
+    await ok(putCard("SSI Nitrox", [png(4)], "card-ssi"))
+    await ok(
+      send(app, "PUT", "/api/cards/order", { ids: ["card-padi", "card-ssi"] })
+    )
     // A draft whose new site matches an existing one, so it is aliased.
     const draft = {
       opVersion,
@@ -165,6 +171,7 @@ describe("replay", () => {
         "restoreDive",
         "putSettings",
         "putCard",
+        "orderCards",
         "alias",
         "upsertEntity",
         "upsertDive",
@@ -184,6 +191,24 @@ describe("replay", () => {
       "deleteCard",
     ])
     expect(compare(snapshot, db)).toEqual([])
+  })
+
+  it("puts a card journalled before new cards went first at the end", async () => {
+    const { db, putCard } = liveApp()
+    const snapshot = copyOf(db)
+    await putCard("PADI", [png(1)], "card-a")
+    await putCard("SSI", [png(2)], "card-b")
+    // As the server wrote putCard before it recorded where a card goes.
+    db.prepare(
+      "UPDATE ops SET payload = json_remove(payload, '$.first') WHERE type = 'putCard'"
+    ).run()
+    expect(replay(snapshot, db).failure).toBeUndefined()
+    const order = (on: Db) =>
+      on
+        .prepare("SELECT id FROM certifications ORDER BY position")
+        .pluck()
+        .all()
+    expect(order(snapshot)).toEqual(["card-a", "card-b"])
   })
 
   it("replays up to a sequence number and lists the rest", async () => {

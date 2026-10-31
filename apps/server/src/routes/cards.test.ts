@@ -80,6 +80,7 @@ describe("PUT /api/cards/:id", () => {
           { hash: hashes[0], contentType: "image/png" },
           { hash: hashes[1], contentType: "image/jpeg" },
         ],
+        first: true,
       }),
     })
   })
@@ -104,13 +105,13 @@ describe("PUT /api/cards/:id", () => {
     expect((await listed())[0].name).toBe("PADI Open Water")
   })
 
-  it("puts a new card last", async () => {
+  it("puts a new card first, and leaves an edited one in place", async () => {
     await put("PADI", [png(1)], "card-b")
     await put("SSI", [png(2)], "card-a")
     await put("PADI Open Water", [hashOf(png(1))], "card-b")
     expect((await listed()).map((card) => card.id)).toEqual([
-      "card-b",
       "card-a",
+      "card-b",
     ])
   })
 
@@ -135,6 +136,48 @@ describe("PUT /api/cards/:id", () => {
     const pages = Array.from({ length: 11 }, (_, n) => png(n))
     expect((await put("PADI", pages)).status).toBe(400)
     expect(files()).toEqual([])
+  })
+})
+
+describe("PUT /api/cards/order", () => {
+  const order = (ids: unknown) =>
+    app.request("/api/cards/order", {
+      method: "PUT",
+      headers: {
+        ...apiHeaders,
+        Origin: origin,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ids }),
+    })
+  const ids = async () => (await listed()).map((card) => card.id)
+
+  beforeEach(async () => {
+    for (const id of ["card-c", "card-b", "card-a"]) await put(id, [png(1)], id)
+  })
+
+  it("keeps the order given, journals it, and writes nothing when unchanged", async () => {
+    const res = await order(["card-c", "card-a", "card-b"])
+    expect(res.status).toBe(200)
+    expect(await ids()).toEqual(["card-c", "card-a", "card-b"])
+    expect(
+      db.prepare("SELECT type FROM ops ORDER BY seq DESC LIMIT 1").pluck().get()
+    ).toBe("orderCards")
+    const again = await order(["card-c", "card-a", "card-b"])
+    expect(await version(again)).toBe(await version(res))
+  })
+
+  it("refuses an order missing a card, naming one twice or one gone", async () => {
+    for (const given of [
+      ["card-a", "card-b"],
+      ["card-a", "card-a", "card-b"],
+      ["card-a", "card-b", "card-gone"],
+    ]) {
+      const res = await order(given)
+      expect(res.status).toBe(409)
+    }
+    expect((await order(["not-a-card"])).status).toBe(400)
+    expect(await ids()).toEqual(["card-a", "card-b", "card-c"])
   })
 })
 
