@@ -18,6 +18,7 @@ import { cn } from "cn"
 import { apiClient } from "@/api/client"
 import { useTheme } from "@/components/theme-provider"
 import { Card } from "@/components/ui/card"
+import { youCards } from "@/data/cards"
 import { commit } from "@/data/edits"
 import { entitiesOf } from "@/data/entities"
 import { useHealth } from "@/data/health"
@@ -353,7 +354,7 @@ function DiverCard({
           // The first three in the owner's order, each straight to its
           // viewer, as a dive centre asks for the latest.
           <ul className="grid grid-cols-3 gap-2.5 px-4 pt-3.5 pb-3">
-            {cards.slice(0, 3).map((card) => (
+            {cards.slice(0, youCards).map((card) => (
               <li key={card.id} className="min-w-0">
                 <Link
                   to="/you/certifications/$cardId"

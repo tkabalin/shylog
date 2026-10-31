@@ -5,7 +5,7 @@ import {
   latestSchemaVersion,
 } from "@shylog/core"
 
-import { downloadCardImages, forgetCardUrls } from "./cards"
+import { downloadCardImages, forgetCardUrls, warmCardImages } from "./cards"
 import {
   db as defaultDb,
   type Blocked,
@@ -339,7 +339,10 @@ export async function loadLog(
 ) {
   try {
     set({ ...(await readLog(db, queue)), failed: state.failed })
-    if (state.log) forgetCardUrls(state.log.cards)
+    if (state.log) {
+      forgetCardUrls(state.log.cards)
+      warmCardImages(state.log.cards, { db })
+    }
   } catch (error) {
     console.warn("Couldn't read the log copy", error)
     set({ ...state, loaded: true })
