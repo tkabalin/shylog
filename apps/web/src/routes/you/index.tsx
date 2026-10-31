@@ -2,12 +2,14 @@ import { useEffect, useState, type ReactNode } from "react"
 import { entityKinds, type Settings } from "@shylog/core"
 import {
   IconAlertTriangle,
+  IconCertificate,
   IconCloudCheck,
   IconDatabase,
   IconFileTypeXml,
   IconServer,
   IconRefresh,
   IconServerOff,
+  IconUser,
   IconVersions,
 } from "@tabler/icons-react"
 import { createFileRoute, Link } from "@tanstack/react-router"
@@ -324,7 +326,14 @@ function DiverCard({
       <Card className="gap-0 divide-y py-0">
         <Row>
           {/* In the text colour, as the board draws the card's label. */}
-          <label htmlFor="you-diverName" className="shrink-0 text-[15px]">
+          <label
+            htmlFor="you-diverName"
+            className="flex shrink-0 items-center gap-1.5 text-[15px]"
+          >
+            <IconUser
+              aria-hidden
+              className="size-[1.15em] shrink-0 text-muted-foreground"
+            />
             Diver name
           </label>
           <RowInput
@@ -373,6 +382,7 @@ function DiverCard({
           className={cn(listRow, pressable)}
         >
           <RowContent
+            icon={IconCertificate}
             label={cards?.length ? "All certifications" : "Certifications"}
             value={cards != null ? countText(cards.length) : null}
             chevron
