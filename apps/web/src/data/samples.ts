@@ -3,6 +3,7 @@ import { samplesBatch } from "@shylog/core"
 import { apiClient, type Profile } from "@/api/client"
 
 import { db as defaultDb, type Dive, type LogDb } from "./db"
+import { downloader } from "./downloads"
 
 // Offline before a profile was ever kept, the server unreachable, or the
 // chart's chunk missing, as opposed to a profile that fails to draw.
@@ -131,37 +132,11 @@ async function readProfile(
 // every chart opens at once and works offline. A batch the server refuses is
 // skipped; losing the connection ends the run, and the next sync tries again.
 type DownloadOptions = { db?: LogDb; fetch?: typeof globalThis.fetch }
-let downloading: Promise<void> | undefined
-let next: [readonly Dive[], DownloadOptions] | undefined
-// Set once a write fails with the phone's storage full: every later run
-// would fetch the same batch only to drop it. Other failures retry next sync.
-let full = false
-// Dexie reports a full disk as an abort's inner error, a mock as itself.
-export const isQuota = (error: unknown): boolean =>
-  error instanceof Object &&
-  ((error as { name?: unknown }).name === "QuotaExceededError" ||
-    isQuota((error as { inner?: unknown }).inner))
-export function downloadProfiles(
-  dives: readonly Dive[],
-  options: DownloadOptions = {}
-) {
-  if (full) return Promise.resolve()
-  // One run at a time; a sync during it leaves its newer list for another.
-  next = [dives, options]
-  downloading ??= (async () => {
-    while (next && !full) {
-      const run = next
-      next = undefined
-      await download(...run).catch((error: unknown) => {
-        console.debug("Profile download stopped", error)
-      })
-    }
-    // Cleared in the same step as the last check of `next`, so a list left
-    // after it starts a new run rather than joining one that has ended.
-    downloading = next = undefined
-  })()
-  return downloading
-}
+export const downloadProfiles = downloader(
+  "Profile",
+  (dives: readonly Dive[], options: DownloadOptions = {}) =>
+    download(dives, options)
+)
 
 async function download(
   dives: readonly Dive[],
@@ -193,22 +168,17 @@ async function download(
     const { profiles } = await res.json()
     // Only for dives the log still has as they were: a sync since may have
     // pruned one or brought a new profile, which the next run fetches.
-    await db
-      .transaction("rw", db.dives, db.profiles, async () => {
-        const now = await db.dives.bulkGet(Object.keys(profiles))
-        await db.profiles.bulkPut(
-          now.flatMap((dive) => {
-            const key = dive && digest(dive)
-            return key && key === asked.get(dive.id)
-              ? [{ diveId: dive.id, digest: key, ...profiles[dive.id] }]
-              : []
-          })
-        )
-      })
-      .catch((error: unknown) => {
-        if (isQuota(error)) full = true
-        throw error
-      })
+    await db.transaction("rw", db.dives, db.profiles, async () => {
+      const now = await db.dives.bulkGet(Object.keys(profiles))
+      await db.profiles.bulkPut(
+        now.flatMap((dive) => {
+          const key = dive && digest(dive)
+          return key && key === asked.get(dive.id)
+            ? [{ diveId: dive.id, digest: key, ...profiles[dive.id] }]
+            : []
+        })
+      )
+    })
   }
 }
 
@@ -230,5 +200,5 @@ export function primeProfile(dive: Dive, profile: Promise<Profile>) {
 export function forgetProfiles() {
   loading.clear()
   failed.clear()
-  full = false
+  downloadProfiles.reset()
 }

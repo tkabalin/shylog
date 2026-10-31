@@ -1,7 +1,8 @@
 import { useEffect, useReducer } from "react"
 
 import { db as defaultDb, type Card, type LogDb } from "./db"
-import { isQuota, outcome, settled, type Settled } from "./samples"
+import { downloader } from "./downloads"
+import { outcome, settled, type Settled } from "./samples"
 
 export type Options = { db?: LogDb; fetch?: typeof globalThis.fetch }
 
@@ -138,30 +139,10 @@ export function forgetCardUrls(cards: readonly Card[]) {
 // card opens with no signal even if it was never opened on this phone. A
 // page the server no longer has is skipped; anything else, the connection
 // lost or the server down, ends the run, and the next sync tries again.
-let downloading: Promise<void> | undefined
-let next: [readonly Card[], Options] | undefined
-// Set once a write fails with the phone's storage full, as for profiles:
-// every later run would fetch the same page only to drop it.
-let full = false
-export function downloadCardImages(
-  cards: readonly Card[],
-  options: Options = {}
-) {
-  if (full) return Promise.resolve()
-  // One run at a time; a sync during it leaves its newer list for another.
-  next = [cards, options]
-  downloading ??= (async () => {
-    while (next && !full) {
-      const run = next
-      next = undefined
-      await download(...run).catch((error: unknown) => {
-        console.debug("Card download stopped", error)
-      })
-    }
-    downloading = next = undefined
-  })()
-  return downloading
-}
+export const downloadCardImages = downloader(
+  "Card",
+  (cards: readonly Card[], options: Options = {}) => download(cards, options)
+)
 
 async function download(
   cards: readonly Card[],
@@ -193,10 +174,7 @@ async function download(
         console.debug(error)
         continue
       }
-      await keep(db, card.id, hash, blob).catch((error: unknown) => {
-        if (isQuota(error)) full = true
-        throw error
-      })
+      await keep(db, card.id, hash, blob)
       retryCardImage(card.id, hash)
     }
   }
@@ -206,5 +184,5 @@ async function download(
 export function forgetCardImages() {
   urls.clear()
   failed.clear()
-  full = false
+  downloadCardImages.reset()
 }
