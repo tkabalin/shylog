@@ -51,6 +51,12 @@ test("leaves the console clean", async ({ page }) => {
   await expect(page.getByRole("dialog")).toBeVisible()
   await page.keyboard.press("Escape")
   await page.goto("/you/entities?kind=person")
+  // Leaving before the list's code arrives aborts its import, which WebKit
+  // reports as a missing module, and TanStack reloads the list over the
+  // next goto.
+  await expect(
+    page.getByRole("heading", { name: "People", exact: true })
+  ).toBeVisible()
   await page.goto("/you/deleted")
   await expect(
     page.getByText(/^(Nothing deleted|Deleted dives still stop)/)
