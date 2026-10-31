@@ -13,7 +13,6 @@ const settings = settingsSchema.parse({
     oxygen: 320,
     weight: 6,
     diveType: "recreation",
-    visibilityMode: "metres",
   },
 })
 
@@ -28,7 +27,6 @@ describe("the Defaults section", () => {
       oxygen: "32",
       weight: "6",
       diveType: "recreation",
-      visibilityMode: "metres",
     })
     expect(parseDefaults(values).request).toEqual({
       newDiveDefaults: settings.newDiveDefaults,
@@ -44,7 +42,6 @@ describe("the Defaults section", () => {
       newDiveDefaults: {
         cylinderVolume: 12_200,
         nitrox: false,
-        visibilityMode: "metres",
       },
     })
   })

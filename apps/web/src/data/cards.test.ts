@@ -38,7 +38,7 @@ const log = (version: string, cards: Log["cards"]): Log => ({
   settings: {
     diverName: "",
     maxPo2: 1.4,
-    newDiveDefaults: { visibilityMode: "metres" },
+    newDiveDefaults: {},
   },
   cards,
 })

@@ -44,7 +44,7 @@ const log = (version: string, overrides: Partial<Log> = {}): Log => ({
   settings: {
     diverName: "",
     maxPo2: 1.4,
-    newDiveDefaults: { visibilityMode: "metres" },
+    newDiveDefaults: {},
   },
   cards: [],
   ...overrides,

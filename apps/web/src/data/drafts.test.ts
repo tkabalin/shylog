@@ -76,7 +76,7 @@ const log = (
   settings: {
     diverName: "",
     maxPo2: 1.4,
-    newDiveDefaults: { visibilityMode: "metres" },
+    newDiveDefaults: {},
   },
   cards: [],
 })

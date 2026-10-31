@@ -90,7 +90,7 @@ describe("a fresh database", () => {
       id: 1,
       diver_name: "",
       max_po2: 1.4,
-      new_dive_defaults: '{"visibilityMode":"metres"}',
+      new_dive_defaults: "{}",
     })
   })
 
@@ -215,5 +215,18 @@ describe("migration 3", () => {
       { id: "dive-a", sample_duration: 660, sample_average_depth: 9.091 },
       { id: "dive-b", sample_duration: null, sample_average_depth: null },
     ])
+  })
+})
+
+describe("migration 4", () => {
+  it("drops the visibility default and keeps the others", () => {
+    migrate(db, dir, migrations.slice(0, 3))
+    db.prepare("UPDATE settings SET new_dive_defaults = ?").run(
+      '{"weight":4,"visibilityMode":"rating"}'
+    )
+    migrate(db, dir)
+    expect(
+      db.prepare("SELECT new_dive_defaults FROM settings").pluck().get()
+    ).toBe('{"weight":4}')
   })
 })
