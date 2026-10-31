@@ -602,10 +602,10 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - Saving a new dive celebrates it once on the detail that takes the form's place: seven small bubbles rise off the max depth figure to the top of the screen at once, offline too, and a milestone number adds a burst of twelve larger bubbles from the bottom of the screen once the server numbers the dive. Editing a dive, opening it again, or reloading it shows nothing, and nothing plays under reduced motion. No number is a milestone until they are chosen (see Later).
 - **Statistics**: headline figures and charts, filtered by year (see Statistics).
 - **Import**: upload a Subsurface UDDF export, review the pairings, then see the summary (see Subsurface import).
-- **You** (the fourth tab, once called Settings, with a scuba mask icon): the diver's own things first, then the log's upkeep, then preferences, in sections. Fields save as they change: a tap at once, typing as its field is left (Return leaves it too). A value refused as typed stays with the problem under it; a save that fails says why under its card and puts the saved value back
+- **You** (the fourth tab, once called Settings, with a scuba mask icon): sync status first, then the diver's own things, then the log's upkeep, then preferences, in sections. Fields save as they change: a tap at once, typing as its field is left (Return leaves it too). A value refused as typed stays with the problem under it; a save that fails says why under its card and puts the saved value back
   - Alerts for a failed export or paused saving, above everything
-  - Diver name and certifications, under the page title with no heading of their own: the first three cards in the owner's order as tiles, each opening its card, and an All certifications row to the list
   - Sync status, with save waiting dives to a file when there are drafts
+  - Diver name and certifications, under the sync status with no heading of their own: the first three cards in the owner's order as tiles, each opening its card, and an All certifications row to the list
   - Your log: dive count, times of the last snapshot and export, and Recently deleted
   - Sites, people and trips
   - Download: a fresh UDDF export or a database snapshot

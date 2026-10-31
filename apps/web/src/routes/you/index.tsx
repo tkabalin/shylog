@@ -53,8 +53,8 @@ const none = "—"
 const deletedCount = (log: LogView) =>
   [...log.dive.values()].filter((dive) => dive.deletedAt).length
 
-// SettingsHifi as the You tab (D30): the diver's own things first, then
-// the log's upkeep, then preferences.
+// SettingsHifi as the You tab (D30): sync status first, then the diver's
+// own things, then the log's upkeep, then preferences.
 function YouPage() {
   const { log, loaded, failed } = useLog()
   const syncedAt = useLastSync()
@@ -84,10 +84,6 @@ function YouPage() {
             protect your log. Restore from a backup using the guide in the repo.
           </Alert>
         )}
-
-        {/* Drawn before the first sync too, so nothing moves down when the
-            log arrives. */}
-        <DiverCard settings={log?.settings} cards={log?.cards} />
 
         <Card className="flex-row items-center gap-3 px-4 py-3.5">
           <span
@@ -123,6 +119,10 @@ function YouPage() {
             </span>
           </span>
         </Card>
+
+        {/* Drawn before the first sync too, so nothing moves down when the
+            log arrives. */}
+        <DiverCard settings={log?.settings} cards={log?.cards} />
 
         <Section title="Your log">
           <div className={listRow}>
@@ -277,8 +277,8 @@ function Alert({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-// The diver's name and the first certification cards, under the title
-// with no heading of their own (D30, D32).
+// The diver's name and the first certification cards, under the sync
+// card with no heading of their own (D30, D32).
 function DiverCard({
   settings,
   cards,
