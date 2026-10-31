@@ -81,6 +81,42 @@ test("adds a dive with a new site and buddy, which uploads and gets its number @
   expect(await bubbles.count()).toBe(0)
 })
 
+test("uploads a dive saved offline once the server answers again @writes", async ({
+  page,
+  restore,
+}) => {
+  const name = `E2E Offline Reef ${Date.now()}`
+  await page.route("**/api/ops", (route) => route.abort())
+  await page.goto("/")
+  await page.getByRole("link", { name: "Log a dive" }).click()
+  await openSheet(page, /^Site,/)
+  await sheet(page).getByRole("button", { name: "New site" }).click()
+  await sheet(page).getByLabel("Name").fill(name)
+  await sheet(page).getByRole("button", { name: "Add", exact: true }).click()
+  await page.locator("#field-time").fill("09:00")
+  await page.getByLabel("Duration").fill("40")
+  await page.getByLabel("Max depth").fill("12")
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  await expect(page).toHaveURL(/\/dive\/dive-[\w-]+$/)
+  const id = page.url().split("/").pop()!
+  restore((request) => deleteDive(request, id))
+  const number = page.getByText(/^Dive \d+$/)
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(name)
+  await expect(number).toHaveCount(0)
+
+  // The next sync, as the app comes back to the foreground, sends it. A
+  // sync still running takes the call over, so it is repeated.
+  await page.unroute("**/api/ops")
+  await expect(async () => {
+    await page.evaluate(() =>
+      document.dispatchEvent(new Event("visibilitychange"))
+    )
+    await expect(number).toBeVisible({ timeout: 1000 })
+  }).toPass()
+  const log = await getLog(page.request)
+  expect(log.dives.find((dive) => dive.id === id)?.maxDepth).toBe(12)
+})
+
 test("edits a dive's notes, which changes the log's version @writes", async ({
   page,
   restore,
