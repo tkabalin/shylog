@@ -227,7 +227,6 @@ describe("a new dive", () => {
       oxygen: 320,
       weight: 6,
       diveType: "training",
-      visibilityMode: "rating",
     },
   } as typeof defaultSettings
 
@@ -243,7 +242,7 @@ describe("a new dive", () => {
       oxygen: "32",
       weight: "6",
       diveType: "training",
-      visibility: null,
+      visibility: "metres",
       ignored: false,
     })
     // Typed values like any other, so they are sent with the dive.

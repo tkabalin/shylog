@@ -8,10 +8,14 @@ export function readSettings(db: Db): Settings {
     db,
     "SELECT diver_name AS diverName, max_po2 AS maxPo2, new_dive_defaults AS newDiveDefaults FROM settings"
   ).get() as { diverName: string; maxPo2: number; newDiveDefaults: string }
-  return settingsSchema.parse({
-    ...row,
-    newDiveDefaults: JSON.parse(row.newDiveDefaults),
-  })
+  // A restore replays settings journalled before migration 4 removed this
+  // key, onto a row that still has it.
+  const newDiveDefaults = JSON.parse(row.newDiveDefaults) as Record<
+    string,
+    unknown
+  >
+  delete newDiveDefaults.visibilityMode
+  return settingsSchema.parse({ ...row, newDiveDefaults })
 }
 
 // New-dive defaults are replaced whole, and stored as core's schema wrote

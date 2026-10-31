@@ -5,6 +5,7 @@ import { getMeta, setMeta, write } from "../journal.ts"
 import { initial } from "./migrations/001-initial.ts"
 import { tombstonesCardHashes } from "./migrations/002-tombstones-card-hashes.ts"
 import { sampleFigures } from "./migrations/003-sample-figures.ts"
+import { dropVisibilityMode } from "./migrations/004-drop-visibility-mode.ts"
 import type { Db } from "./open.ts"
 
 export interface Migration {
@@ -17,6 +18,7 @@ export const migrations: Migration[] = [
   initial,
   tombstonesCardHashes,
   sampleFigures,
+  dropVisibilityMode,
 ]
 
 export function schemaVersion(db: Db): number {

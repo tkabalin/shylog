@@ -244,24 +244,6 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
                 onClick={() => setTypeOpen(true)}
               />
             )}
-
-            <div
-              role="group"
-              aria-labelledby="you-visibility"
-              className="flex flex-col gap-2 px-4 py-3"
-            >
-              <Label id="you-visibility">Visibility as</Label>
-              <Segmented
-                labelledBy="you-visibility"
-                value={values.visibilityMode}
-                // One of the two is always chosen, so a second tap keeps it.
-                onChange={(mode) => mode && pick("visibilityMode", mode)}
-                options={[
-                  { value: "metres", label: "Metres" },
-                  { value: "rating", label: "Low, average, high" },
-                ]}
-              />
-            </div>
           </Section>
           <SaveFailure error={failure} />
           <OptionSheet

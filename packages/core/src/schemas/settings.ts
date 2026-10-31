@@ -17,7 +17,6 @@ const newDiveDefaults = nitroxOxygen(
     oxygen: optionalDiveFields.oxygen.optional(),
     weight: optionalDiveFields.weight.optional(),
     diveType: defaultedDiveFields.diveType.optional(),
-    visibilityMode: z.enum(["metres", "rating"]),
   })
 )
 
@@ -32,7 +31,7 @@ export const settingsFields = {
 export const settingsSchema = z.strictObject({
   diverName: settingsFields.diverName.default(""),
   maxPo2: settingsFields.maxPo2.default(1.4),
-  newDiveDefaults: newDiveDefaults.prefault({ visibilityMode: "metres" }),
+  newDiveDefaults: newDiveDefaults.prefault({}),
 })
 export type Settings = z.output<typeof settingsSchema>
 

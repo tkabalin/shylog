@@ -19,12 +19,20 @@ const getSettings = async () =>
 const put = (body: unknown) => send(app, "PUT", "/api/settings", body)
 
 describe("GET /api/settings", () => {
-  it("defaults to an empty name, 1.4 bar, no new-dive defaults and visibility in metres", async () => {
+  it("defaults to an empty name, 1.4 bar and no new-dive defaults", async () => {
     expect(await getSettings()).toEqual({
       diverName: "",
       maxPo2: 1.4,
-      newDiveDefaults: { visibilityMode: "metres" },
+      newDiveDefaults: {},
     })
+  })
+
+  // As a restore finds it, replaying settings saved before migration 4.
+  it("reads a row that still has the dropped visibility default", async () => {
+    db.prepare("UPDATE settings SET new_dive_defaults = ?").run(
+      '{"weight":4,"visibilityMode":"rating"}'
+    )
+    expect((await getSettings()).newDiveDefaults).toEqual({ weight: 4 })
   })
 })
 
@@ -50,13 +58,11 @@ describe("PUT /api/settings", () => {
       cylinderVolume: 11100,
       nitrox: true,
       oxygen: 320,
-      visibilityMode: "rating",
     }
     expect((await put({ newDiveDefaults: defaults })).status).toBe(200)
     expect((await getSettings()).newDiveDefaults).toEqual(defaults)
-    await put({ newDiveDefaults: { visibilityMode: "metres", weight: 4 } })
+    await put({ newDiveDefaults: { weight: 4 } })
     expect((await getSettings()).newDiveDefaults).toEqual({
-      visibilityMode: "metres",
       weight: 4,
     })
   })
@@ -65,8 +71,8 @@ describe("PUT /api/settings", () => {
     for (const body of [
       {},
       { maxPo2: 1.45 },
-      { newDiveDefaults: { visibilityMode: "metres", cylinderVolume: 11.1 } },
-      { newDiveDefaults: { visibilityMode: "metres", nitrox: true } },
+      { newDiveDefaults: { cylinderVolume: 11.1 } },
+      { newDiveDefaults: { nitrox: true } },
       { colour: "cyan" },
     ]) {
       expect((await put(body)).status).toBe(400)

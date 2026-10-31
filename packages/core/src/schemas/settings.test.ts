@@ -3,11 +3,11 @@ import { describe, expect, it } from "vitest"
 import { defaultSettings, settingsSchema } from "./settings.ts"
 
 describe("settingsSchema", () => {
-  it("defaults to an empty name, 1.4 bar and visibility in metres", () => {
+  it("defaults to an empty name, 1.4 bar and no new-dive defaults", () => {
     expect(defaultSettings).toEqual({
       diverName: "",
       maxPo2: 1.4,
-      newDiveDefaults: { visibilityMode: "metres" },
+      newDiveDefaults: {},
     })
   })
 
@@ -30,7 +30,6 @@ describe("settingsSchema", () => {
         oxygen: 320,
         weight: 4,
         diveType: "recreation",
-        visibilityMode: "rating",
       },
     })
     expect(settings.newDiveDefaults).toMatchObject({
@@ -39,14 +38,14 @@ describe("settingsSchema", () => {
     })
     expect(
       settingsSchema.safeParse({
-        newDiveDefaults: { visibilityMode: "metres", cylinderVolume: 11.1 },
+        newDiveDefaults: { cylinderVolume: 11.1 },
       }).success
     ).toBe(false)
   })
 
   it("saves a default oxygen only with nitrox", () => {
     const settings = settingsSchema.parse({
-      newDiveDefaults: { visibilityMode: "metres", oxygen: 320 },
+      newDiveDefaults: { oxygen: 320 },
     })
     expect(settings.newDiveDefaults).not.toHaveProperty("oxygen")
   })
@@ -54,7 +53,7 @@ describe("settingsSchema", () => {
   it("needs a default oxygen with nitrox", () => {
     expect(
       settingsSchema.safeParse({
-        newDiveDefaults: { visibilityMode: "metres", nitrox: true },
+        newDiveDefaults: { nitrox: true },
       }).success
     ).toBe(false)
   })
@@ -62,7 +61,7 @@ describe("settingsSchema", () => {
   it("rejects dive types the spec doesn't list", () => {
     expect(
       settingsSchema.safeParse({
-        newDiveDefaults: { visibilityMode: "metres", diveType: "technical" },
+        newDiveDefaults: { diveType: "technical" },
       }).success
     ).toBe(false)
   })

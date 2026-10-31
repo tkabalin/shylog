@@ -45,7 +45,7 @@ describe("GET /api/log", () => {
     expect(log.settings).toEqual({
       diverName: "",
       maxPo2: 1.4,
-      newDiveDefaults: { visibilityMode: "metres" },
+      newDiveDefaults: {},
     })
   })
 

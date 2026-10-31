@@ -48,7 +48,7 @@ const mirror = (version: string) =>
     settings: {
       diverName: "",
       maxPo2: 1.4,
-      newDiveDefaults: { visibilityMode: "metres" },
+      newDiveDefaults: {},
     },
   } satisfies Meta)
 

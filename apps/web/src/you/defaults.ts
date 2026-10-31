@@ -8,8 +8,6 @@ import {
   type Settings,
 } from "@shylog/core"
 
-type Defaults = Settings["newDiveDefaults"]
-
 // The Defaults section as typed: the new-dive defaults in the dive form's
 // own controls.
 export interface DefaultsValues {
@@ -20,7 +18,6 @@ export interface DefaultsValues {
   oxygen: string
   weight: string
   diveType: DiveType | null
-  visibilityMode: Defaults["visibilityMode"]
 }
 
 export type DefaultsErrors = Partial<Record<keyof DefaultsValues, string>>
@@ -42,7 +39,6 @@ export function defaultsValues(settings: Settings): DefaultsValues {
     oxygen: exact(defaults.oxygen != null ? defaults.oxygen / 10 : null),
     weight: exact(defaults.weight),
     diveType: (defaults.diveType as DiveType | undefined) ?? null,
-    visibilityMode: defaults.visibilityMode,
   }
 }
 
@@ -75,7 +71,6 @@ export function parseDefaults(values: DefaultsValues): {
     oxygen: oxygen !== undefined ? percentToTenths(oxygen) : undefined,
     weight: number("weight"),
     diveType: values.diveType ?? undefined,
-    visibilityMode: values.visibilityMode,
   }
   const parsed = settingsFields.newDiveDefaults.safeParse(defaults)
   if (!parsed.success) {
