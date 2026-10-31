@@ -8,6 +8,7 @@ import {
   cardOrderSchema,
   cardMaxPages,
   idSchema,
+  sniffImage,
 } from "@shylog/core"
 import { bodyLimit } from "hono/body-limit"
 
@@ -17,7 +18,6 @@ import {
   deleteCard,
   readCards,
   saveCard,
-  sniff,
   writeOrder,
   type Page,
 } from "../cards/store.ts"
@@ -36,8 +36,10 @@ async function page(sent: string | File, i: number): Promise<Page> {
     throw new Rejected("An image can be up to 10 MB", 400, path)
   }
   const bytes = new Uint8Array(await sent.arrayBuffer())
-  const contentType = sniff(bytes)
-  if (!contentType) {
+  // From the bytes, so only real PNG, JPEG and WebP files are stored; the
+  // phone makes HEIC a JPEG before it sends it.
+  const contentType = sniffImage(bytes)
+  if (!contentType || contentType === "heif") {
     throw new Rejected("Expected a PNG, JPEG or WebP image", 400, path)
   }
   return { bytes, contentType }

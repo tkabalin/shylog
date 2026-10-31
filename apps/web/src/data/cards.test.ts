@@ -3,13 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { Log } from "@/api/client"
 
-import {
-  deleteCard,
-  orderCards,
-  readPicks,
-  saveCard,
-  sniffImage,
-} from "./card-edits"
+import { deleteCard, orderCards, readPicks, saveCard } from "./card-edits"
 import {
   downloadCardImages,
   forgetCardImages,
@@ -368,31 +362,6 @@ describe("saveCard", () => {
     expect(await kept(db)).toEqual(["card-ow,08e548c038b16088"])
     const [page] = await db.cardImages.toArray()
     expect(page!.heldUntil).toBeGreaterThan(Date.now())
-  })
-})
-
-describe("sniffImage", () => {
-  const bytes = (...parts: (string | number[])[]) =>
-    new Uint8Array(
-      parts.flatMap((part) =>
-        typeof part === "string" ? [...part].map((c) => c.charCodeAt(0)) : part
-      )
-    )
-
-  it("knows the stored types and HEIC or HEIF by their first bytes", () => {
-    expect(sniffImage(bytes("\x89PNG\r\n\x1a\n"))).toBe("image/png")
-    expect(sniffImage(bytes([0xff, 0xd8, 0xff, 0xe0]))).toBe("image/jpeg")
-    expect(sniffImage(bytes("RIFF", [0, 0, 0, 0], "WEBP"))).toBe("image/webp")
-    for (const brand of ["heic", "heix", "hevc", "mif1", "msf1"]) {
-      expect(sniffImage(bytes([0, 0, 0, 24], "ftyp", brand))).toBe("heif")
-    }
-  })
-
-  it("knows nothing else, an AVIF or MP4 included", () => {
-    expect(sniffImage(bytes([0, 0, 0, 24], "ftyp", "avif"))).toBeNull()
-    expect(sniffImage(bytes([0, 0, 0, 24], "ftyp", "isom"))).toBeNull()
-    expect(sniffImage(bytes("GIF89a"))).toBeNull()
-    expect(sniffImage(new Uint8Array())).toBeNull()
   })
 })
 

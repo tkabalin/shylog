@@ -9,7 +9,7 @@ import {
 } from "node:fs"
 import { dirname, join } from "node:path"
 
-import { cardMaxPages } from "@shylog/core"
+import { cardHash, cardMaxPages } from "@shylog/core"
 
 import { Rejected } from "../apply/rejected.ts"
 import type { Db } from "../db/open.ts"
@@ -44,21 +44,8 @@ export const imagesOf = (db: Db, id: string) =>
     "SELECT hash, content_type AS contentType FROM certification_images WHERE card_id = ? ORDER BY n"
   ).all(id)
 
-// The type from the file's own first bytes, never the name or the header
-// the browser chose, so only real PNG, JPEG and WebP files are stored.
-export function sniff(bytes: Uint8Array): string | null {
-  const ascii = (from: number, to: number) =>
-    String.fromCharCode(...bytes.subarray(from, to))
-  if (ascii(0, 8) === "\x89PNG\r\n\x1a\n") return "image/png"
-  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
-    return "image/jpeg"
-  }
-  if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return "image/webp"
-  return null
-}
-
 export const hashOf = (bytes: Uint8Array) =>
-  createHash("sha256").update(bytes).digest("hex").slice(0, 16)
+  cardHash(createHash("sha256").update(bytes).digest())
 
 type Commit<T> = (apply: () => boolean, entry: Entry) => T
 

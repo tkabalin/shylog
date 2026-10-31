@@ -1,4 +1,9 @@
-import { cardImageMaxBytes, type CardOrder } from "@shylog/core"
+import {
+  cardHash,
+  cardImageMaxBytes,
+  sniffImage,
+  type CardOrder,
+} from "@shylog/core"
 
 import { apiClient } from "@/api/client"
 
@@ -9,40 +14,14 @@ import { commit } from "./edits"
 // Apart from cards.ts, which the log's sync uses: these go through commit,
 // which syncs the log, so keeping them there would make an import cycle.
 
-// The server's name for a page: the first 16 hex digits of its SHA-256
-// (see hashOf in the server's card store).
+// The server's name for a page (see hashOf in its card store).
 async function hashOf(file: Blob) {
-  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer())
-  return [...new Uint8Array(digest).subarray(0, 8)]
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("")
+  return cardHash(
+    new Uint8Array(
+      await crypto.subtle.digest("SHA-256", await file.arrayBuffer())
+    )
+  )
 }
-
-// What a picked file is, from its first bytes rather than the name or the
-// type the browser chose: a type the server stores, HEIC or HEIF, or none.
-export function sniffImage(head: Uint8Array) {
-  const ascii = (from: number, to: number) =>
-    String.fromCharCode(...head.subarray(from, to))
-  if (ascii(0, 8) === "\x89PNG\r\n\x1a\n") return "image/png"
-  if (head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff) {
-    return "image/jpeg"
-  }
-  if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return "image/webp"
-  if (ascii(4, 8) === "ftyp" && heifBrands.has(ascii(8, 12))) return "heif"
-  return null
-}
-
-// The major brands of an iPhone's HEIC and of HEIF stills and sequences.
-const heifBrands = new Set([
-  "heic",
-  "heix",
-  "hevc",
-  "hevx",
-  "heim",
-  "heis",
-  "mif1",
-  "msf1",
-])
 
 // A phone photo is far more than a card needs, and a 48 MP one could come
 // out over the 10 MB cap, so the long edge is kept to 4096 px.
