@@ -174,6 +174,18 @@ describe("replay", () => {
     expect(compare(snapshot, db)).toEqual([])
   })
 
+  it("replays a card's removal", async () => {
+    const { db, app, putCard } = liveApp()
+    const snapshot = copyOf(db)
+    expect((await putCard("PADI Open Water", [png(1)])).status).toBe(200)
+    expect((await send(app, "DELETE", "/api/cards/card-padi")).status).toBe(200)
+    expect(replay(snapshot, db).replayed.map((row) => row.type)).toEqual([
+      "putCard",
+      "deleteCard",
+    ])
+    expect(compare(snapshot, db)).toEqual([])
+  })
+
   it("replays up to a sequence number and lists the rest", async () => {
     const { db, app } = liveApp()
     const snapshot = copyOf(db)
@@ -347,6 +359,17 @@ describe("compare", () => {
       `ops differs: ${migrations.length + 1} rows in the restored copy, ${migrations.length + 2} in the live database`,
       "settings differs: 1 rows in the restored copy, 1 in the live database",
       "sqlite_sequence differs: 1 rows in the restored copy, 1 in the live database",
+    ])
+  })
+
+  it("stops at a schema difference, before any rows", () => {
+    const { db } = liveApp()
+    const copy = copyOf(db)
+    db.exec("CREATE TABLE extra (x)")
+    // Rows that differ too, which the schema line stands in for.
+    db.prepare("INSERT INTO meta (key, value) VALUES ('extra', 'x')").run()
+    expect(compare(copy, db)).toEqual([
+      "schema: 0 objects only in the restored copy, 1 only in the live database",
     ])
   })
 })
