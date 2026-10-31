@@ -37,7 +37,8 @@ const bodyTypes: { method: string; path: RegExp; types: string[] }[] = [
   },
   {
     method: "PUT",
-    path: /^\/api\/cards\/[^/]+$/,
+    // A card's own path, not /api/cards/order, which sends JSON.
+    path: /^\/api\/cards\/card-[^/]+$/,
     types: ["multipart/form-data"],
   },
 ]

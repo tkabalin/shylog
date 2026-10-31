@@ -296,6 +296,7 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 | DELETE | `/api/entities/:kind/:id` | Delete a trip (unlinking its dives), or a site, region, person, or dive centre that nothing uses |
 | GET, PUT | `/api/settings` | Read or change the log-wide settings: diver name, maximum PO₂, and new-dive defaults |
 | GET | `/api/cards` | List certification cards |
+| PUT | `/api/cards/order` | Put the cards in the owner's order, naming every card once; an order that misses or adds one is refused (409), so a list read before another phone's change is never half applied |
 | PUT, DELETE | `/api/cards/:id` | Create or change a card, with its images (multipart PNG, JPEG, or WebP, up to 10 MB each), under a client-generated id, or delete it. The pages are sent in order, each a new file or the hash of an image the card already has, so reordering uploads nothing |
 | GET | `/api/cards/:id/images/:n` | One card image, fetched with the `X-Shylog` header and `?v=<hash>`, so it can be cached for a year, and kept on the phone as a blob for offline viewing |
 | POST | `/api/import` | Upload a Subsurface export (`application/xml`, `text/xml`, or `application/octet-stream` with a `.uddf` or `.xml` name, up to 25 MB); stores and returns a preview without changing any dive data |

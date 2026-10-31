@@ -111,9 +111,10 @@ export function saveCard<T>(
     }
     const images = next.map(({ hash, contentType }) => ({ hash, contentType }))
     return commit(
-      () => writeCard(db, id, name, images),
-      // With their types, so a replay can rebuild the rows.
-      { type: "putCard", payload: { id, name, images } }
+      () => writeCard(db, id, name, images, true),
+      // With their types, so a replay can rebuild the rows, and where a new
+      // card goes, as entries from before new cards went first put it last.
+      { type: "putCard", payload: { id, name, images, first: true } }
     )
   } finally {
     prune(db, folder, id)
@@ -126,7 +127,8 @@ export function writeCard(
   db: Db,
   id: string,
   name: string,
-  images: Image[]
+  images: Image[],
+  first: boolean
 ): boolean {
   const stored = prepared(db, "SELECT name FROM certifications WHERE id = ?")
     .pluck()
@@ -135,19 +137,49 @@ export function writeCard(
   if (stored === name && hashes(imagesOf(db, id)) === hashes(images)) {
     return false
   }
-  // A new card goes last in the list.
+  // A new card goes first in the list, as the latest earned is likeliest
+  // the one a dive centre asks for.
   prepared(
     db,
     `INSERT INTO certifications (id, name, position)
-     VALUES (?, ?, (SELECT coalesce(max(position), -1) + 1 FROM certifications))
+     VALUES (?, ?, (SELECT CASE WHEN ? THEN coalesce(min(position), 1) - 1
+       ELSE coalesce(max(position), -1) + 1 END FROM certifications))
      ON CONFLICT (id) DO UPDATE SET name = excluded.name`
-  ).run(id, name)
+  ).run(id, name, first ? 1 : 0)
   prepared(db, "DELETE FROM certification_images WHERE card_id = ?").run(id)
   images.forEach((image, n) =>
     prepared(
       db,
       "INSERT INTO certification_images (card_id, n, content_type, hash) VALUES (?, ?, ?, ?)"
     ).run(id, n, image.contentType, image.hash)
+  )
+  return true
+}
+
+// The cards in the owner's order, named every one once, so an order made
+// before another phone added or deleted a card is refused, not half kept.
+// True when it changed.
+export function writeOrder(db: Db, ids: string[]): boolean {
+  const current = prepared<[], string>(
+    db,
+    "SELECT id FROM certifications ORDER BY position"
+  )
+    .pluck()
+    .all()
+  const known = new Set(current)
+  if (
+    ids.length !== current.length ||
+    new Set(ids).size !== ids.length ||
+    !ids.every((id) => known.has(id))
+  ) {
+    throw new Rejected("The cards have changed; try again", 409, ["ids"])
+  }
+  if (ids.join() === current.join()) return false
+  ids.forEach((id, position) =>
+    prepared(db, "UPDATE certifications SET position = ? WHERE id = ?").run(
+      position,
+      id
+    )
   )
   return true
 }
