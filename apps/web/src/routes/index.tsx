@@ -15,7 +15,6 @@ import { useAfter, usePreloadChart } from "@/chart/load"
 import { FilterPills } from "@/components/filter-pills"
 import { LogHeader } from "@/components/log-header"
 import { MonthGroup } from "@/components/month-group"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Empty,
@@ -127,30 +126,37 @@ function LogPage() {
     log ? filtered.filter((dive) => matchesSearch(dive, query, log)) : []
   )
 
-  const update = blocked && (
-    <Alert className="mx-4 mt-3 w-auto md:mx-[max(1rem,calc((100%-46rem)/2))]">
-      <AlertTitle>Update Shylog</AlertTitle>
-      <AlertDescription>
-        The server has a newer version, so syncing has stopped. Reload to get
-        it.
-      </AlertDescription>
-      <Button
-        size="sm"
-        className="mt-2 w-fit"
-        onClick={() => location.reload()}
-      >
-        Reload
-      </Button>
-    </Alert>
-  )
-
   // Nothing to show until the mirror is read, or while a first sync fills
-  // an empty one; if that sync fails, say so and offer another try.
+  // an empty one; if that sync fails, say so and offer another try. With a
+  // log, a newer server's offer to reload is a toast (UpdateToast).
   if (!log) {
     return (
       <div className="flex min-h-full shrink-0 flex-col pt-[env(safe-area-inset-top)]">
         <h1 className="sr-only">Log</h1>
-        {update}
+        {blocked && (
+          <Empty className="flex-1">
+            <EmptyHeader>
+              <EmptyMedia variant="accent">
+                <IconRefresh />
+              </EmptyMedia>
+              <EmptyTitle>Update Shylog</EmptyTitle>
+              <EmptyDescription>
+                The server has a newer version of Shylog. Reload to get it, and
+                your log syncs again.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button
+                size="lg"
+                // The board's primary action: 48 px, rounder, semibold.
+                className="h-12 w-full rounded-[14px] text-base font-semibold"
+                onClick={() => location.reload()}
+              >
+                Reload
+              </Button>
+            </EmptyContent>
+          </Empty>
+        )}
         {loaded && failed && !blocked && (
           <Empty className="flex-1">
             <EmptyHeader>
@@ -183,7 +189,6 @@ function LogPage() {
       <h1 className="sr-only">Log</h1>
       {!log.dives.length ? (
         <>
-          <div className="pt-[env(safe-area-inset-top)]">{update}</div>
           <Empty className="flex-1">
             <EmptyHeader>
               <EmptyMedia variant="accent">
@@ -275,7 +280,6 @@ function LogPage() {
               <FilterPills log={log} filters={filters} onChange={setFilters} />
             </div>
           </LogHeader>
-          {update}
           {/* Room below the last card for the floating button. Wide screens
               keep the list to a readable column. */}
           <div className="flex flex-col gap-4 px-4 pt-3 pb-24 md:mx-auto md:w-full md:max-w-3xl desk:pb-8">

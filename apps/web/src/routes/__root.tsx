@@ -1,10 +1,13 @@
+import { useEffect } from "react"
 import { createRootRoute, Outlet } from "@tanstack/react-router"
+import { toast } from "sonner"
 
 import { cn } from "cn"
 
 import { AppSidebar, BottomNav, useOnForm } from "@/components/app-nav"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
+import { useLog } from "@/data/log"
 
 export const Route = createRootRoute({
   component: RootLayout,
@@ -40,6 +43,26 @@ function RootLayout() {
       />
       <BottomNav />
       <Toaster />
+      <UpdateToast />
     </SidebarProvider>
   )
+}
+
+// A newer server has stopped syncing: the offer to reload stays up on every
+// tab until it's taken or swiped away. A phone with no log yet has the
+// Log's own screen saying so instead.
+function UpdateToast() {
+  const { log, blocked } = useLog()
+  const show = blocked && !!log
+  useEffect(() => {
+    if (!show) return
+    toast("A new version of Shylog is ready", {
+      id: "update",
+      description: "Syncing is paused until you reload.",
+      duration: Infinity,
+      action: { label: "Reload", onClick: () => location.reload() },
+    })
+    return () => void toast.dismiss("update")
+  }, [show])
+  return null
 }
