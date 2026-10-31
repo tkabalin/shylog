@@ -366,7 +366,8 @@ export function sync() {
   syncing ??= syncLog()
     .then(async (result) => {
       if (state.failed) set({ ...state, failed: false })
-      await noteSynced()
+      // A newer server took nothing, so the last sync stays the last real one.
+      if (result !== "blocked") await noteSynced()
       if (result === "updated" || (await behind())) await loadLog()
       if (result === "blocked" && !state.blocked)
         set({ ...state, blocked: true })

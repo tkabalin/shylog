@@ -281,5 +281,6 @@ test("keeps the log and offers a reload on every tab when the server is newer", 
   await page.getByRole("link", { name: "You" }).click()
   await expect(page).toHaveURL(/\/you$/)
   await expect(offer.getByRole("button", { name: "Reload" })).toBeVisible()
+  await expect(page.getByRole("status")).toHaveText("Syncing paused")
   await page.unrouteAll({ behavior: "ignoreErrors" })
 })

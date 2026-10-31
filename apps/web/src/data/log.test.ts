@@ -103,11 +103,15 @@ describe("sync", () => {
 
   it("stops downloading and uploading for a server on a newer schema", async () => {
     await mirror("v1")
+    const { noteSynced } = await import("./last-sync")
+    vi.mocked(noteSynced).mockClear()
     syncLog.mockResolvedValueOnce("blocked")
     await log.sync()
     expect(state().blocked).toBe(true)
     expect(downloadProfiles).not.toHaveBeenCalled()
     expect(upload).not.toHaveBeenCalled()
+    // It took nothing, so You doesn't say it just synced.
+    expect(noteSynced).not.toHaveBeenCalled()
   })
 })
 
