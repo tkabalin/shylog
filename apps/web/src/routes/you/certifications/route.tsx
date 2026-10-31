@@ -254,12 +254,8 @@ function CardRow({
         )}
       >
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="flex min-w-0 items-center gap-1.5 text-base leading-[1.4] font-medium tracking-[-0.015em]">
-            <IconCertificate
-              aria-hidden
-              className="size-[1.15em] shrink-0 text-muted-foreground"
-            />
-            <span className="truncate">{card.name}</span>
+          <span className="truncate text-base leading-[1.4] font-medium tracking-[-0.015em]">
+            {card.name}
           </span>
           <span className="text-[13px] text-muted-foreground tabular-nums">
             {pagesText(card.images.length)}
