@@ -183,3 +183,46 @@ test("counts ignored dives in Your log @writes", async ({ page, restore }) => {
   await expect(row(page, "Last backup")).not.toContainText("—")
   await expect(row(page, "Dives")).toContainText(new RegExp(`\\D${total}$`))
 })
+
+// A sync runs whenever the app comes back to the foreground. One still
+// running takes the call over, so it is repeated until `status` shows.
+const foreground = (page: Page, status: string) =>
+  expect(async () => {
+    await page.evaluate(() =>
+      document.dispatchEvent(new Event("visibilitychange"))
+    )
+    await expect(page.getByRole("status")).toHaveText(status, {
+      timeout: 1000,
+    })
+  }).toPass()
+
+test("says when the server can't be reached, keeping the last sync", async ({
+  page,
+}) => {
+  await page.goto("/you")
+  await expect(page.getByRole("status")).toHaveText("All synced")
+  await expect(page.getByText("Last sync just now")).toBeVisible()
+
+  await page.route("**/api/log", (route) => route.abort())
+  await foreground(page, "Can’t reach the server")
+  await expect(page.getByText("Last sync just now")).toBeVisible()
+
+  await page.unroute("**/api/log")
+  await foreground(page, "All synced")
+})
+
+test("warns that saving is paused after a failed database check", async ({
+  page,
+}) => {
+  await page.route("**/api/health", async (route) => {
+    const res = await route.fetch()
+    await route.fulfill({
+      response: res,
+      json: { ...(await res.json()), writesPaused: true },
+    })
+  })
+  await page.goto("/you")
+  await expect(page.getByRole("alert")).toContainText("Saving is paused")
+  // A later sync may still be asking as the test ends.
+  await page.unrouteAll({ behavior: "ignoreErrors" })
+})
