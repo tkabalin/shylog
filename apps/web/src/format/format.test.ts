@@ -20,6 +20,7 @@ import {
   minutes,
   temperatureRange,
 } from "./figures"
+import { cardPlace, fullPlace } from "./place"
 
 describe("dates", () => {
   it("gives a card its weekday and day only", () => {
@@ -122,5 +123,29 @@ describe("figures", () => {
   it("shows cylinder volume in litres", () => {
     expect(litres(11100)).toBe("11.1")
     expect(litres(12000)).toBe("12")
+  })
+})
+
+describe("place", () => {
+  const site = {
+    id: "site-a",
+    name: "Sodwana",
+    countryCode: "ZA",
+    regionId: "region-k",
+    bodyOfWater: "oceanSea",
+    waterType: "salt",
+  }
+  const region = { id: "region-k", name: "KwaZulu-Natal", countryCode: "ZA" }
+
+  it("names the region on a card, or the country when there is none", () => {
+    expect(cardPlace(site, region)).toBe("KwaZulu-Natal")
+    expect(cardPlace(site, undefined)).toBe("South Africa")
+    expect(cardPlace(undefined, undefined)).toBe("")
+  })
+
+  it("names both on the detail", () => {
+    expect(fullPlace(site, region)).toBe("KwaZulu-Natal, South Africa")
+    expect(fullPlace(site, undefined)).toBe("South Africa")
+    expect(fullPlace(undefined, region)).toBe("")
   })
 })
