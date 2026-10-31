@@ -49,6 +49,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
           toast:
             "cn-toast !min-h-12 gap-3 !py-1 !pr-2 !pl-4 !font-sans !text-sm !font-medium shadow-[0_8px_24px_-8px_rgb(0_0_0/0.35)]",
           title: "truncate",
+          // Sonner's grey is drawn for its own background, not the board's
+          // inverted one, and all but disappears on it.
+          description: "!text-background/75 !font-normal",
           actionButton:
             "!h-9 !bg-transparent !px-2.5 !text-sm !font-semibold !text-background opacity-85 transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0",
         },

@@ -240,21 +240,46 @@ test("says it can't reach Shylog on a first visit offline, and tries again", asy
   await expect(cards(page)).toHaveCount(46)
 })
 
-test("stops syncing and asks for an update when the server is newer", async ({
-  page,
-}) => {
-  await page.route("**/api/log", async (route) => {
-    const res = await route.fetch()
+// The log as a newer server sends it, fetched in full so a phone with a
+// copy can't be answered "not modified".
+const newerServer = (page: Page) =>
+  page.route("**/api/log", async (route) => {
+    const headers = { ...route.request().headers() }
+    delete headers["if-none-match"]
+    const res = await route.fetch({ headers })
     const log = (await res.json()) as { schemaVersion: number }
     await route.fulfill({
       response: res,
       json: { ...log, schemaVersion: log.schemaVersion + 1 },
     })
   })
+
+test("stops syncing and asks for an update when the server is newer", async ({
+  page,
+}) => {
+  await newerServer(page)
   await page.goto("/")
-  await expect(page.getByRole("alert")).toContainText("Update Shylog")
+  await expect(page.getByText("Update Shylog")).toBeVisible()
   await expect(page.getByRole("button", { name: "Reload" })).toBeVisible()
   await expect(cards(page)).toHaveCount(0)
   // A later sync may still be asking as the test ends.
+  await page.unrouteAll({ behavior: "ignoreErrors" })
+})
+
+test("keeps the log and offers a reload on every tab when the server is newer", async ({
+  page,
+}) => {
+  await page.goto("/")
+  await expect(cards(page)).toHaveCount(46)
+  await newerServer(page)
+  await page.reload()
+  const offer = page
+    .locator("[data-sonner-toast]")
+    .filter({ hasText: "A new version of Shylog is ready" })
+  await expect(offer).toBeVisible()
+  await expect(cards(page)).toHaveCount(46)
+  await page.getByRole("link", { name: "You" }).click()
+  await expect(page).toHaveURL(/\/you$/)
+  await expect(offer.getByRole("button", { name: "Reload" })).toBeVisible()
   await page.unrouteAll({ behavior: "ignoreErrors" })
 })
