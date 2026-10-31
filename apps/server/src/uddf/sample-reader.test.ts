@@ -43,4 +43,29 @@ describe("readUddf", () => {
     // Two computers and no link: no guess.
     expect(unknown.computerModel).toBeNull()
   })
+
+  it("pairs ascent alarms in order and keeps an unclosed one open", () => {
+    const at = (time: number, alarm = "") =>
+      `<waypoint><depth>5</depth><divetime>${time}</divetime>${alarm && `<alarm>${alarm}</alarm>`}</waypoint>`
+    const xml = uddf(
+      dive("air").replace(
+        /<samples>.*<\/samples>/,
+        `<samples>${at(0)}${at(60, "ascent")}${at(80, "ascent")}${at(90, "surface")}${at(120, "ascent")}</samples>`
+      )
+    )
+    expect(readUddf(xml)[0].events).toEqual([
+      { type: "ascent", start: 60, end: 80 },
+      { type: "surface", start: 90, end: null },
+      { type: "ascent", start: 120, end: null },
+    ])
+  })
+
+  it("skips a dive with no tank data, as a freedive has", () => {
+    const freedive = dive("air").replace(/<tankdata>.*<\/tankdata>/, "")
+    expect(readUddf(uddf(freedive + dive("ean32")))).toHaveLength(1)
+  })
+
+  it("refuses a file that isn't XML", () => {
+    expect(() => readUddf("")).toThrow()
+  })
 })

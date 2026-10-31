@@ -20,7 +20,7 @@ import { snapshot } from "../jobs/nightly.ts"
 import { seed } from "../seed.ts"
 import { compare } from "./compare.ts"
 import { NotInJournal } from "./replay.ts"
-import { drill, restore, SnapshotRefused } from "./restore.ts"
+import { drill, restore, snapshotPath, SnapshotRefused } from "./restore.ts"
 
 // A live instance: a seeded database file in its own data folder, and the
 // app writing to it.
@@ -61,6 +61,20 @@ function putCard(app: ReturnType<typeof testApp>, page: number) {
 
 const settings = (db: Db) =>
   db.prepare("SELECT diver_name AS name, max_po2 AS po2 FROM settings").get()
+
+describe("snapshotPath", () => {
+  it("finds a bare name among the nightly snapshots, and a path in the data folder", () => {
+    expect(snapshotPath("/data", "shylog-2026-10-30.db.gz")).toBe(
+      "/data/snapshots/shylog-2026-10-30.db.gz"
+    )
+    expect(snapshotPath("/data", "pre-migration/shylog.db")).toBe(
+      "/data/pre-migration/shylog.db"
+    )
+    expect(snapshotPath("/data", "/backups/shylog.db.gz")).toBe(
+      "/backups/shylog.db.gz"
+    )
+  })
+})
 
 describe("restore", () => {
   it("swaps the snapshot in and replays the moved-aside journal", async () => {

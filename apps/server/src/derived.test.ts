@@ -74,6 +74,16 @@ describe("the derived pass after each write", () => {
     expect(at(second).number).toBe(34)
   })
 
+  it("numbers dives with the same start time in the order they were written", async () => {
+    const tie = "2026-07-20T09:00:00"
+    await addDive("dive-later-id", tie)
+    await addDive("dive-earlier-id", tie)
+    const number = (id: string) =>
+      db.prepare("SELECT number FROM dives WHERE id = ?").pluck().get(id)
+    expect(number("dive-later-id")).toBe(33)
+    expect(number("dive-earlier-id")).toBe(34)
+  })
+
   it("gives an ignored dive no number but keeps it for intervals and CNS", async () => {
     const before = at(second)
     await patch(first, { ignored: true })
