@@ -1,4 +1,4 @@
-import { act } from "react"
+import { act, useLayoutEffect } from "react"
 import { createRoot } from "react-dom/client"
 import { afterEach, expect, it } from "vitest"
 
@@ -49,4 +49,32 @@ it("tries again after a failed load", async () => {
   await expect(preload()).rejects.toThrow("offline")
   fail = false
   await expect(preload()).resolves.toBe(Sheet)
+})
+
+// The CI flake: picked screenshots never opened New card in WebKit.
+it("draws when its code arrives between commit and effect", async () => {
+  let arrive!: (sheet: typeof Sheet) => void
+  const { Component, preload } = preloadable(
+    () => new Promise<typeof Sheet>((resolve) => (arrive = resolve))
+  )
+  void preload()
+  // Lands in a microtask after the commit, before React runs passive effects.
+  function Arrives() {
+    useLayoutEffect(() => arrive(Sheet), [])
+    return null
+  }
+  globalThis.IS_REACT_ACT_ENVIRONMENT = false
+  try {
+    const host = document.createElement("div")
+    document.body.append(host)
+    createRoot(host).render(
+      <>
+        <Component name="New card" />
+        <Arrives />
+      </>
+    )
+    await expect.poll(() => host.textContent).toBe("New card")
+  } finally {
+    globalThis.IS_REACT_ACT_ENVIRONMENT = true
+  }
 })
