@@ -20,10 +20,12 @@ export function preloadable<P extends object>(
 
   function Preloaded(props: P) {
     const [, settle] = useReducer((n: number) => n + 1, 0)
-    useEffect(() => {
-      if (!loaded) preload().then(settle, () => {})
-    }, [])
     const Loaded = loaded
+    // What this render saw, not `loaded`: code arriving after the commit
+    // but before the effect would otherwise leave it empty for good.
+    useEffect(() => {
+      if (!Loaded) preload().then(settle, () => {})
+    }, [Loaded])
     return Loaded ? <Loaded {...props} /> : null
   }
   return { Component: Preloaded, preload }
