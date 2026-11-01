@@ -10,6 +10,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 [Subsurface](https://github.com/subsurface/subsurface) is the open-source dive log many divers rely on for the numbers, but it is a desktop app. Shylog is built to be filled in on a phone on the boat, with wet hands and no signal, while giving the same figures Subsurface would.
 
 - **Calculations checked against Subsurface's own code**: Subsurface's functions are copied into [one small C++ program](packages/core/test/reference/subsurface.cpp) and run side by side with Shylog's TypeScript on thousands of random dives from [fast-check](https://fast-check.dev), aimed at the boundaries where bugs hide. Every rounded figure must match exactly, on every CI run.
+- **UDDF that other apps can open**: the UDDF Shylog writes is checked in CI against the official [UDDF 3.2.1 schema](fixtures/uddf/uddf_v321.xsd), with each departure from it listed in the spec. CI also opens it with Subsurface's own import and checks that each dive comes out the same, gas and cylinders included, so a log moved to Subsurface arrives intact.
 - **Data that is hard to lose**: SQLite in WAL mode with `STRICT` tables, every write one journalled transaction, a snapshot before each migration, and an integrity check that pauses writes if it fails.
 - **Hand beats computer**: each field records whether it was typed or read from the dive computer, so an import never overwrites a hand-entered value and keeps the computer's reading beside it.
 - **Private by design**: no accounts or passwords. The app is reachable only over Tailscale and trusts its identity header for an allow-listed login.
@@ -39,7 +40,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 
 ## Development
 
-Needs Node 24 (see `.nvmrc`), pnpm (which Corepack provides), a C++ compiler (`c++`, as from `build-essential` or Xcode's command line tools) and `xsltproc` (`apt install xsltproc`; macOS has it) for the Subsurface reference tests.
+Needs Node 24 (see `.nvmrc`), pnpm (which Corepack provides), a C++ compiler (`c++`, as from `build-essential` or Xcode's command line tools) and `xsltproc` and `xmllint` (`apt install xsltproc libxml2-utils`; macOS has both) for the Subsurface reference and UDDF schema tests.
 
 ```bash
 corepack enable

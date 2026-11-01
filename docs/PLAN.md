@@ -791,14 +791,14 @@ Deferred, or to watch:
 
 **Implements**: UDDF export (Data model), Units (export column), v1 fields (export column of both tables), Server (UDDF export), Backups (items 1 and 6), Testing (Schema validation), Screens (Settings Download and alerts), decisions D3, D4.
 
-**Touches**: `apps/server/src/uddf/writer.ts` (owner from settings, divecomputer, sites with geography and the body-of-water element, divebases, buddies, trips, gasdefinitions grouped by fraction, tanks grouped by material and volume, dives in schema order, `<applicationdata><shylog>` under Shylog's namespace, `<surfaceintervalbeforedive>` with `<infinity/>`), `apps/server/src/jobs/nightly.ts` (export after the snapshot, temp file, fsync, re-parse, rename), `apps/server/src/routes/export.ts` (`/api/export/uddf`, `/api/export/snapshot`, `/api/export/run`), `fixtures/uddf/uddf_v321.xsd` (vendored), `scripts/validate-uddf.sh` (strips `<shylog>` then runs `xmllint --schema`), `apps/web/src/routes/settings/` (Download rows, export alert with Export now), tests.
+**Touches**: `apps/server/src/uddf/writer.ts` (owner from settings, divecomputer, sites with geography and the body-of-water element, divebases, buddies, trips, gasdefinitions grouped by fraction, tanks grouped by material and volume, dives in schema order, `<applicationdata><shylog>` under Shylog's namespace, `<surfaceintervalbeforedive>` with `<infinity/>`), `apps/server/src/jobs/nightly.ts` (export after the snapshot, temp file, fsync, re-parse, rename), `apps/server/src/routes/export.ts` (`/api/export/uddf`, `/api/export/snapshot`, `/api/export/run`), `apps/web/src/routes/settings/` (Download rows, export alert with Export now), tests.
 
 **Shape already in use**: the SSI converter (`apps/server/scripts/ssi/convert.ts`) writes `<shylog>` first: namespace `https://github.com/tkabalin/shylog/uddf`, elements named after core's dive fields (`surface`, `maxTemperature`, `trainingCourse`, one `tag` per tag), values as Shylog's keys, temperatures in kelvin. It also writes a site's region in `geography/location` and its ISO code in `address/country`, since the XSD requires both. The writer uses the same shape, or changes the converter with it.
 
 **Acceptance**
 
 - `writer.test.ts`: a log with hand dives on 32.4% and 32% nitrox produces two mixes; two dives with Aluminium 11100 ml share one tank; every id is the Shylog id and the export is byte-identical on two runs with no change; dive 63 maps to `informationbeforedive/datetime` without an offset, `greatestdepth` 32.66, temperatures in kelvin, duration in seconds; the per-dive `<shylog>` block carries surge, surface, weather, rating, max temperature, gear, tags, dive centre and trip id; a dive with no earlier dive writes `<infinity/>`; an ignored dive has no `divenumber` and its `<shylog>` block says it is ignored (D23); a hand value that differs from the computer's goes in the standard element; tags, people and professionals export as the spec says.
-- `pnpm test:xsd` validates the generated export of the seeded log and a hand-only log; the only allowed failure is the removed `<shylog>` element (the script strips it first).
+- `uddfSchemaErrors` (`apps/server/test/uddf-schema.ts`) finds nothing in the generated export of the seeded log and a hand-only log; it strips `<shylog>` first and accepts `tankdata` with no start pressure, the two failures the spec allows.
 - `nightly.test.ts` (extended): the export is written after the snapshot through a temp file and re-parse; a failed export leaves the previous file, logs, and `/api/health` reports it; the next night retries.
 - `export.test.ts`: `GET /api/export/uddf` rewrites the file and streams it; `GET /api/export/snapshot` streams a `VACUUM INTO` copy; `POST /api/export/run` rewrites without a body and clears the failure.
 - `writer.test.ts` reads every export it makes with `readAsSubsurface` (`apps/server/test/reference/subsurface-uddf.ts`, Subsurface's own stylesheet): every dive comes out with its date, time, depth, duration and mix, sites with name and position, buddies with their names, and multi-paragraph notes whole. The owner opens one real export in Subsurface as a last check (noted in the milestone notes).
@@ -810,7 +810,7 @@ Deferred, or to watch:
 - [ ] `<shylog>` application data
 - [ ] Nightly export with temp file, fsync, re-parse, rename
 - [ ] Export endpoints (D4)
-- [ ] Vendored XSD and `test:xsd` script in CI
+- [x] Vendored XSD (`fixtures/uddf/uddf_v321.xsd`) and `uddfSchemaErrors`, run in CI with the server tests
 - [ ] You tab Download rows and export alert
 - [x] Subsurface's UDDF import as a test helper, proven on the D4i and Zoop Novo exports
 - [ ] Subsurface reads the export (helper in `writer.test.ts`, one manual open)
@@ -876,7 +876,7 @@ Deferred, or to watch:
 
 - `apply.test.ts`: a paired dive keeps every hand value (an ignored dive stays ignored), gets samples and events, fills empty fields as computer values (average depth, min and max temperature), records `computer_value` for each of start time, max depth, average depth, duration and temperatures that differ, by any amount; an added dive carries the computer's values with source computer; a skipped dive gets no fingerprint; a freedive left out gets one with reason `freedive`, and a Zoop Novo dive under a minute one with reason `short`; an included freedive becomes a dive; a second apply with the same import id changes nothing; a 120-dive synthetic export commits in three chunks with three journal entries, and a failure in chunk two leaves chunk one applied and reports it; a hand dive edited after the preview is returned as changed before anything commits; the summary counts match D19.
 - `reimport.test.ts`: importing the same export twice skips every dive as already imported; deleting a dive and importing again still skips it.
-- `passthrough.test.ts`: import the D4i fixture, export, and compare each dive's standard elements before and after, allowing only remapped ids, hand values and Shylog's own additions to differ; the result validates with `test:xsd`; `<he>`, alarms and extra sample channels in a synthetic fixture survive in place.
+- `passthrough.test.ts`: import the D4i fixture, export, and compare each dive's standard elements before and after, allowing only remapped ids, hand values and Shylog's own additions to differ; the result has no `uddfSchemaErrors`; `<he>`, alarms and extra sample channels in a synthetic fixture survive in place.
 - `sync-import.test.ts`: a hand-logged dive uploaded from a draft, then matched by an import, ends with the same data whether the draft arrived before or after the preview was made.
 - `ssi.test.ts`: a file from the SSI converter (its `generatorName`) adds every dive as hand values, with no fingerprint and no clock offset, reading its `<shylog>` block; the D4i fixture imported afterwards pairs with those dives.
 
@@ -1028,7 +1028,6 @@ Root `package.json`:
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:xsd": "scripts/validate-uddf.sh",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "seed": "pnpm --filter @shylog/server run seed",
     "restore-drill": "scripts/restore-drill.sh"
@@ -1076,7 +1075,7 @@ Root `package.json`:
 
 Vitest and Playwright only find their config in the working directory, so the package scripts point back at the root configs. The server's `dev` loads the root `.env` and sets `NODE_ENV`, since an unset `NODE_ENV` counts as production and refuses `SHYLOG_DEV_LOGIN`. `apps/server/tsup.config.ts` holds the entry, `esm` format and the Node target, read from `engines.node` in its `package.json`, so a Node LTS bump is one edit. `check` runs the whole Vitest suite and is for CI only. Locally, including at sign-off, run `typecheck` and `lint` in full and only the test files the milestone names, with `vitest run <paths>` (`packages/core` for all of core). `restore-drill` runs in the instance's app container through Docker Compose (D26), so the host needs only Docker, and it never runs in CI.
 
-`playwright.config.ts` runs Chromium and WebKit at a 390 × 844 viewport with a `webServer` that starts the server on a temp `SHYLOG_DATA_DIR` with `SHYLOG_DEV_LOGIN` set and seeds the fixture. `scripts/validate-uddf.sh` strips `<shylog>` elements with a short Node script and runs `xmllint --noout --schema fixtures/uddf/uddf_v321.xsd` over the files given; CI installs `libxml2-utils` (it is not installed in the local WSL today).
+`playwright.config.ts` runs Chromium and WebKit at a 390 × 844 viewport with a `webServer` that starts the server on a temp `SHYLOG_DATA_DIR` with `SHYLOG_DEV_LOGIN` set and seeds the fixture. UDDF schema checks run inside Vitest: `uddfSchemaErrors` in `apps/server/test/uddf-schema.ts` strips `<shylog>` elements, runs `xmllint --noout --schema fixtures/uddf/uddf_v321.xsd` on the XML it is given and drops the one allowed `tankdata` error, so CI installs `libxml2-utils` before the tests.
 
 ## Still open
 
