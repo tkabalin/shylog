@@ -96,8 +96,10 @@ export function readUddf(xml: string): ReadDive[] {
   return all(root, "dive").flatMap((dive) => {
     const tank = all(dive, "tankdata")[0]
     if (!tank) return []
-    const mix = all(tank, "link")[0]?.getAttribute("ref")
-    const o2 = mix ? mixes.get(mix) : undefined
+    // The links may name the tank as well as the mix, in either order.
+    const o2 = all(tank, "link")
+      .map((link) => mixes.get(link.getAttribute("ref")))
+      .find((fraction) => fraction !== undefined)
     const waypoints = all(dive, "waypoint")
     const samples = mergeDuplicateSamples(
       waypoints.map((waypoint) => {
