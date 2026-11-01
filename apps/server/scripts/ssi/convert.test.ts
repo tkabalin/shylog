@@ -7,6 +7,7 @@ import {
   shylogNamespace,
   type Extras,
 } from "./convert.ts"
+import { readAsSubsurface } from "../../test/reference/subsurface-uddf.ts"
 import { readCsv } from "./csv.ts"
 
 // Invented dives in the shape of the export job's CSV, which prefixes every
@@ -203,8 +204,17 @@ describe("convertSsi", () => {
     const [first, second] = all(root, "informationbeforedive").map((info) =>
       all(info, "link").map((link) => link.getAttribute("ref"))
     )
-    expect(first).toEqual(["site-ssi-11", "person-1", "person-2"])
+    expect(first).toEqual(["person-1", "person-2", "site-ssi-11"])
     expect(second).toEqual(["site-ssi-12"])
+  })
+
+  it("lists buddies so Subsurface reads them as one name each", () => {
+    const [dive] = Array.from(
+      readAsSubsurface(convert().xml).getElementsByTagName("dive")
+    )
+    expect(dive!.getElementsByTagName("buddy")[0]!.textContent).toBe(
+      "Alex Example, Sam van Example"
+    )
   })
 
   it("keeps a multi-line comment as the dive's notes", () => {
