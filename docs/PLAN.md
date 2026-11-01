@@ -801,7 +801,7 @@ Deferred, or to watch:
 - `pnpm test:xsd` validates the generated export of the seeded log and a hand-only log; the only allowed failure is the removed `<shylog>` element (the script strips it first).
 - `nightly.test.ts` (extended): the export is written after the snapshot through a temp file and re-parse; a failed export leaves the previous file, logs, and `/api/health` reports it; the next night retries.
 - `export.test.ts`: `GET /api/export/uddf` rewrites the file and streams it; `GET /api/export/snapshot` streams a `VACUUM INTO` copy; `POST /api/export/run` rewrites without a body and clears the failure.
-- The owner opens the export in Subsurface and confirms every dive, site, buddy and mix appears (noted in the milestone notes).
+- `writer.test.ts` reads every export it makes with `readAsSubsurface` (`apps/server/test/reference/subsurface-uddf.ts`, Subsurface's own stylesheet): every dive comes out with its date, time, depth, duration and mix, sites with name and position, buddies with their names, and multi-paragraph notes whole. The owner opens one real export in Subsurface as a last check (noted in the milestone notes).
 - You: the Download rows work, "Last UDDF export" updates, a failed export shows the alert with Export now.
 
 **Not in this milestone**: pass-through of imported standard elements (milestone 16), the queued-ops file (milestone 19).
@@ -812,7 +812,8 @@ Deferred, or to watch:
 - [ ] Export endpoints (D4)
 - [ ] Vendored XSD and `test:xsd` script in CI
 - [ ] You tab Download rows and export alert
-- [ ] Subsurface opens the export
+- [x] Subsurface's UDDF import as a test helper, proven on the D4i and Zoop Novo exports
+- [ ] Subsurface reads the export (helper in `writer.test.ts`, one manual open)
 - [ ] Tests listed above
 
 ## Milestone 14: Import, the Suunto reader

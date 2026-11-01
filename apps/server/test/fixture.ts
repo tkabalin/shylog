@@ -1,12 +1,8 @@
-import { readFileSync } from "node:fs"
-
 import { seed } from "../src/seed.ts"
 import { testDb } from "./db.ts"
+import { d4iXml } from "./uddf-fixtures.ts"
 
-export const fixtureXml = readFileSync(
-  new URL("../../../fixtures/subsurface/d4i-2026-10-12.uddf", import.meta.url),
-  "utf8"
-)
+export const fixtureXml = d4iXml
 
 // Fixture dives by Subsurface's divenumber, as start times, since Shylog
 // numbers them differently once the freedives are left out.

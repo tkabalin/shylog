@@ -1,5 +1,7 @@
 # Normalize line endings for all text files
 * text=auto eol=lf
 
-# Copied from Subsurface for the differential test, so keep it out of the language stats
+# Copied from Subsurface for the reference tests, so keep them out of the language stats
 packages/core/test/reference/subsurface.cpp linguist-vendored
+apps/server/test/reference/uddf.xslt linguist-vendored
+apps/server/test/reference/commonTemplates.xsl linguist-vendored

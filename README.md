@@ -29,17 +29,17 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 
 ## Tech stack
 
-| Area    | Tools                                                                                        |
-| ------- | -------------------------------------------------------------------------------------------- |
-| Web app | React 19, Vite, TanStack Router, Tailwind CSS 4, shadcn/ui, Recharts, Dexie, vite-plugin-pwa |
-| Server  | Node 24, Hono with its typed RPC client, better-sqlite3, @xmldom/xmldom, tsup                |
-| Shared  | TypeScript, Zod schemas used by both the app and the server                                  |
-| Testing | Vitest, fast-check, Playwright on Chromium and WebKit, `xmllint` for UDDF schema validation  |
-| Deploy  | Docker Compose with a Tailscale sidecar, HTTPS through Tailscale Serve                       |
+| Area    | Tools                                                                                           |
+| ------- | ----------------------------------------------------------------------------------------------- |
+| Web app | React 19, Vite, TanStack Router, Tailwind CSS 4, shadcn/ui, Recharts, Dexie, vite-plugin-pwa    |
+| Server  | Node 24, Hono with its typed RPC client, better-sqlite3, @xmldom/xmldom, tsup                   |
+| Shared  | TypeScript, Zod schemas used by both the app and the server                                     |
+| Testing | Vitest, fast-check, Playwright on Chromium and WebKit, `xmllint` and `xsltproc` for UDDF checks |
+| Deploy  | Docker Compose with a Tailscale sidecar, HTTPS through Tailscale Serve                          |
 
 ## Development
 
-Needs Node 24 (see `.nvmrc`), pnpm (which Corepack provides) and a C++ compiler (`c++`, as from `build-essential` or Xcode's command line tools) for the Subsurface reference tests.
+Needs Node 24 (see `.nvmrc`), pnpm (which Corepack provides), a C++ compiler (`c++`, as from `build-essential` or Xcode's command line tools) and `xsltproc` (`apt install xsltproc`; macOS has it) for the Subsurface reference tests.
 
 ```bash
 corepack enable
