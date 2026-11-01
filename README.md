@@ -18,8 +18,6 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 
 ## What it does
 
-> **Status**: in early development. When v1 is done, Shylog will:
-
 - Log, edit and delete dives from a phone, with new dives saved offline as drafts that sync when there is signal.
 - Show the log, each dive's details and a profile chart of depth, temperature, vertical speed and the computer's alarms.
 - Import a Subsurface export and pair each computer dive with the dive logged by hand.
