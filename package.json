@@ -17,7 +17,6 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:xsd": "scripts/validate-uddf.sh",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
     "seed": "pnpm --filter @shylog/server run seed",
     "restore-drill": "scripts/restore-drill.sh"

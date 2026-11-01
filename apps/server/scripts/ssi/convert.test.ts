@@ -1,13 +1,10 @@
 import { DOMParser, type Element } from "@xmldom/xmldom"
 import { describe, expect, it } from "vitest"
 
-import {
-  convertSsi,
-  generatorName,
-  shylogNamespace,
-  type Extras,
-} from "./convert.ts"
+import { shylogNamespace } from "../../src/uddf/shylog-namespace.ts"
+import { convertSsi, generatorName, type Extras } from "./convert.ts"
 import { readAsSubsurface } from "../../test/reference/subsurface-uddf.ts"
+import { uddfSchemaErrors } from "../../test/uddf-schema.ts"
 import { readCsv } from "./csv.ts"
 
 // Invented dives in the shape of the export job's CSV, which prefixes every
@@ -255,6 +252,22 @@ describe("convertSsi", () => {
   it("keeps a multi-line comment as the dive's notes", () => {
     const [dive] = all(convert().root, "dive")
     expect(text(dive!, "para")).toEqual(['Cold, "green" water\nsecond line'])
+  })
+
+  it("writes valid UDDF 3.2.1", () => {
+    expect(uddfSchemaErrors(convert().xml)).toEqual([])
+  })
+
+  it("keeps a cylinder with no start pressure, gas and all", () => {
+    const { xml } = convert([
+      { ...shore, pressure_start_bar: "", pressure_end_bar: "" },
+    ])
+    expect(uddfSchemaErrors(xml)).toEqual([])
+    const [cylinder] = Array.from(
+      readAsSubsurface(xml).getElementsByTagName("cylinder")
+    )
+    expect(cylinder!.getAttribute("o2")).toBe("0.21")
+    expect(cylinder!.getAttribute("size")).toBe("12")
   })
 
   it("is the same on every run", () => {

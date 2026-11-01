@@ -18,6 +18,7 @@ import {
 } from "@shylog/core"
 import { z } from "zod"
 
+import { shylogNamespace } from "../../src/uddf/shylog-namespace.ts"
 import * as codes from "./codes.ts"
 import { readCsv } from "./csv.ts"
 
@@ -26,7 +27,6 @@ import { readCsv } from "./csv.ts"
 // generator name tells the import to treat them as hand values.
 
 export const generatorName = "Shylog SSI logbook converter"
-export const shylogNamespace = "https://github.com/tkabalin/shylog/uddf"
 
 // What the CSV doesn't say, kept with the CSV rather than in this public
 // repo. `dives` is keyed by SSI's start time as the CSV writes it
