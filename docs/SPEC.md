@@ -729,9 +729,9 @@ Each step ends with something usable, and the core package comes first because e
 5. **Read-only app**: log list, dive detail, and the profile chart (depth, temperature, events, vertical rate, and the MOD line), using the seeded fixture, with the log mirrored into IndexedDB from the start.
 6. **Editing from day one**: add, edit, delete, Recently deleted, entities (including deletes), settings, and certification cards as plain API calls, with new dives always saved as drafts through the upload path, so offline support later only adds the queue.
 7. **UDDF export**: the nightly and on-demand export, with XSD and pass-through tests.
-8. **Statistics** screen.
+8. **Import**: Suunto parsing rules (D4i and Zoop Novo), freedive detection, preview, clock offsets, pairing review, fingerprints, events, storing CNS and OTU from imported samples, and apply. Starts once a Zoop Novo export is in `fixtures/subsurface/`.
 9. **Offline**: service worker, the draft queue waiting and retrying while offline (the IndexedDB copy exists from step 5 and drafts from step 6), sync indicators, storage warnings, and the update flow.
-10. **Import**: Suunto parsing rules (D4i and Zoop Novo), freedive detection, preview, clock offsets, pairing review, fingerprints, events, storing CNS and OTU from imported samples, and apply. Starts once a Zoop Novo export is in `fixtures/subsurface/`.
+10. **Statistics** screen.
 
 ## Testing
 

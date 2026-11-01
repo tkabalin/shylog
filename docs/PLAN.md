@@ -1,6 +1,6 @@
 # Shylog build plan
 
-This plan turns `docs/SPEC.md` into milestones that each fit one working session. It follows the spec's Build order (scaffold, core, server, deploy, read-only app, editing, UDDF export, statistics, offline, import) and splits the larger steps. A milestone is done only when typecheck, lint and its tests pass and its acceptance criteria below are met, with evidence shown (test output, screenshots).
+This plan turns `docs/SPEC.md` into milestones that each fit one working session. It follows the spec's Build order (scaffold, core, server, deploy, read-only app, editing, UDDF export, import, offline, statistics) and splits the larger steps. Import and offline were moved ahead of statistics on 1 November 2026, so the app is usable for real logging before the statistics are built. A milestone is done only when typecheck, lint and its tests pass and its acceptance criteria below are met, with evidence shown (test output, screenshots).
 
 Conventions used throughout:
 
@@ -69,14 +69,16 @@ Where a board shows something the spec does not and no decision above covers it,
 | 11 | 6 | Editing: delete and restore, You, entities | 10 |
 | 12 | 6 | Certification cards | 11 |
 | 13 | 7 | UDDF export | 6 |
-| 14 | 8 | Statistics: figures and charts | 9 |
-| 15 | 8 | Statistics: patterns | 14 |
-| 16 | 9 | Offline: service worker, sync states, storage | 11 |
-| 17 | 9 | Offline: update flow, queue export, end-to-end tests | 16 |
-| 18 | 10 | Import: the Suunto reader | 5, Zoop Novo fixture (D12) |
-| 19 | 10 | Import: preview, clock offsets, pairing | 18 |
-| 20 | 10 | Import: apply, fingerprints, pass-through export | 19, 13 |
-| 21 | 10 | Import: screens | 19, 20 |
+| 14 | 8 | Import: the Suunto reader | 5, Zoop Novo fixture (D12) |
+| 15 | 8 | Import: preview, clock offsets, pairing | 14 |
+| 16 | 8 | Import: apply, fingerprints, pass-through export | 15, 13 |
+| 17 | 8 | Import: screens | 15, 16 |
+| 18 | 9 | Offline: service worker, sync states, storage | 11, 17 (the Import screen's offline state) |
+| 19 | 9 | Offline: update flow, queue export, end-to-end tests | 18 |
+| 20 | 10 | Statistics: figures and charts | 9, 18 (the stats chunk offline) |
+| 21 | 10 | Statistics: patterns | 20 |
+
+If the Zoop Novo export (D12) hasn't arrived when milestone 13 is done, milestone 18 is the next one that can be built.
 
 ---
 
@@ -97,7 +99,7 @@ Where a board shows something the spec does not and no decision above covers it,
 - Colours come from the preset's Tailwind-based variables; `grep` for hex colours in `apps/web/src` finds none outside the theme layer.
 - CI runs typecheck, lint, Vitest, Playwright (Chromium and WebKit) and installs `libxml2-utils` for later XSD checks.
 
-**Not in this milestone**: vite-plugin-pwa configuration and the service worker (milestone 16), any data, any screen content, Docker.
+**Not in this milestone**: vite-plugin-pwa configuration and the service worker (milestone 18), any data, any screen content, Docker.
 
 - [x] Workspace, base tsconfig, ESLint flat config, Prettier
 - [x] `apps/web` with Vite, React, shadcn preset, Geist, theme layer, touch-size overrides
@@ -184,7 +186,7 @@ Deferred, or to watch:
 - The server (milestones 5 and 6) must check the rules that depend on stored values: a training field or oxygen sent without the type or nitrox, clearing stored training details or oxygen when a patch changes the type from Training or turns nitrox off, nitrox turned on with no stored oxygen or oxygen cleared on a nitrox dive, temperature order and average against max depth against the stored partner, visibility against a stored rating, a buddy who is a stored professional, a region in the site's country, the op version and the two-year age rule.
 - The spec's Units table lists latitude and longitude, but no v1 field, board or schema has site coordinates. Left out by agreement; add them if a later screen needs them.
 - The ISO 3166 country list is not in core yet: `countryCode` only checks two capital letters. Milestone 4 seeds the list and milestone 10 needs it on the client, so it probably belongs in core then.
-- The import types in `schemas/import.ts` are placeholders until milestone 19 builds previews.
+- The import types in `schemas/import.ts` are placeholders until milestone 15 builds previews.
 - Free-text fields reject an empty string; the form sends null (or omits the field) for an empty input.
 - Add the core coverage threshold once the calculation tests land in milestone 3.
 - Carried over from the scaffold: the touch-size check's `/dev/ui` route moves when the Playwright webServer switches to the seeded server (milestone 4 or 8); run Vite once after adding a route before `tsc -b`; `test:xsd`, `seed` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
@@ -210,7 +212,7 @@ Deferred, or to watch:
 - `likely-same.test.ts`: the four conditions, each with a passing and a failing pair, using fixture dive 63 against hand-logged variants.
 - `fast-check` is optional; use it only where it shortens a test.
 
-**Not in this milestone**: statistics (milestones 14 and 15), pattern rules, anything touching XML in production code.
+**Not in this milestone**: statistics (milestones 20 and 21), pattern rules, anything touching XML in production code.
 
 - [x] Depth to pressure, surface threshold, water density
 - [x] Z factor and SAC
@@ -242,7 +244,7 @@ Deferred, or to watch:
 - `mod` gives a negative depth when the limit is below the gas's PO₂ at the surface (100 % oxygen at a 1.0 bar limit), as Subsurface does. The display should show no MOD in that case.
 - iOS haptics: shadcn's Switch here is Base UI's `role="switch"` element, which plays no haptic. For the dive form's switches (milestone 10), editing `components/ui/switch.tsx` to render a native `<input type="checkbox" switch>` would get Safari's system haptic; check on a phone that it survives the restyle.
 - The server's and web's `test` scripts still use `--project`; that is fine while neither has a coverage threshold.
-- Carried over from milestone 2: the server must check the rules that depend on stored values (see its notes); site coordinates are left out; the ISO 3166 list should move into core when milestones 4 and 10 need it; the import types are placeholders until milestone 19; free-text fields reject an empty string.
+- Carried over from milestone 2: the server must check the rules that depend on stored values (see its notes); site coordinates are left out; the ISO 3166 list should move into core when milestones 4 and 10 need it; the import types are placeholders until milestone 15; free-text fields reject an empty string.
 - Carried over from the scaffold: the touch-size check's `/dev/ui` route moves when the Playwright webServer switches to the seeded server (milestone 4 or 8); run Vite once after adding a route before `tsc -b`; `test:xsd`, `seed` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 4: Server, database and reads
@@ -297,13 +299,13 @@ Deferred, or to watch:
 - The derived pass reparses and re-sorts every dive per call to `cnsWithCarryOver` and `surfaceInterval` (O(n² log n)). Fine at hundreds of dives; milestone 5 runs it after every write, so pass a pre-sorted list if edits ever feel slow.
 - Statements in the routes, `storeProfile` and the derived pass are prepared per call; negligible today.
 - Vite's dev server has no proxy, so `/manifest.webmanifest` (and `/api`) 404 under `pnpm dev`. Milestone 8 adds the proxy.
-- iOS ignores SVG manifest icons; the apple-touch PNGs are in milestone 16.
-- UDDF `surfacepressure` is not read or stored; the import (milestone 18) adds a column if an export carries it.
+- iOS ignores SVG manifest icons; the apple-touch PNGs are in milestone 18.
+- UDDF `surfacepressure` is not read or stored; the import (milestone 14) adds a column if an export carries it.
 - The seed's journal entry is `{ source, dives }`, so a replay can't rebuild seeded data. Dev only.
 - Coverage over the server alone fails core's 100 % threshold, since server tests import core; CI's whole-repo run is fine.
 - Playwright's webServer is still Vite's dev server; switch it to the seeded Node server in milestone 8 (the `/dev/ui` touch-size route moves then).
 - Carried over from milestone 3: one sorted pass for carry-over (above); `mod` can go negative for a limit below the surface PO₂, so show no MOD then; check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`.
-- Carried over from milestone 2: the server must check the rules that depend on stored values (see its notes, milestone 5 and 6); site coordinates are left out; the import types are placeholders until milestone 19; free-text fields reject an empty string. The ISO 3166 list is now seeded from core's `countryCodes`.
+- Carried over from milestone 2: the server must check the rules that depend on stored values (see its notes, milestone 5 and 6); site coordinates are left out; the import types are placeholders until milestone 15; free-text fields reject an empty string. The ISO 3166 list is now seeded from core's `countryCodes`.
 - Carried over from the scaffold: run Vite once after adding a route before `tsc -b`; `test:xsd` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 5: Server, draft uploads, dive edits and derived fields
@@ -345,11 +347,11 @@ Decisions taken while building:
 Deferred, or to watch:
 
 - Milestone 6: entity deletes leave no row, so a re-sent draft is told an id was deleted only when the server has seen it before, as an alias or in a journalled `upsertEntity` op (`seenBefore` in `apply/entity.ts`, a scan of `ops` filtered by type). Entities created online with `PUT` aren't in that journal type, so the delete should leave a tombstone (or `PUT` journal the same `{ kind, id }` shape), and the scan can then go.
-- Milestone 10 or 16: a re-uploaded draft is applied as a patch, so a field the diver cleared offline is cleared only if it is text (which arrives as null); a removed trip, weight or override stays. Rare (needs a lost reply and an offline edit); the client could send explicit nulls for cleared fields if it matters.
-- Milestone 20: a hand dive left at Nitrox no has a `hand` nitrox row, so an import pairing it with an EANx32 computer dive keeps air. Decide then whether gas is compared like the five fields.
+- Milestone 10 or 18: a re-uploaded draft is applied as a patch, so a field the diver cleared offline is cleared only if it is text (which arrives as null); a removed trip, weight or override stays. Rare (needs a lost reply and an offline edit); the client could send explicit nulls for cleared fields if it matters.
+- Milestone 16: a hand dive left at Nitrox no has a `hand` nitrox row, so an import pairing it with an EANx32 computer dive keeps air. Decide then whether gas is compared like the five fields.
 - The derived pass reads every dive's samples on every write: about 10 ms per write on the fixture's 46 dives (9,340 samples), linear, so roughly 100 ms at 500 dives. Cache each dive's own CNS, OTU and sample figures if edits ever feel slow.
-- Carried over from milestone 4: `cnsWithCarryOver` and `surfaceInterval` still parse and sort per call; Vite's dev server has no proxy until milestone 8; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; the seed's journal entry can't be replayed; coverage over the server alone fails core's threshold; Playwright's webServer moves to the seeded server in milestone 8.
-- Carried over from milestones 2 and 3: `mod` can go negative for a limit below the surface PO₂ (show no MOD); check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19.
+- Carried over from milestone 4: `cnsWithCarryOver` and `surfaceInterval` still parse and sort per call; Vite's dev server has no proxy until milestone 8; iOS apple-touch PNGs in milestone 18; UDDF `surfacepressure` is not stored; the seed's journal entry can't be replayed; coverage over the server alone fails core's threshold; Playwright's webServer moves to the seeded server in milestone 8.
+- Carried over from milestones 2 and 3: `mod` can go negative for a limit below the surface PO₂ (show no MOD); check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 15.
 - Carried over from the scaffold: run Vite once after adding a route before `tsc -b`; `test:xsd` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 6: Server, entities, settings and cards
@@ -389,11 +391,11 @@ Deferred, or to watch:
 
 - Milestone 12: fetch images as `/api/cards/:id/images/:n?v=<hash>` and key the Dexie cache by hash; a 404 on a stale hash means the log copy is behind.
 - Milestone 7: the restore drill should compare `cards/` too, since the journal can't rebuild card files.
-- Milestone 10 or 16: a re-uploaded draft is applied as a patch, so a field the diver cleared offline is cleared only if it is text (which arrives as null); a removed trip, weight or override stays. Rare (needs a lost reply and an offline edit); the client could send explicit nulls for cleared fields if it matters.
-- Milestone 20: a hand dive left at Nitrox no has a `hand` nitrox row, so an import pairing it with an EANx32 computer dive keeps air. Decide then whether gas is compared like the five fields.
+- Milestone 10 or 18: a re-uploaded draft is applied as a patch, so a field the diver cleared offline is cleared only if it is text (which arrives as null); a removed trip, weight or override stays. Rare (needs a lost reply and an offline edit); the client could send explicit nulls for cleared fields if it matters.
+- Milestone 16: a hand dive left at Nitrox no has a `hand` nitrox row, so an import pairing it with an EANx32 computer dive keeps air. Decide then whether gas is compared like the five fields.
 - The derived pass reads every dive's samples on every write: about 10 ms per write on the fixture's 46 dives (9,340 samples), linear, so roughly 100 ms at 500 dives. Cache each dive's own CNS, OTU and sample figures if edits ever feel slow.
-- Carried over from milestone 4: `cnsWithCarryOver` and `surfaceInterval` still parse and sort per call; Vite's dev server has no proxy until milestone 8; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; the seed's journal entry can't be replayed; coverage over the server alone fails core's threshold; Playwright's webServer moves to the seeded server in milestone 8.
-- Carried over from milestones 2 and 3: `mod` can go negative for a limit below the surface PO₂ (show no MOD); check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19.
+- Carried over from milestone 4: `cnsWithCarryOver` and `surfaceInterval` still parse and sort per call; Vite's dev server has no proxy until milestone 8; iOS apple-touch PNGs in milestone 18; UDDF `surfacepressure` is not stored; the seed's journal entry can't be replayed; coverage over the server alone fails core's threshold; Playwright's webServer moves to the seeded server in milestone 8.
+- Carried over from milestones 2 and 3: `mod` can go negative for a limit below the surface PO₂ (show no MOD); check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 15.
 - Carried over from the scaffold: run Vite once after adding a route before `tsc -b`; `test:xsd` and `restore-drill` still point at scripts later milestones write; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 7: Deploy
@@ -470,11 +472,11 @@ Deferred, or to watch:
 - `VACUUM INTO` blocks the server briefly at midnight; move it to a worker if it ever shows.
 - Milestone 13: the nightly job also writes the UDDF export (`nightly()` in `jobs/nightly.ts`); the drill already ignores `last_export_at`.
 - Milestone 12: fetch images as `/api/cards/:id/images/:n?v=<hash>` and key the Dexie cache by hash; a 404 on a stale hash means the log copy is behind.
-- Milestone 10 or 16: a re-uploaded draft is applied as a patch, so a field the diver cleared offline is cleared only if it is text (which arrives as null); a removed trip, weight or override stays. Rare (needs a lost reply and an offline edit); the client could send explicit nulls for cleared fields if it matters.
-- Milestone 20: a hand dive left at Nitrox no has a `hand` nitrox row, so an import pairing it with an EANx32 computer dive keeps air. Decide then whether gas is compared like the five fields.
+- Milestone 10 or 18: a re-uploaded draft is applied as a patch, so a field the diver cleared offline is cleared only if it is text (which arrives as null); a removed trip, weight or override stays. Rare (needs a lost reply and an offline edit); the client could send explicit nulls for cleared fields if it matters.
+- Milestone 16: a hand dive left at Nitrox no has a `hand` nitrox row, so an import pairing it with an EANx32 computer dive keeps air. Decide then whether gas is compared like the five fields.
 - The derived pass reads every dive's samples on every write: about 10 ms per write on the fixture's 46 dives (9,340 samples), linear, so roughly 100 ms at 500 dives. Cache each dive's own CNS, OTU and sample figures if edits ever feel slow.
-- Carried over from milestone 4: `cnsWithCarryOver` and `surfaceInterval` still parse and sort per call; Vite's dev server has no proxy until milestone 8; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; Playwright's webServer moves to the seeded server in milestone 8.
-- Carried over from milestones 2 and 3: `mod` can go negative for a limit below the surface PO₂ (show no MOD); check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19.
+- Carried over from milestone 4: `cnsWithCarryOver` and `surfaceInterval` still parse and sort per call; Vite's dev server has no proxy until milestone 8; iOS apple-touch PNGs in milestone 18; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; Playwright's webServer moves to the seeded server in milestone 8.
+- Carried over from milestones 2 and 3: `mod` can go negative for a limit below the surface PO₂ (show no MOD); check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 15.
 - Carried over from the scaffold: run Vite once after adding a route before `tsc -b`; `test:xsd` still points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes; add `apps/web` to coverage once it has unit-tested code (milestone 8); the main chunk is about 450 kB.
 
 ## Milestone 8: Read-only app, Log and dive detail
@@ -498,7 +500,7 @@ Deferred, or to watch:
 - Performance: the detail renders from the Dexie mirror with no request of its own, so its figures appear on the first frame. Opening a card is a plain navigation with no transition, as `.claude/rules/motion.md` says for screens opened this often (D27). Tap-to-content time on the owner's phone is recorded in the notes.
 - `compress.test.ts` (server): `/api/log` and `/api/dives/:id/samples` are gzipped when the request accepts it, with `Vary: Accept-Encoding`, and the ETag and 304 still work; card images and snapshots are not compressed again (Hono's `compress` middleware, which skips non-text types and bodies under 1 KB).
 - `scroll.spec.ts`: going back from a dive's detail returns the Log to the same card, with the sticky month header and the collapsed header as they were (TanStack Router's `scrollRestoration`, checked because the collapsing header changes the page height).
-- Routes are code-split (TanStack Router's `autoCodeSplitting`), so a cold launch loads only the shell and the Log; the main chunk's size before and after is recorded in the notes. The service worker still precaches every chunk (milestone 16), so offline is unaffected.
+- Routes are code-split (TanStack Router's `autoCodeSplitting`), so a cold launch loads only the shell and the Log; the main chunk's size before and after is recorded in the notes. The service worker still precaches every chunk (milestone 18), so offline is unaffected.
 - Month groups use `content-visibility: auto` with a `contain-intrinsic-size`, so the browser skips laying out groups off screen; unlike virtualisation, this keeps find in page and the screen-reader order whole.
 - The size of `/api/log` for the seeded log, gzipped and not, is recorded in the notes, with an estimate for 500 dives. Every edit re-downloads the whole log, which is fine at this size; a delta sync would be a design change, worth raising only if the 500-dive figure is large.
 
@@ -540,12 +542,12 @@ Deferred, or to watch:
 
 - Milestone 9: the Profile card shows the sparkline as a stand-in until the chart replaces it. The card sparklines' depth scale is the chart's minimum (deepest + 3 m, at least 30 m) without tick rounding; switch them to the chart's axis then.
 - Milestone 11: the detail treats a deleted dive as not found; Recently deleted will need to open one.
-- Milestone 16: until the service worker precaches, a cold launch's first tap on a card may wait on the network for the detail chunk.
-- The no-profile copy follows the spec's synced-dive wording; the board's text is the draft variant ("once this dive has synced"), for milestone 16.
+- Milestone 18: until the service worker precaches, a cold launch's first tap on a card may wait on the network for the detail chunk.
+- The no-profile copy follows the spec's synced-dive wording; the board's text is the draft variant ("once this dive has synced"), for milestone 18.
 - The Content-Length middleware copies each API JSON body once; fine at this size.
 - `readCards` still selects `hash` without a schema check, so a database left at schema 1 by a failed integrity check can't serve `/api/log` (from milestone 6; the new sample columns already handle it).
-- Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a re-uploaded draft is applied as a patch (milestone 10 or 16); a hand dive at Nitrox no keeps air on import (milestone 20); the derived pass reads every dive's samples on every write.
-- Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
+- Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a re-uploaded draft is applied as a patch (milestone 10 or 18); a hand dive at Nitrox no keeps air on import (milestone 16); the derived pass reads every dive's samples on every write.
+- Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 18; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 15; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
 
 ## Milestone 9: Profile chart
 
@@ -606,14 +608,14 @@ Decisions taken while building:
 
 Deferred, or to watch:
 
-- Only ascent alarms are listed under the chart; other event types (the Zoop Novo's, milestone 18) are drawn as icons and named only in the readout and table. Decide their list rows once a Zoop Novo export is in.
-- The digest can't see a re-import that changes nothing it covers; a samples revision from the server would be exact (milestone 20).
-- The Change pairing sparkline (milestone 21) should use `chartDepthAxis` like the Log's.
+- Only ascent alarms are listed under the chart; other event types (the Zoop Novo's, milestone 14) are drawn as icons and named only in the readout and table. Decide their list rows once a Zoop Novo export is in.
+- The digest can't see a re-import that changes nothing it covers; a samples revision from the server would be exact (milestone 16).
+- The Change pairing sparkline (milestone 17) should use `chartDepthAxis` like the Log's.
 - React logs a caught profile failure to the console in development; `console.spec.ts` never hits one.
 - `apps/web/.tanstack/tmp` is the router plugin's scratch folder and is untracked; ignore it in git if it keeps appearing.
-- Carried over from milestone 8: on the phone, tap-to-content time, the drawer overlay's blur cost during momentum scroll, edge-swipe back in the installed app, the month line handing over, the keyboard with the sticky search focused, swipe-to-dismiss against dragging the slider, the top safe-area inset in standalone mode, and cards flashing their pressed tint when a scroll starts on them. Milestone 11: the detail treats a deleted dive as not found. Milestone 16: a cold launch's first tap may wait on the network for the detail and chart chunks until the service worker precaches; the no-profile copy is the synced-dive wording. The Content-Length middleware copies each API JSON body once; `readCards` selects `hash` without a schema check.
-- Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a re-uploaded draft is applied as a patch (milestone 10 or 16); a hand dive at Nitrox no keeps air on import (milestone 20); the derived pass reads every dive's samples on every write.
-- Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
+- Carried over from milestone 8: on the phone, tap-to-content time, the drawer overlay's blur cost during momentum scroll, edge-swipe back in the installed app, the month line handing over, the keyboard with the sticky search focused, swipe-to-dismiss against dragging the slider, the top safe-area inset in standalone mode, and cards flashing their pressed tint when a scroll starts on them. Milestone 11: the detail treats a deleted dive as not found. Milestone 18: a cold launch's first tap may wait on the network for the detail and chart chunks until the service worker precaches; the no-profile copy is the synced-dive wording. The Content-Length middleware copies each API JSON body once; `readCards` selects `hash` without a schema check.
+- Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a re-uploaded draft is applied as a patch (milestone 10 or 18); a hand dive at Nitrox no keeps air on import (milestone 16); the derived pass reads every dive's samples on every write.
+- Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 18; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; check the native switch haptic on a phone (milestone 10); the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 15; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
 
 ## Milestone 10: Editing, the dive form and pickers
 
@@ -633,7 +635,7 @@ Deferred, or to watch:
 - `form-autosave.test.ts`: the form's unsaved values are written to Dexie as you type (debounced), one per dive being edited or one for a new dive, and restored when the form reopens, since iOS often kills a backgrounded home-screen app mid-entry; save and discard clear it. It is not a draft: it never uploads, gets no ops and has no number.
 - Screenshots of the form (new and existing), the site picker (browse, search, create, duplicate) at 390 px against the boards.
 
-**Not in this milestone**: deleting from the form (milestone 11), offline behaviour beyond a failed save (milestone 16), the profile banner's import side.
+**Not in this milestone**: deleting from the form (milestone 11), offline behaviour beyond a failed save (milestone 18), the profile banner's import side.
 
 - [x] Draft store and upload path
 - [x] Edit path with retry
@@ -678,17 +680,17 @@ Deferred, or to watch:
 - The e2e `@writes` test that adds a dive leaves its new site and buddy on the writes stack (deleted dives still count as uses, so they can't be deleted).
 - `prefetch.spec.ts`'s "draws a kept dive's chart" timed out once under the full parallel run (46 profiles in 5 s) and passed alone.
 - Pressures stay on the number pad (NOTES), so a fractional imported pressure can't be retyped exactly.
-- Milestone 16: the outline, cloud-off icon and provisional number on draft cards, retry on reconnect, and the offline notes; drafts show in the Log meanwhile, unmarked. Milestone 11: deleting from the form.
-- Carried over from milestone 9: on the phone, tap-to-content time, a cached dive flashing a skeleton, `touch-action: pan-y` on the chart, long press on the chart and alarm rows, the 10 px labels outdoors, scrubbing a dense dive. Other event types' rows (milestone 18). The profile digest can't see a re-import that changes nothing it covers (milestone 20). The Change pairing sparkline should use `chartDepthAxis` (milestone 21). React logs a caught profile failure in development.
-- Carried over from milestone 8: on the phone, edge-swipe back in the installed app, the month line handing over, the keyboard with the sticky search focused, swipe-to-dismiss against the slider, the top safe-area inset in standalone mode, cards flashing their pressed tint when a scroll starts on them. Milestone 11: the detail treats a deleted dive as not found. Milestone 16: a cold launch's first tap may wait on the network for the detail and chart chunks; the no-profile copy is the synced-dive wording. The Content-Length middleware copies each API JSON body once; `readCards` selects `hash` without a schema check.
-- Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a hand dive at Nitrox no keeps air on import (milestone 20); the derived pass reads every dive's samples on every write.
-- Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 16; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 19; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
+- Milestone 18: the outline, cloud-off icon and provisional number on draft cards, retry on reconnect, and the offline notes; drafts show in the Log meanwhile, unmarked. Milestone 11: deleting from the form.
+- Carried over from milestone 9: on the phone, tap-to-content time, a cached dive flashing a skeleton, `touch-action: pan-y` on the chart, long press on the chart and alarm rows, the 10 px labels outdoors, scrubbing a dense dive. Other event types' rows (milestone 14). The profile digest can't see a re-import that changes nothing it covers (milestone 16). The Change pairing sparkline should use `chartDepthAxis` (milestone 17). React logs a caught profile failure in development.
+- Carried over from milestone 8: on the phone, edge-swipe back in the installed app, the month line handing over, the keyboard with the sticky search focused, swipe-to-dismiss against the slider, the top safe-area inset in standalone mode, cards flashing their pressed tint when a scroll starts on them. Milestone 11: the detail treats a deleted dive as not found. Milestone 18: a cold launch's first tap may wait on the network for the detail and chart chunks; the no-profile copy is the synced-dive wording. The Content-Length middleware copies each API JSON body once; `readCards` selects `hash` without a schema check.
+- Carried over from milestone 7: bump Node 24.22.1, the base image digest and Tailscale 1.104.2 after 23 October; a sidecar Docker restarts on its own leaves the app in a dead namespace; `VACUUM INTO` blocks briefly at midnight; the nightly job writes the UDDF export in milestone 13; card images by hash in milestone 12; a hand dive at Nitrox no keeps air on import (milestone 16); the derived pass reads every dive's samples on every write.
+- Carried over from earlier: `cnsWithCarryOver` and `surfaceInterval` parse and sort per call; iOS apple-touch PNGs in milestone 18; UDDF `surfacepressure` is not stored; coverage over the server alone fails core's threshold; the server's and web's `test` scripts still use `--project`; site coordinates are left out; the import types are placeholders until milestone 15; run Vite once after adding a route before `tsc -b`; `test:xsd` points at a script milestone 13 writes; keep `index.html`'s theme script in step with `ThemeProvider` (milestone 11); raise `minimumReleaseAge` to seven days once that costs no downgrades; shard Playwright only when it takes minutes.
 
 ## Milestone 11: Editing, delete and restore, You, entities
 
 **Goal**: dives can be deleted and restored, the You tab shows its sections with working values, and sites, regions, people, dive centres and trips can be browsed, renamed, merged and deleted.
 
-**Implements**: Rules for edits, Screens (You, Sites people and trips, Recently deleted), Mobile rules (You shows last sync), Backups (item 3 and 6 as UI, download rows wired in milestone 13), decisions D6, D7, D20, D30. Screens: `SettingsHifi` as You (all sections but offline storage; Certifications row disabled until milestone 12, Download rows until milestone 13; Sync card static "All synced" until milestone 16), `EntitiesHifi` (plus Regions, each kind opened from its You row with no tabs), `EntityDetailHifi` (with Save, D7), `RecentlyDeletedHifi` (with the re-import note), `DiveDetailHifi` delete sheet and deleted state.
+**Implements**: Rules for edits, Screens (You, Sites people and trips, Recently deleted), Mobile rules (You shows last sync), Backups (item 3 and 6 as UI, download rows wired in milestone 13), decisions D6, D7, D20, D30. Screens: `SettingsHifi` as You (all sections but offline storage; Certifications row disabled until milestone 12, Download rows until milestone 13; Sync card static "All synced" until milestone 18), `EntitiesHifi` (plus Regions, each kind opened from its You row with no tabs), `EntityDetailHifi` (with Save, D7), `RecentlyDeletedHifi` (with the re-import note), `DiveDetailHifi` delete sheet and deleted state.
 
 **Touches**: `apps/web/src/routes/you/` (sections, You, Preferences, Defaults with the form's controls, Your log, Sites people and trips, This phone with appearance, About), `apps/web/src/routes/entities/` (list with tabs and search, duplicate suggestions, detail with figures, Save, merge sheet, delete), `apps/web/src/routes/deleted/`, `apps/web/src/data/entities.ts`, `apps/web/src/theme.ts` (system, light, dark), tests.
 
@@ -700,7 +702,7 @@ Deferred, or to watch:
 - `you.spec.ts`: diver name and max PO₂ save as their field is left, and a failed save puts the saved value back; new-dive defaults use the form's controls and fill a new dive; appearance override applies at once; About shows version and `TS_HOSTNAME`; the Your log dive count includes ignored dives.
 - Screenshots of You, each entities tab, an entity detail with the merge sheet, and Recently deleted at 390 px against the boards.
 
-**Not in this milestone**: cards (milestone 12), downloads and the export alert (milestone 13), sync states (milestone 16).
+**Not in this milestone**: cards (milestone 12), downloads and the export alert (milestone 13), sync states (milestone 18).
 
 - [x] Delete sheet, deleted state, Recently deleted, restore toast
 - [x] You sections with Save
@@ -731,8 +733,8 @@ Decisions taken while building:
 
 Deferred, or to watch:
 
-- Milestone 16: offline guards on the synced-data controls (Delete, Restore, Save, merge) with the "needs a connection" notes; meanwhile a request offline fails with "Couldn’t reach Shylog". The sync card's other states and the drafts row.
-- Milestone 12: the Certifications row in the diver card. Milestone 13: the Download rows and the export alert. Milestone 16: the Offline storage row.
+- Milestone 18: offline guards on the synced-data controls (Delete, Restore, Save, merge) with the "needs a connection" notes; meanwhile a request offline fails with "Couldn’t reach Shylog". The sync card's other states and the drafts row.
+- Milestone 12: the Certifications row in the diver card. Milestone 13: the Download rows and the export alert. Milestone 18: the Offline storage row.
 - The Log count's width snaps when a place is added or dropped (iOS eases it); a group heading in Recently deleted snaps away after its last card folds.
 - `log.spec.ts`'s "scrolls the count away" failed once in WebKit under the parallel run and passed three times alone.
 - Carried over from milestone 10: the e2e `@writes` uploads leave their sites and buddies, and their soft-deleted dives sit in Recently deleted for the rest of the run (`delete.spec.ts` now finds its own dive by name); `prefetch.spec.ts` timing; pressures on the number pad.
@@ -752,7 +754,7 @@ Deferred, or to watch:
 - `certs.spec.ts`: add two images as one card with two pages, swipe between them, reorder, rename, delete; add two images as separate cards; the viewer keeps the screen on where the API exists and says so in the hint.
 - Screenshots of list, viewer and add at 390 px against `CertsHifi`.
 
-**Not in this milestone**: offline disabling of add, edit and delete (milestone 16).
+**Not in this milestone**: offline disabling of add, edit and delete (milestone 18).
 
 - [x] Card list and empty state
 - [x] Viewer with pinch zoom, dots, Wake Lock
@@ -782,7 +784,7 @@ Decisions taken while building:
 Deferred, or to watch:
 
 - A very small screenshot shows at its own size in the viewer rather than scaled up, which would blur it.
-- Milestone 16: offline guards on add, edit and delete, and the Certifications list's offline note.
+- Milestone 18: offline guards on add, edit and delete, and the Certifications list's offline note.
 - Carried over from milestone 11: everything under its "Deferred, or to watch" still open (the phone checks, the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days, sharding Playwright).
 
 ## Milestone 13: UDDF export
@@ -804,7 +806,7 @@ Deferred, or to watch:
 - The owner opens the export in Subsurface and confirms every dive, site, buddy and mix appears (noted in the milestone notes).
 - You: the Download rows work, "Last UDDF export" updates, a failed export shows the alert with Export now.
 
-**Not in this milestone**: pass-through of imported standard elements (milestone 20), the queued-ops file (milestone 17).
+**Not in this milestone**: pass-through of imported standard elements (milestone 16), the queued-ops file (milestone 19).
 
 - [ ] Writer with every field mapping and grouping
 - [ ] `<shylog>` application data
@@ -815,103 +817,7 @@ Deferred, or to watch:
 - [ ] Subsurface opens the export
 - [ ] Tests listed above
 
-## Milestone 14: Statistics, figures and charts
-
-**Goal**: the Statistics screen shows every figure and chart in the spec's table for the chosen year, lazily loaded, cached until the log changes, with the early-days states.
-
-**Implements**: Statistics (table, Records and milestones, Early days, Averages, SAC rate trend), the lazy chunk rule, decision D24. Screens: `StatsHifi` (all cards except Patterns), `StatsEmptyHifi` (2 dives and no dives).
-
-**Touches**: `apps/web/src/stats/` (lazy chunk: `figures.ts`, `charts/` on shadcn charts, `StatsScreen.tsx`, table alternatives), `apps/web/src/stats/cache.ts` (keyed by log version and year), tests.
-
-**Acceptance**
-
-- `figures.test.ts`: on the seeded fixture (46 scuba dives), totals, deepest (dive 54, 42.3 m), longest (dive 50, 72 min), plain-mean average depth and duration, dives per month for 2026 and per year, depth bands (0 to 10, 10 to 18, 18 to 30, over 30), time of day (before 11:00, 11:00 to 14:00, 14:00 to 18:00, after 18:00), water range from min and max fields; average SAC is duration-weighted and drops 0.1 L/min or less; nitrox share and average nitrox oxygen (four of the 46 dives, average 32.3%); marking a dive ignored removes it from every figure and chart (D23).
-- `records.test.ts` (D24), all time on the seeded fixture unless stated: coldest dive 72 (12 °C), warmest dive 7 (30 °C, not dive 6, whose maximum is 34 °C on a 3.9 m dive); a tie goes to the earlier dive; total depth descended 759.1 m, worded "You've descended Lion's Head" with "92% of the way to the Burj Khalifa"; synthetic totals for below the first rung (a share of the Leaning Tower of Pisa), exactly on a rung, "twice" and "3 times", and past the last rung; the landmark list is strictly ascending; longest streaks of 6 days (17 to 22 July 2026) and 4 weeks (4 to 25 April 2026), two dives on one day counting once, and a running streak marked as such; anniversary "7 years diving, since 10 February 2019" with the clock at 19 October 2026, the "today" wording on 10 February, months under a year, unchanged by the year filter; an ignored first dive moves the anniversary to the next dive.
-- `trend.test.ts`: the rolling average of the last five dives, only dives with a SAC and not ignored, in date order.
-- `stats.spec.ts`: the year chip switches every figure; below five dives the screen shows totals, records and the "More after 5 dives" progress; with no dives the empty state and "Log a dive"; each chart has a table alternative; the chunk is separate in `dist`, not loaded on the Log, and precached for offline later; `pointerdown` on the Stats tab starts loading the chunk (`preload="intent"`), so a tap doesn't wait on it.
-- Tap-to-content time for Statistics on the owner's phone, first visit and cached, is recorded in the notes against the performance target.
-- Screenshots of Statistics (2026 and all time), the 2-dive and 0-dive states at 390 px against the boards.
-
-**Not in this milestone**: patterns (milestone 15).
-
-- [ ] Figures with the Subsurface averaging rules
-- [ ] Records and milestones: coldest and warmest, depth descended against the landmark ladder, day and week streaks, anniversary (D24)
-- [ ] Charts: dives per month or year, SAC trend, depth bands, conditions bars, weather and surface, time of day, gas, entry, sites, buddies, regions, tags
-- [ ] Early-days and empty states
-- [ ] Cache keyed by version and year
-- [ ] Tests and screenshots listed above
-
-## Milestone 15: Statistics, patterns
-
-**Goal**: the Patterns section shows the top three findings that clear the bar from the full catalogue, with an All patterns list and a drill-down.
-
-**Implements**: Patterns (Computing, Rule types, Catalogue, The bar, Choosing and showing).
-
-**Touches**: `apps/web/src/stats/patterns/` (`rules/` one file per rule type, `catalogue.ts`, `score.ts`, `wording.ts`, `PatternsCard.tsx`, `AllPatterns.tsx`, `PatternDetail.tsx`), tests with synthetic logs.
-
-**Acceptance**
-
-- `rules.test.ts`: a Difference rule needs five dives per group and finds the best adjacent-level split; a Threshold rule scans whole-number cut-offs and words "4 of 5 dives" when not all match; Change compares with the previous year or the two halves of the log; Trend uses a linear fit; Habit needs 60% over ten dives; Season needs a region and month; Records always qualify; minimum effect sizes per measure as listed; ignored dives never enter a group or a record (D23).
-- `score.test.ts`: score is effect over minimum times √(smallest group); ties break by rule id; the top three has at most one per measure and one per field and never a record.
-- `wording.test.ts`: describes rather than explains ("is higher in", never "because of"); numbers rounded as elsewhere.
-- `patterns.spec.ts`: a seeded log that supports two patterns shows exactly those two; All patterns groups by measure; tapping shows the groups and opens those dives in the Log; with none qualifying the section is hidden.
-
-**Not in this milestone**: new rules beyond the catalogue.
-
-- [ ] Rule types
-- [ ] Catalogue of measures and fields
-- [ ] Bar, scoring, selection
-- [ ] Wording, All patterns, drill-down to the Log
-- [ ] Tests listed above
-
-## Milestone 16: Offline, service worker, sync states, storage
-
-**Goal**: the app opens with no signal, drafts wait and retry, every sync state is visible, and the phone's storage is protected where it can be.
-
-**Implements**: Operations and offline sync (Flow steps 2 and 7, retry), Client data (service worker), Mobile rules (sync pill, provisional numbers, disabled controls offline), Offline safety and accessibility, Screens (Settings sync card states). Screens: `LogHifi2` sync pill and draft cards, `DiveDetailHifi` offline note and unsynced banner, `SettingsHifi` sync card and storage sheet, `CertsHifi` offline note, `RecentlyDeletedHifi` offline, `SitePickerHifi` offline note.
-
-**Touches**: `apps/web/vite.config.ts` (vite-plugin-pwa precaching the shell and lazy chunks, manifest served by the server), `apps/web/src/data/sync.ts` (states offline, unreachable, syncing, synced; retry on reconnect and app focus), `apps/web/src/components/SyncPill.tsx`, `UnsyncedBanner.tsx`, `apps/web/src/data/storage.ts` (`navigator.storage.persist()`), `apps/web/src/routes/settings/storage-sheet.tsx`, guards that disable Edit, Delete, Restore, rename, merge, card actions and Import offline, tests.
-
-**Acceptance**
-
-- `sync-states.test.ts`: `navigator.onLine` false gives offline; a failed fetch while online gives server unreachable; an upload in flight gives syncing; an empty queue gives synced and hides the pill; the banner shows the count and the age of the oldest draft.
-- `offline.spec.ts` (Playwright with `context.setOffline`): the app loads from the cache with the Log and a dive detail with cached samples; a new dive saved offline shows the outline, cloud-off icon, screen-reader text and a provisional number; back online it uploads and gets its number; a synced dive's Edit and Delete are disabled with the note; a rejected draft shows its reason on the card; the stats chunk works offline.
-- `storage.test.ts`: persist is requested on first launch; the You tab's row shows Protected or the help sheet; the sheet's copy matches the board.
-- Screenshots of the pill states, the draft card and the storage sheet at 390 px.
-
-**Not in this milestone**: the update flow and queue export (milestone 17).
-
-- [ ] Service worker precache and manifest
-- [ ] iOS install details: `apple-mobile-web-app-title` and a status bar style checked on a phone in both themes (`black-translucent` puts white text over the light theme's white header). Also check the soft blur iOS draws under the status bar on a cold launch, over the top of the Log's count until the first scroll (seen on the dev server, 24 October 2026)
-- [ ] Sync states, retry, pill, banner
-- [ ] Draft indicators and provisional numbers
-- [ ] Offline guards on synced-data controls
-- [ ] Storage persistence and sheet (`navigator.storage.persist()` also protects the Dexie log mirror and sample cache that make the detail instant, not only the drafts)
-- [ ] Tests and screenshots listed above
-
-## Milestone 17: Offline, update flow, queue export, end-to-end sync tests
-
-**Goal**: a new app version never strands a draft, the queue can be saved to a file, and the sync rules are covered end to end.
-
-**Implements**: Client data (update flow, `schemaVersion` gate), Offline safety (queue export), Testing (Sync).
-
-**Touches**: `apps/web/src/update.ts` (offer reload once the queue has synced, or at once if only rejected drafts remain), `apps/web/src/data/export-queue.ts` (download the queued ops as JSON), `apps/web/src/routes/settings/` (Save waiting dives to a file), `apps/web/e2e/sync.spec.ts`, `apps/server/test/sync-e2e.test.ts`.
-
-**Acceptance**
-
-- `update.test.ts`: with a pending draft the reload offer waits; with only rejected drafts it shows at once; a newer `schemaVersion` from the server stops syncing, keeps the queue and offers to update.
-- `export-queue.test.ts`: the file contains every queued op, valid against the core schema.
-- `sync-e2e.test.ts`: re-sent and duplicated uploads, a draft pointing at an entity merged on the server, and two devices creating the same site offline all end with the same final data as a single clean upload.
-- `sync.spec.ts`: two browser contexts log dives offline, reconnect in turn, and both see the same log and numbers.
-
-**Not in this milestone**: nothing further; this closes the Offline step.
-
-- [ ] Update flow
-- [ ] Queue export file
-- [ ] Sync end-to-end tests
-- [ ] Two-device Playwright test
-
-## Milestone 18: Import, the Suunto reader
+## Milestone 14: Import, the Suunto reader
 
 **Goal**: the server turns a Subsurface UDDF export from the D4i or Zoop Novo into Shylog dives, samples, events, gases and fingerprints, applying every rule in the spec's D4i section.
 
@@ -936,7 +842,7 @@ Deferred, or to watch:
 - [ ] Synthetic fixture generator
 - [ ] Tests listed above
 
-## Milestone 19: Import, preview, clock offsets and pairing
+## Milestone 15: Import, preview, clock offsets and pairing
 
 **Goal**: uploading an export produces a stored preview with per-day clock offsets, proposed pairs that pass Subsurface's same-dive test, unpaired and unmatched lists, and freedives, adjustable by day.
 
@@ -951,7 +857,7 @@ Deferred, or to watch:
 - `preview.test.ts`: the preview stores the data version and expires after seven days; `PATCH` with a day offset re-proposes that day only and keeps the override; `DELETE` discards; `GET /api/import/pending` returns the one awaiting review.
 - `import-route.test.ts`: `POST /api/import` needs the UDDF content type and a connection, writes nothing to `dives`, and returns the preview in the schema from core.
 
-**Not in this milestone**: apply (milestone 20), UI (milestone 21).
+**Not in this milestone**: apply (milestone 16), UI (milestone 17).
 
 - [ ] Clock-offset estimation per day
 - [ ] Pairing with `likely_same`
@@ -959,7 +865,7 @@ Deferred, or to watch:
 - [ ] Routes: upload, pending, patch, delete
 - [ ] Tests listed above
 
-## Milestone 20: Import, apply, fingerprints and pass-through export
+## Milestone 16: Import, apply, fingerprints and pass-through export
 
 **Goal**: confirming a preview attaches profiles to paired dives, adds new dives, fingerprints everything seen, stores raw fragments, computes CNS and OTU, and the export passes imported standard elements through.
 
@@ -975,7 +881,7 @@ Deferred, or to watch:
 - `sync-import.test.ts`: a hand-logged dive uploaded from a draft, then matched by an import, ends with the same data whether the draft arrived before or after the preview was made.
 - `ssi.test.ts`: a file from the SSI converter (its `generatorName`) adds every dive as hand values, with no fingerprint and no clock offset, reading its `<shylog>` block; the D4i fixture imported afterwards pairs with those dives.
 
-**Not in this milestone**: UI (milestone 21).
+**Not in this milestone**: UI (milestone 17).
 
 - [ ] Apply with re-check, chunks, idempotency
 - [ ] `field_meta`, fingerprints, `import_raw`
@@ -983,11 +889,11 @@ Deferred, or to watch:
 - [ ] Pass-through in the export
 - [ ] Tests listed above
 
-## Milestone 21: Import, screens
+## Milestone 17: Import, screens
 
 **Goal**: the Import flow on the phone: upload, review with the clock sheet, paired list, change pairing, the changed-since-preview sheet, and the summary with the differing dives.
 
-**Implements**: Screens (Import), Subsurface import (Matching and review, Summary), the dive detail's differs banner on imported data, decisions D5, D16, D19. Screens: `ImportHifi` (Ready, Waiting review, Uploading as indeterminate, Offline), `ImportReviewHifi` (Not paired, New dives, Also in this file, Freedives, clock sheet, changed sheet), `PairedHifi`, `ChangePairingHifi` (including other days with the warning), `ImportDoneHifi` (with the list of differing dives, D16).
+**Implements**: Screens (Import), Subsurface import (Matching and review, Summary), the dive detail's differs banner on imported data, decisions D5, D16, D19. Screens: `ImportHifi` (Ready, Waiting review, Uploading as indeterminate; the Offline state comes with milestone 18, and until then an upload with no connection fails with "Couldn’t reach Shylog"), `ImportReviewHifi` (Not paired, New dives, Also in this file, Freedives, clock sheet, changed sheet), `PairedHifi`, `ChangePairingHifi` (including other days with the warning), `ImportDoneHifi` (with the list of differing dives, D16).
 
 **Touches**: `apps/web/src/routes/import/` (screens above), `apps/web/src/data/import.ts` (upload, pending, patch, apply, discard), tests.
 
@@ -997,13 +903,111 @@ Deferred, or to watch:
 - `import.spec.ts` (Playwright): upload the D4i fixture into a log with three hand-logged dives for 20 July 2026, see three pairs, 43 new dives and 26 freedives left out; shift a day's clock and see the pairs re-propose; change one pairing to Don't import; include one freedive; apply; the summary shows the counts and lists the dives that differ; opening one shows the banner and the ✓/✕ groups; the Import screen then shows the last import; uploading the same file again shows everything as already imported.
 - Screenshots of the five import screens and the clock sheet at 390 px against the boards.
 
-**Not in this milestone**: nothing further; this closes the Import step and v1.
+**Not in this milestone**: the Import screen's Offline state (milestone 18); this closes the Import step.
 
 - [ ] Import screen states
 - [ ] Review with sections, clock sheet, changed sheet
 - [ ] Paired and Change pairing
 - [ ] Done with differing dives
 - [ ] Tests and screenshots listed above
+
+## Milestone 18: Offline, service worker, sync states, storage
+
+**Goal**: the app opens with no signal, drafts wait and retry, every sync state is visible, and the phone's storage is protected where it can be.
+
+**Implements**: Operations and offline sync (Flow steps 2 and 7, retry), Client data (service worker), Mobile rules (sync pill, provisional numbers, disabled controls offline), Offline safety and accessibility, Screens (Settings sync card states). Screens: `LogHifi2` sync pill and draft cards, `DiveDetailHifi` offline note and unsynced banner, `SettingsHifi` sync card and storage sheet, `CertsHifi` offline note, `RecentlyDeletedHifi` offline, `SitePickerHifi` offline note, `ImportHifi` Offline state.
+
+**Touches**: `apps/web/vite.config.ts` (vite-plugin-pwa precaching the shell and lazy chunks, manifest served by the server), `apps/web/src/data/sync.ts` (states offline, unreachable, syncing, synced; retry on reconnect and app focus), `apps/web/src/components/SyncPill.tsx`, `UnsyncedBanner.tsx`, `apps/web/src/data/storage.ts` (`navigator.storage.persist()`), `apps/web/src/routes/settings/storage-sheet.tsx`, guards that disable Edit, Delete, Restore, rename, merge, card actions and Import offline, tests.
+
+**Acceptance**
+
+- `sync-states.test.ts`: `navigator.onLine` false gives offline; a failed fetch while online gives server unreachable; an upload in flight gives syncing; an empty queue gives synced and hides the pill; the banner shows the count and the age of the oldest draft.
+- `offline.spec.ts` (Playwright with `context.setOffline`): the app loads from the cache with the Log and a dive detail with cached samples; a new dive saved offline shows the outline, cloud-off icon, screen-reader text and a provisional number; back online it uploads and gets its number; a synced dive's Edit and Delete are disabled with the note; a rejected draft shows its reason on the card; the Import screen shows its Offline state and doesn't upload.
+- `storage.test.ts`: persist is requested on first launch; the You tab's row shows Protected or the help sheet; the sheet's copy matches the board.
+- Screenshots of the pill states, the draft card, the storage sheet and the Import screen's Offline state at 390 px.
+
+**Not in this milestone**: the update flow and queue export (milestone 19).
+
+- [ ] Service worker precache and manifest
+- [ ] iOS install details: `apple-mobile-web-app-title` and a status bar style checked on a phone in both themes (`black-translucent` puts white text over the light theme's white header). Also check the soft blur iOS draws under the status bar on a cold launch, over the top of the Log's count until the first scroll (seen on the dev server, 24 October 2026)
+- [ ] Sync states, retry, pill, banner
+- [ ] Draft indicators and provisional numbers
+- [ ] Offline guards on synced-data controls
+- [ ] Storage persistence and sheet (`navigator.storage.persist()` also protects the Dexie log mirror and sample cache that make the detail instant, not only the drafts)
+- [ ] Tests and screenshots listed above
+
+## Milestone 19: Offline, update flow, queue export, end-to-end sync tests
+
+**Goal**: a new app version never strands a draft, the queue can be saved to a file, and the sync rules are covered end to end.
+
+**Implements**: Client data (update flow, `schemaVersion` gate), Offline safety (queue export), Testing (Sync).
+
+**Touches**: `apps/web/src/update.ts` (offer reload once the queue has synced, or at once if only rejected drafts remain), `apps/web/src/data/export-queue.ts` (download the queued ops as JSON), `apps/web/src/routes/settings/` (Save waiting dives to a file), `apps/web/e2e/sync.spec.ts`, `apps/server/test/sync-e2e.test.ts`.
+
+**Acceptance**
+
+- `update.test.ts`: with a pending draft the reload offer waits; with only rejected drafts it shows at once; a newer `schemaVersion` from the server stops syncing, keeps the queue and offers to update.
+- `export-queue.test.ts`: the file contains every queued op, valid against the core schema.
+- `sync-e2e.test.ts`: re-sent and duplicated uploads, a draft pointing at an entity merged on the server, and two devices creating the same site offline all end with the same final data as a single clean upload.
+- `sync.spec.ts`: two browser contexts log dives offline, reconnect in turn, and both see the same log and numbers.
+
+**Not in this milestone**: nothing further; this closes the Offline step.
+
+- [ ] Update flow
+- [ ] Queue export file
+- [ ] Sync end-to-end tests
+- [ ] Two-device Playwright test
+
+## Milestone 20: Statistics, figures and charts
+
+**Goal**: the Statistics screen shows every figure and chart in the spec's table for the chosen year, lazily loaded, cached until the log changes, with the early-days states.
+
+**Implements**: Statistics (table, Records and milestones, Early days, Averages, SAC rate trend), the lazy chunk rule, decision D24. Screens: `StatsHifi` (all cards except Patterns), `StatsEmptyHifi` (2 dives and no dives).
+
+**Touches**: `apps/web/src/stats/` (lazy chunk: `figures.ts`, `charts/` on shadcn charts, `StatsScreen.tsx`, table alternatives), `apps/web/src/stats/cache.ts` (keyed by log version and year), tests.
+
+**Acceptance**
+
+The figures below were worked out before the Import milestones. Milestone 14 grows the seed's sample reader into the full reader, which can change what the seed stores (temperatures from the samples, D10; the computer's average depth), so re-derive them against the seed before writing the tests.
+
+- `figures.test.ts`: on the seeded fixture (46 scuba dives), totals, deepest (dive 54, 42.3 m), longest (dive 50, 72 min), plain-mean average depth and duration, dives per month for 2026 and per year, depth bands (0 to 10, 10 to 18, 18 to 30, over 30), time of day (before 11:00, 11:00 to 14:00, 14:00 to 18:00, after 18:00), water range from min and max fields; average SAC is duration-weighted and drops 0.1 L/min or less; nitrox share and average nitrox oxygen (four of the 46 dives, average 32.3%); marking a dive ignored removes it from every figure and chart (D23).
+- `records.test.ts` (D24), all time on the seeded fixture unless stated: coldest dive 72 (12 °C), warmest dive 7 (30 °C, not dive 6, whose maximum is 34 °C on a 3.9 m dive); a tie goes to the earlier dive; total depth descended 759.1 m, worded "You've descended Lion's Head" with "92% of the way to the Burj Khalifa"; synthetic totals for below the first rung (a share of the Leaning Tower of Pisa), exactly on a rung, "twice" and "3 times", and past the last rung; the landmark list is strictly ascending; longest streaks of 6 days (17 to 22 July 2026) and 4 weeks (4 to 25 April 2026), two dives on one day counting once, and a running streak marked as such; anniversary "7 years diving, since 10 February 2019" with the clock at 19 October 2026, the "today" wording on 10 February, months under a year, unchanged by the year filter; an ignored first dive moves the anniversary to the next dive.
+- `trend.test.ts`: the rolling average of the last five dives, only dives with a SAC and not ignored, in date order.
+- `stats.spec.ts`: the year chip switches every figure; below five dives the screen shows totals, records and the "More after 5 dives" progress; with no dives the empty state and "Log a dive"; each chart has a table alternative; the chunk is separate in `dist`, not loaded on the Log, precached by the service worker and works offline; `pointerdown` on the Stats tab starts loading the chunk (`preload="intent"`), so a tap doesn't wait on it.
+- Tap-to-content time for Statistics on the owner's phone, first visit and cached, is recorded in the notes against the performance target.
+- Screenshots of Statistics (2026 and all time), the 2-dive and 0-dive states at 390 px against the boards.
+
+**Not in this milestone**: patterns (milestone 21).
+
+- [ ] Figures with the Subsurface averaging rules
+- [ ] Records and milestones: coldest and warmest, depth descended against the landmark ladder, day and week streaks, anniversary (D24)
+- [ ] Charts: dives per month or year, SAC trend, depth bands, conditions bars, weather and surface, time of day, gas, entry, sites, buddies, regions, tags
+- [ ] Early-days and empty states
+- [ ] Cache keyed by version and year
+- [ ] Tests and screenshots listed above
+
+## Milestone 21: Statistics, patterns
+
+**Goal**: the Patterns section shows the top three findings that clear the bar from the full catalogue, with an All patterns list and a drill-down.
+
+**Implements**: Patterns (Computing, Rule types, Catalogue, The bar, Choosing and showing).
+
+**Touches**: `apps/web/src/stats/patterns/` (`rules/` one file per rule type, `catalogue.ts`, `score.ts`, `wording.ts`, `PatternsCard.tsx`, `AllPatterns.tsx`, `PatternDetail.tsx`), tests with synthetic logs.
+
+**Acceptance**
+
+- `rules.test.ts`: a Difference rule needs five dives per group and finds the best adjacent-level split; a Threshold rule scans whole-number cut-offs and words "4 of 5 dives" when not all match; Change compares with the previous year or the two halves of the log; Trend uses a linear fit; Habit needs 60% over ten dives; Season needs a region and month; Records always qualify; minimum effect sizes per measure as listed; ignored dives never enter a group or a record (D23).
+- `score.test.ts`: score is effect over minimum times √(smallest group); ties break by rule id; the top three has at most one per measure and one per field and never a record.
+- `wording.test.ts`: describes rather than explains ("is higher in", never "because of"); numbers rounded as elsewhere.
+- `patterns.spec.ts`: a seeded log that supports two patterns shows exactly those two; All patterns groups by measure; tapping shows the groups and opens those dives in the Log; with none qualifying the section is hidden.
+
+**Not in this milestone**: new rules beyond the catalogue; this closes the Statistics step and v1.
+
+- [ ] Rule types
+- [ ] Catalogue of measures and fields
+- [ ] Bar, scoring, selection
+- [ ] Wording, All patterns, drill-down to the Log
+- [ ] Tests listed above
 
 ---
 
@@ -1081,5 +1085,5 @@ Everything else that was under-specified has been decided and written into the s
 
 1. **UDDF elements for site data**: the exact elements for region, country and body of water are settled against the vendored XSD in milestone 13 and written into the spec then. The `environment` values were checked against the UDDF 3.2.1 documentation in milestone 2 and are in the spec.
 2. **Subsurface comparison figures**: recorded on 19 October 2026 and checked in `cns-otu.test.ts` (milestone 3); no longer open.
-3. **Sync pill colours**: the wireframe review thread on the Log's sync pill is still open. Milestone 16 builds the pill as drawn until a choice is made.
+3. **Sync pill colours**: the wireframe review thread on the Log's sync pill is still open. Milestone 18 builds the pill as drawn until a choice is made.
 4. **Landscape on phones** (26 October 2026): the app is close to unusable sideways. Safari's 750 × 340 leaves room for one card under the tab bar and sticky search, and the installed app's 844 × 390 crossed the `md:` width, so the desktop sidebar took 256 px. The sidebar and compact sizes now need a fine pointer (`desk:`, 28 October 2026), so a sideways phone keeps the tab bar and touch sizes. Still deferred: a compact-height layout (a slim rail or short tab bar, search and filters on one row). The full-screen chart (D28) covers the profile meanwhile.
