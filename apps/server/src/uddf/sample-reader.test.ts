@@ -34,6 +34,14 @@ describe("readUddf", () => {
     expect(nitrox.oxygen).toBe(320)
   })
 
+  it("finds the gas whichever tank data link names it", () => {
+    const tankFirst = dive("ean32").replace(
+      "<tankdata>",
+      '<tankdata><link ref="tank-steel-12000"/>'
+    )
+    expect(readUddf(uddf(tankFirst))[0].oxygen).toBe(320)
+  })
+
   it("takes each dive's computer from its link", () => {
     const [d4i, zoop, unknown] = readUddf(
       uddf(dive("air", "dc1") + dive("air", "dc2") + dive("air"))
