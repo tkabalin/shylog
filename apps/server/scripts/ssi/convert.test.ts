@@ -262,4 +262,12 @@ describe("convertSsi", () => {
     expect(text(fun, "lowesttemperature")).toEqual(["289.15"])
     expect(text(fun, "maxTemperature", shylogNamespace)).toEqual([])
   })
+
+  it("takes a dive's entry from the extras over SSI's", () => {
+    const { root } = convert([shore, boat], {
+      ...extras,
+      dives: { ...extras.dives, "2025-11-10 10:00": { entry: "charterBoat" } },
+    })
+    expect(text(all(root, "dive")[1]!, "platform")).toEqual(["charter-boat"])
+  })
 })
