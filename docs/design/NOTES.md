@@ -87,6 +87,7 @@ These were settled while planning the build (`docs/PLAN.md`, decisions D1 to D22
 - Computer and calculated values keep the normal text colour. The accent colour `EditDiveHifi` gives D4i and calculated values was tried in review and dropped.
 - A site's region is typed with the existing regions in that country offered as you type. `SitePickerHifi` has a plain free-text field.
 - The Log header is the board's "Hero count" variant. The Tiles, Split, Sentence and Stat strip variants were explorations. On scroll the large count and strip scroll away with the list and the compact line fades into the sticky bar; the board keeps the 52px count beside it.
+- The Log's sparklines shade the water above the profile, densest at the surface, so a card reads as a dive rather than a stock chart. `LogHifi2` draws a bare line. A grey line at the surface was tried and dropped as too harsh.
 - The Import done screen lists the dives that differ from the computer, each linking to its detail. The board links the row to one dive.
 - The Compare table on Change pairing also shows average depth.
 - The upload card shows an indeterminate "Reading your export" state. The board's "48 of 72 dives" progress bar implies streaming that the server does not do.
