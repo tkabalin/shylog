@@ -22,6 +22,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 - Log, edit and delete dives from a phone, with new dives saved offline as drafts that sync when there is signal.
 - Show the log, each dive's details and a profile chart of depth, temperature, vertical speed and the computer's alarms.
 - Import a Subsurface export and pair each computer dive with the dive logged by hand.
+  - The import rules are written and tested for the Suunto D4i and Zoop Novo; other computers' exports go through generic rules that are untested.
 - Work out SAC rate, MOD, max PO₂, CNS and OTU, surface intervals and statistics across the whole log.
 - Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
 - Install to the home screen, with one instance per diver.
