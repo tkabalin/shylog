@@ -192,8 +192,8 @@ function LogPage() {
         <>
           <Empty className="flex-1">
             <EmptyHeader>
-              {/* The app icon's shyshark, the one place in the app it shows,
-                  with a lighter shadow than the icon's so it isn't a sticker. */}
+              {/* The app icon's shyshark, standing in for the header's, with
+                  a lighter shadow than the icon's so it isn't a sticker. */}
               <EmptyMedia>
                 <img
                   src={shyshark}
