@@ -173,8 +173,8 @@ describe("convertSsi", () => {
     const [first, second] = all(root, "tankdata").map((data) =>
       all(data, "link").map((link) => link.getAttribute("ref"))
     )
-    expect(first).toEqual(["tank-steel-12000", "mix-210"])
-    expect(second).toEqual(["tank-steel-12000", "mix-320"])
+    expect(first).toEqual(["mix-210", "tank-steel-12000"])
+    expect(second).toEqual(["mix-320", "tank-steel-12000"])
   })
 
   it("writes sites with their region and country, unescaping SSI's HTML", () => {
@@ -214,6 +214,41 @@ describe("convertSsi", () => {
     )
     expect(dive!.getElementsByTagName("buddy")[0]!.textContent).toBe(
       "Alex Example, Sam van Example"
+    )
+  })
+
+  it("writes dives Subsurface reads whole", () => {
+    const [shoreDive, boatDive] = Array.from(
+      readAsSubsurface(convert().xml).getElementsByTagName("dive")
+    )
+    const attributes = (parent: typeof shoreDive, name: string) => {
+      const element = parent!.getElementsByTagName(name)[0]!
+      return Object.fromEntries(
+        Array.from(element.attributes).map((a) => [a.name, a.value])
+      )
+    }
+    const only = (name: string) => shoreDive!.getElementsByTagName(name)[0]!
+    expect(attributes(shoreDive, "cylinder")).toEqual({
+      size: "12",
+      o2: "0.21",
+      he: "",
+      start: "220 bar",
+      end: "60 bar",
+    })
+    expect(attributes(boatDive, "cylinder").o2).toBe("0.32")
+    expect(attributes(shoreDive, "depth")).toEqual({
+      max: "5.30 m",
+      mean: "4.10 m",
+    })
+    expect(attributes(shoreDive, "temperature")).toEqual({ water: "12.0 C" })
+    expect(attributes(shoreDive, "weightsystem").weight).toBe("6.0 kg")
+    expect(shoreDive!.getAttribute("date")).toBe("2025-11-09")
+    expect(shoreDive!.getAttribute("time")).toBe("08:45:00")
+    expect(shoreDive!.getAttribute("duration")).toBe("46:00 min")
+    expect(only("location").textContent).toBe("Kelp Point")
+    expect(only("notes").textContent).toBe('Cold, "green" water\nsecond line')
+    expect(boatDive!.getElementsByTagName("location")[0]!.textContent).toBe(
+      "Reef I & J"
     )
   })
 

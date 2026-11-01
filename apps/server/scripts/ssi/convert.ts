@@ -307,9 +307,10 @@ export function convertSsi(csv: string, extrasInput: Extras) {
         shylog.length > 1 ? element("applicationdata", [shylog]) : null,
         // UDDF requires a start pressure here, but without one the dive
         // would lose its gas and cylinder, so Subsurface's habit is kept.
+        // The mix first: Subsurface takes the gas from the first link.
         element("tankdata", [
-          tank ? link(tank) : null,
           link(mix),
+          tank ? link(tank) : null,
           leaf(
             "tankvolume",
             litres
