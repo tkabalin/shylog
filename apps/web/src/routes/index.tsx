@@ -2,7 +2,6 @@ import { useState } from "react"
 import { tags, type Tag } from "@shylog/core"
 import {
   IconCloudOff,
-  IconNotebook,
   IconPlus,
   IconRefresh,
   IconSearch,
@@ -10,6 +9,8 @@ import {
 } from "@tabler/icons-react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { cn } from "cn"
+
+import shyshark from "@/assets/shyshark.svg"
 
 import { useAfter, usePreloadChart } from "@/chart/load"
 import { FilterPills } from "@/components/filter-pills"
@@ -191,8 +192,16 @@ function LogPage() {
         <>
           <Empty className="flex-1">
             <EmptyHeader>
-              <EmptyMedia variant="accent">
-                <IconNotebook />
+              {/* The app icon's shyshark, the one place in the app it shows,
+                  with a lighter shadow than the icon's so it isn't a sticker. */}
+              <EmptyMedia>
+                <img
+                  src={shyshark}
+                  alt=""
+                  width={96}
+                  height={96}
+                  className="size-24 drop-shadow-[0_4px_5px_rgb(42_26_10/0.28)] dark:drop-shadow-none"
+                />
               </EmptyMedia>
               <EmptyTitle>No dives yet</EmptyTitle>
               <EmptyDescription>
