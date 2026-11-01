@@ -299,8 +299,10 @@ export function convertSsi(csv: string, extrasInput: Extras) {
       "dive",
       [
         element("informationbeforedive", [
-          link(site.id),
+          // Buddies first: Subsurface writes ", " after any link a buddy
+          // follows, so a site link first gives its buddy list a leading comma.
           ...buddies.map(link),
+          link(site.id),
           leaf("datetime", startTime),
           leaf("platform", entry && entries[entry].uddf),
         ]),
