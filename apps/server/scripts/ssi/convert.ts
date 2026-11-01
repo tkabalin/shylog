@@ -55,6 +55,8 @@ export const extrasSchema = z.strictObject({
         // °C; null drops SSI's value so the dive computer's fills it.
         minTemperature: z.number().nullable().optional(),
         maxTemperature: z.number().nullable().optional(),
+        // SSI has one kind of boat, so a charter boat is set here.
+        entry: z.enum(keysOf(entries)).optional(),
       })
     )
     .default({}),
@@ -272,7 +274,7 @@ export function convertSsi(csv: string, extrasInput: Extras) {
     const weight = number(row, "weight_kg")
     const surface = lookup(row, "var_surface_id", codes.surfaces)
     const weather = lookup(row, "var_weather_id", codes.weathers)
-    const entry = lookup(row, "var_entry_id", codes.entries)
+    const entry = extra?.entry ?? lookup(row, "var_entry_id", codes.entries)
     const current = lookup(row, "var_current_id", codes.currents)
     const comment = unescapeHtml(field(row, "comment"))
     const gear = unescapeHtml(field(row, "gear_details"))

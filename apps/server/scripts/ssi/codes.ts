@@ -44,7 +44,8 @@ export const weathers: Record<string, Weather> = {
   "3": "rainy",
 }
 
-// SSI's shore, boat and other. Every boat dive so far was from a small boat.
+// SSI's shore, boat and other. SSI's boat is a small boat; the extras file
+// marks the charter-boat dives.
 export const entries: Record<string, Entry> = {
   "21": "beachShore",
   "22": "smallBoat",
