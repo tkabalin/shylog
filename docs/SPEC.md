@@ -87,9 +87,9 @@ The SQLite database on the server is the source of truth. UDDF is the format dat
 
 - `dives`: one row per dive with every field in the tables below, in database units, plus the dive computer's model (from the import), the surface interval override flag, and `deleted_at`.
 - `field_meta`: one row per dive field with a recorded source, holding `(dive_id, field, source, computer_value, dismissed)`. `source` is hand or computer, `computer_value` holds the computer's reading once a hand value replaces it, and `dismissed` records that you chose to keep your value. Both stay through later hand edits until the computer value is adopted, even when the hand value comes to match it. Clearing a field by hand stores an empty hand value when a computer value is kept, so an import never refills it; clearing one with no computer value removes its row, so average depth and temperatures are calculated from the samples again. This is what the import rules read.
-- `fingerprints`: one row per computer dive an import has seen, holding the fingerprint, the dive it belongs to (none for a freedive left out), and why it was recorded.
+- `fingerprints`: one row per computer dive an import has seen, holding the fingerprint, the dive it belongs to (none for a dive left out: a freedive or a dive under a minute), and why it was recorded.
 - `samples`: profile samples per dive (time, depth, temperature, tank pressure), sent to the phone apart from the log (see Client data).
-- `events`: warnings and flags the dive computer recorded during the dive, each with its start time in the dive, an end time when it spans an interval, and its type, sent with the samples. From the D4i these are ascent-rate alarms and surfacings (see What the D4i export contains under Subsurface import); the Zoop Novo is assumed to match.
+- `events`: warnings and flags the dive computer recorded during the dive, each with its start time in the dive, an end time when it spans an interval, and its type, sent with the samples. From the D4i these are ascent-rate alarms and surfacings (see What the D4i export contains under Subsurface import), and the Zoop Novo's export has the same two.
 - `sites`, `countries` (seeded with the ISO 3166 list), `regions`, `people` (anyone who appears on a dive as a buddy or dive professional), `dive_centres`, and `trips`.
 - `certifications`: certification cards, each a name and its images, which are files in `cards/`. Each image row keeps a short SHA-256 of its bytes, so the phone can tell a changed page from an unchanged one, and the file is named by it (`cards/<card id>/<hash>`), so a change writes its new files before committing and removes unused ones only after, and a crash never leaves the database naming a missing or wrong file.
 - `settings`: log-wide settings: the diver's name, the maximum PO₂ setting, and the new-dive defaults.
@@ -303,7 +303,7 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 | GET | `/api/import/pending` | The preview awaiting review, if any |
 | PATCH | `/api/import/:id` | Store a clock-offset override for one day and return that day's re-proposed pairs |
 | DELETE | `/api/import/:id` | Discard a preview |
-| POST | `/api/import/:id/apply` | Apply the pairings, skips, and included freedives sent in the body; re-checks every pairing against current data and returns the dives changed since the preview before committing; safe to retry, since the import id makes it idempotent |
+| POST | `/api/import/:id/apply` | Apply the pairings, skips, and included left-out dives (freedives and dives under a minute) sent in the body; re-checks every pairing against current data and returns the dives changed since the preview before committing; safe to retry, since the import id makes it idempotent |
 | GET | `/api/export/uddf` | Build a fresh UDDF export, replace `export/dives.uddf`, and download it |
 | GET | `/api/export/snapshot` | Download a consistent snapshot of the database |
 | POST | `/api/export/run` | Rewrite `export/dives.uddf` without downloading, for Export now after a failed night |
@@ -378,7 +378,7 @@ Log each dive in the app on the way home. Every so often, download a batch from 
 
 Import is always preview, then confirm: nothing is written until you confirm.
 
-- **Clock offset**: the server estimates the dive computer's clock offset for each day from your hand-logged times, rounded to 15 minutes, since the D4i keeps home time abroad (the Zoop Novo is assumed to as well, until its fixture shows otherwise) and a batch can span home and a trip. A dive belongs to the day it starts in local site time, so a night dive crossing midnight stays on the earlier date.
+- **Clock offset**: the server estimates the dive computer's clock offset for each day from your hand-logged times, rounded to 15 minutes, since the D4i keeps home time abroad (the Zoop Novo is assumed to as well; its export has no sites to check this against) and a batch can span home and a trip. A dive belongs to the day it starts in local site time, so a night dive crossing midnight stays on the earlier date.
 - **Proposed pairs**: computer times are shifted by that day's offset, and pairs are proposed by closest start time on the same day, provided the pair passes Subsurface's same-dive test (`likely_same` in `core/dive.cpp`) after the shift:
   - max depths differ by less than 1 m or less than 10% of the larger
   - average depths the same way, when both dives have one
@@ -390,7 +390,9 @@ Import is always preview, then confirm: nothing is written until you confirm.
 
 ### Freedives
 
-The D4i also records freedives, and these appear in the Subsurface export alongside scuba dives. Subsurface's UDDF carries no dive mode, so the import identifies a freedive by three signs together: no tank data, no gas (no `switchmix`), and no gap between samples longer than 2 seconds. In the first real export all 26 freedives (28 December 2025, 8 to 26 seconds long) match, sampled every 1 to 2 seconds, while every scuba dive has tank data and a gas and is sampled every 10 or 20 seconds. A dive with no gas but slower sampling, such as a gauge-mode dive, is a normal dive. Freedives are never paired or added as new dives unless included, but they are fingerprinted as left out, so a later import lists only freedives that are new since the last one. The preview lists them with an option to include any it misjudged, and the summary counts them separately.
+The D4i also records freedives, and these appear in the Subsurface export alongside scuba dives. Subsurface's UDDF carries no dive mode, so the import identifies a freedive by three signs together: no tank data, no gas (no `switchmix`), and no gap between samples longer than 2 seconds. In the first real D4i export all 26 freedives (28 December 2025, 8 to 26 seconds long) match, sampled every 1 to 2 seconds, and so do the Zoop Novo export's 30 (8 December 2025, 4 to 27 seconds, every 2 seconds), while every scuba dive in both has tank data and a gas and is sampled every 10 or 20 seconds. A dive with no gas but slower sampling, such as a gauge-mode dive, is a normal dive. Freedives are never paired or added as new dives unless included, but they are fingerprinted as left out, so a later import lists only freedives that are new since the last one. The preview lists them with an option to include any it misjudged, and the summary counts them separately.
+
+A dive that isn't a freedive but whose `diveduration` is under 60 seconds is left out the same way: it is the computer waking in shallow water, not a dive. Without this it would be added by default on every import, since a skipped dive gets no fingerprint. The Zoop Novo export has two (20 and 4 seconds, both shallower than 2 m), while the D4i's shortest scuba dive is 100 seconds. They are fingerprinted, listed and counted with the freedives left out, each row saying which it is.
 
 ### What the D4i export contains
 
@@ -410,7 +412,15 @@ Checked against a real Subsurface export of 72 dives on 12 October 2026:
 
 ### The Zoop Novo
 
-The Zoop Novo is from the same Suunto family and Subsurface downloads it the same way, so its export is expected to match the D4i's. That stays unconfirmed until a Zoop Novo export is added as a fixture; any difference becomes a model-specific rule in the Suunto module. It has a gauge mode, whose dives may carry no gas.
+Checked against a real Subsurface export of 61 dives (25 November 2025 to 24 October 2026) on 1 November 2026. It has exactly the D4i export's elements and placeholders, and every rule under What the D4i export contains holds, so the Suunto module needs no Zoop Novo rule yet; any later difference becomes one. Its data differs only in ways those rules already cover:
+
+- Scuba dives are sampled every 10 seconds, freedives every 2.
+- Every dive is on air.
+- Its 8 ascent pairs are 1 to 15 seconds apart.
+- Some very short dives have only the opening `surface` alarm, with none at the end.
+- One dive has a single sample and no `averagedepth`. It is left out as under a minute, but if included its average depth falls back to the samples, following Subsurface's handling of a dive with fewer than two samples.
+
+It has a gauge mode, whose dives may carry no gas, but the export has none, so the gauge case stays synthetic.
 
 ### For a matched dive
 
@@ -418,7 +428,7 @@ The Zoop Novo is from the same Suunto family and Subsurface downloads it the sam
 - Every field you entered by hand is kept, because hand values always beat computer values.
 - Empty fields, average depth included, are filled from the computer, marked as computer values.
 - Where the computer disagrees with a hand value (start time, max depth, average depth, duration, temperature), yours stays and the computer's is shown beside it, with a tap to adopt it. Any difference counts, however small. On the dive, a banner says how many values differ and leads to the edit form, where each one can be adopted (use the computer's value) or dismissed (keep mine), which hides the flag but keeps the computer's value. Screens name the computer by the model the export gives ("your D4i", "your Zoop Novo"), or "dive computer" when it gives none.
-- Every dive an import touches, whether paired or added, and every freedive left out, stores a fingerprint of the computer dive (start time on the computer's clock, duration, and max depth). A later import containing the same fingerprint is recognised and skipped, and fingerprints of deleted dives keep blocking re-imports.
+- Every dive an import touches, whether paired or added, and every freedive or dive under a minute left out, stores a fingerprint of the computer dive (start time on the computer's clock, duration, and max depth). A later import containing the same fingerprint is recognised and skipped, and fingerprints of deleted dives keep blocking re-imports.
 - The export's own ids are used only to resolve its internal links. Every imported item gets a new Shylog id, and mixes and tanks go through the usual matching.
 - Each imported dive's original UDDF fragment is kept in `import_raw`, so data Shylog doesn't model isn't lost. Its standard UDDF elements are also passed through to their normal places in the export (see UDDF export under Data model).
 - Datetimes without an offset in the export are read as the computer's clock, corrected by that day's offset to give local site time.
@@ -427,7 +437,7 @@ The Zoop Novo is from the same Suunto family and Subsurface downloads it the sam
 
 ### Summary
 
-After confirming, the app shows a short summary: dives paired, dives added, dives skipped as already imported, freedives left out, and freedives included when any were, plus the dives that differ from the computer, listed on the summary with a link to each.
+After confirming, the app shows a short summary: dives paired, dives added, dives skipped as already imported, dives left out (freedives and dives under a minute), and those included when any were, plus the dives that differ from the computer, listed on the summary with a link to each.
 
 ## Statistics
 
@@ -493,7 +503,7 @@ The chart library is the heavy part, not the maths, so the dive detail's profile
 - **Longest streaks** come in two lengths, since a dive trip and steady local diving build different kinds: most consecutive diving days, and most consecutive weeks with at least one dive (Monday to Sunday), both by local start date, so several dives on one day count once. Each shows its length and the dates of its first and last dive, and a streak still running says so.
 - **Diving anniversary** is the whole years since the first logged dive, with its date ("7 years diving, since 10 February 2019"); under a year it is months. It ignores the year filter, since it is about the whole log, and on the day itself it reads "7 years diving today".
 
-Ignored dives are left out of all of these, including the first dive the anniversary counts from. Freedives left out at import are not dives, so they never count; an included freedive counts like any other dive.
+Ignored dives are left out of all of these, including the first dive the anniversary counts from. Freedives and dives under a minute left out at import are not dives, so they never count; an included one counts like any other dive.
 
 **Averages** follow Subsurface's statistics (`process_dive` in `core/statistics.cpp`). Average SAC rate is weighted by each dive's duration and leaves out rates of 0.1 L/min or less as bogus. Average duration and average max depth are plain means over the dives. The water temperature range runs from the lowest dive minimum to the highest dive maximum.
 
@@ -729,7 +739,7 @@ Each step ends with something usable, and the core package comes first because e
 5. **Read-only app**: log list, dive detail, and the profile chart (depth, temperature, events, vertical rate, and the MOD line), using the seeded fixture, with the log mirrored into IndexedDB from the start.
 6. **Editing from day one**: add, edit, delete, Recently deleted, entities (including deletes), settings, and certification cards as plain API calls, with new dives always saved as drafts through the upload path, so offline support later only adds the queue.
 7. **UDDF export**: the nightly and on-demand export, with XSD and pass-through tests.
-8. **Import**: Suunto parsing rules (D4i and Zoop Novo), freedive detection, preview, clock offsets, pairing review, fingerprints, events, storing CNS and OTU from imported samples, and apply. Starts once a Zoop Novo export is in `fixtures/subsurface/`.
+8. **Import**: Suunto parsing rules (D4i and Zoop Novo), freedive detection, preview, clock offsets, pairing review, fingerprints, events, storing CNS and OTU from imported samples, and apply.
 9. **Offline**: service worker, the draft queue waiting and retrying while offline (the IndexedDB copy exists from step 5 and drafts from step 6), sync indicators, storage warnings, and the update flow.
 10. **Statistics** screen.
 
@@ -741,7 +751,7 @@ The sync rules and the UDDF import and export carry most of the risk, so they ge
 - **Schema validation**: exports are validated against the vendored UDDF 3.2.1 XSD in CI with `xmllint`, after the unregistered `<shylog>` element is stripped, so no failure is allowed. This also checks element order and whether `<samples>` may be left out of hand-logged dives. The exact UDDF elements for a site's region, country, and body of water are settled against the XSD when the export is built.
 - **Calculations**: SAC rate, MOD, max PO₂, CNS, OTU, vertical rate, and the time-weighted average depth (still the fallback when an export has no `averagedepth`) are unit-tested in the core package against hand-worked values. They are also checked against Subsurface's own figures for the same dives in the first real export, with Subsurface set to salt water and 1,013 mbar, since the export carries neither (the owner records Subsurface's CNS and OTU for dives 63, 54, 61, and 36 before the core calculations are built). For example, dive 63 (EANx32, 32.66 m, salt water, surface pressure 1,013 mbar) gives a max PO₂ of 1.38 bar and an MOD of 33.2 m at 1.4 bar. Beyond those dives, a differential test runs Subsurface's own functions, copied into a small C++ program under `packages/core/test/reference/`, side by side with the core package: fast-check generates random dives, logs and profiles, and every rounded figure (gas volume, SAC rate, MOD, CNS with carry-over, OTU, time under water, average depth, dive end, surface interval, the likely-same match, the chart points with their speeds and bands, and the end of the dive they stop at) must match exactly. Shylog's deliberate departures are applied to Subsurface's answer: MOD to 0.1 m, the 48-hour surface interval cap, and 0 bar as a real end pressure. Import tests cover each rule under What the D4i export contains, including that `averagedepth` is read and stored as a computer value.
 - **Pass-through**: importing a real Subsurface export and then exporting keeps every standard element Shylog doesn't model, in its normal place and valid against the XSD. A test compares each dive's elements before and after, allowing only remapped ids and hand-entered values to differ.
-- **Real fixtures**: Subsurface exports from the D4i and the Zoop Novo. The first real D4i export covers Sodwana in July 2026 (nitrox, dives past 30 m, ascent alarms, mid-dive surfacings) and the freedives of 28 December 2025, which test the freedive rule. Cases the real exports lack (a trip abroad with an offset clock, a night dive crossing midnight, a gauge dive, pressure samples, a PO₂ over the limit) come from small synthetic UDDF files generated from real fixture dives by a checked-in script under `fixtures/synthetic/`. A Zoop Novo export, with a gauge dive if there is one, is needed before the Import step.
+- **Real fixtures**: Subsurface exports from the D4i (`fixtures/subsurface/d4i-2026-10-12.uddf`) and the Zoop Novo (`zoop-novo-2026-11-01.uddf`). The first real D4i export covers Sodwana in July 2026 (nitrox, dives past 30 m, ascent alarms, mid-dive surfacings) and the freedives of 28 December 2025, which test the freedive rule. Cases the real exports lack (a trip abroad with an offset clock, a night dive crossing midnight, a gauge dive, pressure samples, a PO₂ over the limit) come from small synthetic UDDF files generated from real fixture dives by a checked-in script under `fixtures/synthetic/`. The Zoop Novo export adds the freedives of 8 December 2025 and two dives under a minute, but no gauge dive.
 - **Migrations**: every migration runs against a copy of real data, followed by `foreign_key_check`.
 - **Restore drill**: a script restores from a nightly snapshot, replays the journal, and compares the result with the live database table by table. It runs inside the instance's app container, so the host needs only Docker.
 
@@ -750,7 +760,6 @@ The sync rules and the UDDF import and export carry most of the risk, so they ge
 ### To decide before or during the build
 
 - [ ] Work through the backup checklist under Backups and durability
-- [ ] Add a Zoop Novo export as a fixture and check it against What the D4i export contains
 
 ### Later
 

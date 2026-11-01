@@ -4,7 +4,7 @@ This plan turns `docs/SPEC.md` into milestones that each fit one working session
 
 Conventions used throughout:
 
-- **Fixture dive numbers** are Subsurface's `divenumber` in `fixtures/subsurface/d4i-2026-10-12.uddf` (1 to 72), not Shylog's. Dive 63 there is the EANx32 dive to 32.66 m on 22 July 2026. Once imported into an empty log with the 26 freedives left out, it would be Shylog dive 37, so tests must look dives up by fixture number or start time, never by Shylog number.
+- **Fixture dive numbers** are Subsurface's `divenumber` in `fixtures/subsurface/d4i-2026-10-12.uddf` (1 to 72), not Shylog's. Dive 63 there is the EANx32 dive to 32.66 m on 22 July 2026. Once imported into an empty log with the 26 freedives left out, it would be Shylog dive 37, so tests must look dives up by fixture number or start time, never by Shylog number. Zoop Novo fixture numbers are its own `divenumber` in `fixtures/subsurface/zoop-novo-2026-11-01.uddf` (1 to 61).
 - **Icons** follow the hi-fi boards' *Essential* tweak, board by board: an icon is built where that board shows it with icons set to Essential (the `xi` elements not marked `xi2`), and not where the board shows it only with All. The per-screen choices were made in review (for example no country or region icons on site detail, no calendar on Recently deleted or the last-import date, no map icons in Choose site, no water-temperature or gear icons on dive detail, but icons on the Notable animals, Gear and General cards, on Settings' About and entity rows, and on entity list and detail meta lines), so `IconKeyHifi`'s Essential column is a vocabulary, not a per-screen rule. The *Off* and *All* variants are not built. The Icon key is a reference document, not a screen.
 - **Separators**: where an icon follows, facts are separated by a gap, never a dot. The " · " dot is used only between plain text, as on the Log card's "Sat 10 · Simon's Town".
 - **Design screens** are the boards in `docs/design/hifi/`. The spec wins for behaviour, the board for layout, and `docs/design/NOTES.md` lists the places the boards are wrong. Decisions taken for this plan are listed under Decisions and should be folded into the spec.
@@ -28,16 +28,16 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D9 | Air in imports | A mix with O₂ of exactly 21.0% (210 tenths) imports as air, Nitrox no, as Subsurface treats it. Any other fraction imports as Nitrox with that percentage. |
 | D10 | Computer temperatures | The computer's minimum and maximum water temperatures are the lowest and highest sample temperatures. Both fill empty fields as computer values and both are compared with hand values. `lowesttemperature` is read only if present. |
 | D11 | Synthetic fixtures | Cases the real export lacks (clock offset abroad, dive crossing midnight, gauge dive, pressure samples, PO₂ over the limit) use small UDDF files generated from real fixture dives by a checked-in script under `fixtures/synthetic/`. |
-| D12 | Zoop Novo | The Import milestones do not start until a Zoop Novo export is in `fixtures/subsurface/`. |
+| D12 | Zoop Novo | The Import milestones waited for a Zoop Novo export in `fixtures/subsurface/`. It arrived on 1 November 2026 (`zoop-novo-2026-11-01.uddf`) and every D4i rule holds for it, so Import is unblocked. |
 | D13 | Dexie timing | Dexie mirrors `/api/log` from the read-only app onwards. Drafts are written to the Dexie queue from the editing milestone and uploaded straight away. The Offline milestone adds the service worker, retry, sync states, storage persistence, queue export and the update flow. |
 | D14 | Adopt or dismiss | A field whose hand value differs from a stored computer value shows the ✓ "Use D4i value" / ✕ "Keep mine" group, for all five compared fields. A field currently holding a computer or calculated value is marked by a cyan bar down its row's left edge, keyed by a note under the card ("From your dive computer or worked out by Shylog"); once edited, the bar goes and a "Reset to the D4i value" button sits beside the label. Per-row icons were tried first and read as busy. Computer and calculated values use the normal text colour; the accent treatment tried in the wireframe review was dropped. |
 | D15 | Log header | The *Hero count* variant: "72 dives logged", a one-line "58 h underwater · deepest 32.7 m" strip, collapsing to "72 dives · 58 h" on scroll. The compact line was dropped on 24 October 2026: only the search and filter bar stays. |
 | D16 | "N dives differ" after an import | The Import done screen lists the differing dives, each linking to its detail. No new Log filter. |
 | D17 | Icon key | Reference only, no screen. |
 | D18 | Tailscale state | A bind mount at `${SHYLOG_DATA_DIR}/tailscale`, so one folder per instance holds everything the backup covers. |
-| D19 | Freedives in the summary | Counted separately: paired, added, already imported, freedives left out, freedives included (shown when non-zero). The CTA total includes included freedives. |
+| D19 | Freedives in the summary | Counted separately: paired, added, already imported, left out (freedives and dives under a minute, D33), included (shown when non-zero). The CTA total includes the included ones. |
 | D20 | Person figures | "Dives together", "As buddy" and "Buddy since" are kept, derived on the client from the link tables. |
-| D21 | Long lists in the import review | "Already imported" is a plain count row that never expands. Freedives are listed as the board draws them: one row per freedive under a day heading, each with its own Include. |
+| D21 | Long lists in the import review | "Already imported" is a plain count row that never expands. Freedives are listed as the board draws them: one row per freedive under a day heading, each with its own Include. Dives under a minute (D33) join the same list, their row saying so. |
 | D22 | Labels fixed in review | The free-text notes field is labelled "General" (the section stays "Notes"); maximum PO₂ is a plain decimal input with no preset list. A site's region is typed with existing regions in that country offered as you type (this supersedes the review's free-text-only choice). |
 | D23 | Ignored dives (added 19 October 2026) | A hand-set `ignored` flag on each dive, false by default, for pool sessions, aborted dives, chamber runs or any other reason. An ignored dive has no number and is left out of the Log's counts, Statistics and entity figures, but still counts for surface intervals, CNS carry-over, the health dive count and the export (see Ignored dives in the spec). |
 | D24 | Records and milestones (added 19 October 2026) | The Records and averages card adds coldest and warmest dive (by the dive's effective minimum water temperature, since the maximum picks up near-surface readings), total depth descended against a ladder of landmarks from the Leaning Tower of Pisa to the Kármán line, longest streaks in consecutive days and weeks, and a diving anniversary that ignores the year filter (see Records and milestones in the spec). |
@@ -49,6 +49,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D30 | The You tab (added 29 October 2026) | The fourth tab, drawn as Settings, is called You, with a scuba mask icon (the owner's choice), as dive apps keep certification cards under the diver's profile. The page follows `SettingsHifi` with the sync card at the top, the diver name card (and certifications, milestone 12) under it without a heading, and alerts above everything. About's version is the short commit the image was built from (a Docker build argument CI fills), `dev` in development, and its server name is `TS_HOSTNAME`, sent in `/api/health`. An entity's detail lists its three latest dives and its All action lists the rest in place, with no Log filter. The restore toast is shadcn's Sonner. Recently deleted groups by today, yesterday, then month. |
 | D31 | Certification cards (added 30 October 2026) | The cards live under You at `/you/certifications`, and a card's viewer is pushed as `/you/certifications/$cardId`, dark and full screen. The list's add button opens the photo picker straight away, and New card and Edit card are full-height sheets over the list or the viewer, holding the picked images until Save. A page is reordered by a long press that lifts its thumbnail, then a drag, so a plain swipe still scrolls the strip. Pinch to zoom, panning, page swipes and the reorder use Motion. After each sync the phone downloads in the background every card image it lacks into Dexie, so a card opens with no signal even if it was never opened on that phone; images no card names any more are dropped. Deleting a card asks first in a sheet, as deleting a dive does. |
 | D32 | Certification cards on You (added 31 October 2026) | You shows the first three cards in the owner's order as tiles under the diver name, each opening its viewer, with an All certifications row to the list, rather than the board's single Certifications row. A card's age or level isn't recorded, so the order is the owner's: a new card goes first, and a long press on a row in the list (a drag with a mouse) lifts it to move it, saved through `PUT /api/cards/order`. |
+| D33 | Dives under a minute (added 1 November 2026) | A computer dive that isn't a freedive but has a `diveduration` under 60 s is left out like a freedive: fingerprinted with reason `short`, listed with the freedives with its own Include, and counted with them as left out. The Zoop Novo export has two such blips (dives 42 and 54); without this they would be added by default on every import, as a skipped dive gets no fingerprint. The D4i's shortest scuba dive is 100 s. |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -69,7 +70,7 @@ Where a board shows something the spec does not and no decision above covers it,
 | 11 | 6 | Editing: delete and restore, You, entities | 10 |
 | 12 | 6 | Certification cards | 11 |
 | 13 | 7 | UDDF export | 6 |
-| 14 | 8 | Import: the Suunto reader | 5, Zoop Novo fixture (D12) |
+| 14 | 8 | Import: the Suunto reader | 5 |
 | 15 | 8 | Import: preview, clock offsets, pairing | 14 |
 | 16 | 8 | Import: apply, fingerprints, pass-through export | 15, 13 |
 | 17 | 8 | Import: screens | 15, 16 |
@@ -77,8 +78,6 @@ Where a board shows something the spec does not and no decision above covers it,
 | 19 | 9 | Offline: update flow, queue export, end-to-end tests | 18 |
 | 20 | 10 | Statistics: figures and charts | 9, 18 (the stats chunk offline) |
 | 21 | 10 | Statistics: patterns | 20 |
-
-If the Zoop Novo export (D12) hasn't arrived when milestone 13 is done, milestone 18 is the next one that can be built.
 
 ---
 
@@ -608,7 +607,6 @@ Decisions taken while building:
 
 Deferred, or to watch:
 
-- Only ascent alarms are listed under the chart; other event types (the Zoop Novo's, milestone 14) are drawn as icons and named only in the readout and table. Decide their list rows once a Zoop Novo export is in.
 - The digest can't see a re-import that changes nothing it covers; a samples revision from the server would be exact (milestone 16).
 - The Change pairing sparkline (milestone 17) should use `chartDepthAxis` like the Log's.
 - React logs a caught profile failure to the console in development; `console.spec.ts` never hits one.
@@ -821,22 +819,22 @@ Deferred, or to watch:
 
 **Goal**: the server turns a Subsurface UDDF export from the D4i or Zoop Novo into Shylog dives, samples, events, gases and fingerprints, applying every rule in the spec's D4i section.
 
-**Implements**: Subsurface import (Freedives, What the D4i export contains, The Zoop Novo), Instance configuration (Dive computer module), decisions D9, D10, D11, D12. Blocked until a Zoop Novo export is in `fixtures/subsurface/`.
+**Implements**: Subsurface import (Freedives, What the D4i export contains, The Zoop Novo), Instance configuration (Dive computer module), decisions D9, D10, D11, D12, D33.
 
-**Touches**: `apps/server/src/uddf/reader.ts` (grows the milestone 4 sample reader), `apps/server/src/import/suunto.ts` (module chosen by `<divecomputer><model>`, D4i and Zoop Novo rules, generic fallback), `apps/server/src/import/freedive.ts`, `fingerprint.ts`, `fixtures/synthetic/generate.ts` and its outputs (D11), `fixtures/subsurface/zoop-novo-*.uddf`, tests.
+**Touches**: `apps/server/src/uddf/reader.ts` (grows the milestone 4 sample reader), `apps/server/src/import/suunto.ts` (module chosen by `<divecomputer><model>`, D4i and Zoop Novo rules, generic fallback), `apps/server/src/import/freedive.ts` (freedives and dives under a minute, D33), `fingerprint.ts`, `fixtures/synthetic/generate.ts` and its outputs (D11), tests.
 
 **Acceptance**
 
 - `reader.test.ts` on the D4i fixture: 72 dives; 26 freedives (fixture 9 to 34 on 28 December 2025, 8 to 26 s, gaps of at most 2 s, no tankdata, no switchmix); 59 ascent pairs stored as 59 events with start and end (dive 3's first pair spans 290 to 311 s), 159 surface events stored and typed; the time-0 switchmix is the dive's gas, never an event; `o2 = 0.21` is air (D9) and 0.32 is Nitrox 32.0%; dive 3's duplicate times merge; dive 6 keeps samples to 502 s with duration 180 s; max depth is `greatestdepth` (dive 63: 32.66 m, deeper than any sample); `averagedepth` is stored as a computer value; temperatures are kelvin converted, carried forward, and min and max come from the samples (D10); `leadquantity` 0, the empty site link, `<notes><para/></notes>`, the dummy divebase and the empty `<divetrip/>` are ignored; datetimes have no offset; a gauge-style dive (no gas, 20 s sampling) is a normal dive, not a freedive.
 - `fingerprint.test.ts`: the fingerprint is start time on the computer's clock, duration and max depth; equal for the same computer dive in two exports.
-- `zoop.test.ts`: the Zoop Novo fixture passes the same assertions where its data allows, and each difference is a model-specific rule with a test.
+- `zoop.test.ts` on the Zoop Novo fixture: 61 dives; `Suunto Zoop Novo` picks the Suunto module with no model-specific rule; 30 freedives (fixture 8 to 37 on 8 December 2025, 4 to 27 s); 8 ascent pairs (dive 61's second spans 3556 to 3571 s) and 140 surface events; dive 61's duplicate times merge; dive 53 keeps samples to 340 s with duration 160 s; dive 15's max depth is 8.15 m from `greatestdepth`, deeper than its 7.64 m deepest sample; dives 42 (20 s) and 54 (4 s) end with no `surface` alarm and are left out as under a minute (D33); dive 54, one sample and no `averagedepth`, gets the fallback average depth when included.
 - `generate.test.ts`: the synthetic fixtures are regenerated identically and each contains the case it is for.
 
 **Not in this milestone**: pairing, preview, apply, UI.
 
 - [ ] Reader covering every element and placeholder in the spec's list
 - [ ] Suunto module with model selection and generic fallback
-- [ ] Freedive rule
+- [ ] Freedive rule and the under-a-minute rule (D33)
 - [ ] Fingerprints
 - [ ] Zoop Novo fixture and rules
 - [ ] Synthetic fixture generator
@@ -853,7 +851,7 @@ Deferred, or to watch:
 **Acceptance**
 
 - `offset.test.ts`: the synthetic "abroad" fixture (D4i clock 5 hours behind site time) estimates +5:00 for those days and 0:00 at home; a day with no hand dives gets the nearest estimated day's offset; estimates round to 15 minutes; a night dive starting 23:40 belongs to that date.
-- `pairing.test.ts`: dive 63 pairs with a hand dive logged at 08:10 for 42 min to 32.7 m and not with one at 08:10 for 20 min; three hand dives on 20 July 2026 pair with fixture 58, 59 and 60 by closest start; a hand dive with no computer dive within the test is listed with the distance to the nearest start; already-fingerprinted dives are skipped; freedives are never proposed.
+- `pairing.test.ts`: dive 63 pairs with a hand dive logged at 08:10 for 42 min to 32.7 m and not with one at 08:10 for 20 min; three hand dives on 20 July 2026 pair with fixture 58, 59 and 60 by closest start; a hand dive with no computer dive within the test is listed with the distance to the nearest start; already-fingerprinted dives are skipped; freedives and dives under a minute are never proposed.
 - `preview.test.ts`: the preview stores the data version and expires after seven days; `PATCH` with a day offset re-proposes that day only and keeps the override; `DELETE` discards; `GET /api/import/pending` returns the one awaiting review.
 - `import-route.test.ts`: `POST /api/import` needs the UDDF content type and a connection, writes nothing to `dives`, and returns the preview in the schema from core.
 
@@ -875,7 +873,7 @@ Deferred, or to watch:
 
 **Acceptance**
 
-- `apply.test.ts`: a paired dive keeps every hand value (an ignored dive stays ignored), gets samples and events, fills empty fields as computer values (average depth, min and max temperature), records `computer_value` for each of start time, max depth, average depth, duration and temperatures that differ, by any amount; an added dive carries the computer's values with source computer; a skipped dive gets no fingerprint; a freedive left out gets one with reason `freedive`; an included freedive becomes a dive; a second apply with the same import id changes nothing; a 120-dive synthetic export commits in three chunks with three journal entries, and a failure in chunk two leaves chunk one applied and reports it; a hand dive edited after the preview is returned as changed before anything commits; the summary counts match D19.
+- `apply.test.ts`: a paired dive keeps every hand value (an ignored dive stays ignored), gets samples and events, fills empty fields as computer values (average depth, min and max temperature), records `computer_value` for each of start time, max depth, average depth, duration and temperatures that differ, by any amount; an added dive carries the computer's values with source computer; a skipped dive gets no fingerprint; a freedive left out gets one with reason `freedive`, and a Zoop Novo dive under a minute one with reason `short`; an included freedive becomes a dive; a second apply with the same import id changes nothing; a 120-dive synthetic export commits in three chunks with three journal entries, and a failure in chunk two leaves chunk one applied and reports it; a hand dive edited after the preview is returned as changed before anything commits; the summary counts match D19.
 - `reimport.test.ts`: importing the same export twice skips every dive as already imported; deleting a dive and importing again still skips it.
 - `passthrough.test.ts`: import the D4i fixture, export, and compare each dive's standard elements before and after, allowing only remapped ids, hand values and Shylog's own additions to differ; the result validates with `test:xsd`; `<he>`, alarms and extra sample channels in a synthetic fixture survive in place.
 - `sync-import.test.ts`: a hand-logged dive uploaded from a draft, then matched by an import, ends with the same data whether the draft arrived before or after the preview was made.
@@ -899,7 +897,7 @@ Deferred, or to watch:
 
 **Acceptance**
 
-- `review.test.ts`: the computer is named from the preview's model ("your D4i", "your Zoop Novo", "dive computer"); "Already imported" is a count row with no expansion and freedives are one row each under day headings with their own Include (D21); the CTA total is paired + added + included freedives; unticking a new dive counts it as skipped; the clock sheet steps by 15 minutes, shows the pair line, and offers "Use +5:00" or "Reset"; a hand pairing across days or failing the test shows the warning.
+- `review.test.ts`: the computer is named from the preview's model ("your D4i", "your Zoop Novo", "dive computer"); "Already imported" is a count row with no expansion and freedives and dives under a minute are one row each under day headings with their own Include (D21); the CTA total is paired + added + included left-out dives; unticking a new dive counts it as skipped; the clock sheet steps by 15 minutes, shows the pair line, and offers "Use +5:00" or "Reset"; a hand pairing across days or failing the test shows the warning.
 - `import.spec.ts` (Playwright): upload the D4i fixture into a log with three hand-logged dives for 20 July 2026, see three pairs, 43 new dives and 26 freedives left out; shift a day's clock and see the pairs re-propose; change one pairing to Don't import; include one freedive; apply; the summary shows the counts and lists the dives that differ; opening one shows the banner and the ✓/✕ groups; the Import screen then shows the last import; uploading the same file again shows everything as already imported.
 - Screenshots of the five import screens and the clock sheet at 390 px against the boards.
 
