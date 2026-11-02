@@ -41,7 +41,7 @@ const number = (parent: Element, name: string) => {
 
 // Air is written as 0.21 and read as air, as Subsurface does (D9); core
 // takes nitrox from 21.1 %.
-const air = 210
+export const air = 210
 
 // The D4i writes each ascent alarm as a pair, matched in order, and marks
 // surfacings with single alarms.
