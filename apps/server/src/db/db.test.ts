@@ -230,3 +230,51 @@ describe("migration 4", () => {
     ).toBe('{"weight":4}')
   })
 })
+
+describe("migration 5", () => {
+  it("drops characters XML can't hold from stored names and text", () => {
+    migrate(db, dir, migrations.slice(0, 4))
+    // Bound, as a NUL would end the SQL text.
+    db.prepare(
+      "INSERT INTO sites (id, name, key, country_code, water_type) VALUES ('site-a', ?, ?, 'ZA', 'salt')"
+    ).run("Reef\u0000", "ZA:reef\u0000")
+    db.prepare("UPDATE settings SET diver_name = ?").run("Thandi\u0000")
+    db.exec(`
+      INSERT INTO people (id, name, key) VALUES
+        ('person-sam', 'Sam', 'sam'),
+        ('person-lee', 'Lee\u0007 ', 'lee\u0007'),
+        ('person-twin', 'Sam\u0007', 'sam\u0007'),
+        ('person-bell', '\u0007', '\u0007'),
+        ('person-tab', 'Ann\u000BLe', 'ann le');
+      INSERT INTO dives (id, start_time, site_id, duration, max_depth, notes, gear_details)
+        VALUES ('dive-a', '2026-07-22T08:00:00', 'site-a', 900, 10, 'Turtle\u0007', '\u0007');
+      INSERT INTO field_meta (dive_id, field, source) VALUES
+        ('dive-a', 'notes', 'hand'), ('dive-a', 'gearDetails', 'hand');
+    `)
+    migrate(db, dir)
+    expect(
+      db.prepare("SELECT id, name, key FROM people ORDER BY id").all()
+    ).toEqual([
+      // Only control characters: kept for the diver to rename.
+      { id: "person-bell", name: "\u0007", key: "\u0007" },
+      { id: "person-lee", name: "Lee", key: "lee" },
+      { id: "person-sam", name: "Sam", key: "sam" },
+      { id: "person-tab", name: "Ann Le", key: "ann le" },
+      // Would now match Sam: kept for the diver to merge.
+      { id: "person-twin", name: "Sam\u0007", key: "sam\u0007" },
+    ])
+    expect(db.prepare("SELECT name, key FROM sites").get()).toEqual({
+      name: "Reef",
+      key: "ZA:reef",
+    })
+    expect(
+      db.prepare("SELECT notes, gear_details AS gear FROM dives").get()
+    ).toEqual({ notes: "Turtle", gear: null })
+    expect(db.prepare("SELECT field FROM field_meta").pluck().all()).toEqual([
+      "notes",
+    ])
+    expect(db.prepare("SELECT diver_name FROM settings").pluck().get()).toBe(
+      "Thandi"
+    )
+  })
+})

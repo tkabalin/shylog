@@ -1,16 +1,14 @@
+import { dropUnwritable } from "@shylog/core"
+
 // Small builders for the UDDF Shylog writes, shared by the export and the
 // SSI converter. An element is a list of lines, indented by its parent, so
 // the output is stable text that diffs well from one night to the next.
 export type Xml = string[]
 
-// XML 1.0 has no way to write most control characters, even escaped, so a
-// pasted one would make the whole export unreadable. They are dropped.
-// eslint-disable-next-line no-control-regex
-const notXml = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g
-
+// XML 1.0 has no way to write most control characters, even escaped, so one
+// in older data or the SSI logbook would make the whole export unreadable.
 export const escape = (text: string) =>
-  text
-    .replace(notXml, "")
+  dropUnwritable(text)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")

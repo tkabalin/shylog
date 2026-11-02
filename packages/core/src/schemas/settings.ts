@@ -1,5 +1,6 @@
 import { z } from "zod"
 
+import { dropUnwritable } from "./common.ts"
 import {
   defaultedDiveFields,
   nitroxOxygen,
@@ -21,7 +22,7 @@ const newDiveDefaults = nitroxOxygen(
 )
 
 export const settingsFields = {
-  diverName: z.string().trim().max(120),
+  diverName: z.string().overwrite(dropUnwritable).trim().max(120),
   // Bar, in the 0.1 bar steps dive computers offer. It should match the
   // computer's own setting so Shylog agrees with the computer's alarm.
   maxPo2: z.number().min(1).max(2).multipleOf(0.1),

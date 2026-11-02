@@ -101,6 +101,13 @@ describe("diveFieldsSchema", () => {
     expect(
       diveFieldsSchema.parse({ ...dive, notes: " Turtle " })
     ).toMatchObject({ notes: "Turtle" })
+    // Characters XML can't hold go first, so pasted alone they empty it too.
+    expect(
+      diveFieldsSchema.parse({ ...dive, notes: "\u0007 Turtle\u0000" })
+    ).toMatchObject({ notes: "Turtle" })
+    expect(diveFieldsSchema.parse({ ...dive, notes: "\u0007" })).toMatchObject({
+      notes: null,
+    })
   })
 
   it("takes visibility in metres or as a rating, not both", () => {
