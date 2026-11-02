@@ -954,6 +954,12 @@ Deferred, or to watch:
 
 **Not in this milestone**: the update flow and queue export (milestone 19).
 
+**Notes for the next session** (written 2 November 2026, from a look at cold launch speed, which the owner left for this milestone)
+
+- Precaching is also the fix for a slow cold launch, not only for offline. Without a service worker every launch downloads `index.html` again (`no-cache`, no ETag) and then 35 critical-path files: about 886 KB raw, 268 KB gzipped (the entry, the Log chunk, about 30 modulepreloads, 159 KB of CSS, the Geist fonts). iOS evicts an installed web app's HTTP cache readily, so the `immutable` assets often come over the network too. Record these numbers and launch-to-Log time on the phone before and after.
+- The server writes `<title>` from `SHYLOG_APP_NAME` when it serves `index.html` (`apps/server/src/static.ts`). The precached page must come from the server, not the build output, or both installed instances are called Shylog. Check the title in `offline.spec.ts`.
+- With a cache-first shell, a deploy reaches the phone only once the new worker takes over, and the guarded update flow waits for milestone 19. Pick the interim update behaviour when this milestone starts. An automatic reload must not drop an open form, and only the dive form autosaves.
+
 - [ ] Service worker precache and manifest
 - [ ] iOS install details: `apple-mobile-web-app-title` and a status bar style checked on a phone in both themes (`black-translucent` puts white text over the light theme's white header). Also check the soft blur iOS draws under the status bar on a cold launch, over the top of the Log's count until the first scroll (seen on the dev server, 24 October 2026)
 - [ ] Sync states, retry, pill, banner
