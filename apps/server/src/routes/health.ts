@@ -23,6 +23,8 @@ export const health = factory.createApp().get("/health", (c) => {
       .get() as number,
     lastSnapshotAt: getMeta(db, "last_snapshot_at"),
     lastExportAt: getMeta(db, "last_export_at"),
+    // Set by a failed night and cleared by any export that succeeds.
+    exportFailedAt: getMeta(db, "export_failed_at"),
     // Names the instance on the You tab, where two are run.
     server: env.TS_HOSTNAME,
   })
