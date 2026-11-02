@@ -130,5 +130,9 @@ export function cnsWithCarryOver(dive: CnsDive, dives: readonly CnsDive[]) {
     lastEnd = other.start + other.end
   }
   decay(when)
-  return lrint(cns + dive.cns)
+  // Departure: capped, as only wrong data gets near it (100 % oxygen typed
+  // on a deep dive passes 10^20 %), where Subsurface's int overflows.
+  return Math.min(lrint(cns + dive.cns), maxCns)
 }
+
+export const maxCns = 999

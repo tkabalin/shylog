@@ -7,6 +7,7 @@ import {
   cnsWithCarryOver,
   diveCns,
   diveOtu,
+  maxCns,
   type CnsDive,
 } from "../../src/calc/cns-otu.ts"
 import { gasVolume } from "../../src/calc/gas.ts"
@@ -346,7 +347,8 @@ describe("Subsurface's code on random inputs", () => {
         const cns = cnsWithCarryOver(dives[index], dives)
         // Without its own samples a dive has no CNS in Shylog.
         if (table[index].cns == null) expect(cns).toBeNull()
-        else expect(cns).toBe(expected)
+        // Departure: Shylog caps the figure.
+        else expect(cns).toBe(Math.min(expected, maxCns))
       }
     ))
 
