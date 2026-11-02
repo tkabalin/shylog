@@ -14,6 +14,17 @@ const schema = fileURLToPath(
 // failures the spec accepts: <shylog>, which isn't a registered
 // applicationdata child, and tankdata with no start pressure (see Testing).
 export function uddfSchemaErrors(uddf: string) {
+  // xmldom quietly accepts some malformed XML, such as a bare &, and the
+  // schema would only see its repaired copy, so libxml2 reads the file first.
+  const parsed = xmllint(["--noout", "--nonet", "-"], uddf)
+  if (parsed.status !== 0) {
+    const errors = parsed.stderr
+      .split("\n")
+      .filter((line) => line.includes("parser error"))
+    return (errors.length ? errors : [parsed.stderr]).map(
+      (line) => `not well-formed: ${line.replace(/^-:\d+: /, "")}`
+    )
+  }
   const doc = new DOMParser().parseFromString(uddf, "text/xml")
   for (const own of Array.from(
     doc.getElementsByTagNameNS(shylogNamespace, "shylog")

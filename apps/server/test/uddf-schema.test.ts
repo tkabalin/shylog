@@ -29,6 +29,15 @@ describe("uddfSchemaErrors", () => {
     ).toEqual([expect.stringContaining("This element is not expected")])
   })
 
+  // Found by breaking the writer's escaping: xmldom's repaired copy passed.
+  it("reports a file that isn't well-formed", () => {
+    expect(
+      uddfSchemaErrors(
+        uddf("").replace("<name>Shylog</name>", "<name>A & B</name>")
+      )
+    ).toEqual([expect.stringContaining("not well-formed")])
+  })
+
   // Keeps a hand-logged cylinder that has no start pressure (see the spec).
   it("accepts tank data with no start pressure but checks the rest of it", () => {
     expect(
