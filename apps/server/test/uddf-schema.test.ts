@@ -36,11 +36,38 @@ describe("uddfSchemaErrors", () => {
         uddf("", "<tankdata><tankvolume>0.012</tankvolume></tankdata>")
       )
     ).toEqual([])
+    // An end pressure logged without the start.
+    expect(
+      uddfSchemaErrors(
+        uddf(
+          "",
+          "<tankdata><tankvolume>0.012</tankvolume><tankpressureend>5000000</tankpressureend></tankdata>"
+        )
+      )
+    ).toEqual([])
     expect(
       uddfSchemaErrors(
         uddf("", "<tankdata><tankvolume>big</tankvolume></tankdata>")
       )
     ).toEqual([expect.stringContaining("tankvolume")])
+    // Only a missing start pressure is let through, not an end out of place.
+    expect(
+      uddfSchemaErrors(
+        uddf(
+          "",
+          "<tankdata><tankpressurebegin>20000000</tankpressurebegin><tankpressureend>5000000</tankpressureend><tankvolume>0.012</tankvolume></tankdata>"
+        )
+      )
+    ).toEqual([expect.stringContaining("tankvolume")])
+    // Found in review: the end before the start was let through too.
+    expect(
+      uddfSchemaErrors(
+        uddf(
+          "",
+          "<tankdata><tankpressureend>5000000</tankpressureend><tankpressurebegin>20000000</tankpressurebegin></tankdata>"
+        )
+      )
+    ).toEqual([expect.stringContaining("tankpressure")])
   })
 
   // So pass-through can't copy Subsurface's shape as it is (milestone 16).
