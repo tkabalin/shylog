@@ -66,7 +66,10 @@ export function RowContent({
 export function SaveFailure({ error }: { error?: string }) {
   if (!error) return null
   return (
-    <p role="alert" className="mt-2 px-1 text-[13px] text-destructive">
+    <p
+      role="alert"
+      className="mt-2 px-1 text-[13px] text-pretty text-destructive"
+    >
       {error}
     </p>
   )

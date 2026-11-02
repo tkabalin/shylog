@@ -5,8 +5,6 @@ import {
   IconCertificate,
   IconCloudCheck,
   IconCloudPause,
-  IconDatabase,
-  IconFileTypeXml,
   IconServer,
   IconRefresh,
   IconServerOff,
@@ -22,6 +20,7 @@ import { Card } from "@/components/ui/card"
 import { youCards } from "@/data/cards"
 import { commit } from "@/data/edits"
 import { entitiesOf } from "@/data/entities"
+import { exportNow } from "@/data/export"
 import { useHealth } from "@/data/health"
 import { useLastSync } from "@/data/last-sync"
 import type { Card as CertCard } from "@/data/db"
@@ -41,6 +40,8 @@ import { countText } from "@/components/pickers/match"
 import { parseMaxPo2 } from "@/you/defaults"
 import { DefaultsSection } from "@/you/defaults-section"
 import { CardImage } from "@/you/cards/card-image"
+import { Downloads } from "@/you/downloads"
+import { Fold, foldMs } from "@/you/fold"
 import { kindLabels } from "@/you/kinds"
 import { listRow, pressable, RowContent, SaveFailure } from "@/you/parts"
 
@@ -70,7 +71,23 @@ function YouPage() {
     return () => clearInterval(timer)
   }, [])
   // Asked again after each sync, so backup times follow a nightly snapshot.
-  const health = useHealth(syncedAt)
+  const [health, reloadHealth] = useHealth(syncedAt)
+  // The health the page was first drawn with (the last visit's, kept by
+  // useHealth): an alert already in it is drawn in place, and only one
+  // that arrives afterwards unfolds.
+  const [shownWith] = useState(health)
+  // An Export now shows in Your log at once, rather than once the alert
+  // has folded and /api/health has answered again.
+  const [exportedAt, setExportedAt] = useState<string>()
+  const lastExportAt = [health?.lastExportAt, exportedAt]
+    .filter((at) => at != null)
+    .sort()
+    .at(-1)
+  const exportFailedAt =
+    health?.exportFailedAt &&
+    !(exportedAt && exportedAt > health.exportFailedAt)
+      ? health.exportFailedAt
+      : null
   if (!loaded) return null
   // Ignored dives count, as /api/health's do; drafts aren't on the server.
   const localCount = log?.dives.filter((dive) => !dive.draft).length
@@ -83,10 +100,22 @@ function YouPage() {
       </header>
       <div className="flex flex-col gap-6 px-4 pt-4 pb-10">
         {health?.writesPaused && (
-          <Alert title="Saving is paused">
-            The daily database check found a problem, so changes are paused to
-            protect your log. Restore from a backup using the guide in the repo.
-          </Alert>
+          <Fold open appear={!shownWith?.writesPaused}>
+            <Alert title="Saving is paused">
+              The daily database check found a problem, so changes are paused to
+              protect your log. Restore from a backup using the guide in the
+              repo.
+            </Alert>
+          </Fold>
+        )}
+        {health?.exportFailedAt && !health.writesPaused && (
+          // A later night's failure is a new alert, not the folded one.
+          <ExportFailed
+            key={health.exportFailedAt}
+            appear={shownWith?.exportFailedAt !== health.exportFailedAt}
+            onExported={setExportedAt}
+            onFolded={reloadHealth}
+          />
         )}
 
         <Card className="flex-row items-center gap-3 px-4 py-3.5">
@@ -167,11 +196,19 @@ function YouPage() {
             <RowContent
               label="Last UDDF export"
               value={
-                health
-                  ? health.lastExportAt
-                    ? instant(health.lastExportAt)
-                    : "Never"
-                  : none
+                !health ? (
+                  none
+                ) : exportFailedAt ? (
+                  // The day only: the night's run is always near midnight,
+                  // and the time would be cut off on a narrow phone.
+                  <span className="text-warn">
+                    Failed {lowerFirst(day(exportFailedAt))}
+                  </span>
+                ) : lastExportAt ? (
+                  instant(lastExportAt)
+                ) : (
+                  "Never"
+                )
               }
             />
           </div>
@@ -212,37 +249,7 @@ function YouPage() {
           </Section>
         )}
 
-        <Section title="Download">
-          {/* Built with the UDDF export; shown now so the section is
-              where it will be. */}
-          {[
-            {
-              icon: IconFileTypeXml,
-              title: "UDDF export",
-              sub: "Opens in Subsurface and other dive log apps",
-            },
-            {
-              icon: IconDatabase,
-              title: "Database snapshot",
-              sub: "The SQLite file",
-            },
-          ].map(({ icon: Icon, title, sub }) => (
-            <button
-              key={title}
-              type="button"
-              disabled
-              className={cn(listRow, "min-h-15 text-muted-foreground/60")}
-            >
-              <span
-                aria-hidden
-                className="inline-flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-muted"
-              >
-                <Icon className="size-[17px] stroke-[1.9]" />
-              </span>
-              <RowContent label={title} sub={sub} />
-            </button>
-          ))}
-        </Section>
+        <Downloads onExport={reloadHealth} />
 
         {log && <Preferences settings={log.settings} />}
 
@@ -271,23 +278,112 @@ function YouPage() {
   )
 }
 
-function Alert({ title, children }: { title: string; children: ReactNode }) {
+// "Today" after "Failed".
+const lowerFirst = (text: string) => text[0].toLowerCase() + text.slice(1)
+const day = (at: string) => instant(at).replace(/ \d\d:\d\d$/, "")
+
+// SettingsHifi's alert: red when saving is paused, orange for a failed
+// export, which loses nothing and has an action.
+function Alert({
+  title,
+  tone = "danger",
+  action,
+  children,
+}: {
+  title: string
+  tone?: "danger" | "warn"
+  action?: ReactNode
+  children: ReactNode
+}) {
   return (
     <section
       role="alert"
-      className="flex gap-3 rounded-[14px] bg-destructive/6 px-4 py-3.5 ring-1 ring-destructive/35 ring-inset"
+      className={cn(
+        "flex gap-3 rounded-[14px] px-4 py-3.5 ring-1 ring-inset",
+        // Over the card colour, as the board mixes it, so the dark fill
+        // isn't darker than the cards around it.
+        tone === "danger"
+          ? "bg-[color-mix(in_oklab,var(--destructive)_6%,var(--card))] ring-destructive/35"
+          : "bg-[color-mix(in_oklab,var(--warn)_6%,var(--card))] ring-warn/35"
+      )}
     >
       <IconAlertTriangle
         aria-hidden
-        className="mt-px size-5 shrink-0 text-destructive"
+        className={cn(
+          "mt-px size-5 shrink-0",
+          tone === "danger" ? "text-destructive" : "text-warn"
+        )}
       />
       <span className="flex flex-col gap-0.5">
         <span className="text-[15px] font-semibold">{title}</span>
-        <span className="text-[13px] leading-[1.45] text-muted-foreground">
+        <span className="text-[13px] leading-[1.45] text-pretty text-muted-foreground">
           {children}
         </span>
+        {action}
       </span>
     </section>
+  )
+}
+
+// A failed night's export, with Export now. A failure says why under the
+// action; a success fades the alert, folds its room away, then asks for
+// health again.
+function ExportFailed({
+  appear,
+  onExported,
+  onFolded,
+}: {
+  appear: boolean
+  onExported: (at: string) => void
+  onFolded: () => void
+}) {
+  const [running, setRunning] = useState(false)
+  const [error, setError] = useState<string>()
+  const [gone, setGone] = useState(false)
+  const run = async () => {
+    // Not disabled while it runs, which would fade the label to near
+    // nothing; a second tap waits instead.
+    if (running) return
+    setRunning(true)
+    setError(undefined)
+    try {
+      onExported(await exportNow())
+      // Still "Exporting…" as it fades, rather than offering itself again.
+      setGone(true)
+      // Once the fold is done. A timer rather than transitionend, which a
+      // hidden page (the app sent to the background) never fires.
+      setTimeout(onFolded, foldMs)
+    } catch (failure) {
+      setError((failure as Error).message)
+      setRunning(false)
+    }
+  }
+  return (
+    <Fold open={!gone} appear={appear}>
+      <Alert
+        title="Last night’s export failed"
+        tone="warn"
+        action={
+          <>
+            <button
+              type="button"
+              aria-disabled={running}
+              onClick={() => void run()}
+              className="-ml-2 h-11 self-start rounded-md px-2 text-sm font-semibold text-primary transition-opacity duration-150 active:opacity-60 active:duration-0 desk:mt-1.5 desk:h-8"
+            >
+              {running ? "Exporting…" : "Export now"}
+            </button>
+            {error && (
+              // The alert's own colour, not a third hue beside it.
+              <span className="text-[13px] font-medium text-warn">{error}</span>
+            )}
+          </>
+        }
+      >
+        Your dives are safe in the database and last night’s backup. The export
+        runs again tonight, or you can run it now.
+      </Alert>
+    </Fold>
   )
 }
 

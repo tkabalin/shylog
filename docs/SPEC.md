@@ -621,7 +621,7 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - Diver name and certifications, under the sync status with no heading of their own: the first three cards in the owner's order as tiles, each opening its card, and an All certifications row to the list
   - Your log: dive count, times of the last snapshot and export, and Recently deleted
   - Sites, people and trips
-  - Download: a fresh UDDF export or a database snapshot
+  - Download: a fresh UDDF export or a database snapshot, handed to the share sheet on a phone so Save to Files can choose the folder (a download on a desktop, or where the browser can't share the file)
   - Preferences: maximum PO₂
   - New dive defaults
   - This phone: storage protection with help for keeping data safe, and appearance (system, light, dark)

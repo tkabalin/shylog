@@ -237,3 +237,91 @@ test("warns that saving is paused after a failed database check", async ({
   // A later sync may still be asking as the test ends.
   await page.unrouteAll({ behavior: "ignoreErrors" })
 })
+
+// A desktop browser and Playwright's can't share files, so the rows save
+// a download; the share sheet was checked on the owner's phone.
+test("downloads a fresh UDDF export and shows its time @writes", async ({
+  page,
+}) => {
+  await page.goto("/you")
+  await expect(row(page, "Last UDDF export")).not.toContainText("—")
+  const saved = page.waitForEvent("download")
+  await page.getByRole("button", { name: /UDDF export/ }).click()
+  const file = await saved
+  expect(file.suggestedFilename()).toMatch(/^shylog-\d{4}-\d\d-\d\d\.uddf$/)
+  const text = (await file.createReadStream())
+    .setEncoding("utf8")
+    .toArray()
+    .then((parts) => parts.join(""))
+  expect(await text).toContain('<uddf xmlns="http://www.streit.cc/uddf/3.2/"')
+  await expect(row(page, "Last UDDF export")).toContainText(/Today \d\d:\d\d/)
+})
+
+test("downloads a database snapshot", async ({ page }) => {
+  await page.goto("/you")
+  const saved = page.waitForEvent("download")
+  await page.getByRole("button", { name: /Database snapshot/ }).click()
+  const file = await saved
+  expect(file.suggestedFilename()).toMatch(/^shylog-\d{4}-\d\d-\d\d\.db$/)
+  const head = await (await file.createReadStream()).toArray()
+  expect(Buffer.concat(head).subarray(0, 15).toString()).toBe("SQLite format 3")
+})
+
+test("says why a download failed under its rows", async ({ page }) => {
+  await page.route("**/api/export/uddf", (route) => route.abort())
+  await page.goto("/you")
+  await page.getByRole("button", { name: /UDDF export/ }).click()
+  await expect(page.getByRole("alert")).toHaveText(
+    "UDDF export: Couldn’t reach Shylog. Check your connection."
+  )
+  await expect(page.getByRole("button", { name: /UDDF export/ })).toBeEnabled()
+})
+
+// The night's failure as /api/health reports it, until an export succeeds.
+async function failedNight(page: Page) {
+  let failed = true
+  await page.route("**/api/health", async (route) => {
+    const res = await route.fetch()
+    await route.fulfill({
+      response: res,
+      json: {
+        ...(await res.json()),
+        exportFailedAt: failed ? new Date().toISOString() : null,
+      },
+    })
+  })
+  await page.route("**/api/export/run", async (route) => {
+    const res = await route.fetch()
+    if (res.ok()) failed = false
+    await route.fulfill({ response: res })
+  })
+}
+
+test("offers Export now after a failed night's export @writes", async ({
+  page,
+}) => {
+  await failedNight(page)
+  await page.goto("/you")
+  const alert = page.getByRole("alert")
+  await expect(alert).toContainText("Last night’s export failed")
+  await expect(row(page, "Last UDDF export")).toContainText(/Failed today/)
+  await alert.getByRole("button", { name: "Export now" }).click()
+  await expect(alert).toBeHidden()
+  await expect(row(page, "Last UDDF export")).toContainText(/Today \d\d:\d\d/)
+  await page.unrouteAll({ behavior: "ignoreErrors" })
+})
+
+test("keeps the alert and says why when Export now fails", async ({ page }) => {
+  await failedNight(page)
+  await page.route("**/api/export/run", (route) =>
+    route.fulfill({ status: 500, body: "Internal Server Error" })
+  )
+  await page.goto("/you")
+  const alert = page.getByRole("alert")
+  await alert.getByRole("button", { name: "Export now" }).click()
+  await expect(alert).toContainText(
+    "Export now failed too. It’ll run again tonight, and the server’s log says why."
+  )
+  await expect(alert.getByRole("button", { name: "Export now" })).toBeEnabled()
+  await page.unrouteAll({ behavior: "ignoreErrors" })
+})

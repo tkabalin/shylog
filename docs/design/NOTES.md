@@ -50,7 +50,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - A region's detail shows dives, sites and last dive, as a dive centre's does, and its list row counts sites. On a site or dive centre the region is picked from the existing ones (D6), not typed.
 - Entity detail's Save sits in the bar where the board leaves the right slot empty; the You sections' Save and Cancel sit under their card, as they have no bar. Every new sheet keeps shadcn's centred 16 px title, as the dive form's do, rather than the boards' left-aligned 18 px.
 - Gear is marked with the scuba tank, as the scuba mask is the You tab's icon. The Icon key's Cylinder entry also names the tank, but no screen draws a cylinder icon.
-- The Download rows are drawn, disabled, until the UDDF export exists; the Offline storage row comes with the offline work.
+- The Download rows' subtitles are "Opens in Subsurface" and "The SQLite file", shorter than the board's so they stay on one line beside the download arrow down to 320 px, and show a spinner in place of the download arrow while the server builds the file. A failed download says which file and why under the card, and a failed Export now says why under its action. After a failed night, "Last UDDF export" reads "Failed today" without the time, as the board has it. The Offline storage row comes with the offline work.
 - New-dive defaults use the dive form's controls (material, volume in litres, Nitrox and oxygen percentage), not the board's preset lists, and a new dive is filled from them. `EditDiveHifi` leaves them blank.
 - Dive professionals are labelled "Dive professionals", with no instructor or divemaster role, and the people list shows names only, without the boards' role subtitles.
 
