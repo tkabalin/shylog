@@ -153,6 +153,23 @@ function valid(db: Db, fields: Fields): Fields {
       ]
     }
   }
+  // Or two ids, a buddy and a dive professional, the same person. As in a
+  // merge, the role named by their own id wins, else the buddy's, so the
+  // draft isn't refused for good. One id sent in both roles is refused.
+  const buddies = resolved.buddies as string[] | undefined
+  const professionals = resolved.diveProfessionals as string[] | undefined
+  const own = new Set(fields.diveProfessionals as string[] | undefined)
+  const sentInBoth = (fields.buddies as string[] | undefined)?.some((id) =>
+    own.has(id)
+  )
+  if (buddies && professionals && !sentInBoth) {
+    const both = (id: string) =>
+      buddies.includes(id) && professionals.includes(id)
+    resolved.buddies = buddies.filter((id) => !both(id) || !own.has(id))
+    resolved.diveProfessionals = professionals.filter(
+      (id) => !both(id) || own.has(id)
+    )
+  }
   const parsed = diveFieldsSchema.safeParse(resolved)
   if (!parsed.success) {
     const [issue] = parsed.error.issues

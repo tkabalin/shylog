@@ -179,6 +179,50 @@ describe("POST /api/ops", () => {
     expect(log.dives[0].siteId).toBe("site-existing")
   })
 
+  // Found by the round-trip fuzzer: refused, the draft could never upload.
+  describe("a buddy and a dive professional who match one person", () => {
+    const linked = (table: string) =>
+      db.prepare(`SELECT person_id FROM ${table}`).pluck().all()
+    const roles = async (buddy: string, professional: string) => {
+      const res = await upload([
+        site("site-two-mile"),
+        person("person-sam", "Sam"),
+        person("person-sam-too", "sam "),
+        dive("dive-a", {
+          buddies: [buddy],
+          diveProfessionals: [professional],
+        }),
+      ])
+      expect(res.status).toBe(200)
+      return [linked("dive_buddies"), linked("dive_professionals")]
+    }
+
+    // As in a merge, where the survivor keeps the role it already had.
+    it("keeps the role named by the person's own id", async () => {
+      expect(await roles("person-sam-too", "person-sam")).toEqual([
+        [],
+        ["person-sam"],
+      ])
+    })
+
+    it("keeps the buddy role named by the person's own id", async () => {
+      expect(await roles("person-sam", "person-sam-too")).toEqual([
+        ["person-sam"],
+        [],
+      ])
+    })
+
+    it("keeps them a buddy when both ids are aliases", async () => {
+      db.prepare(
+        "INSERT INTO people (id, name, key) VALUES ('person-old', 'Sam', 'sam')"
+      ).run()
+      expect(await roles("person-sam", "person-sam-too")).toEqual([
+        ["person-old"],
+        [],
+      ])
+    })
+  })
+
   it("follows a chain of aliases to the survivor of merges", async () => {
     insertSite("site-survivor", "Two Mile Reef")
     db.prepare(
