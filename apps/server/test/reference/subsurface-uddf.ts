@@ -19,11 +19,13 @@ const reads = new Map<string, Document>()
 // The result is its native XML, so what's missing here is missing in Subsurface.
 export function readAsSubsurface(uddf: string) {
   let read = reads.get(uddf)
-  if (!read) reads.set(uddf, (read = transform(uddf)))
+  if (!read) reads.set(uddf, (read = readOnceAsSubsurface(uddf)))
   return read
 }
 
-function transform(uddf: string) {
+// Uncached, for inputs read only once, such as the round-trip fuzzer's,
+// which would otherwise all stay in memory.
+export function readOnceAsSubsurface(uddf: string) {
   // It picks uddf.xslt by the root's name, and skips any stylesheet when
   // the first child has name="subsurface", so check both rather than assume.
   const root = parse(uddf).documentElement
