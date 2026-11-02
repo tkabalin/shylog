@@ -52,6 +52,21 @@ describe("readUddf", () => {
     expect(unknown.computerModel).toBeNull()
   })
 
+  it("gives unlinked dives the one computer only when no dive links it", () => {
+    const one = (body: string) =>
+      uddf(body).replace(/\s*<divecomputer id="dc2">.*<\/divecomputer>/, "")
+    // Subsurface's export from one computer links none of its dives.
+    expect(
+      readUddf(one(dive("air") + dive("air"))).map((d) => d.computerModel)
+    ).toEqual(["Suunto D4i", "Suunto D4i"])
+    // Shylog's links every computer dive, so the other was logged by hand.
+    expect(
+      readUddf(one(dive("air", "dc1") + dive("air"))).map(
+        (d) => d.computerModel
+      )
+    ).toEqual(["Suunto D4i", null])
+  })
+
   it("pairs ascent alarms in order and keeps an unclosed one open", () => {
     const at = (time: number, alarm = "") =>
       `<waypoint><depth>5</depth><divetime>${time}</divetime>${alarm && `<alarm>${alarm}</alarm>`}</waypoint>`

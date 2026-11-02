@@ -77,15 +77,17 @@ export function readUddf(xml: string): ReadDive[] {
       text(computer, "model"),
     ])
   )
-  // A dive names its computer by a link; an export from one computer
-  // (Subsurface's) may leave the link out.
-  const computerOf = (dive: Element) => {
-    for (const link of all(dive, "link")) {
-      const model = computers.get(link.getAttribute("ref"))
-      if (model !== undefined) return model
-    }
-    return computers.size === 1 ? [...computers.values()][0] : null
-  }
+  // A dive names its computer by a link. Subsurface's export from one
+  // computer leaves every link out; in a file that links any (Shylog's), a
+  // dive without one was logged by hand.
+  const linked = (dive: Element) =>
+    all(dive, "link")
+      .map((link) => computers.get(link.getAttribute("ref")))
+      .find((model) => model !== undefined)
+  const anyLinked = all(root, "dive").some((dive) => linked(dive) !== undefined)
+  const computerOf = (dive: Element) =>
+    linked(dive) ??
+    (!anyLinked && computers.size === 1 ? [...computers.values()][0] : null)
   const mixes = new Map(
     all(root, "mix").map((mix) => [
       mix.getAttribute("id"),
