@@ -270,4 +270,20 @@ describe("carry-over", () => {
       Math.round(40 * 2 ** (30 / 90))
     )
   })
+
+  it("caps the figure at 999 %, past which only wrong data goes", () => {
+    // Nitrox 100 % typed on a 50 m dive: CNS passes what SQLite can store.
+    const deep = [
+      { time: 0, depth: 50, temperature: null, pressure: null },
+      { time: 2400, depth: 50, temperature: null, pressure: null },
+    ]
+    const own = diveCns(deep, 1000, salt)!
+    expect(own).toBeGreaterThan(2 ** 63)
+    expect(cnsWithCarryOver(dive("2026-07-20T08:00:00", own), [])).toBe(999)
+    // Carried over too, from two dives below the cap.
+    const first = dive("2026-07-20T08:00:00", 900)
+    expect(cnsWithCarryOver(dive("2026-07-20T09:00:00", 900), [first])).toBe(
+      999
+    )
+  })
 })
