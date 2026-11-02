@@ -79,6 +79,7 @@ Where a board shows something the spec does not and no decision above covers it,
 | 19 | 9 | Offline: update flow, queue export, end-to-end tests | 18 |
 | 20 | 10 | Statistics: figures and charts | 9, 18 (the stats chunk offline) |
 | 21 | 10 | Statistics: patterns | 20 |
+| 22 | 11 | Logging: structured server log, request ids, the app's errors | 7 |
 
 ---
 
@@ -1032,6 +1033,32 @@ The figures below were worked out before the Import milestones. Milestone 14 gro
 - [ ] Catalogue of measures and fields
 - [ ] Bar, scoring, selection
 - [ ] Wording, All patterns, drill-down to the Log
+- [ ] Tests listed above
+
+## Milestone 22: Logging
+
+**Goal**: the server's log says what happened, one JSON line per event on stdout, so a shipper can put it in Loki and someone (or an agent with Loki access) can follow a problem from the phone's request to the server and back.
+
+**Implements**: Server (Logging), Endpoint `POST /api/client-log`, Build order step 11. Decided with the owner on 2 November 2026: pino; `/api` requests only, with the polled `/api/version` and `/api/health` at debug; the phone's errors in the same log; Shylog writes stdout and a README note, and the shipper's configuration lives with the home server, not in this repo.
+
+**Touches**: `apps/server/src/log.ts` (the pino logger with `instance` and `version`, error serialising, redaction), a request-log middleware in `app.ts` (request id from `X-Request-Id` or a new one, echoed in the response, a child logger on the context), the nightly job, integrity, `onError`, refused writes (`Rejected`) and the security checks, `apps/server/src/routes/client-log.ts`, `apps/web/src/api/client.ts` (an `X-Request-Id` on every call), `apps/web/src/data/client-log.ts` (reporting the app's errors), `README.md` (logs and example LogQL queries), tests. The `console.*` calls in the server's long-running code move to the logger; the CLI keeps printing for a person.
+
+**Acceptance**
+
+- `log.test.ts`: each line is one JSON object with `time`, `level`, `event`, `msg`, `instance` (`TS_HOSTNAME`) and `version` (the build's commit, `dev` off a build); an `Error` logs its message, stack and cause; fields for dive contents (notes, names, animals, gear, a request or response body) are never written; development prints readable lines through pino-pretty, and tests can capture lines.
+- `request-log.test.ts`: every `/api` request logs method, route pattern and path, status, duration in ms and request id once it ends; the response carries `X-Request-Id`, the app's when it sent a valid one; `/api/version` and `/api/health` log at debug and static files not at all; a 500 logs its error under the same request id; a refusal (403 from the security checks, 4xx from `Rejected`, 503 while writes are paused) logs its reason at warn.
+- `nightly.test.ts` (extended): a snapshot logs its file size and duration and an export its dive count, size and duration, at info; a failure logs at error with the stack.
+- `client-log.test.ts`: `POST /api/client-log` takes the app's error report (kind, message, stack, the request id and route it failed on, the app's version), drops anything outside its Zod schema, cuts the message to 2 KB and the stack to 8 KB, answers 429 past 30 reports a minute, needs the Origin and JSON content type like any write, and writes nothing to the database or the journal.
+- `client-log.test.ts` (web): a failed sync, a rejected draft, a lazy chunk that failed to load, a `window` error and an unhandled rejection each post one report carrying the failed call's request id where there is one; the same error repeated within a minute is sent once; a report that can't be sent is dropped, never queued.
+- README: where the logs go, that any Docker log shipper picks them up, the fields, and a few LogQL queries (errors for an instance, one request by id, slow requests).
+
+**Not in this milestone**: metrics, tracing, alerting, and the Alloy or Loki configuration, which belongs to the home server's own setup.
+
+- [ ] Logger with instance, version, error serialising and redaction
+- [ ] Request log with request ids, quiet polls
+- [ ] Nightly, integrity, refusal and error lines
+- [ ] `POST /api/client-log` and the app's error reports
+- [ ] README note and LogQL examples
 - [ ] Tests listed above
 
 ---
