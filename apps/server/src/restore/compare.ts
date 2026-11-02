@@ -6,6 +6,7 @@ const unreplayedMeta = new Set([
   "version",
   "last_snapshot_at",
   "last_export_at",
+  "export_failed_at",
 ])
 
 const quote = (name: string) => `"${name.replaceAll('"', '""')}"`

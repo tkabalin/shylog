@@ -12,11 +12,13 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { gunzipSync } from "node:zlib"
 
+import { DOMParser } from "@xmldom/xmldom"
 import { describe, expect, it, onTestFinished, vi } from "vitest"
 
 import { apiHeaders, testApp } from "../../test/app.ts"
 import { seededDb } from "../../test/fixture.ts"
 import { openDatabase } from "../db/open.ts"
+import { exportDir, exportFile } from "./export.ts"
 import {
   checkedSnapshot,
   localDate,
@@ -96,6 +98,81 @@ describe("nightly", () => {
     expect(health.lastSnapshotAt).toBe(first.toISOString())
   })
 
+  it("writes the UDDF export after the snapshot", async () => {
+    const dir = dataDir()
+    const db = seededDb()
+    const now = new Date(2026, 9, 22)
+    const order: string[] = []
+    const prepare = db.prepare.bind(db)
+    const spy = vi.spyOn(db, "prepare").mockImplementation(((sql: string) => {
+      if (sql.startsWith("VACUUM INTO")) order.push("snapshot")
+      if (sql.includes("FROM dives WHERE deleted_at IS NULL ORDER BY"))
+        order.push("export")
+      return prepare(sql)
+    }) as typeof db.prepare)
+    onTestFinished(() => spy.mockRestore())
+    await nightly(db, dir, "ok", now)
+
+    expect(order).toEqual(["snapshot", "export"])
+    const xml = readFileSync(exportFile(dir), "utf8")
+    expect(xml.match(/<dive id=/g)).toHaveLength(46)
+    // The temp file is gone once the rename is done.
+    expect(readdirSync(exportDir(dir))).toEqual(["dives.uddf"])
+    const meta = (key: string) =>
+      db.prepare("SELECT value FROM meta WHERE key = ?").pluck().get(key)
+    expect(meta("last_export_at")).toBe(now.toISOString())
+  })
+
+  it("keeps the last export when one fails, says so in health, and retries", async () => {
+    const dir = dataDir()
+    const db = seededDb()
+    const app = testApp({ db })
+    const exportHealth = async () =>
+      (await (
+        await app.request("/api/health", { headers: apiHeaders })
+      ).json()) as {
+        lastExportAt: string | null
+        exportFailedAt: string | null
+      }
+    const first = new Date(2026, 9, 21)
+    await nightly(db, dir, "ok", first)
+    const good = readFileSync(exportFile(dir), "utf8")
+
+    // A change the next good export should carry.
+    const id = db.prepare("SELECT id FROM dives LIMIT 1").pluck().get()
+    db.prepare("UPDATE dives SET notes = ? WHERE id = ?").run("ok", id)
+    // The re-parse refusing the written file.
+    const parse = vi
+      .spyOn(DOMParser.prototype, "parseFromString")
+      .mockImplementation(() => {
+        throw new Error("unreadable")
+      })
+    const error = vi.spyOn(console, "error").mockImplementation(() => {})
+    onTestFinished(() => error.mockRestore())
+    const second = new Date(2026, 9, 22)
+    await nightly(db, dir, "ok", second)
+    parse.mockRestore()
+
+    expect(error).toHaveBeenCalledWith(
+      "Nightly export failed:",
+      expect.any(Error)
+    )
+    expect(readFileSync(exportFile(dir), "utf8")).toBe(good)
+    expect(readdirSync(exportDir(dir))).toEqual(["dives.uddf"])
+    expect(await exportHealth()).toMatchObject({
+      lastExportAt: first.toISOString(),
+      exportFailedAt: second.toISOString(),
+    })
+
+    const third = new Date(2026, 9, 23)
+    await nightly(db, dir, "ok", third)
+    expect(readFileSync(exportFile(dir), "utf8")).toContain("<para>ok</para>")
+    expect(await exportHealth()).toMatchObject({
+      lastExportAt: third.toISOString(),
+      exportFailedAt: null,
+    })
+  })
+
   it("runs at each local midnight", () => {
     vi.useFakeTimers({ now: new Date(2026, 9, 22, 23, 0, 0) })
     onTestFinished(() => {
@@ -113,7 +190,7 @@ describe("nightly", () => {
     expect(run).toHaveBeenCalledTimes(2)
   })
 
-  it("takes a missed snapshot at startup", async () => {
+  it("takes a missed snapshot, or a missing export, at startup", async () => {
     const dir = dataDir()
     const db = seededDb()
     vi.useFakeTimers({ now: new Date(2026, 9, 22, 9, 0, 0) })
@@ -124,10 +201,17 @@ describe("nightly", () => {
     startNightly(dir, run)
     expect(run).toHaveBeenCalledTimes(1)
 
+    // Today's snapshot but no export yet, as on a first start.
     await snapshot(db, dir, new Date())
     vi.clearAllTimers()
     startNightly(dir, run)
-    expect(run).toHaveBeenCalledTimes(1)
+    expect(run).toHaveBeenCalledTimes(2)
+
+    mkdirSync(exportDir(dir), { recursive: true })
+    writeFileSync(exportFile(dir), "")
+    vi.clearAllTimers()
+    startNightly(dir, run)
+    expect(run).toHaveBeenCalledTimes(2)
   })
 
   it("doesn't snapshot or prune a damaged database", async () => {
@@ -148,6 +232,27 @@ describe("nightly", () => {
       old[1],
       "shylog-2026-10-22.db.gz",
     ])
+  })
+
+  it("leaves the last export, and no alert, for a damaged database", async () => {
+    const dir = dataDir()
+    const db = seededDb()
+    const error = vi.spyOn(console, "error").mockImplementation(() => {})
+    onTestFinished(() => error.mockRestore())
+    await nightly(db, dir, "failed", new Date(2026, 9, 22))
+
+    expect(error).toHaveBeenCalledTimes(1)
+    expect(error).toHaveBeenCalledWith(
+      "Nightly snapshot failed:",
+      expect.any(Error)
+    )
+    expect(readdirSync(dir)).not.toContain("export")
+    expect(
+      db
+        .prepare("SELECT value FROM meta WHERE key = 'export_failed_at'")
+        .pluck()
+        .get()
+    ).toBeUndefined()
   })
 })
 

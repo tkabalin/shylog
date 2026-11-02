@@ -24,6 +24,7 @@ interface Health {
   diveCount: number
   lastSnapshotAt: string | null
   lastExportAt: string | null
+  exportFailedAt: string | null
   server: string
 }
 
@@ -62,6 +63,7 @@ describe("GET /api/health", () => {
       diveCount: 46,
       lastSnapshotAt: null,
       lastExportAt: null,
+      exportFailedAt: null,
       server: "shylog",
     })
   })

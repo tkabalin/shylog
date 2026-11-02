@@ -17,6 +17,7 @@ import type { Db } from "../db/open.ts"
 import { syncDir } from "../fs.ts"
 import type { Integrity } from "../integrity.ts"
 import { setMeta } from "../journal.ts"
+import { exportFile, writeExport } from "./export.ts"
 
 const day = 24 * 60 * 60 * 1000
 export const snapshotName = /^shylog-(\d{4}-\d{2}-\d{2})\.db\.gz$/
@@ -131,8 +132,10 @@ export async function checkedSnapshot(
   return file
 }
 
-// A failure is logged and leaves the last snapshot time as it was, so
-// Settings shows the backup has stalled; the next night tries again.
+// The snapshot, then the UDDF export beside it. A failure is logged and
+// leaves the last time as it was, so You shows the backup has stalled; the
+// next night tries again. A failed export also raises You's alert, unless
+// the database failed its check, which has its own and takes no writes.
 export async function nightly(
   db: Db,
   dataDir: string,
@@ -143,6 +146,21 @@ export async function nightly(
     await checkedSnapshot(db, dataDir, integrity, now)
   } catch (error) {
     console.error("Nightly snapshot failed:", error)
+  }
+  // Its refusal is the snapshot's, already logged, and the last export
+  // stays the good one.
+  if (integrity === "failed") return
+  try {
+    writeExport(db, dataDir, integrity, now)
+  } catch (error) {
+    console.error("Nightly export failed:", error)
+    // A full disk can refuse this write too, and the run isn't awaited, so
+    // a throw here would be an unhandled rejection that ends the server.
+    try {
+      setMeta(db, "export_failed_at", now.toISOString())
+    } catch (metaError) {
+      console.error("Couldn’t record the failed export:", metaError)
+    }
   }
 }
 
@@ -159,13 +177,18 @@ export function scheduleNightly(run: (at: Date) => void, from = new Date()) {
   }, next.getTime() - Date.now())
 }
 
-// A server stopped over midnight missed that night's snapshot, so one is
-// taken at startup when today's is missing.
+// A server stopped over midnight missed that night's snapshot and export,
+// so both are made at startup when today's snapshot is missing, or when
+// there is no export at all yet (a first start, or a new data folder).
 export function startNightly(
   dataDir: string,
   run: (at: Date) => void,
   from = new Date()
 ) {
-  if (!existsSync(snapshotFile(dataDir, localDate(from)))) run(from)
+  if (
+    !existsSync(snapshotFile(dataDir, localDate(from))) ||
+    !existsSync(exportFile(dataDir))
+  )
+    run(from)
   scheduleNightly(run, from)
 }
