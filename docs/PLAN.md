@@ -807,15 +807,39 @@ Deferred, or to watch:
 
 **Not in this milestone**: pass-through of imported standard elements (milestone 16), the queued-ops file (milestone 19).
 
-- [ ] Writer with every field mapping and grouping
-- [ ] `<shylog>` application data
-- [ ] Nightly export with temp file, fsync, re-parse, rename
-- [ ] Export endpoints (D4)
+- [x] Writer with every field mapping and grouping
+- [x] `<shylog>` application data
+- [x] Nightly export with temp file, fsync, re-parse, rename
+- [x] Export endpoints (D4)
 - [x] Vendored XSD (`fixtures/uddf/uddf_v321.xsd`) and `uddfSchemaErrors`, run in CI with the server tests
-- [ ] You tab Download rows and export alert
+- [x] You tab Download rows and export alert
 - [x] Subsurface's UDDF import as a test helper, proven on the D4i and Zoop Novo exports
-- [ ] Subsurface reads the export (helper in `writer.test.ts`, one manual open)
-- [ ] Tests listed above
+- [x] Subsurface reads the export (helper in `writer.test.ts`, one manual open)
+- [x] Tests listed above
+
+**Notes for the next session** (written 2 November 2026, branch `feat/uddf-export`)
+
+Checked on the owner's side:
+
+- A real export of the dev log (55 dives) opened in Subsurface with every dive, date, time, depth (42.28 m kept; its list rounds to whole metres), EANx and profile. Subsurface ignores UDDF's surface interval and works out its own, needs cylinder size and both pressures for SAC, and fills Extra Info only from file-wide facts, so a `.ssrf` download is under Later in the spec.
+- A throwaway on the phone tried four ways to save a download (share sheet or `a[download]`, fetched on tap or beforehand); all worked, and the owner chose the share sheet for Save to Files' folder choice. Still to try on the phone after deploy: the Download rows from the installed app, and the snapshot through the share sheet (only the UDDF's `application/xml` was tried; a refused type falls back to a download).
+
+Decisions taken while building (D34 in the table, and the spec):
+
+- Trips and dive centres are in `<shylog>` as `tripId`/`tripName` and `diveCentreId`/`diveCentreName`: the XSD's `divetrip` needs a rating and trip parts and `divebase` a link, so writing them meant inventing data. A dive centre's region stays in the database.
+- The writer writes samples as waypoints and stored events as `<alarm>`s (`ascent` at both ends of a pair, `surface` at its time), which `readUddf` reads back to the same events; milestone 16's pass-through is left with what Shylog doesn't store. A site with no region writes an empty `geography/location`.
+- Air is `mix-210` (`o2` 0.21, D9), the constant shared with the sample reader. Dive-computer ids are `computer-<slug>-<6 hex of the model's SHA-256>`, so a new model never renumbers another. Repetition groups are `group-<dive id>`. There is no generator date, so an unchanged log exports the same bytes.
+- The export reads in one transaction on the server's connection (it is built synchronously), writes through a flushed temp file in `export/`, re-reads and parses it with xmldom and counts its dives before the rename. Temp files over an hour old are cleared on the next export or snapshot download. Startup runs the nightly job when today's snapshot or the export file is missing.
+- Only a failed night raises `exportFailedAt` (cleared by any export that succeeds); a damaged database skips the export without an alert of its own, and `writeExport` refuses it with a 503 `Rejected`. A HEAD on `/api/export/uddf` answers 405 rather than rewriting the file.
+- You: the Download rows share the file on a phone and download it on a desktop, with a spinner while the server builds it and a red error line naming the file. "Last UDDF export" reads "Failed today" (no time) after a failed night. You's alerts unfold and fold through `you/fold.tsx` (measured height, 250 ms `--ease-drawer`, the fade kept apart from the fold; `--ease-in-out` moved a tall alert 61 px in a frame), and `useHealth` keeps the last answer between visits, so an alert already known is drawn in place.
+
+Deferred, or to watch:
+
+- Size and speed, measured on the dev log (55 dives): the export is 1.1 MB, sent as 66 KB gzipped, and takes about 0.3 s on the server, most of it the xmldom re-parse. At about 1,000 dives that is about 1.2 MB and 3–5 s, during which the server answers nothing else; a cheaper count check would fix that. The snapshot isn't compressed in transit (Hono's `compress` skips `application/vnd.sqlite3`): about 15 KB a dive.
+- The XML builders copy each line once per nesting level (25 ms for 9,340 samples); not worth restructuring yet.
+- The alert body's muted text on the tinted fill is about 4.2:1, the board's own choice.
+- Server logging is plain text and errors only (no request log, no success lines). Shipping the container's stdout to Loki needs no code; JSON lines, a request log with a request id, and job success lines were discussed with the owner as a possible separate item.
+- Carried over from milestone 12: the viewer and reorder gestures, the photo picker, and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); and milestone 11's list (the phone checks, the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days, sharding Playwright).
 
 ## Milestone 14: Import, the Suunto reader
 
