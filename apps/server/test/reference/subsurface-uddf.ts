@@ -3,7 +3,12 @@ import { fileURLToPath } from "node:url"
 
 import { DOMParser, type Document, type Element } from "@xmldom/xmldom"
 
-const parse = (xml: string) => new DOMParser().parseFromString(xml, "text/xml")
+// Line endings as libxml2 reads XML 1.0: xmldom's default also turns
+// U+0085, U+2028 and U+2029 into newlines, which Subsurface keeps.
+const parse = (xml: string) =>
+  new DOMParser({
+    normalizeLineEndings: (text) => text.replace(/\r\n?/g, "\n"),
+  }).parseFromString(xml, "text/xml")
 
 // A real export takes a second or more through xsltproc, so a test file
 // reads each input once. Callers only read the document they get back.

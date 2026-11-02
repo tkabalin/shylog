@@ -266,8 +266,9 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
           trainingAgency: "SSI",
           trainingCourse: "Deep",
           notableAnimals: "Potato bass",
-          // A bell character pasted in along with the text.
-          notes: "First line\n\nSecond paragraph & more\u0007",
+          // A bell character pasted in along with the text, and a line
+          // separator, which xmldom would read as a newline unescaped.
+          notes: "First line\n\nSecond paragraph & more\u2028end\u0007",
           entry: "smallBoat",
           current: "mild",
           workload: "light",
@@ -394,6 +395,9 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
     expect(text(a, "lowesttemperature")).toBe("295.65")
     expect(text(a, "leadquantity")).toBe("4")
     expect(text(all(a, "observations")[0], "para")).toBe("Potato bass")
+    expect(text(all(a, "notes").at(-1)!, "para")).toBe(
+      "First line\n\nSecond paragraph & more\u2028end"
+    )
     expect(text(byId(root, "dive", "dive-b"), "visibility")).toBe("15")
     expect(all(a, "samples")).toEqual([])
   })
@@ -420,7 +424,7 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
       "Sam Naidoo, Lee"
     )
     expect(a.getElementsByTagName("notes")[0].textContent).toBe(
-      "First line\n\nSecond paragraph & more"
+      "First line\n\nSecond paragraph & more\u2028end"
     )
     expect(a.getElementsByTagName("location")[0].textContent).toBe(
       "Two Mile Reef"

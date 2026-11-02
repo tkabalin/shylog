@@ -13,8 +13,9 @@ export const escape = (text: string) =>
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
-    // A bare carriage return would be read back as a newline.
-    .replaceAll("\r", "&#13;")
+    // A bare carriage return would be read back as a newline, and so would
+    // these by xmldom, which ends lines as XML 1.1 does.
+    .replace(/[\r\u0085\u2028\u2029]/g, (c) => `&#${c.charCodeAt(0)};`)
 
 export function element(name: string, children: (Xml | null)[], attrs = "") {
   const inner = children.filter((child) => child != null).flat()
