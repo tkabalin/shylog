@@ -19,6 +19,7 @@ import {
 import { z } from "zod"
 
 import { shylogNamespace } from "../../src/uddf/shylog-namespace.ts"
+import { element, leaf, link, personal, type Xml } from "../../src/uddf/xml.ts"
 import * as codes from "./codes.ts"
 import { readCsv } from "./csv.ts"
 
@@ -64,18 +65,10 @@ export const extrasSchema = z.strictObject({
 export type Extras = z.input<typeof extrasSchema>
 
 type Row = Record<string, string>
-type Xml = string[]
 
 const ns = "odin_user_log_"
 const ssiAgency = "SSI"
 const airTenths = 210
-
-const escape = (text: string) =>
-  text
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
 
 // SSI stores some names HTML-escaped ("I &amp; J").
 const unescapeHtml = (text: string) =>
@@ -85,32 +78,11 @@ const unescapeHtml = (text: string) =>
       : { amp: "&", lt: "<", gt: ">", quot: '"' }[entity]!
   )
 
-function element(name: string, children: (Xml | null)[], attrs = ""): Xml {
-  const inner = children.filter((child) => child != null).flat()
-  if (!inner.length) return [`<${name}${attrs}/>`]
-  return [
-    `<${name}${attrs}>`,
-    ...inner.map((line) => `  ${line}`),
-    `</${name}>`,
-  ]
-}
-
-function leaf(name: string, value: string | number | null | undefined) {
-  return value == null ? null : [`<${name}>${escape(String(value))}</${name}>`]
-}
-
-const link = (ref: string) => [`<link ref="${ref}"/>`]
-
 // pandas writes a code from a column with gaps as a float ("24.0").
 const code = (value: string) => value.replace(/\.0$/, "")
 
 // Local datetimes sort as text.
 const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
-
-function splitName(name: string) {
-  const [first, ...rest] = name.split(" ")
-  return { first: first!, last: rest.join(" ") }
-}
 
 export function convertSsi(csv: string, extrasInput: Extras) {
   const extras = extrasSchema.parse(extrasInput)
@@ -368,24 +340,14 @@ export function convertSsi(csv: string, extrasInput: Extras) {
         element(
           "owner",
           [
-            element("personal", [leaf("firstname", ""), leaf("lastname", "")]),
+            personal(""),
             tanks.size ? element("equipment", [...tanks.values()]) : null,
           ],
           ' id="owner"'
         ),
-        ...[...people].map(([name, id]) => {
-          const { first, last } = splitName(name)
-          return element(
-            "buddy",
-            [
-              element("personal", [
-                leaf("firstname", first),
-                leaf("lastname", last),
-              ]),
-            ],
-            ` id="${id}"`
-          )
-        }),
+        ...[...people].map(([name, id]) =>
+          element("buddy", [personal(name)], ` id="${id}"`)
+        ),
       ]),
       element(
         "divesite",
