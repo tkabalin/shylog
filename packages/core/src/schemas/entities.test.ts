@@ -11,6 +11,19 @@ describe("entityFields", () => {
     expect(entityFields.trip.safeParse({ name: "  " }).success).toBe(false)
   })
 
+  // Found by the round-trip fuzzer: the export dropped them, leaving a blank.
+  it("drops characters XML can't hold before checking the name", () => {
+    expect(entityFields.person.parse({ name: "Sam\u0007 " })).toEqual({
+      name: "Sam",
+    })
+    expect(
+      entityFields.person.safeParse({ name: "\u0007\uFFFF" }).success
+    ).toBe(false)
+    expect(entityFields.person.parse({ name: "Sam\vNaidoo" })).toEqual({
+      name: "Sam Naidoo",
+    })
+  })
+
   it("defaults a site's water type from its body of water", () => {
     const site = { name: "Long Beach", countryCode: "ZA" }
     expect(entityFields.site.parse(site).waterType).toBe("salt")

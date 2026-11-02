@@ -7,11 +7,21 @@ export const choice = <O extends Record<string, { label: string }>>(
   options: O
 ) => z.enum(keysOf(options))
 
-export const name = z.string().trim().min(1).max(120)
+// Characters XML 1.0 can't hold even escaped, which the UDDF export would
+// drop, so pasted with a name they would leave it blank there. Dropped before
+// the trim and length checks; vertical tab and form feed become spaces, as
+// names already matched them as spaces.
+// eslint-disable-next-line no-control-regex
+const unwritable = /[\u0000-\u0008\u000E-\u001F\uFFFE\uFFFF]/g
+export const dropUnwritable = (text: string) =>
+  text.replace(/[\v\f]/g, " ").replace(unwritable, "")
+
+export const name = z.string().overwrite(dropUnwritable).trim().min(1).max(120)
 // An emptied text field is null, so a form can send what is in the box and an
 // edit clears the field.
 export const text = z
   .string()
+  .overwrite(dropUnwritable)
   .trim()
   .max(10_000)
   .transform((value) => value || null)

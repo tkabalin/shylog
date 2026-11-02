@@ -11,6 +11,12 @@ describe("settingsSchema", () => {
     })
   })
 
+  it("drops characters XML can't hold from the diver's name", () => {
+    expect(settingsSchema.parse({ diverName: " Thandi\u0000" }).diverName).toBe(
+      "Thandi"
+    )
+  })
+
   it("takes the maximum PO₂ in 0.1 bar steps from 1 to 2 bar", () => {
     for (const maxPo2 of [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2]) {
       expect(settingsSchema.safeParse({ maxPo2 }).success).toBe(true)
