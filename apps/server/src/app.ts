@@ -6,6 +6,7 @@ import { factory, type Deps } from "./factory.ts"
 import { cards } from "./routes/cards.ts"
 import { dives } from "./routes/dives.ts"
 import { entities } from "./routes/entities.ts"
+import { exports } from "./routes/export.ts"
 import { health } from "./routes/health.ts"
 import { log } from "./routes/log.ts"
 import { ops } from "./routes/ops.ts"
@@ -59,6 +60,7 @@ export function createApp(deps: Deps) {
       .route("/api", entities)
       .route("/api", settings)
       .route("/api", cards)
+      .route("/api", exports)
       .route("/api", health)
       .route("/", web(deps.webRoot, deps.env.SHYLOG_APP_NAME))
       // A refused write has rolled back; the reason goes to the draft's
