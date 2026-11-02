@@ -178,6 +178,17 @@ describe("PATCH /api/dives/:id", () => {
     expect((await patch({ fields: { visibilityRating: "high" } })).status).toBe(
       422
     )
+    // Found in review: one person sent in both roles stays refused, though
+    // two ids that turn out to be one person are reconciled (see ops.test).
+    db.prepare(
+      "INSERT INTO people (id, name, key) VALUES ('person-sam', 'Sam', 'sam')"
+    ).run()
+    await patch({ fields: { diveProfessionals: ["person-sam"] } })
+    const both = await patch({ fields: { buddies: ["person-sam"] } })
+    expect(both.status).toBe(422)
+    expect(await both.json()).toMatchObject({
+      error: "A person is either a buddy or a dive professional on a dive",
+    })
   })
 
   it("is 400 for a body that isn't JSON", async () => {
