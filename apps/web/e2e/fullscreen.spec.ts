@@ -68,6 +68,26 @@ test("closes with Escape as with its Close link", async ({ page, request }) => {
   await expect(page).toHaveURL(`/dive/${id}/profile`)
 })
 
+test("closes the temperature caption's menu with Escape, not the screen", async ({
+  page,
+  request,
+}) => {
+  const id = await diveId(request, 54)
+  await page.goto(`/dive/${id}/profile`)
+  const caption = screen(page).getByRole("button", {
+    name: /^Water temperature/,
+  })
+  await caption.click()
+  await expect(caption).toHaveAttribute("aria-expanded", "true")
+  await page.keyboard.press("Escape")
+  await expect(caption).toHaveAttribute("aria-expanded", "false")
+  await expect(caption).toBeFocused()
+  await expect(page).toHaveURL(`/dive/${id}/profile`)
+  // A second press closes the screen as before.
+  await page.keyboard.press("Escape")
+  await expect(page).toHaveURL(`/dive/${id}`)
+})
+
 test("opened directly, closes to the dive in its place", async ({
   page,
   request,
@@ -111,6 +131,25 @@ test.describe("on a phone held upright", () => {
       box.y + 30 + (box.height - 30) / 3
     )
     await expect(readout(page)).toContainText(/at (9|10|11):\d\d/)
+  })
+
+  test("picks the temperature line from a menu turned with the chart", async ({
+    page,
+    request,
+  }) => {
+    await page.goto(`/dive/${await diveId(request, 54)}/profile`)
+    const caption = screen(page).getByRole("button", {
+      name: /^Water temperature/,
+    })
+    await caption.tap()
+    const menu = screen(page).getByRole("group", {
+      name: "Water temperature line",
+    })
+    // Turned too: taller than wide, beside the caption down the screen's side.
+    const box = (await menu.boundingBox())!
+    expect(box.height).toBeGreaterThan(box.width)
+    await menu.getByRole("button", { name: /^Recorded/ }).tap()
+    await expect(caption).toHaveText("Water temperature · Recorded")
   })
 })
 

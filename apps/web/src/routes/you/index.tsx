@@ -26,6 +26,10 @@ import { useLastSync } from "@/data/last-sync"
 import type { Card as CertCard } from "@/data/db"
 import { useLog, type LogView } from "@/data/log"
 import {
+  setSmoothTemperature,
+  useSmoothTemperature,
+} from "@/data/smooth-temperature"
+import {
   ErrorLine,
   Label,
   PlainLabels,
@@ -38,6 +42,7 @@ import {
 import { ago, instant } from "@/format/dates"
 import { countText } from "@/components/pickers/match"
 import { parseMaxPo2 } from "@/you/defaults"
+import { Switch } from "@/components/ui/switch"
 import { DefaultsSection } from "@/you/defaults-section"
 import { CardImage } from "@/you/cards/card-image"
 import { Downloads } from "@/you/downloads"
@@ -258,6 +263,7 @@ function YouPage() {
         <PlainLabels.Provider value>
           <Section title="This phone">
             <Appearance />
+            <SmoothTemperature />
           </Section>
         </PlainLabels.Provider>
 
@@ -560,6 +566,29 @@ function Preferences({ settings }: { settings: Settings }) {
         </Section>
       </PlainLabels.Provider>
       <SaveFailure error={failure} />
+    </div>
+  )
+}
+
+// The profile chart's temperature line, also picked from the lane's caption.
+function SmoothTemperature() {
+  const smooth = useSmoothTemperature()
+  return (
+    <div className="flex items-center gap-4 px-4 py-3">
+      <label
+        htmlFor="you-smooth-temperature"
+        className="flex flex-1 flex-col gap-0.5"
+      >
+        <span className="text-[15px]">Smooth water temperature</span>
+        <span className="text-[13px] text-muted-foreground">
+          On the profile chart
+        </span>
+      </label>
+      <Switch
+        id="you-smooth-temperature"
+        checked={smooth}
+        onCheckedChange={setSmoothTemperature}
+      />
     </div>
   )
 }

@@ -17,7 +17,8 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Event markers are an icon centred over the event's band, with no text; the alarms list and the readout name them.
 - Depth labels sit in a gutter left of the plot, not inside it as the board draws them, so a steep descent never runs under them.
 - The axes fit the dive (Subsurface's zoomed plot), not the board's fixed 35 m and 48 min.
-- The temperature lane's header reads only "Water temperature" and the crosshair's value. The board's min–max range moves to two labels in the gutter, at the lane's lowest and highest levels.
+- The temperature lane's header reads only its caption and the crosshair's value. The board's min–max range moves to two labels in the gutter, at the lane's lowest and highest levels.
+- The caption names the line, "Water temperature · Smoothed" or "· Recorded", and opens a menu of the two (D35), with a little more space above and below it than the board's. A bubble, a segmented control in the header and one in its own row under the lane were all tried on the phone and looked cramped on the card.
 
 ## Forms and inputs
 

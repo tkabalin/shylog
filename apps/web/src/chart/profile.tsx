@@ -3,6 +3,7 @@ import { useCallback, useMemo, useRef } from "react"
 import type { Profile as ProfileData } from "@/api/client"
 import type { Dive } from "@/data/db"
 import { useLog } from "@/data/log"
+import { useSmoothTemperature } from "@/data/smooth-temperature"
 import { profileMaxDepth } from "@/dive/figures"
 
 import { Alarms } from "./alarms"
@@ -30,16 +31,17 @@ export default function Profile({
   // Subscribed, so using the computer's value redraws the axis.
   const { log } = useLog()
   const depth = profileMaxDepth(dive, log?.fieldMeta.get(dive.id))
+  const smooth = useSmoothTemperature()
   const model = useMemo(
     () =>
       width
         ? profileModel(
             profile,
-            { maxDepth: depth, mod },
+            { maxDepth: depth, mod, smooth },
             width - profileGutter(profile, depth)
           )
         : null,
-    [profile, depth, mod, width]
+    [profile, depth, mod, smooth, width]
   )
   const { index, setChosen, handlers } = useCrosshair(model)
   const show = useCallback(

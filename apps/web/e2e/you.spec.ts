@@ -150,6 +150,21 @@ test("applies the appearance at once and keeps it", async ({ page }) => {
   )
 })
 
+test("turns the profile's smoothed water temperature off on this phone", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/you")
+  const smooth = page.getByLabel("Smooth water temperature")
+  await expect(smooth).toBeChecked()
+  await smooth.uncheck()
+  await expect(smooth).not.toBeChecked()
+  await page.goto(`/dive/${await diveId(request, 36)}`)
+  await expect(
+    page.getByRole("button", { name: /^Water temperature/ })
+  ).toHaveText("Water temperature · Recorded")
+})
+
 test("shows the version and the server's name", async ({ page }) => {
   await page.goto("/you")
   // The commit a build was made from, or "dev" off one.

@@ -6,6 +6,7 @@ import {
   labelInterval,
   modInView,
   pointsInView,
+  smoothTemperatures,
   temperatureAxis,
   timeAxis,
   verticalSpeeds,
@@ -43,10 +44,15 @@ export const profileGutter = ({ samples }: Profile, maxDepth: number) =>
 
 // Everything the chart draws for one dive at one plot size, from core's rules
 // (see Profile chart in the spec): points in view with their speeds, the
-// axes, labelled depths, events, alarms and the MOD line.
+// axes, labelled depths, events, alarms and the MOD line. Smoothed, the
+// points carry the water's temperature rather than the readings (D35).
 export function profileModel(
   { samples, events: sent }: Profile,
-  { maxDepth, mod }: { maxDepth: number; mod: number | null },
+  {
+    maxDepth,
+    mod,
+    smooth = false,
+  }: { maxDepth: number; mod: number | null; smooth?: boolean },
   width: number,
   plotHeight = cardPlotHeight
 ) {
@@ -63,7 +69,11 @@ export function profileModel(
   const eventTimes = events.flatMap((event) =>
     event.end == null ? [event.start] : [event.start, event.end]
   )
-  const all = chartPoints(samples, eventTimes)
+  const recorded = chartPoints(samples, eventTimes)
+  const temperatures = smooth ? smoothTemperatures(recorded) : null
+  const all = temperatures
+    ? recorded.map((point, i) => ({ ...point, temperature: temperatures[i] }))
+    : recorded
   const time = timeAxis(chartEnd(samples, eventTimes), width, timeLabelWidth, {
     zoomed: true,
   })
@@ -135,6 +145,7 @@ export function profileModel(
     // which the lane's gutter labels.
     temperature,
     water: temperature && { min: temperature.min, max: temperature.highest },
+    smoothed: smooth,
     depthLabels: depthLabels(all, inView, interval),
     events: shown,
     alarms,
