@@ -146,7 +146,8 @@ const overlay = (free: boolean) =>
   cn("absolute cursor-crosshair", free ? "touch-none" : "touch-pan-y")
 
 // The depth chart between the crosshair's two layers, under a touch layer
-// that leaves the time labels alone.
+// that takes in the time labels too, so a pointer just under the plot
+// still moves the crosshair.
 export function DepthView({
   model,
   index,
@@ -165,11 +166,7 @@ export function DepthView({
       <Crosshair model={model} index={index} width={width} layer="line" />
       <DepthChart model={model} width={width} />
       <Crosshair model={model} index={index} width={width} layer="dot" />
-      <div
-        aria-hidden
-        className={cn(overlay(free), "inset-x-0 top-0 bottom-7.5")}
-        {...handlers}
-      />
+      <div aria-hidden className={cn(overlay(free), "inset-0")} {...handlers} />
     </div>
   )
 }
