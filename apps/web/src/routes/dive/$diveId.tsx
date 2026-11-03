@@ -830,7 +830,8 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 // Bars sit on the label's line rather than under it, so a cell with one is
-// no taller than its neighbour.
+// no taller than its neighbour. A label with a bar is as wide as the longest
+// one ("CNS at end" and its info), so the bars in a column start together.
 function Figure({
   term,
   value,
@@ -849,8 +850,17 @@ function Figure({
   return (
     <div className="flex flex-col-reverse gap-px px-4 py-3">
       <dt className="flex min-h-4 items-center gap-1 text-xs whitespace-nowrap text-muted-foreground">
-        {term}
-        {info}
+        {meter ? (
+          <span className="flex min-w-[7em] items-center gap-1">
+            {term}
+            {info}
+          </span>
+        ) : (
+          <>
+            {term}
+            {info}
+          </>
+        )}
         {meter}
       </dt>
       <dd
