@@ -34,9 +34,15 @@ import { readOnceAsSubsurface } from "./subsurface-uddf.ts"
 // Random logs pushed through the draft upload and the export, then read back
 // by the XSD, Shylog's reader and Subsurface's own import. The fixed logs in
 // writer.test.ts show the mapping; this looks for the inputs that break it.
-// SHYLOG_FUZZ_RUNS raises the run count for a long local soak.
+// SHYLOG_FUZZ_RUNS raises the run count for a long local soak. The seed is
+// fixed, so CI tries the same cases every time and a red build is always the
+// change's; SHYLOG_FUZZ_SEED=random explores, or replays a printed seed.
 const runs = Number(process.env.SHYLOG_FUZZ_RUNS) || 60
-const options = { numRuns: runs }
+const seed = process.env.SHYLOG_FUZZ_SEED
+const options = {
+  numRuns: runs,
+  ...(seed === "random" ? {} : { seed: Number(seed) || 20261103 }),
+}
 
 // XML 1.0's Char production: anything else can't be written, even escaped.
 const xmlText = (s: string) =>
