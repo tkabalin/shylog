@@ -651,9 +651,12 @@ function compare(
       ours.weight || null,
       0.05
     )
-  // Departure: Subsurface reads 273.15 K on a dive with no temperature
-  // samples as no reading.
-  const sampled = ours.samples.some((s) => s.temperature != null)
+  // Departure: Subsurface counts the samples not at 273.15 K and, with none,
+  // reads every temperature at 273.15 K as no reading, the samples' too
+  // (commonTemplates.xsl's temperatureSamples, uddf.xslt's waypoints).
+  const sampled = ours.samples.some(
+    (s) => s.temperature != null && celsiusToKelvin(s.temperature) !== 273.15
+  )
   const freezing =
     ours.minTemperature != null &&
     celsiusToKelvin(ours.minTemperature) === 273.15
@@ -687,7 +690,12 @@ function compare(
     const at = `sample at ${sample.time} s`
     same(`${at} time`, attr(theirs, "time"), clock(sample.time))
     close(`${at} depth`, attr(theirs, "depth"), sample.depth, 0.005)
-    close(`${at} temperature`, attr(theirs, "temp"), sample.temperature, 0.05)
+    close(
+      `${at} temperature`,
+      attr(theirs, "temp"),
+      sampled ? sample.temperature : null,
+      0.05
+    )
     close(`${at} pressure`, attr(theirs, "pressure"), sample.pressure, 0.05)
   })
   // Each alarm is an event at its waypoint's time; an ascent pair is stored
