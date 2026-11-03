@@ -2,10 +2,12 @@ import { DOMParser, type Element } from "@xmldom/xmldom"
 
 import type { Sample } from "../src/calc/samples.ts"
 import { fractionToTenths, kelvinToCelsius } from "../src/units.ts"
-import uddf from "../../../fixtures/subsurface/d4i-2026-10-12.uddf?raw"
+import d4i from "../../../fixtures/subsurface/d4i-2026-10-12.uddf?raw"
+import zoopNovo from "../../../fixtures/subsurface/zoop-novo-2026-11-01.uddf?raw"
 
-// Test-only reader for the real D4i export, so calculations are checked
-// against real dives. Dives are looked up by Subsurface's divenumber.
+// Test-only reader for the real exports, so calculations are checked against
+// real dives. D4i dives are looked up by Subsurface's divenumber, and either
+// export's by start time.
 export interface FixtureDive {
   number: number
   startTime: string
@@ -31,9 +33,10 @@ const text = (parent: Element, name: string) =>
   children(parent, name)[0]?.textContent ?? null
 const number = (parent: Element, name: string) => Number(text(parent, name))
 
-let dives: Map<number, FixtureDive> | undefined
+const exports = { d4i, zoopNovo }
+const read = new Map<keyof typeof exports, Map<number, FixtureDive>>()
 
-function read() {
+function readExport(uddf: string) {
   const doc = new DOMParser().parseFromString(uddf, "text/xml")
   const mixes = new Map(
     children(doc.documentElement!, "mix").map((mix) => [
@@ -77,15 +80,30 @@ function read() {
   )
 }
 
+function divesOf(from: keyof typeof exports) {
+  if (!read.has(from)) read.set(from, readExport(exports[from]))
+  return read.get(from)!
+}
+
 export function fixtureDive(number: number): FixtureDive {
-  dives ??= read()
-  const dive = dives.get(number)
+  const dive = divesOf("d4i").get(number)
   if (!dive) throw new Error(`No dive ${number} in the fixture`)
   return dive
 }
 
 // The 46 scuba dives: every dive with a gas, as freedives have none.
 export function fixtureScubaDives(): FixtureDive[] {
-  dives ??= read()
-  return [...dives.values()].filter((dive) => dive.mix != null)
+  return [...divesOf("d4i").values()].filter((dive) => dive.mix != null)
+}
+
+// The dive starting at a time, such as "2026-04-04T16:22", in either export.
+export function fixtureDiveAt(
+  start: string,
+  from: keyof typeof exports = "d4i"
+): FixtureDive {
+  const dive = [...divesOf(from).values()].find((d) =>
+    d.startTime.startsWith(start)
+  )
+  if (!dive) throw new Error(`No dive at ${start} in the ${from} export`)
+  return dive
 }
