@@ -123,6 +123,23 @@ test("picks the temperature line from the keyboard", async ({
   await expect(caption).toBeFocused()
 })
 
+test("moves the crosshair with a pointer over the time labels", async ({
+  page,
+  request,
+}) => {
+  await page.goto(`/dive/${await diveId(request, 63)}`)
+  const card = profile(page)
+  await expect(card.getByText("MOD 33.2 m")).toBeVisible()
+  // Halfway along, as the tap above, but on the time labels' row.
+  const chart = card.locator(".recharts-wrapper").first()
+  const box = (await chart.boundingBox())!
+  await page.mouse.move(
+    box.x + 30 + (box.width - 30) / 2,
+    box.y + box.height - 8
+  )
+  await expect(readout(page)).toContainText("at 21:00")
+})
+
 test("has a table of every point for screen readers", async ({
   page,
   request,
