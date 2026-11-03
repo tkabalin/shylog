@@ -26,7 +26,8 @@ export const ProfileTable = memo(function ProfileTable({
     <div className="sr-only">
       <Table>
         <TableCaption>
-          Every point of the depth profile, {model.points.length} rows
+          Every point of the depth profile, {model.points.length} rows, with the
+          water temperature {model.smoothed ? "smoothed" : "as recorded"}
         </TableCaption>
         <TableHeader>
           <TableRow>

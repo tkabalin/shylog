@@ -167,7 +167,7 @@ function ProfilePlaceholder({
           ))}
         </div>
       </div>
-      <div className="-mt-1 flex flex-col gap-1.5">
+      <div className="mt-1 flex flex-col gap-3">
         <div
           className="flex items-center justify-between"
           style={{ height: laneHeaderHeight }}

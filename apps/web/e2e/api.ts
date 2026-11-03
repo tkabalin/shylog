@@ -6,6 +6,8 @@ import type { Log } from "../src/api/client"
 // Fixture dives by Subsurface's divenumber, as start times (see Conventions
 // in docs/PLAN.md); Shylog numbers them differently.
 export const fixtureStart = {
+  // Read 20 °C on the way down, in 17 °C water (D35).
+  36: "2025-12-30T11:43:25",
   54: "2026-07-18T08:39:26",
   61: "2026-07-21T07:47:42",
   63: "2026-07-22T08:12:19",

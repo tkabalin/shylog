@@ -10,6 +10,7 @@ import { DepthChart } from "./depth-chart"
 import { clock, rateLabel } from "./format"
 import { laneHeaderHeight, laneHeight, readoutHeight } from "./layout"
 import { eventLabel, eventsAt, pointAt, rate, type ProfileModel } from "./model"
+import { LineMenu } from "./line-menu"
 import { TemperatureLane } from "./temperature-lane"
 
 // The pieces the Profile card and the full-screen chart share: the
@@ -173,8 +174,9 @@ export function DepthView({
   )
 }
 
-// The temperature lane under its header, which names the range and the
-// crosshair's reading.
+// The temperature lane under its header: the caption, which picks the line
+// once there is one, and the crosshair's reading, which the table
+// alternative reads out, so it is hidden.
 export function LaneView({
   model,
   index,
@@ -190,15 +192,18 @@ export function LaneView({
 }) {
   const point = model?.points[index]
   return (
-    <div className="-mt-1 flex flex-col gap-1.5">
+    <div className="mt-1 flex flex-col gap-3">
       <div
-        aria-hidden
         className="flex items-baseline justify-between text-xs text-muted-foreground tabular-nums"
         style={{ height: laneHeaderHeight }}
       >
-        <span>Water temperature</span>
+        {model?.temperature ? (
+          <LineMenu />
+        ) : (
+          <span aria-hidden>Water temperature</span>
+        )}
         {point?.temperature != null && (
-          <span className="font-medium text-foreground">
+          <span aria-hidden className="font-medium text-foreground">
             {temperature(point.temperature)} °C
           </span>
         )}

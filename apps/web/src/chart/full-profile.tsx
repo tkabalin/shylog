@@ -3,6 +3,7 @@ import { useMemo, useRef, type ReactNode } from "react"
 import type { Profile as ProfileData } from "@/api/client"
 import type { Dive } from "@/data/db"
 import { useLog } from "@/data/log"
+import { useSmoothTemperature } from "@/data/smooth-temperature"
 import { profileMaxDepth } from "@/dive/figures"
 
 import { plotTop, timeAxisHeight } from "./layout"
@@ -34,17 +35,18 @@ export function FullProfile({
   // Subscribed, so using the computer's value redraws the axis.
   const { log } = useLog()
   const depth = profileMaxDepth(dive, log?.fieldMeta.get(dive.id))
+  const smooth = useSmoothTemperature()
   const model = useMemo(
     () =>
       width && height
         ? profileModel(
             profile,
-            { maxDepth: depth, mod },
+            { maxDepth: depth, mod, smooth },
             width - profileGutter(profile, depth),
             plotHeight
           )
         : null,
-    [profile, depth, mod, width, height, plotHeight]
+    [profile, depth, mod, smooth, width, height, plotHeight]
   )
   const { index, handlers } = useCrosshair(model, { free: true, turned })
 

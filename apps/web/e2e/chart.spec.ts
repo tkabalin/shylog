@@ -56,6 +56,73 @@ test("shows time, depth, temperature and rate where the chart is tapped", async 
   await expect(card.getByText(/^\d+(\.\d)? °C$/)).toBeVisible()
 })
 
+test("smooths the water temperature, and its caption picks the recorded line", async ({
+  page,
+  request,
+}) => {
+  await page.goto(`/dive/${await diveId(request, 36)}`)
+  const card = profile(page)
+  const caption = card.getByRole("button", { name: /^Water temperature/ })
+  const labels = card.locator("svg text", { hasText: /°$/ })
+  // The water was 17 °C throughout, so one label.
+  await expect(caption).toHaveText("Water temperature · Smoothed")
+  await expect(labels).toHaveText(["17°"])
+
+  await caption.click()
+  const menu = card.getByRole("group", { name: "Water temperature line" })
+  await expect(menu.getByRole("button", { name: /^Smoothed/ })).toHaveAttribute(
+    "aria-pressed",
+    "true"
+  )
+  await menu.getByRole("button", { name: /^Recorded/ }).click()
+  await expect(caption).toHaveText("Water temperature · Recorded")
+  await expect(caption).toHaveAttribute("aria-expanded", "false")
+  // The computer read 20 °C on the way down.
+  await expect(labels).toHaveText(["17°", "20°"])
+  await expect(page.getByRole("table", { name: /as recorded/ })).toBeAttached()
+
+  // Kept on the phone.
+  await page.reload()
+  await expect(caption).toHaveText("Water temperature · Recorded")
+})
+
+test("closes the caption's menu on a tap outside it", async ({
+  page,
+  request,
+}) => {
+  await page.goto(`/dive/${await diveId(request, 36)}`)
+  const card = profile(page)
+  const caption = card.getByRole("button", { name: /^Water temperature/ })
+  await caption.click()
+  await expect(caption).toHaveAttribute("aria-expanded", "true")
+  // On the chart: the tap closes the menu and leaves the crosshair be.
+  const at = await readout(page).textContent()
+  const chart = card.locator(".recharts-wrapper").first()
+  const box = (await chart.boundingBox())!
+  await page.mouse.click(box.x + box.width - 20, box.y + 40)
+  await expect(caption).toHaveAttribute("aria-expanded", "false")
+  await expect(readout(page)).toHaveText(at!)
+  await expect(caption).toHaveText("Water temperature · Smoothed")
+})
+
+test("picks the temperature line from the keyboard", async ({
+  page,
+  request,
+}) => {
+  await page.goto(`/dive/${await diveId(request, 36)}`)
+  const card = profile(page)
+  const caption = card.getByRole("button", { name: /^Water temperature/ })
+  await caption.focus()
+  await page.keyboard.press("Enter")
+  const menu = card.getByRole("group", { name: "Water temperature line" })
+  await expect(menu.getByRole("button", { name: /^Smoothed/ })).toBeFocused()
+  await page.keyboard.press("ArrowDown")
+  await expect(menu.getByRole("button", { name: /^Recorded/ })).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(caption).toHaveText("Water temperature · Recorded")
+  await expect(caption).toBeFocused()
+})
+
 test("has a table of every point for screen readers", async ({
   page,
   request,

@@ -5,7 +5,10 @@ import type { Profile } from "@/api/client"
 import type { Dive, FieldMeta } from "@/data/db"
 import { profileMaxDepth } from "@/dive/figures"
 
-import { fixtureDive } from "../../../../packages/core/test/fixture.ts"
+import {
+  fixtureDive,
+  fixtureDiveAt,
+} from "../../../../packages/core/test/fixture.ts"
 import { clock, rateLabel } from "./format"
 import {
   eventLabel,
@@ -271,5 +274,34 @@ describe("the profile's depth", () => {
     ])
     expect(profileMaxDepth(dive, meta)).toBe(32.66)
     expect(profileMaxDepth(dive, undefined)).toBe(33)
+  })
+})
+
+describe("the smoothed temperature lane", () => {
+  // 30 December 2025: the recorded line starts at 20 °C on the way down, but
+  // the water was 17 °C throughout (D35).
+  const dive = fixtureDiveAt("2025-12-30T11:43")
+  const profile: Profile = {
+    samples: mergeDuplicateSamples(dive.samples),
+    events: [],
+  }
+  const model = (smooth: boolean) =>
+    profileModel(profile, { maxDepth: dive.maxDepth, mod: null, smooth }, 326)
+
+  it("draws the water's temperature, and its axis and labels follow", () => {
+    expect(model(true)).toMatchObject({
+      smoothed: true,
+      water: { min: 17, max: 17 },
+    })
+    expect(model(false)).toMatchObject({
+      smoothed: false,
+      water: { min: 17, max: 20 },
+    })
+  })
+
+  it("leaves the depth line alone", () => {
+    const depths = (m: ReturnType<typeof model>) =>
+      m.points.map((point) => point.depth)
+    expect(depths(model(true))).toEqual(depths(model(false)))
   })
 })
