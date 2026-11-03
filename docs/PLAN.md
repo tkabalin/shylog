@@ -136,7 +136,7 @@ Deferred, or to watch:
 - `test:xsd`, `seed` and `restore-drill` point at scripts that later milestones write.
 - `index.html` has an inline script that applies the theme before first paint, using `ThemeProvider`'s `theme` storage key. Keep the two in step when Settings gets the appearance override (milestone 11). The page title is still a fixed "Shylog" until the server serves it from `SHYLOG_APP_NAME`.
 - Supply chain: `pnpm-workspace.yaml` refuses releases under three days old and trust downgrades (`semver@6.3.1` excluded, with the reason beside it), `packageManager` pins pnpm by hash, and every GitHub Action is pinned to a commit SHA. A brand-new release fails the install, so lower the range rather than excluding it. Raise `minimumReleaseAge` to seven days once that costs no downgrades.
-- CI runs as two jobs, `check` and `e2e`; shard Playwright only once the browser tests take minutes.
+- CI runs `check`, `image` and Playwright in three shards (`e2e-shard`), with an `e2e` job that passes only when every shard did, as the main ruleset requires a check by that name.
 - CI reports Vitest coverage for `packages/core` and `apps/server` on the run's summary page (`vitest.config.ts`). Add a threshold for `core` once its calculation tests land (milestones 2 and 3), and add `apps/web` to the coverage `include` when it gets unit-tested code such as the Dexie mirror (milestone 8). Coverage runs only in CI; locally, pass `--coverage` to a scoped run.
 - The main JS chunk is about 450 kB (150 kB gzipped) with React, TanStack Router and Base UI. Revisit with the PWA work.
 
@@ -842,7 +842,7 @@ Deferred, or to watch:
 - The XML builders copy each line once per nesting level (25 ms for 9,340 samples); not worth restructuring yet.
 - The alert body's muted text on the tinted fill is about 4.2:1, the board's own choice.
 - Server logging is plain text and errors only (no request log, no success lines). Shipping the container's stdout to Loki needs no code; JSON lines, a request log with a request id, and job success lines were discussed with the owner as a possible separate item.
-- Carried over from milestone 12: the viewer and reorder gestures, the photo picker, and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); and milestone 11's list (the phone checks, the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days, sharding Playwright).
+- Carried over from milestone 12: the viewer and reorder gestures, the photo picker, and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); and milestone 11's list (the phone checks, the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days).
 
 ## Milestone 14: Import, the Suunto reader
 
