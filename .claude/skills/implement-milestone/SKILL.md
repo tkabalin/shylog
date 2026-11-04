@@ -21,7 +21,7 @@ Every shell needs `source ~/.nvm/nvm.sh; nvm use` first (`.nvmrc` pins Node 24).
 
 ## 2. Preflight
 
-- If `docs/PLAN.md` has uncommitted ticks or notes from the last session, ask the user whether to commit them first. Any other uncommitted change: ask.
+- If there are uncommitted changes, ask the user what to do with them.
 - Bring `main` up to date and branch from it: on `main`, `git pull --ff-only`; elsewhere, `git fetch origin main:main`. If git refuses because `main` is checked out in another worktree, `git fetch origin` and branch from `origin/main`. Name the branch `feat/<short-slug>` (or `fix/`, `docs/`), never after the milestone.
 
 ## 3. Settle ambiguity before building
@@ -61,7 +61,7 @@ Round two reviews the branch after round one's fixes.
 
 ## 8. Wrap up
 
-- In `docs/PLAN.md`, tick the milestone's checklist and add **Notes for the next session** under it: decisions made, and anything deferred or to watch, carrying over whatever is still open from the previous notes. Leave these uncommitted for the user to review.
+- In `docs/PLAN.md`, tick the milestone's checklist and add **Notes for the next session** under it: decisions made, and anything deferred or to watch, carrying over whatever is still open from the previous notes. Commit them on the branch in a `docs:` commit, so they land with the PR.
 - Save new gotchas or decisions to project memory.
 - Draft the PR description in the scratchpad with these sections: Summary, Decisions to review, Versions (table with reasons), Review (fixed / left as is), Test plan. End it with `🤖 Generated with [Claude Code](https://claude.com/claude-code)`. No "milestone" in the title or body.
 - Report to the user: the check output, the screenshot and comparison paths, the PR description path, and what needs their decision. Then ask permission to push and open the PR (`gh.exe pr create`).
