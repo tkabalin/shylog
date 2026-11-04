@@ -4,7 +4,7 @@
 
 **Name (provisional)**: Shylog, with a shyshark as the app icon. Also used for the repo and the tailnet hostname, `shylog`. The icon (`docs/design/shylog-icon.svg`) is a puffadder shyshark on white with a soft shadow, drawn full bleed with the shark inside the maskable safe zone, so iOS and Android can apply their own corner shape.
 
-A mobile-first PWA for logging dives, self-hosted on a home server and reachable only over Tailscale. Data lives in a SQLite database on the server, and a plain UDDF copy of the whole log is exported nightly and on demand, so the data is never locked into the app.
+A mobile-first PWA for logging dives, self-hosted on a home server and reachable only over Tailscale. Data lives in a SQLite database on the server, and a plain UDDF copy of the whole log, with a CSV copy for spreadsheets, is exported nightly and on demand, so the data is never locked into the app.
 
 **Status**: ready for development. The remaining open items are listed under Open questions.
 
@@ -42,7 +42,7 @@ Everything is TypeScript, so one core package (draft upload and edit schemas, na
 | Database | SQLite in WAL mode via better-sqlite3 (not Node's built-in `node:sqlite`) | Source of truth: one file, `shylog.db` |
 | UDDF | @xmldom/xmldom on the server | Reads Subsurface imports and writes the nightly UDDF export |
 | Repo layout | pnpm workspace: `apps/web`, `apps/server`, `packages/core` | Shared types, draft upload and edit schemas, name normalisation, and calculations |
-| Data | `shylog.db` on a bind mount, plus `export/dives.uddf` and `cards/` | The UDDF export is rewritten nightly with the snapshot; all are backed up |
+| Data | `shylog.db` on a bind mount, plus `export/dives.uddf`, `export/dives.csv` and `cards/` | The UDDF and CSV exports are rewritten nightly with the snapshot; all are backed up |
 | Access | Tailscale only, no app login | Only the devices of the instance's diver (plus the owner's for support, where allowed), enforced by tailnet ACLs and an identity check |
 | Deployment | Docker Compose on the home server: the app and a Tailscale sidecar | Own tailnet name with HTTPS via Tailscale Serve |
 | Units | Metric everywhere | SI only inside the UDDF export |
@@ -126,6 +126,35 @@ Nightly, alongside the database snapshot, the server writes the whole log to `ex
 - The op journal itself isn't exported; it is backed up with the database.
 
 UDDF provides `<applicationdata>` for exactly this: program-specific data that parsers pass through without interpreting, with each program using its own child element. It is optional and appears once per dive, so Shylog adds its child to an existing `<applicationdata>` rather than creating a second. The official schema only lists registered child names, so the file may fail strict XSD validation; registering `shylog` with the UDDF maintainer would fix that. Other tools may drop the element on export, which does not matter because Shylog's database is the master. ([UDDF 3.2.1: applicationdata](https://www.streit.cc/extern/uddf_v321/en/applicationdata.html))
+
+### CSV export
+
+The whole log as one CSV file, one row per dive and one column per field, so it opens in a spreadsheet or pandas. It is written with the UDDF export, from the same read transaction, to `export/dives.csv`, whenever `export/dives.uddf` is (nightly, and by Export now): through a temp file, fsynced, read back by a CSV parser and its rows counted, and renamed only once both files have passed their checks, so a failed check of either leaves both previous files. The You tab's CSV download builds a fresh file for the download alone, as the UDDF download does. There is no CSV import.
+
+- **Dives**: every dive that isn't deleted, ignored ones included, oldest first by start time and then the order they were written, as the dive numbers run.
+- **Format**: RFC 4180 with a comma separator and dot decimals, CRLF line ends, and UTF-8 with a byte order mark, which Excel needs to read accents and curly quotes. A field holding a comma, a semicolon (Excel splits on one in regions that write decimals with a comma), a double quote, a carriage return or a line feed is quoted, its quotes doubled; line breaks in notes stay inside the cell. A blank cell is no value.
+- **Values**: in the app's units, except durations. Choice fields are their labels (Very mild, not `veryMild`), tags their labels, a site's country its English name. Sites, regions, trips, dive centres and people are named, not linked; only the dive keeps its id. Several names are joined with `; `, in position order, as a name can hold a comma. Ignored is Yes or No. Where a value came from (hand or computer) is left out.
+- **Durations**: duration and surface interval in decimal minutes, to 0.01, so a spreadsheet can sum them and the seconds can still be worked out (2,851 s is 47.52). The surface interval is blank for no previous dive.
+- **Gas**: one Oxygen (%) column, 20.9 for air (as in Calculations) and the mix's percentage for nitrox.
+- **Calculated figures**: SAC rate, MOD and max PO₂ are worked out at export with core's functions and the log's maximum PO₂ setting, as the dive detail does, to the precision core gives; CNS and OTU are the stored figures, blank without samples.
+- **Text that looks like a formula**: a text cell starting with `=`, `+`, `-`, `@` or their full-width forms, after any spaces, or with a tab or a carriage return, gets a leading `'`, which Excel and Sheets otherwise read as a formula. Numbers are never prefixed, so −1 °C stays a number.
+- **Profile**: the last column holds the dive's samples and computer events as compact JSON, blank for a dive with no samples: `{"samples":[[0,0.6,22,200]],"events":[["ascent",1810,1830]]}`, samples as `[seconds, metres, °C, bar]` and events as `[type, start, end]`, trailing nulls dropped. At about 12 characters a sample, a dive needs about 2,700 samples to pass Excel's 32,767 characters in a cell (Sheets takes 50,000); none of the current computers comes close, and a longer cell is written whole.
+
+| Column | Value |
+| --- | --- |
+| Dive id | `dive-<uuid>`, for joining exports made at different times |
+| Number | Blank for an ignored dive |
+| Date, Time | `YYYY-MM-DD` and `HH:mm:ss`, local wall-clock time as stored |
+| Duration (min), Max depth (m), Average depth (m) | |
+| Site, Region, Country, Body of water, Water type | The dive's site |
+| Dive type, Training agency, Training course, Tags, Trip, Dive centre, Buddies, Dive professionals | |
+| Entry, Current, Surge, Surface, Weather, Workload, Thermal comfort | |
+| Min temperature (°C), Max temperature (°C), Visibility (m), Visibility rating | |
+| Surface interval (min), Weight (kg) | |
+| Cylinder material, Cylinder volume (L), Oxygen (%), Start pressure (bar), End pressure (bar) | |
+| SAC (L/min), MOD (m), Max PO₂ (bar), CNS (%), OTU | Calculated |
+| Notable animals, Gear details, Notes | |
+| Ignored, Dive computer, Ascent alarms, Profile | The computer's model, and its count of ascent alarms, blank without samples |
 
 ### Units
 
@@ -309,8 +338,9 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 | DELETE | `/api/import/:id` | Discard a preview |
 | POST | `/api/import/:id/apply` | Apply the pairings, skips, and included left-out dives (freedives and dives under a minute) sent in the body; re-checks every pairing against current data and returns the dives changed since the preview before committing; safe to retry, since the import id makes it idempotent |
 | GET | `/api/export/uddf` | Build a fresh UDDF export and download it, leaving `export/dives.uddf` alone |
+| GET | `/api/export/csv` | Build a fresh CSV export and download it, leaving `export/dives.csv` alone |
 | GET | `/api/export/snapshot` | Download a consistent snapshot of the database |
-| POST | `/api/export/run` | Rewrite `export/dives.uddf` without downloading, for Export now after a failed night |
+| POST | `/api/export/run` | Rewrite `export/dives.uddf` and `export/dives.csv` without downloading, for Export now after a failed night |
 | GET | `/api/health` | WAL size, integrity status, dive count, the times of the last snapshot and export, and the server's name (`TS_HOSTNAME`), for the You tab |
 | POST | `/api/client-log` | An error the app hit, for the server's log (see Logging under Server); writes nothing to the database |
 
@@ -331,7 +361,7 @@ One Node process running Hono serves the app, hands out the log, and is the only
 - **Journal**: every write is recorded in `ops` with a server sequence number and apply time, in the same transaction as the change. That covers draft uploads, edits to synced data, and also internal entries for applied imports (with their full payload), alias matches made during uploads, and migrations, so replaying the journal reproduces the database exactly. "After a point" in a replay always means server sequence, never a client timestamp.
 - **Integrity**: foreign keys and unique constraints are enforced on every write. `PRAGMA integrity_check` runs at startup and daily, and `foreign_key_check` after every migration. A failure stops writes and shows an alert on the You tab.
 - **Version**: every commit stores a new random id in `meta`. This is the version clients see, so a restore can never roll it back to a value a client has already seen.
-- **UDDF export**: written nightly with the database snapshot, and on demand from the You tab, inside one read transaction on the server's connection, built synchronously so no write can land part-way through. A failed nightly export is logged, leaves the previous file in place, is retried the next night, and is shown on the You tab until an export succeeds, nightly or from Export now. A failed download or Export now says so where it was asked for and changes nothing else. At runtime each export is re-parsed and its dive count checked; validation against the UDDF XSD, with the `<shylog>` element stripped first, runs in CI (see Testing).
+- **UDDF export**: written nightly with the database snapshot, and on demand from the You tab, inside one read transaction on the server's connection, built synchronously so no write can land part-way through. A failed nightly export is logged, leaves the previous file in place, is retried the next night, and is shown on the You tab until an export succeeds, nightly or from Export now. A failed download or Export now says so where it was asked for and changes nothing else. The CSV export is written beside it from the same transaction (see CSV export). At runtime each UDDF export is re-parsed and its dive count checked; validation against the UDDF XSD, with the `<shylog>` element stripped first, runs in CI (see Testing).
 - **Imports**: applied in chunks of 50 dives, one transaction per chunk, each chunk journalled, so a large import neither blocks the server for long nor makes a huge WAL burst. Previews expire after seven days.
 - **Health**: `/api/health` reports WAL size, integrity status, the dive count, and the times of the last snapshot and export.
 - **Logging**: the server writes one JSON line per event to stdout with pino (readable through pino-pretty in development), so any Docker log shipper, such as Grafana Alloy into Loki, picks it up with no configuration in Shylog. Every line carries its level, an `event` name, the instance (`TS_HOSTNAME`) and the version (the commit the image was built from). Each `/api` request logs its method, route, status, duration and request id: the app sends an `X-Request-Id` with every call, the server makes one when it is missing, and the response echoes it, so an error on the phone can be found in the server's log. `/api/version` and `/api/health`, which phones poll, log at debug level; static files aren't logged. The nightly snapshot and export log what they wrote and how long it took, refused writes log their reason, and errors log their stack and cause. The phone reports its own errors (failed syncs, rejected drafts, code that failed to load, uncaught errors) to `POST /api/client-log`, errors only, capped in size and rate, never queued offline. Logs hold ids, counts and timings, never dive contents, names or request bodies.
@@ -356,12 +386,12 @@ The log has to outlive this app, this server, and any one provider, so backups a
 
 ### Built into the server
 
-1. Nightly at midnight, server local time (the container's `TZ`), the server writes a consistent database snapshot with `VACUUM INTO` to a temp name, renames it once complete, compresses it, and stores it with the current UDDF export in the folder the existing nightly off-site backup job covers. Snapshots are real files, never symlinks. The `cards/` folder is in the same data directory, so the off-site job covers it too.
+1. Nightly at midnight, server local time (the container's `TZ`), the server writes a consistent database snapshot with `VACUUM INTO` to a temp name, renames it once complete, compresses it, and stores it with the current UDDF and CSV exports in the folder the existing nightly off-site backup job covers. Snapshots are real files, never symlinks. The `cards/` folder is in the same data directory, so the off-site job covers it too.
 2. Retention for those snapshots: daily for 90 days, then the newest of each week for two years, and the newest of each month forever. Keeping the newest of each period gives the same set whether pruning runs every night or after a gap.
 3. The You tab shows the total dive count and the times of the last snapshot and export, so an unexplained drop or a stalled backup is easy to notice.
 4. Restores are described under Server.
-5. Both formats are open: the UDDF export opens in Subsurface, and the database opens in any SQLite tool, so neither needs Shylog.
-6. The You tab can download a freshly built UDDF export or a database snapshot at any time, without touching the server's copies or their times.
+5. Every format is open: the UDDF export opens in Subsurface, the CSV export in any spreadsheet, and the database in any SQLite tool, so none needs Shylog.
+6. The You tab can download a freshly built UDDF export, CSV export or database snapshot at any time, without touching the server's copies or their times.
 
 Losing at most a day of changes is acceptable: hand-logged dives can be re-entered, and the dive computers keep their profiles until they are downloaded again. The nightly snapshots go to the existing off-site backup.
 
@@ -624,7 +654,7 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - Diver name and certifications, under the sync status with no heading of their own: the first three cards in the owner's order as tiles, each opening its card, and an All certifications row to the list
   - Your log: dive count, times of the last snapshot and export, and Recently deleted
   - Sites, people and trips
-  - Download: a fresh UDDF export or a database snapshot, handed to the share sheet on a phone so Save to Files can choose the folder (a download on a desktop, or where the browser can't share the file)
+  - Download: a fresh UDDF export, CSV export or database snapshot, handed to the share sheet on a phone so Save to Files can choose the folder (a download on a desktop, or where the browser can't share the file)
   - Preferences: maximum PO₂
   - New dive defaults
   - This phone: storage protection with help for keeping data safe, appearance (system, light, dark), and Smooth water temperature for the profile chart (on unless turned off)
@@ -761,6 +791,7 @@ The sync rules and the UDDF import and export carry most of the risk, so they ge
 - **Read by Subsurface**: exports are also read the way Subsurface reads UDDF: its namespace strip (`strip_xml_namespace` in `core/parse-xml.cpp`) and then its own `xslt/uddf.xslt`, copied unchanged under `apps/server/test/reference/` and run with `xsltproc`. Every dive, site, buddy and mix written must come out with its date, time, depth, duration and gas. This replaces opening each export in Subsurface by hand; the stylesheet's result is Subsurface's native XML, so only its own loader of that format goes untested. Its own D4i and Zoop Novo exports are read first, all 72 and 61 dives, so a failure points at Shylog's writer.
 - **Calculations**: SAC rate, MOD, max PO₂, CNS, OTU, vertical rate, and the time-weighted average depth (still the fallback when an export has no `averagedepth`) are unit-tested in the core package against hand-worked values. They are also checked against Subsurface's own figures for the same dives in the first real export, with Subsurface set to salt water and 1,013 mbar, since the export carries neither (the owner records Subsurface's CNS and OTU for dives 63, 54, 61, and 36 before the core calculations are built). For example, dive 63 (EANx32, 32.66 m, salt water, surface pressure 1,013 mbar) gives a max PO₂ of 1.38 bar and an MOD of 33.2 m at 1.4 bar. Beyond those dives, a differential test runs Subsurface's own functions, copied into a small C++ program under `packages/core/test/reference/`, side by side with the core package: fast-check generates random dives, logs and profiles, and every rounded figure (gas volume, SAC rate, MOD, CNS with carry-over, OTU, time under water, average depth, dive end, surface interval, the likely-same match, the chart points with their speeds and bands, and the end of the dive they stop at) must match exactly. Shylog's deliberate departures are applied to Subsurface's answer: MOD to 0.1 m, the 48-hour surface interval cap, 0 bar as a real end pressure, and CNS capped at 999 %. Import tests cover each rule under What the D4i export contains, including that `averagedepth` is read and stored as a computer value. Shylog's UDDF reader is also run side by side with Subsurface's own import (its stylesheet, as under Read by Subsurface) on both real exports: every dive's start, duration, depths, gas and computer, every sample's time, depth and temperature, and every alarm must match, with Shylog's departures applied to Subsurface's answer (dives without tank data left out, one sample per time, ascent alarms paired, the time-0 gas change as the dive's gas, `averagedepth` to the mm).
 - **Round trip**: `apps/server/test/reference/uddf-round-trip.test.ts` uses fast-check to generate random logs (entities, every v1 field with awkward text and boundary numbers, computer profiles with alarms, deleted dives), uploads them as drafts, and exports them. The export must pass the schema, be byte-identical on a second run, read back through Shylog's reader as stored, and be read by Subsurface with every field its stylesheet takes, to the decimals it writes. Subsurface's own quirks are applied to its answer: 273.15 K on a dive with no temperature samples is no reading, and a number under 10⁻²⁰ isn't checked, as its XPath reads one inconsistently. CI runs 60 cases a property; `SHYLOG_FUZZ_RUNS` raises that for a local soak.
+- **CSV export**: the writer is tested on quoting, the byte order mark and line ends, units, labels, blanks, joined names, ignored and deleted dives, the formula prefix and the profile column, and a fast-check property (on a fixed seed in CI) checks that any table of text survives a round trip through a standard CSV parser.
 - **Pass-through**: importing a real Subsurface export and then exporting keeps every standard element Shylog doesn't model, in its normal place and valid against the XSD. A test compares each dive's elements before and after, allowing only remapped ids and hand-entered values to differ.
 - **Real fixtures**: Subsurface exports from the D4i (`fixtures/subsurface/d4i-2026-10-12.uddf`) and the Zoop Novo (`zoop-novo-2026-11-01.uddf`). The first real D4i export covers Sodwana in July 2026 (nitrox, dives past 30 m, ascent alarms, mid-dive surfacings) and the freedives of 28 December 2025, which test the freedive rule. Cases the real exports lack (a trip abroad with an offset clock, a night dive crossing midnight, a gauge dive, pressure samples, a PO₂ over the limit) come from small synthetic UDDF files generated from real fixture dives by a checked-in script under `fixtures/synthetic/`. The Zoop Novo export adds the freedives of 8 December 2025 and two dives under a minute, but no gauge dive.
 - **Migrations**: every migration runs against a copy of real data, followed by `foreign_key_check`.
