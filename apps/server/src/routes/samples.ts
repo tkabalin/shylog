@@ -3,10 +3,8 @@ import { validator } from "hono/validator"
 
 import { diveExists } from "../apply/dive.ts"
 import type { Db } from "../db/open.ts"
-import { prepared } from "../db/prepared.ts"
 import { factory } from "../factory.ts"
-import { selectSamples } from "../profile.ts"
-import type { ProfileEvent } from "../uddf/sample-reader.ts"
+import { selectEvents, selectSamples } from "../profile.ts"
 import { parse } from "../validate.ts"
 
 // A dive's samples and events as the chart reads them.
@@ -18,10 +16,7 @@ function readProfile(db: Db, id: string) {
   for (const row of rows) {
     temperature = row.temperature ??= temperature
   }
-  const events = prepared<[string], ProfileEvent>(
-    db,
-    "SELECT type, start_seconds AS start, end_seconds AS end FROM events WHERE dive_id = ? ORDER BY start_seconds, id"
-  ).all(id)
+  const events = selectEvents(db).all(id)
   return { samples: rows, events }
 }
 

@@ -13,6 +13,13 @@ export const selectSamples = (db: Db) =>
     "SELECT time, depth, temperature, pressure FROM samples WHERE dive_id = ? ORDER BY time"
   )
 
+// A dive's computer events in time order, as stored.
+export const selectEvents = (db: Db) =>
+  prepared<[string], ProfileEvent>(
+    db,
+    "SELECT type, start_seconds AS start, end_seconds AS end FROM events WHERE dive_id = ? ORDER BY start_seconds, id"
+  )
+
 // Depth at a time between two samples, on the straight line between them.
 function depthAt(samples: readonly Sample[], time: number) {
   const next = samples.findIndex((sample) => sample.time >= time)
