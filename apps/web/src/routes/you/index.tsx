@@ -199,7 +199,7 @@ function YouPage() {
           </div>
           <div className={listRow}>
             <RowContent
-              label="Last UDDF export"
+              label="Last export"
               value={
                 !health ? (
                   none

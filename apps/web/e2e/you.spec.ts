@@ -268,6 +268,20 @@ test("downloads a fresh UDDF export", async ({ page }) => {
   expect(await text).toContain('<uddf xmlns="http://www.streit.cc/uddf/3.2/"')
 })
 
+test("downloads a CSV export that opens in a spreadsheet", async ({ page }) => {
+  await page.goto("/you")
+  const saved = page.waitForEvent("download")
+  await page.getByRole("button", { name: /CSV export/ }).click()
+  const file = await saved
+  expect(file.suggestedFilename()).toMatch(/^shylog-\d{4}-\d\d-\d\d\.csv$/)
+  const bytes = Buffer.concat(await (await file.createReadStream()).toArray())
+  // The byte order mark Excel needs, then the header row.
+  expect(bytes.subarray(0, 3)).toEqual(Buffer.from([0xef, 0xbb, 0xbf]))
+  expect(bytes.subarray(3).toString().split("\r\n")[0]).toMatch(
+    /^Dive id,Number,Date,Time,Duration \(min\),.*,Profile$/
+  )
+})
+
 test("downloads a database snapshot", async ({ page }) => {
   await page.goto("/you")
   const saved = page.waitForEvent("download")
@@ -315,10 +329,10 @@ test("offers Export now after a failed night's export @writes", async ({
   await page.goto("/you")
   const alert = page.getByRole("alert")
   await expect(alert).toContainText("Last night’s export failed")
-  await expect(row(page, "Last UDDF export")).toContainText(/Failed today/)
+  await expect(row(page, "Last export")).toContainText(/Failed today/)
   await alert.getByRole("button", { name: "Export now" }).click()
   await expect(alert).toBeHidden()
-  await expect(row(page, "Last UDDF export")).toContainText(/Today \d\d:\d\d/)
+  await expect(row(page, "Last export")).toContainText(/Today \d\d:\d\d/)
   await page.unrouteAll({ behavior: "ignoreErrors" })
 })
 
