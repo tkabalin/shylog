@@ -8,12 +8,12 @@ on:
 permissions:
   contents: read
 
-# A newer push cancels a PR's run. On main a running publish always
-# finishes, but a newer push replaces a pending run, so a burst of merges
-# publishes only the newest of them, still in order.
+# A newer push cancels the branch's running CI, main included. Cutting a
+# publish short is safe: each tag moves only when its manifest lands, so
+# :latest stays on the last finished image until the newer run replaces it.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 # Two jobs so a failing check doesn't hide the browser results, and the
 # browser tests run alongside the fast checks. Actions are
