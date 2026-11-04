@@ -2,8 +2,14 @@ import { createReadStream, rmSync, statSync } from "node:fs"
 import { Readable } from "node:stream"
 
 import { factory } from "../factory.ts"
-import { exportTemp, writeExport } from "../jobs/export.ts"
+import {
+  checkUddf,
+  exportTemp,
+  refuseDamaged,
+  writeExport,
+} from "../jobs/export.ts"
 import { localDate } from "../jobs/nightly.ts"
+import { writeUddf } from "../uddf/writer.ts"
 
 const attachment = (name: string) => `attachment; filename="${name}"`
 
@@ -11,16 +17,21 @@ const attachment = (name: string) => `attachment; filename="${name}"`
 // changes nothing else: only a failed night raises the alert.
 export const exports = factory
   .createApp()
+  // Hono answers HEAD from GET, which would build a whole export or
+  // snapshot only to send no body.
+  .use("/export/*", async (c, next) =>
+    c.req.method === "HEAD" ? c.body(null, 405) : next()
+  )
+  // A fresh export, built and checked for the download alone: the server's
+  // copy is the backup, replaced only by the nightly job and Export now.
   .get("/export/uddf", (c) => {
-    // Hono answers HEAD from GET, and asking about the file shouldn't
-    // rewrite it.
-    if (c.req.method === "HEAD") return c.body(null, 405)
-    const { db, env, state } = c.var.deps
-    const now = new Date()
-    const xml = writeExport(db, env.SHYLOG_DATA_DIR, state.integrity, now)
+    const { db, state } = c.var.deps
+    refuseDamaged(state.integrity)
+    const { xml, dives } = writeUddf(db)
+    checkUddf(xml, dives)
     return c.body(xml, 200, {
       "Content-Type": "application/xml; charset=utf-8",
-      "Content-Disposition": attachment(`shylog-${localDate(now)}.uddf`),
+      "Content-Disposition": attachment(`shylog-${localDate(new Date())}.uddf`),
     })
   })
   // A consistent copy by VACUUM INTO, streamed and then removed. Served

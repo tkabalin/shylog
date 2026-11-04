@@ -31,10 +31,9 @@ type Kind = (typeof rows)[number]["kind"]
 const title = (kind: Kind) => rows.find((row) => row.kind === kind)!.title
 
 // You's Download section: each row builds its file on the server when
-// tapped and hands it to the share sheet (a download on a desktop). A
-// UDDF export also replaces the server's copy, so `onExport` asks for the
-// new "Last UDDF export" time.
-export function Downloads({ onExport }: { onExport: () => void }) {
+// tapped and hands it to the share sheet (a download on a desktop). None
+// touches the server's backup copies, so Your log's times stay as they are.
+export function Downloads() {
   const desk = useDesk()
   const [busy, setBusy] = useState<Partial<Record<Kind, boolean>>>({})
   const [error, setError] = useState<string>()
@@ -51,7 +50,6 @@ export function Downloads({ onExport }: { onExport: () => void }) {
       setError(`${title(kind)}: ${(failure as Error).message}`)
     } finally {
       setBusy((now) => ({ ...now, [kind]: false }))
-      if (kind === "uddf") onExport()
     }
   }
 

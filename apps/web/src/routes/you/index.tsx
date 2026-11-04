@@ -254,7 +254,7 @@ function YouPage() {
           </Section>
         )}
 
-        <Downloads onExport={reloadHealth} />
+        <Downloads />
 
         {log && <Preferences settings={log.settings} />}
 
