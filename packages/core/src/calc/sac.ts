@@ -1,4 +1,4 @@
-import { gasVolume } from "./gas.ts"
+import { diveOxygen, gasVolume } from "./gas.ts"
 import {
   depthToMbar,
   standardPressure,
@@ -62,4 +62,36 @@ export function sacDurationAndDepth(
         ? dive.averageDepth
         : fromSamples.averageDepth,
   }
+}
+
+// The samples' time under water and mean depth as the server stores them on
+// the dive, or null for a dive without samples.
+export const storedSampleFigures = (dive: {
+  sampleDuration?: number | null
+  sampleAverageDepth?: number | null
+}) =>
+  dive.sampleDuration && dive.sampleAverageDepth != null
+    ? { duration: dive.sampleDuration, averageDepth: dive.sampleAverageDepth }
+    : null
+
+// A saved dive's SAC rate, as its detail and the CSV export show it.
+export function diveSacRate(
+  dive: Omit<SacInputs, "oxygen" | "duration"> & {
+    duration: number
+    nitrox: boolean
+    oxygen?: number | null
+    sampleDuration?: number | null
+    sampleAverageDepth?: number | null
+  },
+  hand: { duration: boolean; averageDepth: boolean },
+  water: Water
+) {
+  return sacRate(
+    {
+      ...dive,
+      ...sacDurationAndDepth(dive, hand, storedSampleFigures(dive)),
+      oxygen: diveOxygen(dive),
+    },
+    water
+  )
 }

@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest"
 
 import { fixtureDive } from "../../test/fixture.ts"
 import { underwater } from "./average-depth.ts"
-import { sacDurationAndDepth, sacRate, type SacInputs } from "./sac.ts"
+import {
+  diveSacRate,
+  sacDurationAndDepth,
+  sacRate,
+  storedSampleFigures,
+  type SacInputs,
+} from "./sac.ts"
 import type { Sample } from "./samples.ts"
 
 const salt = { waterType: "salt" } as const
@@ -177,5 +183,52 @@ describe("sacDurationAndDepth", () => {
     )
     expect(values).toEqual({ duration: 2502, averageDepth: 20.989 })
     expect(dive.averageDepth).toBe(21.005)
+  })
+})
+
+describe("storedSampleFigures", () => {
+  it("gives the stored figures only when the dive has both", () => {
+    expect(
+      storedSampleFigures({ sampleDuration: 660, sampleAverageDepth: 9.091 })
+    ).toEqual({ duration: 660, averageDepth: 9.091 })
+    expect(
+      storedSampleFigures({ sampleDuration: null, sampleAverageDepth: 9 })
+    ).toBeNull()
+    expect(
+      storedSampleFigures({ sampleDuration: 660, sampleAverageDepth: null })
+    ).toBeNull()
+    expect(storedSampleFigures({})).toBeNull()
+  })
+})
+
+describe("diveSacRate", () => {
+  const dive = {
+    ...handWorked,
+    duration: 45 * 60,
+    nitrox: false,
+    oxygen: null,
+    sampleDuration: null,
+    sampleAverageDepth: null,
+  }
+  const typed = { duration: false, averageDepth: false }
+
+  it("breathes air on a dive with Nitrox off", () => {
+    expect(diveSacRate(dive, typed, salt)).toBe(11.724)
+  })
+
+  it("takes the samples' figures unless a value was typed", () => {
+    const sampled = { ...dive, sampleDuration: 3600, sampleAverageDepth: 30 }
+    expect(diveSacRate(sampled, typed, salt)).toBe(
+      sacRate({ ...handWorked, duration: 3600, averageDepth: 30 }, salt)
+    )
+    expect(
+      diveSacRate(sampled, { duration: true, averageDepth: true }, salt)
+    ).toBe(11.724)
+  })
+
+  it("uses the dive's nitrox mix", () => {
+    expect(
+      diveSacRate({ ...dive, nitrox: true, oxygen: 320 }, typed, salt)
+    ).toBe(sacRate({ ...handWorked, oxygen: 320 }, salt))
   })
 })

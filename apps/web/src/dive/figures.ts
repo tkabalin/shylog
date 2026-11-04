@@ -1,11 +1,4 @@
-import {
-  diveOxygen,
-  maxPo2,
-  mod,
-  sacDurationAndDepth,
-  sacRate,
-  type Water,
-} from "@shylog/core"
+import { diveOxygen, diveSacRate, maxPo2, mod, type Water } from "@shylog/core"
 
 import type { Dive, FieldMeta } from "@/data/db"
 import type { LogView } from "@/data/log"
@@ -18,14 +11,11 @@ const waterOf = (dive: Dive, log: LogView): Water => ({
 function diveSac(dive: Dive, log: LogView, water = waterOf(dive, log)) {
   const meta = log.fieldMeta.get(dive.id)
   const hand = (field: string) => meta?.get(field)?.source === "hand"
-  const sac = sacDurationAndDepth(
+  return diveSacRate(
     dive,
     { duration: hand("duration"), averageDepth: hand("averageDepth") },
-    dive.sampleDuration && dive.sampleAverageDepth != null
-      ? { duration: dive.sampleDuration, averageDepth: dive.sampleAverageDepth }
-      : null
+    water
   )
-  return sacRate({ ...dive, ...sac, oxygen: diveOxygen(dive) }, water)
 }
 
 // The detail's calculated figures, every one from core (see Calculations in

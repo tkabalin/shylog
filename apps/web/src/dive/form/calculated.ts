@@ -4,6 +4,7 @@ import {
   mod,
   sacDurationAndDepth,
   sacRate,
+  storedSampleFigures,
   type Water,
 } from "@shylog/core"
 
@@ -64,12 +65,7 @@ export function formFigures(
                 averageDepth: fields.averageDepth ?? null,
               },
               { duration: handDuration, averageDepth: handAverageDepth },
-              dive?.sampleDuration && dive.sampleAverageDepth != null
-                ? {
-                    duration: dive.sampleDuration,
-                    averageDepth: dive.sampleAverageDepth,
-                  }
-                : null
+              dive ? storedSampleFigures(dive) : null
             ),
           },
           water

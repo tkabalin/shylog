@@ -1,8 +1,6 @@
+import { countryName } from "@shylog/core"
+
 import type { Region, Site } from "@/data/db"
-
-const regionNames = new Intl.DisplayNames("en", { type: "region" })
-
-export const countryName = (code: string) => regionNames.of(code) ?? code
 
 // A card's place is the site's region, or its country when it has none
 // (D27); the detail names both.
