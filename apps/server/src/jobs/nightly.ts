@@ -17,7 +17,7 @@ import type { Db } from "../db/open.ts"
 import { syncDir } from "../fs.ts"
 import type { Integrity } from "../integrity.ts"
 import { setMeta } from "../journal.ts"
-import { exportFile, writeExport } from "./export.ts"
+import { csvFile, exportFile, writeExport } from "./export.ts"
 
 const day = 24 * 60 * 60 * 1000
 export const snapshotName = /^shylog-(\d{4}-\d{2}-\d{2})\.db\.gz$/
@@ -132,7 +132,7 @@ export async function checkedSnapshot(
   return file
 }
 
-// The snapshot, then the UDDF export beside it. A failure is logged and
+// The snapshot, then the UDDF and CSV exports. A failure is logged and
 // leaves the last time as it was, so You shows the backup has stalled; the
 // next night tries again. A failed export also raises You's alert, unless
 // the database failed its check, which has its own and takes no writes.
@@ -179,7 +179,8 @@ export function scheduleNightly(run: (at: Date) => void, from = new Date()) {
 
 // A server stopped over midnight missed that night's snapshot and export,
 // so both are made at startup when today's snapshot is missing, or when
-// there is no export at all yet (a first start, or a new data folder).
+// either export file is (a first start, a new data folder, or the first
+// start of a version that writes the CSV).
 export function startNightly(
   dataDir: string,
   run: (at: Date) => void,
@@ -187,7 +188,8 @@ export function startNightly(
 ) {
   if (
     !existsSync(snapshotFile(dataDir, localDate(from))) ||
-    !existsSync(exportFile(dataDir))
+    !existsSync(exportFile(dataDir)) ||
+    !existsSync(csvFile(dataDir))
   )
     run(from)
   scheduleNightly(run, from)

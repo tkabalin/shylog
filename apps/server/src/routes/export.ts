@@ -1,8 +1,10 @@
 import { createReadStream, rmSync, statSync } from "node:fs"
 import { Readable } from "node:stream"
 
+import { writeCsv } from "../csv/writer.ts"
 import { factory } from "../factory.ts"
 import {
+  checkCsv,
   checkUddf,
   exportTemp,
   refuseDamaged,
@@ -32,6 +34,17 @@ export const exports = factory
     return c.body(xml, 200, {
       "Content-Type": "application/xml; charset=utf-8",
       "Content-Disposition": attachment(`shylog-${localDate(new Date())}.uddf`),
+    })
+  })
+  // A fresh CSV for a spreadsheet, likewise for the download alone.
+  .get("/export/csv", (c) => {
+    const { db, state } = c.var.deps
+    refuseDamaged(state.integrity)
+    const { csv, dives } = writeCsv(db)
+    checkCsv(csv, dives)
+    return c.body(csv, 200, {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": attachment(`shylog-${localDate(new Date())}.csv`),
     })
   })
   // A consistent copy by VACUUM INTO, streamed and then removed. Served
