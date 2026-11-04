@@ -24,7 +24,9 @@ import {
 } from "@shylog/core"
 
 import { readSettings } from "../apply/settings.ts"
+import { byDive } from "../db/by-dive.ts"
 import type { Db } from "../db/open.ts"
+import { selectEvents, selectSamples } from "../profile.ts"
 // Air as the import reads it (D9); a dive with Nitrox off breathes it.
 import { air as airTenths } from "./sample-reader.ts"
 import { shylogNamespace } from "./shylog-namespace.ts"
@@ -90,19 +92,6 @@ const diveColumns = `
   notable_animals AS notableAnimals, gear_details AS gearDetails, notes,
   ignored, computer_model AS computerModel`
 
-interface SampleRow {
-  time: number
-  depth: number
-  temperature: number | null
-  pressure: number | null
-}
-
-interface EventRow {
-  type: string
-  start: number
-  end: number | null
-}
-
 const kelvin = (celsius: number | null) =>
   celsius == null ? null : celsiusToKelvin(celsius)
 
@@ -143,32 +132,24 @@ function build(db: Db) {
   const diveCentres = names("dive_centres")
   const regions = names("regions")
 
-  const linked = (table: string) => {
-    const byDive = new Map<string, string[]>()
-    for (const row of all<{ diveId: string; personId: string }>(
-      `SELECT dive_id AS diveId, person_id AS personId FROM ${table} ORDER BY dive_id, position`
-    )) {
-      const ids = byDive.get(row.diveId)
-      if (ids) ids.push(row.personId)
-      else byDive.set(row.diveId, [row.personId])
-    }
-    return byDive
-  }
+  const linked = (table: string) =>
+    byDive(
+      all<{ diveId: string; personId: string }>(
+        `SELECT dive_id AS diveId, person_id AS personId FROM ${table} ORDER BY dive_id, position`
+      ),
+      (row) => row.personId
+    )
   const buddies = linked("dive_buddies")
   const professionals = linked("dive_professionals")
-  const tagsOf = new Map<string, Set<string>>()
-  for (const row of all<{ diveId: string; tag: string }>(
-    "SELECT dive_id AS diveId, tag FROM dive_tags"
-  )) {
-    tagsOf.set(row.diveId, (tagsOf.get(row.diveId) ?? new Set()).add(row.tag))
-  }
+  const tagsOf = byDive(
+    all<{ diveId: string; tag: string }>(
+      "SELECT dive_id AS diveId, tag FROM dive_tags"
+    ),
+    (row) => row.tag
+  )
 
-  const samplesOf = db.prepare<[string], SampleRow>(
-    "SELECT time, depth, temperature, pressure FROM samples WHERE dive_id = ? ORDER BY time"
-  )
-  const eventsOf = db.prepare<[string], EventRow>(
-    "SELECT type, start_seconds AS start, end_seconds AS end FROM events WHERE dive_id = ? ORDER BY start_seconds, id"
-  )
+  const samplesOf = selectSamples(db)
+  const eventsOf = selectEvents(db)
 
   const tanks = new Map<string, DiveRow>()
   const oxygens = new Set<number>()
@@ -287,7 +268,7 @@ function build(db: Db) {
         leaf("trainingAgency", dive.trainingAgency),
         leaf("trainingCourse", dive.trainingCourse),
         ...keysOf(tags)
-          .filter((key) => tagKeys?.has(key))
+          .filter((key) => tagKeys?.includes(key))
           .map((key) => leaf("tag", key)),
         // UDDF's trips and dive bases need data Shylog doesn't keep (a
         // rating, trip parts, a link), so both are Shylog's own.
