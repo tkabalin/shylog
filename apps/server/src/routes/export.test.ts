@@ -22,7 +22,8 @@ import { createApp } from "../app.ts"
 import { seededDb } from "../../test/fixture.ts"
 import { openDatabase } from "../db/open.ts"
 import { getMeta, setMeta } from "../journal.ts"
-import { exportDir, exportFile } from "../jobs/export.ts"
+import { csvFile, exportDir, exportFile } from "../jobs/export.ts"
+import { csvHeaders, writeCsv } from "../csv/writer.ts"
 
 function setup() {
   const dir = mkdtempSync(join(tmpdir(), "shylog-export-"))
@@ -81,7 +82,11 @@ describe("GET /api/export/uddf", () => {
 
   it("doesn't build a download for a HEAD request", async () => {
     const { dir, app } = setup()
-    for (const path of ["/api/export/uddf", "/api/export/snapshot"]) {
+    for (const path of [
+      "/api/export/uddf",
+      "/api/export/csv",
+      "/api/export/snapshot",
+    ]) {
       const res = await app.request(path, {
         method: "HEAD",
         headers: apiHeaders,
@@ -89,6 +94,49 @@ describe("GET /api/export/uddf", () => {
       expect(res.status).toBe(405)
     }
     expect(existsSync(exportDir(dir))).toBe(false)
+  })
+})
+
+describe("GET /api/export/csv", () => {
+  it("streams a fresh CSV and writes nothing on the server", async () => {
+    const { dir, db, app } = setup()
+    setMeta(db, "export_failed_at", "2026-10-22T00:00:00.000Z")
+    const res = await get(app, "/api/export/csv")
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get("Content-Type")).toBe("text/csv; charset=utf-8")
+    expect(res.headers.get("Content-Disposition")).toMatch(
+      /^attachment; filename="shylog-\d{4}-\d\d-\d\d\.csv"$/
+    )
+    // Response.text() would drop the byte order mark Excel needs.
+    const body = new TextDecoder("utf-8", { ignoreBOM: true }).decode(
+      await res.arrayBuffer()
+    )
+    expect(body).toBe(writeCsv(db).csv)
+    expect(body.startsWith(`\uFEFF${csvHeaders.slice(0, 2).join(",")},`)).toBe(
+      true
+    )
+    expect(existsSync(exportDir(dir))).toBe(false)
+    expect(getMeta(db, "last_export_at")).toBeNull()
+    expect(getMeta(db, "export_failed_at")).toBe("2026-10-22T00:00:00.000Z")
+  })
+
+  it("refuses a database that failed its check", async () => {
+    const { dir, db } = setup()
+    const app = createApp({
+      db,
+      env: testEnv({ SHYLOG_DATA_DIR: dir }),
+      dbFile: null,
+      webRoot: testWebRoot(),
+      state: { integrity: "failed" },
+    })
+    const res = await get(app, "/api/export/csv")
+    expect(res.status).toBe(503)
+  })
+
+  it("needs the X-Shylog header", async () => {
+    const { app } = setup()
+    expect((await app.request("/api/export/csv")).status).toBe(403)
   })
 })
 
@@ -132,6 +180,7 @@ describe("POST /api/export/run", () => {
     expect(
       readFileSync(exportFile(dir), "utf8").match(/<dive id=/g)
     ).toHaveLength(46)
+    expect(readFileSync(csvFile(dir), "utf8")).toBe(writeCsv(db).csv)
   })
 
   it("needs the app's Origin", async () => {

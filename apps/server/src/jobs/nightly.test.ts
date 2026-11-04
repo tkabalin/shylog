@@ -17,8 +17,15 @@ import { describe, expect, it, onTestFinished, vi } from "vitest"
 
 import { apiHeaders, testApp } from "../../test/app.ts"
 import { seededDb } from "../../test/fixture.ts"
+import { csvHeaders } from "../csv/writer.ts"
 import { openDatabase } from "../db/open.ts"
-import { checkUddf, exportDir, exportFile } from "./export.ts"
+import {
+  checkCsv,
+  checkUddf,
+  csvFile,
+  exportDir,
+  exportFile,
+} from "./export.ts"
 import {
   checkedSnapshot,
   localDate,
@@ -30,6 +37,19 @@ import {
   snapshotsDir,
   startNightly,
 } from "./nightly.ts"
+
+// The CSV's read-back parse, which a test makes refuse the file.
+const csvCheck = vi.hoisted(() => ({ fail: false }))
+vi.mock("csv-parse/sync", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("csv-parse/sync")>()
+  return {
+    ...actual,
+    parse: ((...args: Parameters<typeof actual.parse>) => {
+      if (csvCheck.fail) throw new Error("unreadable")
+      return actual.parse(...args)
+    }) as typeof actual.parse,
+  }
+})
 
 function dataDir() {
   const dir = mkdtempSync(join(tmpdir(), "shylog-nightly-"))
@@ -98,7 +118,7 @@ describe("nightly", () => {
     expect(health.lastSnapshotAt).toBe(first.toISOString())
   })
 
-  it("writes the UDDF export after the snapshot", async () => {
+  it("writes the UDDF and CSV exports after the snapshot", async () => {
     const dir = dataDir()
     const db = seededDb()
     const now = new Date(2026, 9, 22)
@@ -116,8 +136,14 @@ describe("nightly", () => {
     expect(order).toEqual(["snapshot", "export"])
     const xml = readFileSync(exportFile(dir), "utf8")
     expect(xml.match(/<dive id=/g)).toHaveLength(46)
-    // The temp file is gone once the rename is done.
-    expect(readdirSync(exportDir(dir))).toEqual(["dives.uddf"])
+    expect(readFileSync(csvFile(dir), "utf8").match(/\r\ndive-/g)).toHaveLength(
+      46
+    )
+    // The temp files are gone once the renames are done.
+    expect(readdirSync(exportDir(dir)).sort()).toEqual([
+      "dives.csv",
+      "dives.uddf",
+    ])
     const meta = (key: string) =>
       db.prepare("SELECT value FROM meta WHERE key = ?").pluck().get(key)
     expect(meta("last_export_at")).toBe(now.toISOString())
@@ -137,6 +163,7 @@ describe("nightly", () => {
     const first = new Date(2026, 9, 21)
     await nightly(db, dir, "ok", first)
     const good = readFileSync(exportFile(dir), "utf8")
+    const goodCsv = readFileSync(csvFile(dir), "utf8")
 
     // A change the next good export should carry.
     const id = db.prepare("SELECT id FROM dives LIMIT 1").pluck().get()
@@ -158,7 +185,12 @@ describe("nightly", () => {
       expect.any(Error)
     )
     expect(readFileSync(exportFile(dir), "utf8")).toBe(good)
-    expect(readdirSync(exportDir(dir))).toEqual(["dives.uddf"])
+    // The CSV isn't swapped in without the UDDF beside it.
+    expect(readFileSync(csvFile(dir), "utf8")).toBe(goodCsv)
+    expect(readdirSync(exportDir(dir)).sort()).toEqual([
+      "dives.csv",
+      "dives.uddf",
+    ])
     expect(await exportHealth()).toMatchObject({
       lastExportAt: first.toISOString(),
       exportFailedAt: second.toISOString(),
@@ -167,10 +199,47 @@ describe("nightly", () => {
     const third = new Date(2026, 9, 23)
     await nightly(db, dir, "ok", third)
     expect(readFileSync(exportFile(dir), "utf8")).toContain("<para>ok</para>")
+    expect(readFileSync(csvFile(dir), "utf8")).not.toBe(goodCsv)
     expect(await exportHealth()).toMatchObject({
       lastExportAt: third.toISOString(),
       exportFailedAt: null,
     })
+  })
+
+  it("keeps both files when the CSV fails its check after the UDDF passed", async () => {
+    const dir = dataDir()
+    const db = seededDb()
+    await nightly(db, dir, "ok", new Date(2026, 9, 21))
+    const good = readFileSync(exportFile(dir), "utf8")
+    const goodCsv = readFileSync(csvFile(dir), "utf8")
+
+    const id = db.prepare("SELECT id FROM dives LIMIT 1").pluck().get()
+    db.prepare("UPDATE dives SET notes = ? WHERE id = ?").run("ok", id)
+    csvCheck.fail = true
+    const error = vi.spyOn(console, "error").mockImplementation(() => {})
+    onTestFinished(() => {
+      csvCheck.fail = false
+      error.mockRestore()
+    })
+    const second = new Date(2026, 9, 22)
+    await nightly(db, dir, "ok", second)
+
+    expect(error).toHaveBeenCalledWith(
+      "Nightly export failed:",
+      expect.any(Error)
+    )
+    expect(readFileSync(exportFile(dir), "utf8")).toBe(good)
+    expect(readFileSync(csvFile(dir), "utf8")).toBe(goodCsv)
+    expect(readdirSync(exportDir(dir)).sort()).toEqual([
+      "dives.csv",
+      "dives.uddf",
+    ])
+    expect(
+      db
+        .prepare("SELECT value FROM meta WHERE key = 'export_failed_at'")
+        .pluck()
+        .get()
+    ).toBe(second.toISOString())
   })
 
   it("runs at each local midnight", () => {
@@ -190,7 +259,7 @@ describe("nightly", () => {
     expect(run).toHaveBeenCalledTimes(2)
   })
 
-  it("takes a missed snapshot, or a missing export, at startup", async () => {
+  it("takes a missed snapshot, or a missing export file, at startup", async () => {
     const dir = dataDir()
     const db = seededDb()
     vi.useFakeTimers({ now: new Date(2026, 9, 22, 9, 0, 0) })
@@ -207,11 +276,17 @@ describe("nightly", () => {
     startNightly(dir, run)
     expect(run).toHaveBeenCalledTimes(2)
 
+    // The UDDF without the CSV, as left by a version before it.
     mkdirSync(exportDir(dir), { recursive: true })
     writeFileSync(exportFile(dir), "")
     vi.clearAllTimers()
     startNightly(dir, run)
-    expect(run).toHaveBeenCalledTimes(2)
+    expect(run).toHaveBeenCalledTimes(3)
+
+    writeFileSync(csvFile(dir), "")
+    vi.clearAllTimers()
+    startNightly(dir, run)
+    expect(run).toHaveBeenCalledTimes(3)
   })
 
   it("doesn't snapshot or prune a damaged database", async () => {
@@ -340,7 +415,7 @@ describe("retention", () => {
   })
 })
 
-// The read-back check, which the download also runs on the text it sends.
+// The read-back checks, which the downloads run on the text they send.
 describe("export checks", () => {
   const uddf = (dives: number) =>
     `<uddf xmlns="http://www.streit.cc/uddf/3.2/">${"<dive/>".repeat(dives)}</uddf>`
@@ -351,5 +426,17 @@ describe("export checks", () => {
       "The export holds 1 dives, not 2"
     )
     expect(() => checkUddf("<uddf>", 0)).toThrow()
+  })
+
+  it("counts a CSV export's rows and checks their width", () => {
+    const width = csvHeaders.length
+    const row = (cells: number) => `${Array(cells).fill("x").join(",")}\r\n`
+    expect(() => checkCsv(row(width) + row(width), 1)).not.toThrow()
+    expect(() => checkCsv(row(width), 1)).toThrow(
+      "The CSV export holds 0 rows, not 1"
+    )
+    expect(() => checkCsv(row(width - 1) + row(width - 1), 1)).toThrow(
+      `The CSV export's rows aren't ${width} wide`
+    )
   })
 })
