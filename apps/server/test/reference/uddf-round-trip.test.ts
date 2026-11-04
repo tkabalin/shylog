@@ -28,21 +28,14 @@ import { readUddf, type ProfileEvent } from "../../src/uddf/sample-reader.ts"
 import { writeUddf } from "../../src/uddf/writer.ts"
 import { send, testApp } from "../app.ts"
 import { testDb } from "../db.ts"
+import { fuzzOptions } from "../fuzz.ts"
 import { uddfSchemaErrors } from "../uddf-schema.ts"
 import { readOnceAsSubsurface } from "./subsurface-uddf.ts"
 
 // Random logs pushed through the draft upload and the export, then read back
 // by the XSD, Shylog's reader and Subsurface's own import. The fixed logs in
 // writer.test.ts show the mapping; this looks for the inputs that break it.
-// SHYLOG_FUZZ_RUNS raises the run count for a long local soak. The seed is
-// fixed, so CI tries the same cases every time and a red build is always the
-// change's; SHYLOG_FUZZ_SEED=random explores, or replays a printed seed.
-const runs = Number(process.env.SHYLOG_FUZZ_RUNS) || 60
-const seed = process.env.SHYLOG_FUZZ_SEED
-const options = {
-  numRuns: runs,
-  ...(seed === "random" ? {} : { seed: Number(seed) || 20261103 }),
-}
+const options = fuzzOptions(20261103)
 
 // XML 1.0's Char production: anything else can't be written, even escaped.
 const xmlText = (s: string) =>
@@ -521,75 +514,81 @@ function stored(db: Db) {
 }
 
 // About 2 s a case covers a failure's shrinking, which reruns xsltproc.
-describe("the UDDF export of a random log", { timeout: runs * 2000 }, () => {
-  it("passes the UDDF schema", async () => {
-    await fc.assert(
-      fc.asyncProperty(log, async (l) => {
-        expect(uddfSchemaErrors(writeUddf(await build(l)).xml)).toEqual([])
-      }),
-      options
-    )
-  })
+describe(
+  "the UDDF export of a random log",
+  { timeout: options.numRuns * 2000 },
+  () => {
+    it("passes the UDDF schema", async () => {
+      await fc.assert(
+        fc.asyncProperty(log, async (l) => {
+          expect(uddfSchemaErrors(writeUddf(await build(l)).xml)).toEqual([])
+        }),
+        options
+      )
+    })
 
-  it("is byte-identical on a second run", async () => {
-    await fc.assert(
-      fc.asyncProperty(log, async (l) => {
-        const db = await build(l)
-        expect(writeUddf(db).xml).toBe(writeUddf(db).xml)
-      }),
-      options
-    )
-  })
+    it("is byte-identical on a second run", async () => {
+      await fc.assert(
+        fc.asyncProperty(log, async (l) => {
+          const db = await build(l)
+          expect(writeUddf(db).xml).toBe(writeUddf(db).xml)
+        }),
+        options
+      )
+    })
 
-  it("is read back by Shylog's reader as stored", async () => {
-    await fc.assert(
-      fc.asyncProperty(log, async (l) => {
-        const db = await build(l)
-        // The reader lists an ascent left open last; stored, events are
-        // ordered by start (a stable sort keeps the order written for ties).
-        const read = readUddf(writeUddf(db).xml).map((dive) => ({
-          ...dive,
-          events: dive.events.toSorted((a, b) => a.start - b.start),
-        }))
-        expect(read).toEqual(
-          stored(db).map((dive) => ({
-            startTime: dive.startTime,
-            duration: dive.duration,
-            maxDepth: dive.maxDepth,
-            averageDepth: dive.averageDepth,
-            oxygen: dive.oxygen,
-            computerModel: dive.computerModel,
-            // Departure: the seeding reader leaves tank pressure for the
-            // import's reader (milestone 14).
-            samples: dive.samples.map((s) => ({ ...s, pressure: null })),
-            events: dive.events,
+    it("is read back by Shylog's reader as stored", async () => {
+      await fc.assert(
+        fc.asyncProperty(log, async (l) => {
+          const db = await build(l)
+          // The reader lists an ascent left open last; stored, events are
+          // ordered by start (a stable sort keeps the order written for ties).
+          const read = readUddf(writeUddf(db).xml).map((dive) => ({
+            ...dive,
+            events: dive.events.toSorted((a, b) => a.start - b.start),
           }))
-        )
-      }),
-      options
-    )
-  })
+          expect(read).toEqual(
+            stored(db).map((dive) => ({
+              startTime: dive.startTime,
+              duration: dive.duration,
+              maxDepth: dive.maxDepth,
+              averageDepth: dive.averageDepth,
+              oxygen: dive.oxygen,
+              computerModel: dive.computerModel,
+              // Departure: the seeding reader leaves tank pressure for the
+              // import's reader (milestone 14).
+              samples: dive.samples.map((s) => ({ ...s, pressure: null })),
+              events: dive.events,
+            }))
+          )
+        }),
+        options
+      )
+    })
 
-  it("is read by Subsurface with every field it imports", async () => {
-    await fc.assert(
-      fc.asyncProperty(log, async (l) => {
-        const db = await build(l)
-        const xml = writeUddf(db).xml
-        const theirs = Array.from(
-          readOnceAsSubsurface(xml).getElementsByTagName("dive")
-        )
-        const ours = stored(db)
-        expect(theirs).toHaveLength(ours.length)
-        const wrong: string[] = []
-        ours.forEach((dive, i) => {
-          wrong.push(...compare(theirs[i], dive).map((w) => `${dive.id} ${w}`))
-        })
-        expect(wrong).toEqual([])
-      }),
-      options
-    )
-  })
-})
+    it("is read by Subsurface with every field it imports", async () => {
+      await fc.assert(
+        fc.asyncProperty(log, async (l) => {
+          const db = await build(l)
+          const xml = writeUddf(db).xml
+          const theirs = Array.from(
+            readOnceAsSubsurface(xml).getElementsByTagName("dive")
+          )
+          const ours = stored(db)
+          expect(theirs).toHaveLength(ours.length)
+          const wrong: string[] = []
+          ours.forEach((dive, i) => {
+            wrong.push(
+              ...compare(theirs[i], dive).map((w) => `${dive.id} ${w}`)
+            )
+          })
+          expect(wrong).toEqual([])
+        }),
+        options
+      )
+    })
+  }
+)
 
 // Subsurface writes its own units with a fixed number of decimals, so a
 // figure matches when it is within half its last digit.
