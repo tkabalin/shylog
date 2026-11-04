@@ -22,7 +22,7 @@ export const options = <V extends string>(
     label: choices[value].label,
   }))
 
-// A choice field's options as a bottom sheet (D29): a tick on the chosen
+// A choice field's options as a bottom sheet: a tick on the chosen
 // one, and Not set first where the field is optional. Picking closes it.
 export function OptionSheet<V extends string>({
   open,

@@ -119,7 +119,7 @@ function LogPage() {
       replace: true,
     })
 
-  // The header follows the pills; the search narrows only the cards (D27).
+  // The header follows the pills; the search narrows only the cards.
   const filtered =
     log?.dives.filter((dive) => matchesFilters(dive, filters, log)) ?? []
   const figures = headerFigures(filtered)

@@ -27,7 +27,7 @@ import { readSettings } from "../apply/settings.ts"
 import { byDive } from "../db/by-dive.ts"
 import type { Db } from "../db/open.ts"
 import { selectEvents, selectSamples } from "../profile.ts"
-// Air as the import reads it (D9); a dive with Nitrox off breathes it.
+// Air as the import reads it; a dive with Nitrox off breathes it.
 import { air as airTenths } from "./sample-reader.ts"
 import { shylogNamespace } from "./shylog-namespace.ts"
 import { element, leaf, link, personal, type Xml } from "./xml.ts"

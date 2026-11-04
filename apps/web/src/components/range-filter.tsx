@@ -32,7 +32,7 @@ export function rangeLabel(range: Range, scale: Scale, unit: string) {
     : `${range.min}–${range.max} ${unit}`
 }
 
-// A Depth or Duration pill (D25), styled like the Log's other filter pills.
+// A Depth or Duration pill, styled like the Log's other filter pills.
 export function RangeFilter({
   icon: Icon,
   ...sheet

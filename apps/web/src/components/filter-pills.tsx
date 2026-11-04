@@ -72,7 +72,7 @@ function FilterSelect({
 // In the pill's text colour, as on the board; only the chevron is muted.
 const iconClass = "text-current"
 
-// LogHifi2's filter row, plus Depth and Duration after its pills (D25).
+// LogHifi2's filter row, plus Depth and Duration after its pills.
 // Lists only what the log uses, so no choice ever empties the Log.
 export function FilterPills({
   log,

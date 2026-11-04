@@ -32,7 +32,7 @@ const kinds = {
   trip: { placeholder: "Trip", empty: "Type a name to add a trip" },
 } satisfies Record<Kind, { placeholder: string; empty: string }>
 
-// Buddies, dive professionals, the dive centre and the trip (D29): a
+// Buddies, dive professionals, the dive centre and the trip: a
 // full-height sheet like iOS Calendar's Add Invitees. The chosen names sit
 // at the top over a field with the keyboard up, then everyone in recent
 // order, narrowing to matches and Add as you type.

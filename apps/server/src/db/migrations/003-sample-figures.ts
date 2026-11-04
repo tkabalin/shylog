@@ -2,7 +2,7 @@ import { underwater, type Sample } from "@shylog/core"
 
 import type { Migration } from "../migrate.ts"
 
-// SAC's time under water and mean depth from the samples (D27), stored like
+// SAC's time under water and mean depth from the samples, stored like
 // the sparkline so the phone needs no samples. Filled for dives that
 // already have samples.
 export const sampleFigures: Migration = {

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react"
 
 // Whether the profile's temperature lane draws the water as it was or every
-// reading as recorded (D35). Kept per phone, as Appearance is, and on
+// reading as recorded. Kept per phone, as Appearance is, and on
 // unless turned off; one store, so You's switch redraws an open chart.
 const key = "smooth-temperature"
 

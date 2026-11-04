@@ -16,7 +16,7 @@ export interface FixtureDive {
   averageDepth: number
   // The exported mix in tenths of a per cent; freedives have none.
   mix: number | null
-  // As an import reads the mix: 21 % is air (D9), anything else nitrox.
+  // As an import reads the mix: 21 % is air, anything else nitrox.
   nitrox: boolean
   oxygen: number | null
   // As exported, repeated times included.

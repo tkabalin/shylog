@@ -74,7 +74,7 @@ function useStuck(scroller: string) {
   return [bar, stuck] as const
 }
 
-// LogHifi2's Hero count header (D15) as an iOS large title (D27): the count
+// LogHifi2's Hero count header as an iOS large title: the count
 // and strip scroll away with the list, and the bar with the search and
 // filters sticks under the status bar.
 export function LogHeader({

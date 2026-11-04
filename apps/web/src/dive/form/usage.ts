@@ -2,8 +2,8 @@ import type { LogView } from "@/data/log"
 
 // How each site, person, dive centre and trip has been used, for the
 // pickers' lists: dives counted as the entity screens count them, leaving
-// out ignored dives (D20, D23), and the latest dive, ignored or not, so the
-// list leads with what was used last (D29).
+// out ignored dives, and the latest dive, ignored or not, so the
+// list leads with what was used last.
 export interface Usage {
   count: number
   last: string

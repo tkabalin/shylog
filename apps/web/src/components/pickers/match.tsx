@@ -42,7 +42,7 @@ export function Highlighted({
   )
 }
 
-// Spaces tidied, case kept: names are saved as typed (D29).
+// Spaces tidied, case kept: names are saved as typed.
 export const tidyName = (name: string) => name.trim().replace(/\s+/g, " ")
 
 // Grouped as the dates are (en-GB), so a busy site reads "1,234 dives".

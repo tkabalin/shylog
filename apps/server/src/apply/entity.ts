@@ -277,7 +277,7 @@ export function applyEntityOp(
 }
 
 // `PUT /api/entities/:kind/:id`: a new id creates the entity from the full
-// fields (D6), a known one takes the changed fields. True when it changed
+// fields, a known one takes the changed fields. True when it changed
 // anything, so a repeated save writes nothing.
 export function putEntity(
   db: Db,

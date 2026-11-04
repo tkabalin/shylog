@@ -48,7 +48,7 @@ function uses(log: LogView, kind: EntityKind, id: string, dive: Dive) {
   }
 }
 
-// The dives an entity's figures count: in the log, not ignored (D23),
+// The dives an entity's figures count: in the log, not ignored,
 // newest first.
 export const divesOf = (log: LogView, kind: EntityKind, id: string) =>
   log.dives.filter((dive) => !dive.ignored && uses(log, kind, id, dive))
@@ -167,7 +167,7 @@ export interface Figure {
   kind: "count" | "depth" | "date"
 }
 
-// Each detail's three figures, leaving out ignored dives (D20, D23).
+// Each detail's three figures, leaving out ignored dives.
 export function figuresOf(
   log: LogView,
   kind: EntityKind,

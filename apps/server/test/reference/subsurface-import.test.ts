@@ -141,7 +141,7 @@ describe("Shylog's reader against Subsurface's", { timeout: 20_000 }, () => {
           maxDepth: dive.maxDepth,
           hasAverage: dive.averageDepth != null,
           // Departure: 21 % and under is air, null, as Subsurface's loader
-          // also reads it (D9).
+          // also reads it.
           oxygen:
             dive.oxygen == null || dive.oxygen <= 210 ? null : dive.oxygen,
           computerModel: dive.computerModel,

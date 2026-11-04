@@ -30,7 +30,7 @@ function depthAt(samples: readonly Sample[], time: number) {
   return a.depth + ((b.depth - a.depth) * (time - a.time)) / (b.time - a.time)
 }
 
-// The Log's sparkline (D2): the deepest sample in each of 24 equal slices of
+// The Log's sparkline: the deepest sample in each of 24 equal slices of
 // the dive, so the line always reaches the bottom. A slice with no sample in
 // it takes the depth at its middle. Centimetres are plenty at that size.
 export function sparkline(samples: readonly Sample[], duration: number) {

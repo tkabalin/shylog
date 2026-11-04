@@ -15,7 +15,7 @@ import { writeUddf } from "../uddf/writer.ts"
 
 const attachment = (name: string) => `attachment; filename="${name}"`
 
-// The You tab's downloads and Export now (D4). A failure answers here and
+// The You tab's downloads and Export now. A failure answers here and
 // changes nothing else: only a failed night raises the alert.
 export const exports = factory
   .createApp()

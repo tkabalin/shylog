@@ -68,7 +68,7 @@ const countryNames = countryCodes
   .map((code) => ({ code, name: countryName(code) }))
   .sort((a, b) => a.name.localeCompare(b.name))
 
-// The site picker (SitePickerHifi as a full-height sheet, D29): search,
+// The site picker (SitePickerHifi as a full-height sheet): search,
 // recent sites and every site by country, or a new site whose country and
 // body of water lists push in within the same sheet.
 export function SiteSheet({

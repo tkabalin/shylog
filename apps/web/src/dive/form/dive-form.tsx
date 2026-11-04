@@ -182,9 +182,9 @@ const choiceSheets = {
   },
 } as const
 
-// The add and edit form (EditDiveHifi, with D14 and D29): one screen of
-// sections, its pickers as sheets. Saving is the route's job; the form
-// checks the values and hands them over.
+// The add and edit form (EditDiveHifi, with computer values to adopt or
+// dismiss): one screen of sections, its pickers as bottom sheets. Saving
+// is the route's job; the form checks the values and hands them over.
 export function DiveForm({
   title,
   log,
@@ -435,7 +435,7 @@ export function DiveForm({
     handAverageDepth: !dive || hand("averageDepth"),
   })
 
-  // The marker or reset beside a compared field's label (D14): the value
+  // The marker or reset beside a compared field's label: the value
   // came from the computer (or Shylog worked it out), and once edited the
   // marker turns into a reset to that value.
   const source = (field: ComparedField) => {
@@ -1555,7 +1555,7 @@ function NoteField({
 
 // The surface interval: the calculated figure with its marker, or the
 // figure or No previous dive picked in its sheet, where Calculated puts the
-// worked-out figure back (D29).
+// worked-out figure back.
 function SurfaceInterval({
   value,
   calculated,

@@ -231,7 +231,7 @@ export function PickRow({
 }
 
 // A choice row on a desktop (desk:): shadcn's Select, dropping below the
-// value as a Windows form's does, where touch opens an option sheet (D29).
+// value as a Windows form's does, where touch opens an option sheet.
 // Not set leads the list where the field is optional, as in the sheet.
 export function SelectRow<V extends string>({
   icon,
@@ -521,7 +521,7 @@ export function ResetButton({
 }
 
 // A hand value the computer disagrees with: the computer's value on its own
-// line under the field, with ✓ to use it and ✕ to keep yours (D14). The two
+// line under the field, with ✓ to use it and ✕ to keep yours. The two
 // buttons line up with the values above them, right-aligned.
 export function DifferenceLine({
   computer,

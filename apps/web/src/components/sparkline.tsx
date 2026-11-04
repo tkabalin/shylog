@@ -3,7 +3,7 @@ import { cn } from "cn"
 
 import { chartDepthAxis } from "@/chart/layout"
 
-// The Log's 24-point profile (D2) from the surface and back, in the board's
+// The Log's 24-point profile from the surface and back, in the board's
 // 60 × 24 box. The scale is the profile chart's depth axis with its 30 m
 // floor, unlike the detail's, so a shallow dive looks shallow in the list.
 // `stretch` keeps the line weight. The water above the profile is shaded,

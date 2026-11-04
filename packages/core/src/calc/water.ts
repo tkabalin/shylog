@@ -1,7 +1,7 @@
 import { lrint } from "./round.ts"
 import type { ChartPoint } from "./velocity.ts"
 
-// The water temperature lane's smoothed line (D35). Both computers record
+// The water temperature lane's smoothed line. Both computers record
 // whole degrees, only on a change, and the sensor lags the water by
 // minutes, so the recorded line starts warm and flickers by a degree.
 

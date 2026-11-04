@@ -33,7 +33,7 @@ interface Row {
   deleted: number
 }
 
-// The extremes of a dive's sample temperatures (D10), or nulls without any.
+// The extremes of a dive's sample temperatures, or nulls without any.
 export function sampleTemperatures(samples: readonly Sample[]) {
   const values = samples
     .map((sample) => sample.temperature)

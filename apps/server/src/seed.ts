@@ -47,7 +47,7 @@ export function seed(db: Db, xml: string, source: string) {
     for (const dive of dives) {
       const id = newId("dive")
       const day = dive.startTime.slice(0, 10)
-      // The computer's minimum and maximum are its sample extremes (D10).
+      // The computer's minimum and maximum are its sample extremes.
       const temperatures = sampleTemperatures(dive.samples)
       const fields = {
         startTime: dive.startTime,
