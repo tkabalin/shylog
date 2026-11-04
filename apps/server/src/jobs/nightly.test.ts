@@ -18,7 +18,7 @@ import { describe, expect, it, onTestFinished, vi } from "vitest"
 import { apiHeaders, testApp } from "../../test/app.ts"
 import { seededDb } from "../../test/fixture.ts"
 import { openDatabase } from "../db/open.ts"
-import { exportDir, exportFile } from "./export.ts"
+import { checkUddf, exportDir, exportFile } from "./export.ts"
 import {
   checkedSnapshot,
   localDate,
@@ -337,5 +337,19 @@ describe("retention", () => {
         "shylog-2026-10-22.db.gz.5e6f7a8b.raw.tmp",
       ].sort()
     )
+  })
+})
+
+// The read-back check, which the download also runs on the text it sends.
+describe("export checks", () => {
+  const uddf = (dives: number) =>
+    `<uddf xmlns="http://www.streit.cc/uddf/3.2/">${"<dive/>".repeat(dives)}</uddf>`
+
+  it("counts a UDDF export's dives", () => {
+    expect(() => checkUddf(uddf(2), 2)).not.toThrow()
+    expect(() => checkUddf(uddf(1), 2)).toThrow(
+      "The export holds 1 dives, not 2"
+    )
+    expect(() => checkUddf("<uddf>", 0)).toThrow()
   })
 })

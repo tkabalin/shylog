@@ -44,23 +44,38 @@ export function exportTemp(dataDir: string, suffix: string, now = new Date()) {
   return join(dir, `.${randomUUID().slice(0, 8)}${suffix}.tmp`)
 }
 
-// Builds the export and replaces export/dives.uddf with it: written to a
-// temp file and flushed, read back and parsed, its dives counted, and only
-// then renamed over the last one. Any failure throws and leaves that file.
-export function writeExport(
-  db: Db,
-  dataDir: string,
-  integrity: Integrity,
-  now = new Date()
-) {
-  // Its reads may not be trusted, and the last export may be the better
-  // copy. The routes answer 503 with this.
+// Its reads may not be trusted, and the server's last export may be the
+// better copy. The routes answer 503 with this.
+export function refuseDamaged(integrity: Integrity) {
   if (integrity === "failed") {
     throw new Rejected(
       "The database failed its check, so it can’t be exported",
       503
     )
   }
+}
+
+// Re-parsed and its dives counted, so a file that wouldn't open fails here
+// rather than in Subsurface.
+export function checkUddf(xml: string, dives: number) {
+  const written = new DOMParser({ onError: onErrorStopParsing })
+    .parseFromString(xml, "text/xml")
+    .getElementsByTagNameNS(uddfNamespace, "dive").length
+  if (written !== dives) {
+    throw new Error(`The export holds ${written} dives, not ${dives}`)
+  }
+}
+
+// Builds the export and replaces export/dives.uddf with it: written to a
+// temp file and flushed, read back and checked, and only then renamed over
+// the last one. Any failure throws and leaves that file.
+export function writeExport(
+  db: Db,
+  dataDir: string,
+  integrity: Integrity,
+  now = new Date()
+) {
+  refuseDamaged(integrity)
   const { xml, dives } = writeUddf(db)
   const file = exportFile(dataDir)
   const temp = exportTemp(dataDir, ".uddf", now)
@@ -72,25 +87,19 @@ export function writeExport(
     } finally {
       closeSync(fd)
     }
-    const written = new DOMParser({ onError: onErrorStopParsing })
-      .parseFromString(readFileSync(temp, "utf8"), "text/xml")
-      .getElementsByTagNameNS(uddfNamespace, "dive").length
-    if (written !== dives) {
-      throw new Error(`The export holds ${written} dives, not ${dives}`)
-    }
+    checkUddf(readFileSync(temp, "utf8"), dives)
     renameSync(temp, file)
     syncDir(exportDir(dataDir))
   } finally {
     rmSync(temp, { force: true })
   }
   // Outside the journal, as the snapshot's time is. A success clears a
-  // failed night's alert, however it came. The file is already in place,
-  // so a full disk refusing these only leaves the times behind.
+  // failed night's alert, by Export now or the next night. The file is
+  // already in place, so a full disk refusing these only leaves the times.
   try {
     setMeta(db, "last_export_at", now.toISOString())
     setMeta(db, "export_failed_at", null)
   } catch (error) {
     console.error("Couldn’t record the export’s time:", error)
   }
-  return xml
 }

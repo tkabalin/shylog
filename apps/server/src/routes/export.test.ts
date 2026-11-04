@@ -38,7 +38,7 @@ const get = (
 ) => app.request(path, { headers: apiHeaders })
 
 describe("GET /api/export/uddf", () => {
-  it("rewrites the export file and streams it", async () => {
+  it("streams a fresh export and leaves the server's copy alone", async () => {
     const { dir, db, app } = setup()
     setMeta(db, "export_failed_at", "2026-10-22T00:00:00.000Z")
     const res = await get(app, "/api/export/uddf")
@@ -52,10 +52,10 @@ describe("GET /api/export/uddf", () => {
     )
     const body = await res.text()
     expect(body.match(/<dive id=/g)).toHaveLength(46)
-    expect(readFileSync(exportFile(dir), "utf8")).toBe(body)
-    expect(readdirSync(exportDir(dir))).toEqual(["dives.uddf"])
-    expect(getMeta(db, "last_export_at")).not.toBeNull()
-    expect(getMeta(db, "export_failed_at")).toBeNull()
+    // Only the nightly job and Export now write the backup copy.
+    expect(existsSync(exportDir(dir))).toBe(false)
+    expect(getMeta(db, "last_export_at")).toBeNull()
+    expect(getMeta(db, "export_failed_at")).toBe("2026-10-22T00:00:00.000Z")
   })
 
   it("refuses a database that failed its check", async () => {
@@ -72,22 +72,23 @@ describe("GET /api/export/uddf", () => {
     expect(await res.json()).toMatchObject({
       error: "The database failed its check, so it can’t be exported",
     })
-    expect(existsSync(exportFile(dir))).toBe(false)
-  })
-
-  it("doesn't rewrite the file for a HEAD request", async () => {
-    const { dir, app } = setup()
-    const res = await app.request("/api/export/uddf", {
-      method: "HEAD",
-      headers: apiHeaders,
-    })
-    expect(res.status).toBe(405)
-    expect(existsSync(exportFile(dir))).toBe(false)
   })
 
   it("needs the X-Shylog header", async () => {
     const { app } = setup()
     expect((await app.request("/api/export/uddf")).status).toBe(403)
+  })
+
+  it("doesn't build a download for a HEAD request", async () => {
+    const { dir, app } = setup()
+    for (const path of ["/api/export/uddf", "/api/export/snapshot"]) {
+      const res = await app.request(path, {
+        method: "HEAD",
+        headers: apiHeaders,
+      })
+      expect(res.status).toBe(405)
+    }
+    expect(existsSync(exportDir(dir))).toBe(false)
   })
 })
 

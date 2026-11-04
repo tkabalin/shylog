@@ -255,11 +255,8 @@ test("warns that saving is paused after a failed database check", async ({
 
 // A desktop browser and Playwright's can't share files, so the rows save
 // a download; the share sheet was checked on the owner's phone.
-test("downloads a fresh UDDF export and shows its time @writes", async ({
-  page,
-}) => {
+test("downloads a fresh UDDF export", async ({ page }) => {
   await page.goto("/you")
-  await expect(row(page, "Last UDDF export")).not.toContainText("—")
   const saved = page.waitForEvent("download")
   await page.getByRole("button", { name: /UDDF export/ }).click()
   const file = await saved
@@ -269,7 +266,6 @@ test("downloads a fresh UDDF export and shows its time @writes", async ({
     .toArray()
     .then((parts) => parts.join(""))
   expect(await text).toContain('<uddf xmlns="http://www.streit.cc/uddf/3.2/"')
-  await expect(row(page, "Last UDDF export")).toContainText(/Today \d\d:\d\d/)
 })
 
 test("downloads a database snapshot", async ({ page }) => {
