@@ -2,6 +2,7 @@ import { useRef, useState, type ReactNode } from "react"
 import {
   bodiesOfWater,
   countryCodes,
+  countryName,
   defaultWaterType,
   keysOf,
   newId,
@@ -26,7 +27,6 @@ import { cn } from "cn"
 
 import { Drawer } from "@/components/ui/drawer"
 import { Segmented } from "@/dive/form/rows"
-import { countryName } from "@/format/place"
 import { useDesk } from "@/hooks/use-desk"
 import type { NewEntity } from "@/dive/form/values"
 

@@ -253,3 +253,9 @@ export const countryCodes = [
   "ZW",
 ] as const
 export type CountryCode = (typeof countryCodes)[number]
+
+// English names, as the app is in English; a code it doesn't know is shown
+// as itself, which DisplayNames' default fallback gives.
+const regionNames = new Intl.DisplayNames("en", { type: "region" })
+
+export const countryName = (code: string) => regionNames.of(code)!

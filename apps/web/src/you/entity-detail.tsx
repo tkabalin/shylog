@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, type ReactNode } from "react"
 import {
   bodiesOfWater,
+  countryName,
   defaultWaterType,
   type BodyOfWater,
   type CountryCode,
@@ -75,7 +76,6 @@ import {
 } from "@/dive/form/rows"
 import { clockTime, longDate, months } from "@/format/dates"
 import { depth, minutes } from "@/format/figures"
-import { countryName } from "@/format/place"
 import { useDesk } from "@/hooks/use-desk"
 
 import { PageBar, useBack } from "./bar"

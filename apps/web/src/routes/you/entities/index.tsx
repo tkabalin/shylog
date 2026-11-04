@@ -1,5 +1,10 @@
 import { useMemo } from "react"
-import { entityKinds, normaliseName, type EntityKind } from "@shylog/core"
+import {
+  countryName,
+  entityKinds,
+  normaliseName,
+  type EntityKind,
+} from "@shylog/core"
 import {
   IconCalendar,
   IconChevronRight,
@@ -22,7 +27,6 @@ import {
 import type { Dive } from "@/data/db"
 import { useLog, type LogView } from "@/data/log"
 import type { Icon } from "@/dive/form/rows"
-import { countryName } from "@/format/place"
 import { PageBar } from "@/you/bar"
 import { kindLabels } from "@/you/kinds"
 
