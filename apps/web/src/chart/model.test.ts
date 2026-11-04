@@ -279,7 +279,7 @@ describe("the profile's depth", () => {
 
 describe("the smoothed temperature lane", () => {
   // 30 December 2025: the recorded line starts at 20 °C on the way down, but
-  // the water was 17 °C throughout (D35).
+  // the water was 17 °C throughout.
   const dive = fixtureDiveAt("2025-12-30T11:43")
   const profile: Profile = {
     samples: mergeDuplicateSamples(dive.samples),

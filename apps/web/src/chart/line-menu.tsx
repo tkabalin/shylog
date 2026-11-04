@@ -13,7 +13,7 @@ const lines = [
 ] as const
 
 // The temperature lane's caption, naming the line it shows, and a menu to
-// pick the other (D35). Laid out in the chart rather than portalled, so it
+// pick the other. Laid out in the chart rather than portalled, so it
 // turns with the full-screen view; it opens upward, inside the card.
 export function LineMenu() {
   const smooth = useSmoothTemperature()

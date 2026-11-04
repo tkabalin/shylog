@@ -137,7 +137,7 @@ const unitOf = (kind: EntityKind): [string, string] =>
   kind === "region" ? ["site", "sites"] : ["dive", "dives"]
 
 // EntityDetailHifi: the name and where it is, its own figures, the fields
-// with Save (D7), its dives, and merging a duplicate in or deleting it.
+// with Save, its dives, and merging a duplicate in or deleting it.
 export function EntityDetail({
   log,
   kind,

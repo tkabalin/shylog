@@ -17,7 +17,7 @@ export interface Scale {
   step: number
 }
 
-// The sheet a Depth or Duration pill opens (D25): a two-handle slider with
+// The sheet a Depth or Duration pill opens: a two-handle slider with
 // its bounds shown above the handles, and Reset and Apply. Loaded on its own,
 // as the Log's first frame doesn't need it.
 export default function RangeSheet({

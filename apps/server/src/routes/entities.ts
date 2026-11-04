@@ -24,7 +24,7 @@ const target = validator("param", (value: Record<string, string>) => {
   }
 })
 
-// Renames, merges and deletes from Settings, and creates for a new id (D6).
+// Renames, merges and deletes from Settings, and creates for a new id.
 // The body is checked inside the write, as which schema applies depends on
 // whether the entity exists.
 export const entities = factory

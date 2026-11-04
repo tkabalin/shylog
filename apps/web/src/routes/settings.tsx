@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
-// The tab was Settings before it became You (D30): an installed copy or a
+// The tab was Settings before it became You: an installed copy or a
 // bookmark that still opens /settings lands there.
 export const Route = createFileRoute("/settings")({
   beforeLoad: () => {

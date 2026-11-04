@@ -45,7 +45,7 @@ export const profileGutter = ({ samples }: Profile, maxDepth: number) =>
 // Everything the chart draws for one dive at one plot size, from core's rules
 // (see Profile chart in the spec): points in view with their speeds, the
 // axes, labelled depths, events, alarms and the MOD line. Smoothed, the
-// points carry the water's temperature rather than the readings (D35).
+// points carry the water's temperature rather than the readings.
 export function profileModel(
   { samples, events: sent }: Profile,
   {

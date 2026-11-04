@@ -6,7 +6,7 @@ import {
 } from "@shylog/core"
 import { DOMParser, type Element } from "@xmldom/xmldom"
 
-// A small reader for seeding (D1): enough of a Subsurface export for dives,
+// A small reader for seeding: enough of a Subsurface export for dives,
 // samples, alarms and the gas. The Suunto import grows out of it later.
 
 export interface ProfileEvent {
@@ -39,7 +39,7 @@ const number = (parent: Element, name: string) => {
   return value == null ? null : Number(value)
 }
 
-// Air is written as 0.21 and read as air, as Subsurface does (D9); core
+// Air is written as 0.21 and read as air, as Subsurface does; core
 // takes nitrox from 21.1 %.
 export const air = 210
 

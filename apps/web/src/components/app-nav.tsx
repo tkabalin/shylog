@@ -27,7 +27,7 @@ const destinations = [
   { to: "/", label: "Log", icon: IconNotebook },
   { to: "/stats", label: "Stats", icon: IconChartBar },
   { to: "/import", label: "Import", icon: IconUpload },
-  // Once Settings: the diver's own things and the log's upkeep (D30).
+  // Once Settings: the diver's own things and the log's upkeep.
   { to: "/you", label: "You", icon: IconScubaMask },
 ] as const
 

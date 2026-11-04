@@ -3,7 +3,7 @@ import { Slider as SliderPrimitive } from "@base-ui/react/slider"
 import { cn } from "cn"
 
 // Shylog: thumbs are 20px with a 44px touch area for wet hands, and each can
-// carry a label shown above it (the range sheet's bounds, D25), or one label
+// carry a label shown above it (the range sheet's bounds), or one label
 // centred between them when they are too close for two.
 function Slider({
   className,

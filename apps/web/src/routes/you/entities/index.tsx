@@ -53,7 +53,7 @@ interface Row {
 }
 
 // What each row says under its name, and what it counts: dives, leaving
-// out ignored ones (D23), or a region's sites.
+// out ignored ones, or a region's sites.
 function rowsOf(log: LogView, kind: EntityKind): Row[] {
   // One pass over the log for every row's count, and a trip's dives for
   // its dates, rather than one per row.

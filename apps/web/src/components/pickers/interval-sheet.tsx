@@ -18,7 +18,7 @@ const longest = 48 * 60
 // Wheel rows are 44 px, the touch target, with two showing either side.
 const rowHeight = 44
 
-// The surface interval as a sheet (D29): hours and minutes wheels like the
+// The surface interval as a sheet: hours and minutes wheels like the
 // iOS Timer, with Calculated and No previous dive as rows. Touching a wheel
 // picks by hand at once; Done saves, a swipe or Cancel leaves it.
 export function IntervalSheet({

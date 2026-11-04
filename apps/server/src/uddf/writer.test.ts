@@ -61,7 +61,7 @@ describe("the seeded log", { timeout: 20_000 }, () => {
     expect(text(dive, "datetime")).toBe(fixtureStart[63])
     expect(text(dive, "greatestdepth")).toBe("32.66")
     expect(text(dive, "diveduration")).toBe("2500")
-    // 23 °C from the samples (D10).
+    // 23 °C from the samples.
     expect(text(dive, "lowesttemperature")).toBe("296.15")
     expect(own(dive, "maxTemperature")).toEqual(["297.15"])
     expect(refs(all(dive, "tankdata")[0])).toEqual(["mix-320"])

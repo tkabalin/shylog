@@ -39,7 +39,7 @@ const filePages = (files: readonly File[]): Page[] =>
   files.map((file) => ({ key: newId("card"), cardId: newId("card"), file }))
 
 // CertsHifi's New card and Edit card, as a full-height sheet over the list
-// or the viewer (D31). New opens with the screenshots just picked; several
+// or the viewer. New opens with the screenshots just picked; several
 // can be one card with pages or a card each. A long press lifts a page to
 // drag it into a new place.
 export function CardSheet({

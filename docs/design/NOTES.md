@@ -18,7 +18,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Depth labels sit in a gutter left of the plot, not inside it as the board draws them, so a steep descent never runs under them.
 - The axes fit the dive (Subsurface's zoomed plot), not the board's fixed 35 m and 48 min.
 - The temperature lane's header reads only its caption and the crosshair's value. The board's min–max range moves to two labels in the gutter, at the lane's lowest and highest levels.
-- The caption names the line, "Water temperature · Smoothed" or "· Recorded", and opens a menu of the two (D35), with a little more space above and below it than the board's. A bubble, a segmented control in the header and one in its own row under the lane were all tried on the phone and looked cramped on the card.
+- The caption names the line, "Water temperature · Smoothed" or "· Recorded", and opens a menu of the two, with a little more space above and below it than the board's. A bubble, a segmented control in the header and one in its own row under the lane were all tried on the phone and looked cramped on the card.
 
 ## Forms and inputs
 
@@ -35,7 +35,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - No board has ignored dives. `EditDiveHifi` needs the Ignore this dive switch at the end of the form, and `LogHifi2` cards and the `DiveDetailHifi` title show an eye-off icon in place of the dive number, with "Ignored" as screen-reader text.
 - `LogHifi2` has no depth or duration filter. Add Depth and Duration pills after the board's existing filter pills, styled the same, each opening a sheet with a range slider and Reset and Apply (see Log in the spec).
 
-- Pickers follow D29. `SitePickerHifi` becomes a full-height bottom sheet with Cancel in place of "‹ Edit dive"; Country and Body of water open as lists inside it (body of water is a list, not a native select).
+- Every picker is a bottom sheet. `SitePickerHifi` becomes a full-height bottom sheet with Cancel in place of "‹ Edit dive"; Country and Body of water open as lists inside it (body of water is a list, not a native select).
 - Buddies, dive professionals and the dive centre are rows in the form that open a sheet, not the board's suggestion list inside the card. The list is "Recent" (most recently used), not "Frequent"; Add keeps the name as typed rather than capitalising it; nobody is offered for both roles.
 - The ✓/✕ group sits on its own line under each field, right-aligned like the values, for all six compared fields, rather than squeezed into the row.
 - Surface interval is picked on hours and minutes wheels in a sheet, with Calculated and No previous dive as rows, not typed as free text.
@@ -44,11 +44,11 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 
 ## You (Settings on the boards) and people
 
-- `SettingsHifi` is the You tab (D30): titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. Sites, people and trips comes before Download, as merging duplicates is routine and the downloads are a rare manual backup. The rest keeps the board's order.
+- `SettingsHifi` is the You tab: titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. Sites, people and trips comes before Download, as merging duplicates is routine and the downloads are a rare manual backup. The rest keeps the board's order.
 - An entity detail's "All N dives" lists the rest of its dives in place rather than opening the Log.
 - Recently deleted's restore toast is shadcn's Sonner, styled as the board's.
 - The entity list's tabs are words only: five tabs with `EntitiesHifi`'s icons don't fit at 390 px once Regions is added.
-- A region's detail shows dives, sites and last dive, as a dive centre's does, and its list row counts sites. On a site or dive centre the region is picked from the existing ones (D6), not typed.
+- A region's detail shows dives, sites and last dive, as a dive centre's does, and its list row counts sites. On a site or dive centre the region is picked from the existing ones, not typed.
 - Entity detail's Save sits in the bar where the board leaves the right slot empty; the You sections' Save and Cancel sit under their card, as they have no bar. Every new sheet keeps shadcn's centred 16 px title, as the dive form's do, rather than the boards' left-aligned 18 px.
 - Gear is marked with the scuba tank, as the scuba mask is the You tab's icon. The Icon key's Cylinder entry also names the tank, but no screen draws a cylinder icon.
 - Download has a third row the board doesn't draw, CSV export ("Opens in a spreadsheet"), between UDDF export and Database snapshot. The board's "Last UDDF export" row is "Last export", as the CSV copy is written with the UDDF.
@@ -68,8 +68,8 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Patterns need the "All patterns" list and a tap through to the groups behind each one. The board shows static findings.
 - Recently deleted keeps the board's restore note and adds that deleted dives keep blocking re-imports.
 - Adding and editing a card both need a connection. The board only disables the list's add button.
-- You shows the first three cards as tiles under the diver name, with an All certifications row (D32); `SettingsHifi` has a single Certifications row. The list's rows move by a long press; the board has no order.
-- The list's add button opens the photo picker straight away, and New card and Edit card open as full-height sheets (D31). Delete card asks first in a sheet; the board deletes at once.
+- You shows the first three cards as tiles under the diver name, with an All certifications row; `SettingsHifi` has a single Certifications row. The list's rows move by a long press; the board has no order.
+- The list's add button opens the photo picker straight away, and New card and Edit card open as full-height sheets. Delete card asks first in a sheet; the board deletes at once.
 
 ## Import
 
@@ -82,7 +82,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 
 ## Decisions taken after the boards
 
-These were settled while planning the build (`docs/PLAN.md`, decisions D1 to D22) and the boards have not been redrawn for them.
+These were settled while planning the build (see the decisions in `docs/PLAN.md`) and the boards have not been redrawn for them.
 
 - Entity detail saves with an explicit Save action that appears when a field changes, as the Certifications edit screen does; You's sections save as you go. A colliding rename shows the error under the field with a "Merge instead" action. The boards have bare inputs.
 - Every field whose hand value differs from the computer's gets the ✓ "Use D4i value" / ✕ "Keep mine" group (start time, max depth, average depth, duration, temperatures). A field holding a computer or calculated value has a cyan bar down its row's left edge, keyed by a note under the card, rather than the board's icon beside each label; once edited, the bar gives way to "Reset to the D4i value". `EditDiveHifi` draws the group only for start time and duration.
@@ -95,7 +95,7 @@ These were settled while planning the build (`docs/PLAN.md`, decisions D1 to D22
 - The Compare table on Change pairing also shows average depth.
 - The upload card shows an indeterminate "Reading your export" state. The board's "48 of 72 dives" progress bar implies streaming that the server does not do.
 - The import summary counts included freedives separately when there are any. The review board folds them into "new".
-- Dives under a minute are left out and listed with the freedives (D33), which the boards don't draw.
+- Dives under a minute are left out and listed with the freedives, which the boards don't draw.
 - Entities are created only from the dive form's pickers; the entity screens list, rename, merge and delete.
 - The entity list has no kind tabs: each kind opens from its row on You, which already lists all five, so `EntitiesHifi`'s tabs repeated it (and five no longer fit).
 - The boards' explanatory notes on You, the entity list and entity detail are cut where the screen or the next step already says it. An entity's note shows only when Delete is disabled, Recently deleted keeps only the re-import note, and Defaults is titled New dive defaults instead of carrying a note. Restore is a words-only pill.

@@ -194,7 +194,7 @@ export function convertSsi(csv: string, extrasInput: Extras) {
         )
       )
     }
-    // Air is written as 0.21, which the import reads as air (D9).
+    // Air is written as 0.21, which the import reads as air.
     const percent =
       field(row, "ean") === "1" ? number(row, "ean_percent") : null
     const oxygen = percent ? percentToTenths(percent) : airTenths

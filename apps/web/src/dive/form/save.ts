@@ -31,7 +31,7 @@ async function carried(diveId: string, values: FormValues, own: NewEntity[]) {
 }
 
 // A new dive is a draft on the phone, with the entities it creates, and
-// uploads straight away (D13); it shows at once whether or not that works.
+// uploads straight away; it shows at once whether or not that works.
 export async function saveNewDive(diveId: DiveId, values: FormValues) {
   // Saved already, by a visit the app was closed after or a Try again
   // after a later step failed: the same draft, rewritten.

@@ -33,7 +33,7 @@ const pagesText = (count: number) =>
 function CertificationsPage() {
   const { log, loaded } = useLog()
   // The add button opens the photo picker straight away, then New card
-  // with what was picked (D31), a fresh sheet each time.
+  // with what was picked, a fresh sheet each time.
   const picker = useRef<HTMLInputElement>(null)
   const [adding, setAdding] = useState<{ id: number; picked: Picks }>()
   const [open, setOpen] = useState(false)

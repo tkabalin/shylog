@@ -54,7 +54,7 @@ export const Route = createFileRoute("/you/")({
   component: YouPage,
 })
 
-// The commit the image was built from (D30), or "dev" off a build.
+// The commit the image was built from, or "dev" off a build.
 const revision =
   (import.meta.env.VITE_REVISION as string | undefined)?.slice(0, 7) ?? "dev"
 
@@ -63,7 +63,7 @@ const none = "—"
 const deletedCount = (log: LogView) =>
   [...log.dive.values()].filter((dive) => dive.deletedAt).length
 
-// SettingsHifi as the You tab (D30): sync status first, then the diver's
+// SettingsHifi as the You tab: sync status first, then the diver's
 // own things, then the log's upkeep, then preferences.
 function YouPage() {
   const { log, loaded, failed, blocked } = useLog()
@@ -394,7 +394,7 @@ function ExportFailed({
 }
 
 // The diver's name and the first certification cards, under the sync
-// card with no heading of their own (D30, D32).
+// card with no heading of their own.
 function DiverCard({
   settings,
   cards,
