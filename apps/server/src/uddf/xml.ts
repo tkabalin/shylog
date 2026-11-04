@@ -29,7 +29,7 @@ export function element(name: string, children: (Xml | null)[], attrs = "") {
 
 // JavaScript writes a number under 10⁻⁶ with an exponent, which xs:decimal
 // and XPath don't read. Nothing Shylog writes reaches 10²¹, the other end.
-function decimal(value: number) {
+export function decimal(value: number) {
   const exponent = /^(-?)(\d)(?:\.(\d+))?e-(\d+)$/.exec(String(value))
   if (!exponent) return String(value)
   const [, sign, digit, rest = "", power] = exponent
