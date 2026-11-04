@@ -4,7 +4,7 @@ import { unreachable } from "./edits"
 import { serverMessage } from "./upload"
 
 type Reply = { ok: boolean; status: number; json(): Promise<unknown> }
-// A file's reply, the same for both downloads whatever body Hono infers.
+// A file's reply, the same for every download whatever body Hono infers.
 type FileReply = Reply & { headers: Headers; blob(): Promise<Blob> }
 
 // Why the server didn't give the file: its own reason, or `failed` in
@@ -35,6 +35,13 @@ const downloads = {
     extension: "uddf",
     type: "application/xml",
     get: (): Promise<FileReply> => apiClient().api.export.uddf.$get(),
+  },
+  // text/csv, not yet tried in the share sheet on the owner's phone; a
+  // refused type falls back to a download.
+  csv: {
+    extension: "csv",
+    type: "text/csv",
+    get: (): Promise<FileReply> => apiClient().api.export.csv.$get(),
   },
   snapshot: {
     extension: "db",
@@ -87,7 +94,7 @@ export async function download(kind: keyof typeof downloads, desk: boolean) {
   setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }
 
-// Export now, after a failed night: the server rewrites its export file
+// Export now, after a failed night: the server rewrites its export files
 // and says when.
 export async function exportNow() {
   const res = await ask(() => apiClient().api.export.run.$post())

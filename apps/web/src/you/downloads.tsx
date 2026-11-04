@@ -2,6 +2,7 @@ import { useState } from "react"
 import {
   IconDatabase,
   IconDownload,
+  IconFileTypeCsv,
   IconFileTypeXml,
 } from "@tabler/icons-react"
 import { cn } from "cn"
@@ -18,6 +19,12 @@ const rows = [
     icon: IconFileTypeXml,
     title: "UDDF export",
     sub: "Opens in Subsurface",
+  },
+  {
+    kind: "csv",
+    icon: IconFileTypeCsv,
+    title: "CSV export",
+    sub: "Opens in a spreadsheet",
   },
   {
     kind: "snapshot",
@@ -46,7 +53,7 @@ export function Downloads() {
     try {
       await download(kind, desk)
     } catch (failure) {
-      // One line for both rows, so it says which.
+      // One line for every row, so it says which.
       setError(`${title(kind)}: ${(failure as Error).message}`)
     } finally {
       setBusy((now) => ({ ...now, [kind]: false }))
