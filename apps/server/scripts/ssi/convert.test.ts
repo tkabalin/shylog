@@ -1,108 +1,29 @@
-import { DOMParser, type Element } from "@xmldom/xmldom"
+import type { Op, UploadDraftRequest } from "@shylog/core"
 import { describe, expect, it } from "vitest"
 
-import { shylogNamespace } from "../../src/uddf/shylog-namespace.ts"
-import { convertSsi, generatorName, type Extras } from "./convert.ts"
-import { readAsSubsurface } from "../../test/reference/subsurface-uddf.ts"
-import { uddfSchemaErrors } from "../../test/uddf-schema.ts"
+import { apiHeaders, send, testApp } from "../../test/app.ts"
+import type { Log } from "../../src/routes/log.ts"
+import { convertSsi, type Extras } from "./convert.ts"
+import { boat, csv, extras, freedive, shore } from "./fixture.ts"
 import { readCsv } from "./csv.ts"
 
-// Invented dives in the shape of the export job's CSV, which prefixes every
-// SSI column with odin_user_log_ and writes gappy codes as floats.
-const uddf = "http://www.streit.cc/uddf/3.2/"
-
-function csv(rows: Record<string, string>[]) {
-  const names = [...new Set(rows.flatMap(Object.keys))]
-  const quote = (value: string) =>
-    /[",\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value
-  return [
-    names.map((name) => `odin_user_log_${name}`).join(","),
-    ...rows.map((row) => names.map((name) => quote(row[name] ?? "")).join(",")),
-  ].join("\n")
-}
-
-const shore = {
-  id: "101",
-  nr: "1",
-  dive_type: "0",
-  datetime: "2025-11-09 08:47",
-  dive_sites_id: "11",
-  dive_sites_name: "Kelp Point",
-  divetime: "46",
-  depth_m: "5.3",
-  avg_depth_m: "4.1",
-  watertemp_c: "12.0",
-  watertemp_max_c: "13.0",
-  vis_m: "5.0",
-  weight_kg: "6.0",
-  tank_vol_l: "12.0",
-  var_tanktype_id: "19.0",
-  pressure_start_bar: "220.0",
-  pressure_end_bar: "60.0",
-  ean: "0",
-  ean_percent: "0",
-  var_divetype_id: "23.0",
-  var_water_body_id: "13.0",
-  var_entry_id: "21",
-  var_current_id: "7",
-  var_surface_id: "10",
-  var_weather_id: "1.0",
-  var_specialdive_id: "126",
-  buddy_names: "Alex Example, Sam van Example",
-  comment: 'Cold, "green" water\nsecond line',
-}
-const boat = {
-  ...shore,
-  id: "102",
-  nr: "2",
-  datetime: "2025-11-10 10:00",
-  dive_sites_id: "12",
-  dive_sites_name: "Reef I &amp; J",
-  ean: "1",
-  ean_percent: "32",
-  var_divetype_id: "24.0",
-  var_entry_id: "22",
-  var_specialdive_id: "40,28",
-  buddy_names: "Pat Guide",
-  comment: "",
-  gear_details: "Overweighted",
-}
-const freedive = {
-  ...shore,
-  id: "103",
-  nr: "1",
-  dive_type: "6",
-  datetime: "2025-12-08 11:09",
-}
-
-const extras: Extras = {
-  sites: {
-    "Kelp Point": { country: "ZA", region: "False Bay" },
-    "Reef I & J": { country: "ZA", region: "Sodwana" },
-  },
-  leaveOutPeople: ["Pat Guide"],
-  dives: {
-    "2025-11-09 08:47": {
-      startTime: "2025-11-09T08:45",
-      trainingCourse: "Open Water Diver",
-      tags: ["photoVideo"],
-    },
-  },
-}
+const at = "2026-11-05T10:00:00.000Z"
+const personId = expect.stringMatching(/^person-ssi-[0-9a-f]{12}$/)
+const regionId = expect.stringMatching(/^region-ssi-[0-9a-f]{12}$/)
 
 function convert(rows = [shore, boat, freedive], extra = extras) {
-  const result = convertSsi(csv(rows), extra)
-  const root = new DOMParser().parseFromString(
-    result.xml,
-    "text/xml"
-  ).documentElement!
-  return { ...result, root }
+  return convertSsi(csv(rows), extra, at)
 }
 
-const all = (parent: Element, name: string, ns = uddf) =>
-  Array.from(parent.getElementsByTagNameNS(ns, name))
-const text = (parent: Element, name: string, ns = uddf) =>
-  all(parent, name, ns).map((node) => node.textContent)
+const diveOf = (draft: UploadDraftRequest) =>
+  draft.ops.find((op) => op.type === "upsertDive")!
+const fieldsOf = (rows?: Parameters<typeof convert>[0], extra?: Extras) =>
+  convert(rows, extra).drafts.map((draft) => diveOf(draft).fields)
+const entities = (draft: UploadDraftRequest, kind: string) =>
+  draft.ops.filter(
+    (op): op is Extract<Op, { type: "upsertEntity" }> =>
+      op.type === "upsertEntity" && op.kind === kind
+  )
 
 describe("readCsv", () => {
   it("reads quoted commas, quotes and newlines", () => {
@@ -114,164 +35,136 @@ describe("readCsv", () => {
 })
 
 describe("convertSsi", () => {
-  it("writes scuba dives and leaves out freedives", () => {
-    const { dives, freedives, root } = convert()
+  it("makes one draft per scuba dive and leaves out freedives", () => {
+    const { drafts, dives, freedives } = convert()
     expect([dives, freedives]).toEqual([2, 1])
-    expect(text(root, "name")[0]).toBe(generatorName)
-    expect(all(root, "dive").map((dive) => dive.getAttribute("id"))).toEqual([
+    expect(drafts.map((draft) => diveOf(draft).diveId)).toEqual([
       "dive-ssi-101",
       "dive-ssi-102",
     ])
   })
 
-  it("converts to UDDF's units with local times and no offset", () => {
-    const [dive] = all(convert().root, "dive")
-    expect(text(dive!, "datetime")).toEqual(["2025-11-09T08:45:00"])
-    expect(text(dive!, "diveduration")).toEqual(["2760"])
-    expect(text(dive!, "greatestdepth")).toEqual(["5.3"])
-    expect(text(dive!, "averagedepth")).toEqual(["4.1"])
-    expect(text(dive!, "lowesttemperature")).toEqual(["285.15"])
-    expect(text(dive!, "tankvolume")).toEqual(["0.012"])
-    expect(text(dive!, "tankpressurebegin")).toEqual(["22000000"])
-    expect(text(dive!, "tankpressureend")).toEqual(["6000000"])
-    expect(text(dive!, "leadquantity")).toEqual(["6"])
-    expect(text(dive!, "visibility")).toEqual(["5"])
+  it("converts to Shylog's units and keys, with local times and no offset", () => {
+    expect(fieldsOf()[0]).toEqual({
+      startTime: "2025-11-09T08:45:00",
+      siteId: "site-ssi-11",
+      duration: 2760,
+      maxDepth: 5.3,
+      averageDepth: 4.1,
+      diveType: "training",
+      trainingAgency: "SSI",
+      trainingCourse: "Open Water Diver",
+      tags: ["photoVideo"],
+      buddies: [personId, personId],
+      entry: "beachShore",
+      current: "mild",
+      surface: "calm",
+      weather: "cloudless",
+      minTemperature: 12,
+      maxTemperature: 13,
+      visibility: 5,
+      weight: 6,
+      cylinderMaterial: "steel",
+      cylinderVolume: 12000,
+      nitrox: false,
+      ignored: false,
+      startPressure: 220,
+      endPressure: 60,
+      notes: 'Cold, "green" water\nsecond line',
+    })
   })
 
-  it("maps SSI's codes to UDDF's values and Shylog's keys", () => {
-    const [training, fun] = all(convert().root, "dive")
-    expect(text(training!, "platform")).toEqual(["beach-shore"])
-    expect(text(training!, "current")).toEqual(["mild-current"])
-    expect(text(training!, "program")).toEqual(["training"])
-    expect(text(fun!, "platform")).toEqual(["small-boat"])
-    expect(text(fun!, "program")).toEqual(["recreation"])
-    const shylog = (dive: Element) => all(dive, "shylog", shylogNamespace)[0]!
-    const own = (dive: Element, name: string) =>
-      text(shylog(dive), name, shylogNamespace)
-    expect(own(training!, "surface")).toEqual(["calm"])
-    expect(own(training!, "weather")).toEqual(["cloudless"])
-    expect(own(training!, "maxTemperature")).toEqual(["286.15"])
-    expect(own(training!, "trainingAgency")).toEqual(["SSI"])
-    expect(own(training!, "trainingCourse")).toEqual(["Open Water Diver"])
-    expect(own(training!, "tag")).toEqual(["photoVideo"])
-    // Deep (28) is dropped; night (40) is a tag.
-    expect(own(fun!, "tag")).toEqual(["night"])
-    expect(own(fun!, "trainingAgency")).toEqual([])
-    expect(own(fun!, "gearDetails")).toEqual(["Overweighted"])
+  it("keeps nitrox, drops deep, and sends only what SSI holds", () => {
+    const fun = fieldsOf()[1]!
+    expect(fun).toMatchObject({
+      diveType: "recreation",
+      entry: "smallBoat",
+      nitrox: true,
+      oxygen: 320,
+      // Deep (28) is dropped; night (40) is a tag.
+      tags: ["night"],
+      gearDetails: "Overweighted",
+    })
+    expect(fun).not.toHaveProperty("trainingAgency")
+    expect(fun).not.toHaveProperty("buddies")
+    expect(fun).not.toHaveProperty("notes")
   })
 
-  it("groups cylinders and gases, with air as 0.21", () => {
-    const { root } = convert()
-    expect(all(root, "tank").map((tank) => tank.getAttribute("id"))).toEqual([
-      "tank-steel-12000",
+  it("reads 21 % nitrox as air", () => {
+    const air = fieldsOf([shore, { ...boat, ean_percent: "21" }])[1]
+    expect(air).toMatchObject({ nitrox: false })
+    expect(air).not.toHaveProperty("oxygen")
+  })
+
+  it("creates each dive's site and region, unescaping SSI's HTML", () => {
+    const [, fun] = convert().drafts
+    expect(entities(fun!, "region").map((op) => [op.id, op.fields])).toEqual([
+      [regionId, { name: "Sodwana", countryCode: "ZA" }],
     ])
-    expect(text(root, "tankmaterial")).toEqual(["steel"])
-    expect(text(root, "o2")).toEqual(["0.21", "0.32"])
-    const [first, second] = all(root, "tankdata").map((data) =>
-      all(data, "link").map((link) => link.getAttribute("ref"))
-    )
-    expect(first).toEqual(["mix-210", "tank-steel-12000"])
-    expect(second).toEqual(["mix-320", "tank-steel-12000"])
-  })
-
-  it("writes sites with their region and country, unescaping SSI's HTML", () => {
-    const { root } = convert()
-    const sites = all(root, "site")
-    expect(sites.map((site) => text(site, "name")[0])).toEqual([
-      "Kelp Point",
-      "Reef I & J",
+    expect(entities(fun!, "site").map((op) => [op.id, op.fields])).toEqual([
+      [
+        "site-ssi-12",
+        {
+          name: "Reef I & J",
+          countryCode: "ZA",
+          regionId: entities(fun!, "region")[0]!.id,
+          bodyOfWater: "oceanSea",
+          waterType: "salt",
+        },
+      ],
     ])
-    expect(text(sites[1]!, "location")).toEqual(["Sodwana"])
-    expect(text(sites[1]!, "country")).toEqual(["ZA"])
-    expect(text(sites[1]!, "environment")).toEqual(["ocean-sea"])
   })
 
-  it("links buddies and leaves out the people the extras name", () => {
-    const { root } = convert()
-    const buddies = all(root, "buddy")
+  it("creates buddies and leaves out the people the extras name", () => {
+    const [training, fun] = convert().drafts
     expect(
-      buddies.map((buddy) => [
-        text(buddy, "firstname")[0],
-        text(buddy, "lastname")[0],
-      ])
+      entities(training!, "person").map((op) => [op.id, op.fields])
     ).toEqual([
-      ["Alex", "Example"],
-      ["Sam", "van Example"],
+      [personId, { name: "Alex Example" }],
+      [personId, { name: "Sam van Example" }],
     ])
-    const [first, second] = all(root, "informationbeforedive").map((info) =>
-      all(info, "link").map((link) => link.getAttribute("ref"))
-    )
-    expect(first).toEqual(["person-1", "person-2", "site-ssi-11"])
-    expect(second).toEqual(["site-ssi-12"])
+    expect(entities(fun!, "person")).toEqual([])
   })
 
-  it("lists buddies so Subsurface reads them as one name each", () => {
-    const [dive] = Array.from(
-      readAsSubsurface(convert().xml).getElementsByTagName("dive")
-    )
-    expect(dive!.getElementsByTagName("buddy")[0]!.textContent).toBe(
-      "Alex Example, Sam van Example"
-    )
+  it("gives every op a stable id, so a rerun is skipped as already applied", () => {
+    const ids = (run: ReturnType<typeof convert>) =>
+      run.drafts.flatMap((draft) => draft.ops.map((op) => op.opId))
+    expect(
+      ids(convertSsi(csv([shore, boat]), extras, "2026-12-01T00:00:00Z"))
+    ).toEqual(ids(convert([shore, boat])))
+    expect(new Set(ids(convert())).size).toBe(ids(convert()).length)
+    expect(convert()).toEqual(convert())
   })
 
-  it("writes dives Subsurface reads whole", () => {
-    const [shoreDive, boatDive] = Array.from(
-      readAsSubsurface(convert().xml).getElementsByTagName("dive")
-    )
-    const attributes = (parent: typeof shoreDive, name: string) => {
-      const element = parent!.getElementsByTagName(name)[0]!
-      return Object.fromEntries(
-        Array.from(element.attributes).map((a) => [a.name, a.value])
+  it("keeps a person's and a region's id when the CSV or extras change", () => {
+    const idsOf = (run: ReturnType<typeof convert>, kind: string) =>
+      Object.fromEntries(
+        run.drafts.flatMap((draft) =>
+          entities(draft, kind).map((op) => [op.fields.name, op.id])
+        )
       )
+    const before = convert([shore, boat])
+    // An earlier dive with a new buddy and a new region, and Alex left out.
+    const earlier = {
+      ...boat,
+      id: "100",
+      datetime: "2025-10-01 09:00",
+      dive_sites_id: "13",
+      dive_sites_name: "Castle Rock",
+      buddy_names: "Kim Example, Sam van Example",
     }
-    const only = (name: string) => shoreDive!.getElementsByTagName(name)[0]!
-    expect(attributes(shoreDive, "cylinder")).toEqual({
-      size: "12",
-      o2: "0.21",
-      he: "",
-      start: "220 bar",
-      end: "60 bar",
+    const after = convert([earlier, shore, boat], {
+      ...extras,
+      sites: {
+        ...extras.sites,
+        "Castle Rock": { country: "ZA", region: "Cape Point" },
+      },
+      leaveOutPeople: [...extras.leaveOutPeople!, "Alex Example"],
     })
-    expect(attributes(boatDive, "cylinder").o2).toBe("0.32")
-    expect(attributes(shoreDive, "depth")).toEqual({
-      max: "5.30 m",
-      mean: "4.10 m",
-    })
-    expect(attributes(shoreDive, "temperature")).toEqual({ water: "12.0 C" })
-    expect(attributes(shoreDive, "weightsystem").weight).toBe("6.0 kg")
-    expect(shoreDive!.getAttribute("date")).toBe("2025-11-09")
-    expect(shoreDive!.getAttribute("time")).toBe("08:45:00")
-    expect(shoreDive!.getAttribute("duration")).toBe("46:00 min")
-    expect(only("location").textContent).toBe("Kelp Point")
-    expect(only("notes").textContent).toBe('Cold, "green" water\nsecond line')
-    expect(boatDive!.getElementsByTagName("location")[0]!.textContent).toBe(
-      "Reef I & J"
+    expect(idsOf(after, "person")["Sam van Example"]).toBe(
+      idsOf(before, "person")["Sam van Example"]
     )
-  })
-
-  it("keeps a multi-line comment as the dive's notes", () => {
-    const [dive] = all(convert().root, "dive")
-    expect(text(dive!, "para")).toEqual(['Cold, "green" water\nsecond line'])
-  })
-
-  it("writes valid UDDF 3.2.1", () => {
-    expect(uddfSchemaErrors(convert().xml)).toEqual([])
-  })
-
-  it("keeps a cylinder with no start pressure, gas and all", () => {
-    const { xml } = convert([
-      { ...shore, pressure_start_bar: "", pressure_end_bar: "" },
-    ])
-    expect(uddfSchemaErrors(xml)).toEqual([])
-    const [cylinder] = Array.from(
-      readAsSubsurface(xml).getElementsByTagName("cylinder")
-    )
-    expect(cylinder!.getAttribute("o2")).toBe("0.21")
-    expect(cylinder!.getAttribute("size")).toBe("12")
-  })
-
-  it("is the same on every run", () => {
-    expect(convert().xml).toBe(convert().xml)
+    expect(idsOf(after, "region")).toMatchObject(idsOf(before, "region"))
   })
 
   it("refuses a code it doesn't know, naming the dive", () => {
@@ -283,6 +176,69 @@ describe("convertSsi", () => {
     )
     expect(() => convert([{ ...shore, dive_type: "3" }])).toThrow(
       "unknown log type 3"
+    )
+  })
+
+  it("refuses a value Shylog would reject, naming the dive", () => {
+    expect(() =>
+      convert([{ ...shore, pressure_end_bar: "230.0" }, boat])
+    ).toThrow(
+      "SSI dive 1 (2025-11-09 08:47, Kelp Point): dive endPressure: Above the start pressure"
+    )
+  })
+
+  it("names the op a bad value is in", () => {
+    expect(() =>
+      convert([{ ...shore, buddy_names: "x".repeat(200) }, boat])
+    ).toThrow(/SSI dive 1 .*: person name: /)
+  })
+
+  it("leaves out a dive the extras skip, and people however they're written", () => {
+    const run = convert([shore, boat], {
+      ...extras,
+      leaveOutPeople: ["pat  GUIDE"],
+      dives: { ...extras.dives, "2025-11-10 10:00": { skip: true } },
+    })
+    expect([run.dives, run.skipped]).toEqual([1, 1])
+    expect(() =>
+      convert([shore, boat], { ...extras, leaveOutPeople: ["Nobody"] })
+    ).toThrow("The extras file leaves out Nobody, who is on no dive")
+  })
+
+  it("reads gappy ids as SSI's own and 0 as not logged", () => {
+    const [dive] = convert([
+      {
+        ...shore,
+        id: "101.0",
+        dive_sites_id: "11.0",
+        vis_m: "0",
+        weight_kg: "0.0",
+      },
+      boat,
+    ]).drafts.map(diveOf)
+    expect(dive!.diveId).toBe("dive-ssi-101")
+    expect(dive!.fields.siteId).toBe("site-ssi-11")
+    expect(dive!.fields).not.toHaveProperty("visibility")
+    expect(dive!.fields).not.toHaveProperty("weight")
+  })
+
+  it("undoes SSI's HTML escapes and refuses one it doesn't know", () => {
+    const [dive] = fieldsOf([
+      { ...shore, comment: "Kim&apos;s &#x2018;reef&#8217;&nbsp;dive" },
+      boat,
+    ])
+    expect(dive!.notes).toBe("Kim's \u2018reef\u2019 dive")
+    expect(() =>
+      convert([{ ...shore, comment: "Wait&hellip;" }, boat])
+    ).toThrow("comment has &hellip;")
+  })
+
+  it("refuses SSI sites whose names and ids cross", () => {
+    expect(() =>
+      convert([shore, { ...boat, dive_sites_name: "Kelp Point" }])
+    ).toThrow('two SSI sites are called "Kelp Point"')
+    expect(() => convert([shore, { ...boat, dive_sites_id: "11" }])).toThrow(
+      'SSI site 11 is called "Kelp Point" and "Reef I & J"'
     )
   })
 
@@ -309,23 +265,65 @@ describe("convertSsi", () => {
     expect(() => convert([shore, swapped])).toThrow(
       "water temperature minimum above maximum"
     )
-    const { root } = convert([shore, swapped], {
+    const fun = fieldsOf([shore, swapped], {
       ...extras,
       dives: {
         ...extras.dives,
         "2025-11-10 10:00": { minTemperature: 16, maxTemperature: null },
       },
-    })
-    const fun = all(root, "dive")[1]!
-    expect(text(fun, "lowesttemperature")).toEqual(["289.15"])
-    expect(text(fun, "maxTemperature", shylogNamespace)).toEqual([])
+    })[1]!
+    expect(fun.minTemperature).toBe(16)
+    expect(fun).not.toHaveProperty("maxTemperature")
   })
 
   it("takes a dive's entry from the extras over SSI's", () => {
-    const { root } = convert([shore, boat], {
+    const fun = fieldsOf([shore, boat], {
       ...extras,
       dives: { ...extras.dives, "2025-11-10 10:00": { entry: "charterBoat" } },
-    })
-    expect(text(all(root, "dive")[1]!, "platform")).toEqual(["charter-boat"])
+    })[1]!
+    expect(fun.entry).toBe("charterBoat")
+  })
+})
+
+describe("uploading the drafts", () => {
+  it("logs every dive as hand values, once, and skips a rerun", async () => {
+    const app = testApp()
+    const upload = async () => {
+      const results = []
+      // Stamped now: the server refuses drafts more than two years old.
+      const { drafts } = convertSsi(
+        csv([shore, boat, freedive]),
+        extras,
+        new Date().toISOString()
+      )
+      for (const draft of drafts)
+        results.push(
+          (
+            (await (await send(app, "POST", "/api/ops", draft)).json()) as {
+              result: string
+            }
+          ).result
+        )
+      return results
+    }
+    expect(await upload()).toEqual(["applied", "applied"])
+    expect(await upload()).toEqual(["alreadyApplied", "alreadyApplied"])
+
+    const log = (await (
+      await app.request("/api/log", { headers: apiHeaders })
+    ).json()) as Log
+    expect(log.dives.map((dive) => [dive.id, dive.number])).toEqual([
+      ["dive-ssi-101", 1],
+      ["dive-ssi-102", 2],
+    ])
+    expect(log.sites.map((site) => site.name).sort()).toEqual([
+      "Kelp Point",
+      "Reef I & J",
+    ])
+    expect(log.people.map((person) => person.name).sort()).toEqual([
+      "Alex Example",
+      "Sam van Example",
+    ])
+    expect(log.fieldMeta.every((row) => row.source === "hand")).toBe(true)
   })
 })

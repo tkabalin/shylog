@@ -1,33 +1,28 @@
+import { createHash } from "node:crypto"
+
 import {
-  barToPascals,
-  bodiesOfWater,
-  celsiusToKelvin,
   countryCodes,
-  currents,
-  cylinderMaterials,
-  diveTypes,
   entries,
   keysOf,
   litresToMillilitres,
-  millilitresToCubicMetres,
   minutesToSeconds,
+  normaliseName,
+  opVersion,
   percentToTenths,
   tags,
-  tenthsToFraction,
+  uploadDraftRequest,
+  type BodyOfWater,
   type Tag,
+  type UploadDraftRequest,
 } from "@shylog/core"
 import { z } from "zod"
 
-import { shylogNamespace } from "../../src/uddf/shylog-namespace.ts"
-import { element, leaf, link, personal, type Xml } from "../../src/uddf/xml.ts"
 import * as codes from "./codes.ts"
 import { readCsv } from "./csv.ts"
 
 // Converts the MySSI logbook, as the home server's weekly export job saves
-// it, to UDDF for a one-off import. SSI dives were logged by hand, so the
-// generator name tells the import to treat them as hand values.
-
-export const generatorName = "Shylog SSI logbook converter"
+// it, to one offline draft per dive for a one-off upload. SSI dives were
+// logged by hand, which is what a draft's values are.
 
 // What the CSV doesn't say, kept with the CSV rather than in this public
 // repo. `dives` is keyed by SSI's start time as the CSV writes it
@@ -58,6 +53,8 @@ export const extrasSchema = z.strictObject({
         maxTemperature: z.number().nullable().optional(),
         // SSI has one kind of boat, so a charter boat is set here.
         entry: z.enum(keysOf(entries)).optional(),
+        // Already logged in Shylog by hand, so the SSI copy isn't sent.
+        skip: z.literal(true).optional(),
       })
     )
     .default({}),
@@ -65,26 +62,55 @@ export const extrasSchema = z.strictObject({
 export type Extras = z.input<typeof extrasSchema>
 
 type Row = Record<string, string>
+type Place = Extras["sites"][string]
 
 const ns = "odin_user_log_"
 const ssiAgency = "SSI"
 const airTenths = 210
 
 // SSI stores some names HTML-escaped ("I &amp; J").
+const named: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+}
 const unescapeHtml = (text: string) =>
-  text.replace(/&(amp|lt|gt|quot|#\d+);/g, (_, entity: string) =>
-    entity.startsWith("#")
-      ? String.fromCodePoint(Number(entity.slice(1)))
-      : { amp: "&", lt: "<", gt: ">", quot: '"' }[entity]!
-  )
+  text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (match, entity: string) => {
+    if (!entity.startsWith("#")) return named[entity] ?? match
+    const point =
+      entity[1] === "x"
+        ? parseInt(entity.slice(2), 16)
+        : Number(entity.slice(1))
+    return point <= 0x10ffff ? String.fromCodePoint(point) : match
+  })
 
 // pandas writes a code from a column with gaps as a float ("24.0").
 const code = (value: string) => value.replace(/\.0$/, "")
 
+// An id from what names the entity rather than when it first appears, so a
+// rerun on a CSV with dives added or people left out never moves an id the
+// server already holds onto someone else.
+const keyedId = (kind: "person" | "region", key: string) =>
+  `${kind}-ssi-${createHash("sha256").update(normaliseName(key)).digest("hex").slice(0, 12)}`
+
 // Local datetimes sort as text.
 const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
 
-export function convertSsi(csv: string, extrasInput: Extras) {
+// `at` is the drafts' timestamp, for the server's two-year age rule, which
+// looks at when a draft was made, not when the dive was.
+export function convertSsi(
+  csv: string,
+  extrasInput: Extras,
+  at: string
+): {
+  drafts: UploadDraftRequest[]
+  dives: number
+  freedives: number
+  skipped: number
+} {
   const extras = extrasSchema.parse(extrasInput)
   const rows = readCsv(csv)
   const problems: string[] = []
@@ -114,6 +140,21 @@ export function convertSsi(csv: string, extrasInput: Extras) {
     return table[value]!
   }
 
+  // Text with SSI's HTML escapes undone; one it doesn't know stops the run
+  // rather than reaching the log as "&hellip;".
+  function text(row: Row, name: string) {
+    const value = unescapeHtml(field(row, name))
+    const left = /&(#x[0-9a-f]+|#\d+|[a-z]+);/i.exec(value)
+    if (left) problems.push(`${describe(row)}: ${name} has ${left[0]}`)
+    return value
+  }
+
+  // 0 is read as not logged: no dive has an average depth or visibility of
+  // 0, and a dive without weights logs none rather than 0 kg.
+  function measured(row: Row, name: string) {
+    return number(row, name) || null
+  }
+
   function number(row: Row, name: string) {
     const value = field(row, name)
     if (!value) return null
@@ -126,90 +167,79 @@ export function convertSsi(csv: string, extrasInput: Extras) {
   }
 
   const unusedOverrides = new Set(Object.keys(extras.dives))
-  const leaveOut = new Set(extras.leaveOutPeople)
+  // Matched as people are on the server, ignoring case, spacing and accents.
+  const leaveOut = new Map(
+    extras.leaveOutPeople.map((name) => [normaliseName(name), name])
+  )
+  const leftOut = new Set<string>()
+  const siteIds = new Map<string, string>()
+  const regions = new Map<string, string>()
   const sites = new Map<
     string,
-    { id: string; environment: string | null; country: string; region: string }
+    { id: string; bodyOfWater: BodyOfWater | null; place: Place | undefined }
   >()
   const unmappedSites = new Set<string>()
   const people = new Map<string, string>()
-  const tanks = new Map<string, Xml>()
-  const mixes = new Map<string, Xml>()
 
-  const dives = scuba.map((row) => {
+  const dives = scuba.flatMap((row) => {
+    const ssiId = code(field(row, "id"))
     const ssiStart = field(row, "datetime")
     const extra = extras.dives[ssiStart]
     unusedOverrides.delete(ssiStart)
+    // Read before a skip, so a name left out only on skipped dives counts.
+    const buddies = field(row, "buddy_names")
+      .split(", ")
+      .map((name) => unescapeHtml(name).trim())
+      .filter((name) => {
+        if (!leaveOut.has(normaliseName(name))) return true
+        leftOut.add(normaliseName(name))
+        return false
+      })
+      .filter(Boolean)
+    if (extra?.skip) return []
     const startTime = `${extra?.startTime ?? ssiStart.replace(" ", "T")}:00`
 
-    const siteName = unescapeHtml(field(row, "dive_sites_name"))
+    const siteName = text(row, "dive_sites_name")
+    // One SSI site per name, so ids and names can't cross.
+    const ssiSite = code(field(row, "dive_sites_id"))
+    const named = siteIds.get(siteName)
+    if (named && named !== ssiSite)
+      problems.push(`${describe(row)}: two SSI sites are called "${siteName}"`)
+    siteIds.set(siteName, ssiSite)
+    for (const [other, id] of siteIds)
+      if (id === ssiSite && other !== siteName)
+        problems.push(
+          `${describe(row)}: SSI site ${ssiSite} is called "${other}" and "${siteName}"`
+        )
     const water = lookup(row, "var_water_body_id", codes.bodiesOfWater)
     const place = extras.sites[siteName]
     if (!place) unmappedSites.add(siteName)
     const site = sites.get(siteName) ?? {
-      id: `site-ssi-${field(row, "dive_sites_id")}`,
-      environment: null,
-      country: place?.country ?? "",
-      region: place?.region ?? "",
+      id: `site-ssi-${ssiSite}`,
+      bodyOfWater: null,
+      place,
     }
     // SSI logs the body of water per dive; Shylog keeps it on the site.
     if (water) {
-      const environment = bodiesOfWater[water].uddf
-      if (site.environment && site.environment !== environment)
+      if (site.bodyOfWater && site.bodyOfWater !== water)
         problems.push(`${describe(row)}: the site's body of water differs`)
-      site.environment = environment
+      site.bodyOfWater = water
     }
     sites.set(siteName, site)
+    const regionKey = place && `${place.country} ${place.region}`
+    if (regionKey && !regions.has(regionKey))
+      regions.set(regionKey, keyedId("region", regionKey))
 
-    const buddies = field(row, "buddy_names")
-      .split(", ")
-      .map((name) => unescapeHtml(name).trim())
-      .filter((name) => name && !leaveOut.has(name))
-      .map((name) => {
-        if (!people.has(name)) people.set(name, `person-${people.size + 1}`)
-        return people.get(name)!
-      })
+    for (const name of buddies)
+      if (!people.has(name)) people.set(name, keyedId("person", name))
 
     const material = lookup(row, "var_tanktype_id", codes.cylinderMaterials)
     const litres = number(row, "tank_vol_l")
-    let tank: string | null = null
-    if (material || litres) {
-      const ml = litres ? litresToMillilitres(litres) : null
-      tank = `tank-${material ?? "unknown"}-${ml ?? "unknown"}`
-      tanks.set(
-        tank,
-        element(
-          "tank",
-          [
-            leaf(
-              "name",
-              `${ml ? `${ml / 1000} L ` : ""}${material ?? ""}`.trim()
-            ),
-            material
-              ? leaf("tankmaterial", cylinderMaterials[material].uddf)
-              : null,
-            ml ? leaf("tankvolume", millilitresToCubicMetres(ml)) : null,
-          ],
-          ` id="${tank}"`
-        )
-      )
-    }
-    // Air is written as 0.21, which the import reads as air.
     const percent =
       field(row, "ean") === "1" ? number(row, "ean_percent") : null
-    const oxygen = percent ? percentToTenths(percent) : airTenths
-    const mix = `mix-${oxygen}`
-    mixes.set(
-      mix,
-      element(
-        "mix",
-        [
-          leaf("name", oxygen === airTenths ? "air" : `EANx ${oxygen / 10}`),
-          leaf("o2", tenthsToFraction(oxygen)),
-        ],
-        ` id="${mix}"`
-      )
-    )
+    // 21 % or less is air, as the dive form saves it.
+    const oxygen = percent ? percentToTenths(percent) : null
+    const nitrox = oxygen != null && oxygen > airTenths
 
     const diveType = lookup(row, "var_divetype_id", codes.diveTypes)
     const course = extra?.trainingCourse ?? null
@@ -235,151 +265,133 @@ export function convertSsi(csv: string, extrasInput: Extras) {
     if (minC != null && maxC != null && minC > maxC)
       problems.push(`${describe(row)}: water temperature minimum above maximum`)
     const maxDepth = number(row, "depth_m")
-    const averageDepth = number(row, "avg_depth_m")
+    const averageDepth = measured(row, "avg_depth_m")
     if (maxDepth == null) problems.push(`${describe(row)}: no max depth`)
     if (averageDepth != null && maxDepth != null && averageDepth > maxDepth)
       problems.push(`${describe(row)}: average depth below max depth`)
     const minutes = number(row, "divetime")
     if (!minutes) problems.push(`${describe(row)}: no duration`)
-    const startBar = number(row, "pressure_start_bar")
-    const endBar = number(row, "pressure_end_bar")
-    const weight = number(row, "weight_kg")
-    const surface = lookup(row, "var_surface_id", codes.surfaces)
-    const weather = lookup(row, "var_weather_id", codes.weathers)
-    const entry = extra?.entry ?? lookup(row, "var_entry_id", codes.entries)
-    const current = lookup(row, "var_current_id", codes.currents)
-    const comment = unescapeHtml(field(row, "comment"))
-    const gear = unescapeHtml(field(row, "gear_details"))
+    const comment = text(row, "comment")
+    const gear = text(row, "gear_details")
 
-    const shylog = element(
-      "shylog",
-      [
-        leaf("surface", surface),
-        leaf("weather", weather),
-        leaf("maxTemperature", maxC == null ? null : celsiusToKelvin(maxC)),
-        diveType === "training" ? leaf("trainingAgency", ssiAgency) : null,
-        diveType === "training" ? leaf("trainingCourse", course) : null,
-        leaf("gearDetails", gear || null),
-        ...keysOf(tags)
-          .filter((key) => tagKeys.has(key))
-          .map((key) => leaf("tag", key)),
-      ],
-      ` xmlns="${shylogNamespace}"`
+    // Only what SSI holds, so the server records nothing else as typed.
+    const fields = Object.fromEntries(
+      Object.entries({
+        startTime,
+        siteId: site.id,
+        duration: minutes ? minutesToSeconds(minutes) : null,
+        maxDepth,
+        averageDepth,
+        diveType,
+        trainingAgency: diveType === "training" ? ssiAgency : null,
+        trainingCourse: diveType === "training" ? course : null,
+        tags: keysOf(tags).filter((key) => tagKeys.has(key)),
+        buddies: buddies.map((name) => people.get(name)!),
+        entry: extra?.entry ?? lookup(row, "var_entry_id", codes.entries),
+        current: lookup(row, "var_current_id", codes.currents),
+        surface: lookup(row, "var_surface_id", codes.surfaces),
+        weather: lookup(row, "var_weather_id", codes.weathers),
+        minTemperature: minC,
+        maxTemperature: maxC,
+        visibility: measured(row, "vis_m"),
+        weight: measured(row, "weight_kg"),
+        cylinderMaterial: material,
+        cylinderVolume: litres ? litresToMillilitres(litres) : null,
+        nitrox,
+        oxygen: nitrox ? oxygen : null,
+        startPressure: number(row, "pressure_start_bar"),
+        endPressure: number(row, "pressure_end_bar"),
+        gearDetails: gear || null,
+        notes: comment || null,
+      }).filter(
+        ([, value]) =>
+          value != null && !(Array.isArray(value) && value.length === 0)
+      )
     )
-
-    const xml = element(
-      "dive",
-      [
-        element("informationbeforedive", [
-          // Buddies first: Subsurface writes ", " after any link a buddy
-          // follows, so a site link first gives its buddy list a leading comma.
-          ...buddies.map(link),
-          link(site.id),
-          leaf("datetime", startTime),
-          leaf("platform", entry && entries[entry].uddf),
-        ]),
-        shylog.length > 1 ? element("applicationdata", [shylog]) : null,
-        // UDDF requires a start pressure here, but without one the dive
-        // would lose its gas and cylinder, so Subsurface's habit is kept.
-        // The mix first: Subsurface takes the gas from the first link.
-        element("tankdata", [
-          link(mix),
-          tank ? link(tank) : null,
-          leaf(
-            "tankvolume",
-            litres
-              ? millilitresToCubicMetres(litresToMillilitres(litres))
-              : null
-          ),
-          leaf(
-            "tankpressurebegin",
-            startBar == null ? null : barToPascals(startBar)
-          ),
-          leaf("tankpressureend", endBar == null ? null : barToPascals(endBar)),
-        ]),
-        element("informationafterdive", [
-          leaf("greatestdepth", maxDepth),
-          leaf("averagedepth", averageDepth),
-          leaf("diveduration", minutes ? minutesToSeconds(minutes) : null),
-          leaf(
-            "lowesttemperature",
-            minC == null ? null : celsiusToKelvin(minC)
-          ),
-          leaf("visibility", number(row, "vis_m")),
-          leaf("current", current && currents[current].uddf),
-          leaf("program", diveType && diveTypes[diveType].uddf),
-          weight == null
-            ? null
-            : element("equipmentused", [leaf("leadquantity", weight)]),
-          comment ? element("notes", [leaf("para", comment)]) : null,
-        ]),
-      ],
-      ` id="dive-ssi-${field(row, "id")}"`
-    )
-    return { startTime, xml }
+    return [{ ssiId, row, startTime, siteName, buddies, fields }]
   })
 
   for (const name of unmappedSites)
     problems.push(`Site "${name}" is missing from the extras file's sites`)
+  for (const [key, name] of leaveOut)
+    if (!leftOut.has(key))
+      problems.push(`The extras file leaves out ${name}, who is on no dive`)
   for (const key of unusedOverrides)
     problems.push(
       `The extras file names a dive at ${key}, which isn't in the CSV`
     )
   if (problems.length) throw new Error(problems.join("\n"))
 
-  dives.sort((a, b) => byText(a.startTime, b.startTime))
+  const base = (opId: string) => ({
+    opId: `op-ssi-${opId}`,
+    opVersion,
+    deviceId: "device-ssi-import",
+    at,
+  })
 
-  const uddf = element(
-    "uddf",
-    [
-      element("generator", [
-        leaf("name", generatorName),
-        leaf("type", "converter"),
-      ]),
-      element("diver", [
-        element(
-          "owner",
-          [
-            personal(""),
-            tanks.size ? element("equipment", [...tanks.values()]) : null,
-          ],
-          ' id="owner"'
-        ),
-        ...[...people].map(([name, id]) =>
-          element("buddy", [personal(name)], ` id="${id}"`)
-        ),
-      ]),
-      element(
-        "divesite",
-        [...sites].map(([name, site]) =>
-          element(
-            "site",
-            [
-              leaf("name", name),
-              leaf("environment", site.environment),
-              element("geography", [
-                leaf("location", site.region),
-                element("address", [leaf("country", site.country)]),
-              ]),
-            ],
-            ` id="${site.id}"`
-          )
+  const drafts = dives
+    .toSorted((a, b) => byText(a.startTime, b.startTime))
+    .map(({ ssiId, row, siteName, buddies, fields }) => {
+      // Every draft creates what its dive names, so each stands alone: the
+      // server uses an entity it already has as it is.
+      const site = sites.get(siteName)!
+      const place = site.place!
+      const regionId = regions.get(`${place.country} ${place.region}`)!
+      const ops: unknown[] = [
+        {
+          ...base(`${ssiId}-region`),
+          type: "upsertEntity",
+          kind: "region",
+          id: regionId,
+          fields: { name: place.region, countryCode: place.country },
+        },
+        {
+          ...base(`${ssiId}-site`),
+          type: "upsertEntity",
+          kind: "site",
+          id: site.id,
+          fields: {
+            name: siteName,
+            countryCode: place.country,
+            regionId,
+            ...(site.bodyOfWater && { bodyOfWater: site.bodyOfWater }),
+          },
+        },
+        ...buddies.map((name) => ({
+          ...base(`${ssiId}-${people.get(name)!}`),
+          type: "upsertEntity",
+          kind: "person",
+          id: people.get(name)!,
+          fields: { name },
+        })),
+        {
+          ...base(`${ssiId}-dive`),
+          type: "upsertDive",
+          diveId: `dive-ssi-${ssiId}`,
+          fields,
+        },
+      ]
+      // Checked here, so a bad value stops the run before anything is sent,
+      // naming the op it is in ("person name", "dive endPressure").
+      const parsed = uploadDraftRequest.safeParse({ ops })
+      if (!parsed.success) {
+        const where = (path: PropertyKey[]) => {
+          const op = ops[Number(path[1])] as { kind?: string } | undefined
+          return [op ? (op.kind ?? "dive") : null, ...path.slice(3)]
+            .filter((part) => part != null)
+            .join(" ")
+        }
+        throw new Error(
+          `${describe(row)}: ${parsed.error.issues.map((issue) => `${where(issue.path)}: ${issue.message}`).join("; ")}`
         )
-      ),
-      element("gasdefinitions", [...mixes.values()]),
-      // Every dive in its own repetition group, as Shylog's export writes.
-      element(
-        "profiledata",
-        dives.map(({ xml }, i) =>
-          element("repetitiongroup", [xml], ` id="group-${i + 1}"`)
-        )
-      ),
-    ],
-    ` xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1"`
-  )
+      }
+      return parsed.data
+    })
+
   return {
-    xml: `<?xml version="1.0" encoding="utf-8"?>\n${uddf.join("\n")}\n`,
-    dives: dives.length,
+    drafts,
+    dives: drafts.length,
     freedives: rows.length - scuba.length,
+    skipped: scuba.length - drafts.length,
   }
 }

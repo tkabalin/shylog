@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --root ../.. --project server",
     "seed": "tsx --env-file-if-exists=../../.env scripts/seed.ts",
-    "ssi-to-uddf": "tsx scripts/ssi-to-uddf.ts"
+    "ssi-import": "tsx scripts/ssi-import.ts"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",

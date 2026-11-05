@@ -1,8 +1,8 @@
 import { dropUnwritable } from "@shylog/core"
 
-// Small builders for the UDDF Shylog writes, shared by the export and the
-// SSI converter. An element is a list of lines, indented by its parent, so
-// the output is stable text that diffs well from one night to the next.
+// Small builders for the UDDF Shylog's export writes. An element is a list
+// of lines, indented by its parent, so the output is stable text that diffs
+// well from one night to the next.
 export type Xml = string[]
 
 // XML 1.0 has no way to write most control characters, even escaped, so one
