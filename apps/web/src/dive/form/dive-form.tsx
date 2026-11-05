@@ -37,7 +37,7 @@ import {
   IconCloudRain,
   IconCopy,
   IconFish,
-  IconHourglass,
+  IconClockPlay,
   IconMapPin,
   IconNotes,
   IconPool,
@@ -792,7 +792,7 @@ export function DiveForm({
                 className={cn(pressedRow, "has-data-popup-open:bg-muted/60")}
               >
                 <Label
-                  icon={IconClock}
+                  icon={IconClockPlay}
                   htmlFor="field-time"
                   after={source("startTime")}
                 >
@@ -840,7 +840,7 @@ export function DiveForm({
             {numberRow({
               name: "duration",
               label: "Duration",
-              icon: IconHourglass,
+              icon: IconClock,
               unit: "min",
               mode: "numeric",
               marker: source("duration"),

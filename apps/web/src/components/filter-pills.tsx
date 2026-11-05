@@ -3,7 +3,7 @@ import { tags, type Tag } from "@shylog/core"
 import {
   IconArrowBarToDown,
   IconCalendar,
-  IconHourglass,
+  IconClock,
   IconMap,
   IconX,
 } from "@tabler/icons-react"
@@ -180,7 +180,7 @@ export function FilterPills({
         noun="duration"
         unit="min"
         unitName="minutes"
-        icon={IconHourglass}
+        icon={IconClock}
         scale={durationScale}
         value={filters.duration}
         onApply={(duration) => set({ duration })}

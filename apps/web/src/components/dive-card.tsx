@@ -1,8 +1,4 @@
-import {
-  IconArrowBarToDown,
-  IconEyeOff,
-  IconHourglass,
-} from "@tabler/icons-react"
+import { IconArrowBarToDown, IconEyeOff, IconClock } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
 
 import { Sparkline } from "@/components/sparkline"
@@ -87,11 +83,7 @@ export function DiveCard({ dive, log }: { dive: Dive; log: LogView }) {
           {depth(dive.maxDepth)} m
         </span>
         <span className="inline-flex items-center gap-1 text-[13px] text-muted-foreground">
-          <IconHourglass
-            role="img"
-            aria-label="Duration"
-            className="size-3.25"
-          />
+          <IconClock role="img" aria-label="Duration" className="size-3.25" />
           {minutes(dive.duration)} min
         </span>
       </span>
