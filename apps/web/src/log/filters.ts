@@ -16,7 +16,7 @@ export const durationScale = { min: 0, max: 90, step: 5 } as const
 
 export interface Filters {
   year?: string
-  tag?: Tag
+  tags?: Tag[]
   region?: string
   depth?: Range
   duration?: Range
@@ -48,7 +48,10 @@ export const isFullRange = (
 
 export function matchesFilters(dive: Dive, filters: Filters, log: LogView) {
   if (filters.year && year(dive.startTime) !== filters.year) return false
-  if (filters.tag && !log.links.get(dive.id)?.tags.includes(filters.tag))
+  // Any of the picked tags, so adding one widens the list and no choice
+  // empties it.
+  const tags = log.links.get(dive.id)?.tags ?? []
+  if (filters.tags?.length && !filters.tags.some((tag) => tags.includes(tag)))
     return false
   if (filters.region && log.sites.get(dive.siteId)?.regionId !== filters.region)
     return false

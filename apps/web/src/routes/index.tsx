@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { tags, type Tag } from "@shylog/core"
+import { tags as allTags, type Tag } from "@shylog/core"
 import {
   IconCloudOff,
   IconPlus,
@@ -48,7 +48,8 @@ import {
 interface LogSearch {
   q?: string
   year?: number
-  tag?: Tag
+  // Comma-separated rather than an array, which the router writes as JSON.
+  tags?: string
   region?: string
   depth?: string
   duration?: string
@@ -75,12 +76,17 @@ function decodeRange(
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): LogSearch => {
-    const tag = text(search.tag)
+    // ?tag= is how a filtered Log read before several tags could be picked.
+    const tags = (text(search.tags) ?? text(search.tag))
+      ?.split(",")
+      .filter(
+        (tag, i, all) => Object.hasOwn(allTags, tag) && all.indexOf(tag) === i
+      )
     return {
       q: text(search.q),
       // A number, so the URL reads ?year=2026 rather than a quoted string.
       year: Number.isInteger(search.year) ? (search.year as number) : undefined,
-      tag: tag && Object.hasOwn(tags, tag) ? (tag as Tag) : undefined,
+      tags: tags?.length ? tags.join(",") : undefined,
       region: text(search.region),
       depth: text(search.depth),
       duration: text(search.duration),
@@ -101,7 +107,7 @@ function LogPage() {
 
   const filters: Filters = {
     year: search.year?.toString(),
-    tag: search.tag,
+    tags: search.tags?.split(",") as Tag[] | undefined,
     region: search.region,
     depth: decodeRange(search.depth, depthScale),
     duration: decodeRange(search.duration, durationScale),
@@ -111,7 +117,7 @@ function LogPage() {
       search: (prev) => ({
         ...prev,
         year: next.year ? Number(next.year) : undefined,
-        tag: next.tag,
+        tags: next.tags?.length ? next.tags.join(",") : undefined,
         region: next.region,
         depth: encodeRange(next.depth),
         duration: encodeRange(next.duration),
