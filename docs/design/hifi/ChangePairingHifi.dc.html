@@ -204,7 +204,7 @@ var mk = function (id, name, meta, note, current, i) { var on = ch === id; retur
 var logged = [mk('tm', 'Two Mile Reef', '09:12 · 32.7 m · 45 min', '', true, 0), mk('sm', 'Seven Mile Reef', '12:38 · 21.4 m · 52 min', 'Now paired with the 12:40 D4i dive, which will be left unpaired', false, 1)];
 var alts = [mk('new', 'Add as a new dive', 'Uses the D4i’s time, depth and profile', '', false, 0), mk('skip', 'Don’t import', 'Leave this D4i dive out', '', false, 1)];
 var W = 'var(--warn)', N = 'var(--foreground)';
-var CI = { 'Start': "M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 7v5l3 3", 'Max depth': "M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4", 'Duration': "M6.5 7h11 M6.5 17h11 M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1z M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1z", 'Water': "M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5 M10 9l4 0" };
+var CI = { 'Start': "M12 7v5l2 2 M17 22l5 -3l-5 -3l0 6 M13.017 20.943a9 9 0 1 1 7.831 -7.292", 'Max depth': "M4 20l16 0 M12 14l0 -10 M12 14l4 -4 M12 14l-4 -4", 'Duration': "M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0 M12 7v5l3 3", 'Water': "M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5 M10 9l4 0" };
 var r = function (k, a, b, diff) { return { ic: CI[k], icc: '', k: k, a: a, b: b, col: diff ? W : N, w: diff ? '600' : '400' }; };
 var cmp = ch === 'sm'
 ? [r('Start', '12:38', '09:14', true), r('Max depth', '21.4 m', '32.4 m', true), r('Duration', '52 min', '44 min', true), r('Water', '—', '22–24 °C', false)]
