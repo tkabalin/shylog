@@ -58,9 +58,19 @@ function FilterSelect({
         {icon}
         <SelectValue />
       </SelectTrigger>
-      <SelectContent alignItemWithTrigger={false} align="start">
+      {/* As wide as its longest option, not the pill, so a long region
+          name isn't cut off; one wider than the screen wraps. */}
+      <SelectContent
+        alignItemWithTrigger={false}
+        align="start"
+        className="w-max max-w-(--available-width)"
+      >
         {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            className="*:shrink *:whitespace-normal"
+          >
             {option.label}
           </SelectItem>
         ))}
