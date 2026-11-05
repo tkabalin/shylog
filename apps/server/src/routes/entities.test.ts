@@ -54,11 +54,12 @@ const second = () =>
     .prepare("SELECT id FROM dives WHERE start_time = '2026-07-20T09:57:21'")
     .pluck()
     .get() as string
-// A draft logged offline after the change being tested.
+// A draft logged offline after the change being tested, stamped now: the
+// server refuses drafts more than two years old.
 const draft = {
   opVersion,
   deviceId: "device-phone",
-  at: "2026-10-20T10:00:00Z",
+  at: new Date().toISOString(),
 }
 const lateDive = () => ({
   startTime: "2026-10-19T09:00:00",
