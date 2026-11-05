@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
-import { IconArrowBarToDown, IconHourglass } from "@tabler/icons-react"
+import { IconArrowBarToDown, IconClock } from "@tabler/icons-react"
 
 import shyshark from "@/assets/shyshark.svg"
 import { countText } from "@/components/pickers/match"
@@ -126,7 +126,7 @@ export function LogHeader({
         </p>
         <p className="flex flex-wrap items-center gap-x-3.5 pt-0.5 pb-4 text-base text-muted-foreground tabular-nums">
           <span className="inline-flex items-center gap-1.5">
-            <IconHourglass aria-hidden className="size-[1.15em]" />
+            <IconClock aria-hidden className="size-[1.15em]" />
             <span>
               <span className="font-semibold">{h} h</span> underwater
             </span>

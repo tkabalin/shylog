@@ -1,9 +1,5 @@
 import { useState } from "react"
-import {
-  IconArrowBarToDown,
-  IconHourglass,
-  IconTrash,
-} from "@tabler/icons-react"
+import { IconArrowBarToDown, IconClock, IconTrash } from "@tabler/icons-react"
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
 
@@ -171,7 +167,7 @@ function DeletedCard({
                   {depth(dive.maxDepth)} m
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <IconHourglass
+                  <IconClock
                     role="img"
                     aria-label="Duration"
                     className="size-3.25"

@@ -39,7 +39,7 @@ import {
   IconEye,
   IconEyeOff,
   IconFish,
-  IconHourglass,
+  IconClockPlay,
   IconInfoCircle,
   IconMap,
   IconNotes,
@@ -438,7 +438,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
               {longDate(dive.startTime)}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <IconClock aria-hidden className="size-[1.15em]" />
+              <IconClockPlay aria-hidden className="size-[1.15em]" />
               {clockTime(dive.startTime)}
             </span>
           </p>
@@ -456,7 +456,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
             unit="m"
           />
           <Headline
-            icon={IconHourglass}
+            icon={IconClock}
             term="Duration"
             value={minutes(dive.duration)}
             unit="min"

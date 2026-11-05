@@ -17,7 +17,7 @@ import {
   IconChevronRight,
   IconClock,
   IconDroplet,
-  IconHourglass,
+  IconClockPlay,
   IconSalt,
   IconMapPin,
   IconTrash,
@@ -897,12 +897,12 @@ function DiveRow({
   const parts =
     kind === "site"
       ? [
-          { icon: IconClock, text: clockTime(dive.startTime) },
-          { icon: IconHourglass, text: `${minutes(dive.duration)} min` },
+          { icon: IconClockPlay, text: clockTime(dive.startTime) },
+          { icon: IconClock, text: `${minutes(dive.duration)} min` },
         ]
       : [
           { icon: IconCalendar, text: longDate(dive.startTime) },
-          { icon: IconHourglass, text: `${minutes(dive.duration)} min` },
+          { icon: IconClock, text: `${minutes(dive.duration)} min` },
         ]
   return (
     <Link
