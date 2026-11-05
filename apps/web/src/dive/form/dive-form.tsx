@@ -27,12 +27,12 @@ import {
   IconArrowsHorizontal,
   IconArrowWaveRightUp,
   IconBarbell,
+  IconBeach,
   IconBuildingStore,
   IconCalendar,
   IconCheck,
   IconChevronRight,
   IconClock,
-  IconClockPause,
   IconCloud,
   IconCloudRain,
   IconCopy,
@@ -1590,7 +1590,7 @@ function SurfaceInterval({
     <Field under={<ErrorLine id="error-surfaceInterval" message={error} />}>
       <Row className={pressedRow}>
         <Label
-          icon={IconClockPause}
+          icon={IconBeach}
           after={
             value == null &&
             calculated !== undefined && (
