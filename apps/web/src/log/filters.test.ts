@@ -83,8 +83,11 @@ describe("matchesFilters", () => {
     const a = dive({})
     expect(matchesFilters(a, { year: "2026" }, log)).toBe(true)
     expect(matchesFilters(a, { year: "2025" }, log)).toBe(false)
-    expect(matchesFilters(a, { tag: "drift" }, log)).toBe(true)
-    expect(matchesFilters(a, { tag: "night" }, log)).toBe(false)
+    expect(matchesFilters(a, { tags: ["drift"] }, log)).toBe(true)
+    expect(matchesFilters(a, { tags: ["night"] }, log)).toBe(false)
+    // Any of several tags, so adding one never hides a dive.
+    expect(matchesFilters(a, { tags: ["night", "drift"] }, log)).toBe(true)
+    expect(matchesFilters(a, { tags: [] }, log)).toBe(true)
     expect(matchesFilters(a, { region: "region-s" }, log)).toBe(true)
     expect(
       matchesFilters(dive({ siteId: "site-b" }), { region: "region-s" }, log)

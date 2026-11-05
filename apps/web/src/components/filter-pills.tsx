@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { tags, type Tag } from "@shylog/core"
 import {
   IconArrowBarToDown,
@@ -24,6 +24,30 @@ import { depthScale, durationScale, type Filters } from "@/log/filters"
 
 const all = "all"
 
+type Option = { value: string; label: string }
+
+// As wide as its longest option, not the pill, so a long region name isn't
+// cut off; one wider than the screen wraps.
+function FilterMenu({ options }: { options: Option[] }) {
+  return (
+    <SelectContent
+      alignItemWithTrigger={false}
+      align="start"
+      className="w-max max-w-(--available-width)"
+    >
+      {options.map((option) => (
+        <SelectItem
+          key={option.value}
+          value={option.value}
+          className="*:shrink *:whitespace-normal"
+        >
+          {option.label}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  )
+}
+
 function FilterSelect({
   name,
   label,
@@ -36,7 +60,7 @@ function FilterSelect({
   label: string
   icon?: React.ReactNode
   value: string | undefined
-  items: { value: string; label: string }[]
+  items: Option[]
   onChange: (value: string | undefined) => void
 }) {
   const options = [{ value: all, label }, ...items]
@@ -58,23 +82,61 @@ function FilterSelect({
         {icon}
         <SelectValue />
       </SelectTrigger>
-      {/* As wide as its longest option, not the pill, so a long region
-          name isn't cut off; one wider than the screen wraps. */}
-      <SelectContent
-        alignItemWithTrigger={false}
-        align="start"
-        className="w-max max-w-(--available-width)"
+      <FilterMenu options={options} />
+    </Select>
+  )
+}
+
+// The tag pill takes several, which a dive matches if it has any of them.
+// "Any tag" clears the choice, as it does on the single pills. A tag from a
+// link that no dive uses is still listed, so it can be unticked on its own.
+function TagSelect({
+  value,
+  used,
+  onChange,
+  onOpenChange,
+  onOpenChangeComplete,
+}: {
+  value: Tag[]
+  used: ReadonlySet<string>
+  onChange: (value: Tag[]) => void
+  onOpenChange: (open: boolean) => void
+  onOpenChangeComplete: (open: boolean) => void
+}) {
+  const options = [
+    { value: all, label: "Any tag" },
+    ...(Object.keys(tags) as Tag[])
+      .filter((tag) => used.has(tag) || value.includes(tag))
+      .map((tag) => ({ value: tag, label: tags[tag].label })),
+  ]
+  const labelOf = (tag: Tag) => tags[tag].label
+  // One tag by name, more as "Night + 1", as the dive form's buddy row reads.
+  const text = !value.length
+    ? "Any tag"
+    : `${labelOf(value[0]!)}${value.length > 1 ? ` + ${value.length - 1}` : ""}`
+  return (
+    <Select
+      multiple
+      items={options}
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={onOpenChangeComplete}
+      value={value.length ? value : [all]}
+      onValueChange={(next: string[]) =>
+        onChange(
+          next.includes(all) && value.length
+            ? []
+            : (next.filter((tag) => tag !== all) as Tag[])
+        )
+      }
+    >
+      <SelectTrigger
+        variant="pill"
+        aria-label={`Tag, ${value.map(labelOf).join(", ") || "Any tag"}`}
+        data-active={value.length ? "" : undefined}
       >
-        {options.map((option) => (
-          <SelectItem
-            key={option.value}
-            value={option.value}
-            className="*:shrink *:whitespace-normal"
-          >
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
+        <SelectValue>{() => text}</SelectValue>
+      </SelectTrigger>
+      <FilterMenu options={options} />
     </Select>
   )
 }
@@ -108,16 +170,18 @@ export function FilterPills({
         .sort()
         .reverse()
         .map((y) => ({ value: y, label: y })),
-      tags: (Object.keys(tags) as Tag[])
-        .filter((tag) => used.has(tag))
-        .map((tag) => ({ value: tag, label: tags[tag].label })),
+      tags: used,
       regions: [...regions]
         .map((id) => ({ value: id, label: log.regions.get(id)?.name ?? "" }))
         .sort((a, b) => a.label.localeCompare(b.label)),
     }
   }, [log])
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch })
-  const any = Object.values(filters).some((value) => value !== undefined)
+  const filtered = Object.values(filters).some((value) => value !== undefined)
+  // The tag menu stays open while tags are picked, so Clear folds in or out
+  // only once it has closed: the pills moving would slide it under a finger.
+  const [held, setHeld] = useState<boolean | null>(null)
+  const any = held ?? filtered
   usePreloadRangeSheet()
 
   return (
@@ -160,12 +224,16 @@ export function FilterPills({
         items={choices.years}
         onChange={(value) => set({ year: value })}
       />
-      <FilterSelect
-        name="Tag"
-        label="Any tag"
-        value={filters.tag}
-        items={choices.tags}
-        onChange={(value) => set({ tag: value as Tag | undefined })}
+      <TagSelect
+        value={filters.tags ?? []}
+        used={choices.tags}
+        onOpenChange={(open) => {
+          if (open) setHeld(filtered)
+        }}
+        onOpenChangeComplete={(open) => {
+          if (!open) setHeld(null)
+        }}
+        onChange={(tags) => set({ tags: tags.length ? tags : undefined })}
       />
       <FilterSelect
         name="Region"

@@ -83,6 +83,55 @@ test("narrows the header figures to a year", async ({ page }) => {
   await expect(page.getByRole("region", { name: /2025$/ })).toHaveCount(0)
 })
 
+test("filters by several tags, keeping the menu still while picking @writes", async ({
+  page,
+  request,
+  restore,
+}) => {
+  const night = await diveId(request, 54)
+  const wreck = await diveId(request, 63)
+  const tagsOf = async (id: string) =>
+    (await getLog(request)).links
+      .filter((link) => link.diveId === id && link.type === "tag")
+      .map((link) => link.target)
+  for (const [id, tag] of [
+    [night, "night"],
+    [wreck, "wreck"],
+  ] as const) {
+    const before = await tagsOf(id)
+    restore((request) =>
+      patchDive(request, id, { tags: before.length ? before : null })
+    )
+    await patchDive(request, id, { tags: [...before, tag] })
+  }
+
+  await page.goto("/")
+  await page.getByRole("combobox", { name: "Tag, Any tag" }).click()
+  const menu = page.getByRole("listbox")
+  const left = (await menu.boundingBox())!.x
+  await page.getByRole("option", { name: "Night" }).click()
+  // Open for the next pick, and Clear waits to fold in until it closes, so
+  // the menu doesn't slide under the finger.
+  await page.getByRole("option", { name: "Wreck" }).click()
+  expect((await menu.boundingBox())!.x).toBe(left)
+  await expect(page).toHaveURL(/tags=night(,|%2C)wreck/)
+  const pill = page.getByRole("combobox", { name: "Tag, Night, Wreck" })
+  await expect(pill).toContainText("Night + 1")
+  await page.keyboard.press("Escape")
+  await expect(
+    page.getByRole("button", { name: "Clear filters" })
+  ).toBeVisible()
+  // A dive with either tag, so both fixture dives show.
+  await expect(cards(page)).toHaveCount(2)
+
+  await pill.click()
+  await page.getByRole("option", { name: "Any tag" }).click()
+  await expect(page).not.toHaveURL(/tags=/)
+  await expect(
+    page.getByRole("combobox", { name: "Tag, Any tag" })
+  ).toBeVisible()
+})
+
 test("clears every filter at once, and only shows Clear while one is set", async ({
   page,
 }) => {
