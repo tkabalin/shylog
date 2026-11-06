@@ -13,6 +13,8 @@ export const idPrefixes = {
   card: "card",
   op: "op",
   device: "device",
+  // Server-made, for an import preview.
+  import: "import",
 } as const
 export type IdKind = keyof typeof idPrefixes
 export type Id<K extends IdKind> = `${(typeof idPrefixes)[K]}-${string}`
