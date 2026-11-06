@@ -17,12 +17,15 @@ function isFreedive(dive: ReadDive) {
   )
 }
 
-// Freedives, and the computer waking in shallow water for under a minute,
-// are left out unless included in the review, and fingerprinted either way
-// so a later import doesn't offer them again. The rules hold whatever the
-// computer.
+// Under five minutes is a blip, such as a weight check or the swim back:
+// the owner's shortest real dive is 15 minutes, the longest blip 3.
+export const isShort = (duration: number) => duration < 5 * 60
+
+// Freedives and blips are left out unless included in the review (a blip a
+// logged dive matches pairs instead), and fingerprinted either way, so a
+// later import doesn't offer them again. The rules hold whatever computer.
 export function leftOut(dive: ReadDive): LeftOut | null {
   if (isFreedive(dive)) return "freedive"
-  if (dive.duration < 60) return "short"
+  if (isShort(dive.duration)) return "short"
   return null
 }

@@ -40,7 +40,7 @@ describe("GET /api/log", () => {
       "cards",
     ])
     expect(log.schemaVersion).toBe(migrations.length)
-    expect(log.dives).toHaveLength(46)
+    expect(log.dives).toHaveLength(42)
     expect(log.countries).toHaveLength(249)
     expect(log.settings).toEqual({
       diverName: "",

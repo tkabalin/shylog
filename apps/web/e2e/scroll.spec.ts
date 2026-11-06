@@ -12,7 +12,7 @@ for (const via of ["the Log link", "the browser"] as const) {
     await page.goto("/")
     const main = page.locator("#main")
     const cards = page.locator("main a[href^='/dive/dive-']")
-    await expect(cards).toHaveCount(46)
+    await expect(cards).toHaveCount(42)
     await main.evaluate((el) => el.scrollTo(0, 1800))
     const bar = page.locator("[data-log-bar]")
     await expect(bar).toHaveAttribute("data-stuck", "")
@@ -48,7 +48,7 @@ for (const via of ["the Log link", "the browser"] as const) {
         .click()
 
     await expect(page).toHaveURL("/")
-    await expect(cards).toHaveCount(46)
+    await expect(cards).toHaveCount(42)
     await expect
       .poll(() => main.evaluate((el) => el.scrollTop))
       .toBe(before.top)
@@ -78,7 +78,7 @@ test.describe("on a short screen", () => {
     test.slow()
     await page.goto("/")
     const cards = page.locator("main a[href^='/dive/dive-']")
-    await expect(cards).toHaveCount(46)
+    await expect(cards).toHaveCount(42)
     const dive = await cards.first().getAttribute("href")
     await page.goto("/you/entities?kind=site")
     const sites = page.locator("main a[href^='/you/entities/site/']")

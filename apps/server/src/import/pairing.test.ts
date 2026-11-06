@@ -151,7 +151,7 @@ describe("buildPreview", () => {
     expect(preview.newDives.map((dive) => dive.ref)).not.toContain("again")
   })
 
-  it("never proposes a freedive or a dive under a minute", () => {
+  it("never proposes a freedive or a dive under five minutes", () => {
     const db = testDb()
     const freedive = fixture(9)
     logByHand(db, [
@@ -164,17 +164,17 @@ describe("buildPreview", () => {
     ])
     const preview = buildPreview(db, d4iXml, now)
     expect(preview.pairs).toEqual([])
-    expect(preview.newDives).toHaveLength(46)
-    expect(preview.leftOut).toHaveLength(26)
-    expect(preview.leftOut.every((dive) => dive.reason === "freedive")).toBe(
-      true
-    )
+    expect(preview.newDives).toHaveLength(42)
+    expect(preview.leftOut).toHaveLength(30)
+    const reasons = (dives: typeof preview.leftOut, reason: string) =>
+      dives.filter((dive) => dive.reason === reason).length
+    expect(reasons(preview.leftOut, "freedive")).toBe(26)
+    expect(reasons(preview.leftOut, "short")).toBe(4)
     expect(preview.unpaired.map((dive) => dive.diveId)).toEqual(["dive-free"])
 
     const zoop = buildPreview(testDb(), zoopXml, now)
-    expect(zoop.newDives).toHaveLength(29)
-    const reasons = zoop.leftOut.map((dive) => dive.reason)
-    expect(reasons.filter((reason) => reason === "freedive")).toHaveLength(30)
-    expect(reasons.filter((reason) => reason === "short")).toHaveLength(2)
+    expect(zoop.newDives).toHaveLength(28)
+    expect(reasons(zoop.leftOut, "freedive")).toBe(30)
+    expect(reasons(zoop.leftOut, "short")).toBe(3)
   })
 })

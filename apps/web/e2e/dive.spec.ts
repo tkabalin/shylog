@@ -14,7 +14,7 @@ test("shows fixture dive 63's figures", async ({ page, request }) => {
   await page.goto(`/dive/${await diveId(request, 63)}`)
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sodwana")
-  await expect(page.getByText("Dive 37")).toBeVisible()
+  await expect(page.getByText("Dive 33")).toBeVisible()
   await expect(page.getByText("South Africa", { exact: true })).toBeVisible()
   await expect(page.getByText("Wed 22 Jul 2026")).toBeVisible()
   await expect(page.getByText("08:12")).toBeVisible()

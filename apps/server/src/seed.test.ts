@@ -17,8 +17,8 @@ const dive = (n: keyof typeof fixtureStart) =>
     .get(fixtureStart[n]) as Record<string, unknown>
 
 describe("seeding the D4i fixture", () => {
-  it("writes the 46 scuba dives and leaves out the freedives", () => {
-    expect(db.prepare("SELECT count(*) FROM dives").pluck().get()).toBe(46)
+  it("writes the 42 scuba dives and leaves out the freedives and blips", () => {
+    expect(db.prepare("SELECT count(*) FROM dives").pluck().get()).toBe(42)
     expect(
       db
         .prepare(
@@ -49,7 +49,7 @@ describe("seeding the D4i fixture", () => {
       duration: 2500,
       computer_model: "Suunto D4i",
     })
-    expect(dive(6)).toMatchObject({ min_temperature: 29, max_temperature: 34 })
+    expect(dive(36)).toMatchObject({ min_temperature: 16, max_temperature: 20 })
   })
 
   it("marks what it fills as computer values", () => {
@@ -84,7 +84,7 @@ describe("seeding the D4i fixture", () => {
         .all()
     ).toEqual([
       { name: "Sodwana", dives: 14 },
-      { name: "Unnamed site", dives: 32 },
+      { name: "Unnamed site", dives: 28 },
     ])
   })
 
@@ -92,7 +92,7 @@ describe("seeding the D4i fixture", () => {
     expect(dive(1)).toMatchObject({ number: 1, surface_interval: null })
     // Dive 1 ends at its last sample below 0.75 m, 2111 s in.
     expect(dive(2)).toMatchObject({ number: 2, surface_interval: 600 })
-    expect(dive(63).number).toBe(37)
+    expect(dive(63).number).toBe(33)
     // Subsurface's figures (packages/core/test/subsurface.ts).
     expect(dive(63)).toMatchObject({ cns: 15, otu: 41 })
     expect(dive(54)).toMatchObject({ cns: 4, otu: 12 })
@@ -120,7 +120,7 @@ describe("seeding the D4i fixture", () => {
     expect(
       db.prepare("SELECT type, payload FROM ops WHERE type = 'seed'").all()
     ).toEqual([
-      { type: "seed", payload: '{"source":"d4i-2026-10-12.uddf","dives":46}' },
+      { type: "seed", payload: '{"source":"d4i-2026-10-12.uddf","dives":42}' },
     ])
   })
 

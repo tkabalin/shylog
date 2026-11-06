@@ -52,9 +52,9 @@ describe("leftOut", () => {
     expect(leftOut(dive({ samples: [], duration: 1800 }))).toBeNull()
   })
 
-  it("leaves out any other dive under a minute as short", () => {
+  it("leaves out any other dive under five minutes as short", () => {
     const scuba = { hasTankData: true, hasGas: true, every: 10 }
-    expect(leftOut(dive({ ...scuba, duration: 59 }))).toBe("short")
-    expect(leftOut(dive({ ...scuba, duration: 60 }))).toBeNull()
+    expect(leftOut(dive({ ...scuba, duration: 299 }))).toBe("short")
+    expect(leftOut(dive({ ...scuba, duration: 300 }))).toBeNull()
   })
 })

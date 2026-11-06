@@ -52,7 +52,7 @@ describe("GET /api/export/uddf", () => {
       /^attachment; filename="shylog-\d{4}-\d\d-\d\d\.uddf"$/
     )
     const body = await res.text()
-    expect(body.match(/<dive id=/g)).toHaveLength(46)
+    expect(body.match(/<dive id=/g)).toHaveLength(42)
     // Only the nightly job and Export now write the backup copy.
     expect(existsSync(exportDir(dir))).toBe(false)
     expect(getMeta(db, "last_export_at")).toBeNull()
@@ -179,7 +179,7 @@ describe("POST /api/export/run", () => {
     expect(getMeta(db, "export_failed_at")).toBeNull()
     expect(
       readFileSync(exportFile(dir), "utf8").match(/<dive id=/g)
-    ).toHaveLength(46)
+    ).toHaveLength(42)
     expect(readFileSync(csvFile(dir), "utf8")).toBe(writeCsv(db).csv)
   })
 

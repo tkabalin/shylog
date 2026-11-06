@@ -157,9 +157,9 @@ describe("nightly", () => {
 
     expect(order).toEqual(["snapshot", "export"])
     const xml = readFileSync(exportFile(dir), "utf8")
-    expect(xml.match(/<dive id=/g)).toHaveLength(46)
+    expect(xml.match(/<dive id=/g)).toHaveLength(42)
     expect(readFileSync(csvFile(dir), "utf8").match(/\r\ndive-/g)).toHaveLength(
-      46
+      42
     )
     // The temp files are gone once the renames are done.
     expect(readdirSync(exportDir(dir)).sort()).toEqual([

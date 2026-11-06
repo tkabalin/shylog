@@ -226,7 +226,7 @@ describe("DELETE /api/dives/:id and restore", () => {
     expect(deleted.deletedAt).not.toBeNull()
     expect(deleted.number).toBeNull()
     const live = (await getLog()).dives.filter((d) => d.deletedAt == null)
-    expect(live).toHaveLength(45)
+    expect(live).toHaveLength(41)
     expect(journal().at(-1)).toMatchObject({ type: "deleteDive" })
 
     const again = await send(app, "DELETE", `/api/dives/${id}`)
@@ -236,7 +236,7 @@ describe("DELETE /api/dives/:id and restore", () => {
     expect(restored.status).toBe(200)
     const { version: after } = (await restored.json()) as { version: string }
     expect(after).not.toBe(version)
-    expect(await theDive()).toMatchObject({ deletedAt: null, number: 37 })
+    expect(await theDive()).toMatchObject({ deletedAt: null, number: 33 })
     const twice = await send(app, "POST", `/api/dives/${id}/restore`)
     expect(await twice.json()).toEqual({ version: after })
   })
