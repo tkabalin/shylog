@@ -14,3 +14,9 @@ trustPolicyExclude:
 
 allowBuilds:
   esbuild: true
+
+overrides:
+  # GHSA-g3hv-75wg-m249 (a glob pattern that grows quadratically) is fixed
+  # only in 11. ESLint, typescript-eslint and ts-morph still ask for 10 but
+  # use only Minimatch and minimatch(), which 11 keeps. Drop it once they move.
+  "minimatch@10": ^11.0.1
