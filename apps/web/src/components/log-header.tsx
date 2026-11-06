@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
+import { flushSync } from "react-dom"
 import { IconArrowBarToDown, IconClock } from "@tabler/icons-react"
 
 import shyshark from "@/assets/shyshark.svg"
@@ -14,6 +15,7 @@ import type { headerFigures } from "@/log/filters"
 function useStuck(scroller: string) {
   const bar = useRef<HTMLDivElement>(null)
   const [stuck, setStuck] = useState(false)
+  const shown = useRef(false)
   useEffect(() => {
     const element = document.querySelector<HTMLElement>(scroller)
     const target = bar.current
@@ -27,7 +29,12 @@ function useStuck(scroller: string) {
       const rect = target.getBoundingClientRect()
       const offset = rect.top - element.getBoundingClientRect().top
       const isStuck = element.scrollTop > 0 && offset <= top + 0.5
-      setStuck(isStuck)
+      // Committed in this frame, not React's next task, so data-stuck flips
+      // with data-heading-stuck and an unsticking bar never flashes its line.
+      if (isStuck !== shown.current) {
+        shown.current = isStuck
+        flushSync(() => setStuck(isStuck))
+      }
       // A stuck heading sits right under the bar; one lookup at its middle
       // finds it, as wide screens cap the list to a centred column.
       const hit = isStuck
