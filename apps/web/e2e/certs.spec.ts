@@ -115,7 +115,21 @@ test("adds two screenshots as one card, swipes, reorders, renames and deletes it
   await viewer.getByRole("button", { name: "Edit card" }).click()
   const edit = page.getByRole("dialog", { name: "Edit card" })
   await still(edit)
-  const first = await edit.locator("img").first().boundingBox()
+  // Both pages loaded first: one still loading widens mid-drag and moves
+  // the point where they swap. Their object URLs give the strip's order.
+  const pages = edit.locator("img")
+  await expect
+    .poll(() =>
+      pages.evaluateAll(
+        (all) =>
+          all.filter((one) => (one as HTMLImageElement).naturalWidth > 0).length
+      )
+    )
+    .toBe(2)
+  const order = () =>
+    pages.evaluateAll((all) => all.map((one) => (one as HTMLImageElement).src))
+  const before = await order()
+  const first = await pages.first().boundingBox()
   const at: [number, number] = [
     first!.x + first!.width / 2,
     first!.y + first!.height / 2,
@@ -123,10 +137,14 @@ test("adds two screenshots as one card, swipes, reorders, renames and deletes it
   await page.mouse.move(...at)
   await page.mouse.down()
   await page.waitForTimeout(500)
+  // A frame a step, as WebKit's frames on a busy runner outlast a timeout.
   for (let i = 1; i <= 10; i++) {
     await page.mouse.move(at[0] + i * 14, at[1])
-    await page.waitForTimeout(30)
+    await page.evaluate(() => new Promise(requestAnimationFrame))
   }
+  // Held until the strip has swapped, so a release can't land before
+  // Motion has taken the last move.
+  await expect.poll(order).toEqual([...before].reverse())
   await page.mouse.up()
 
   await edit.getByRole("textbox").fill(`${name} Plus`)
