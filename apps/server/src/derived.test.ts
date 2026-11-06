@@ -62,16 +62,16 @@ const patch = async (startTime: string, fields: Record<string, unknown>) =>
 
 describe("the derived pass after each write", () => {
   it("numbers dives by local start time, after an insert, a delete and a restore", async () => {
-    expect(at(second).number).toBe(33)
+    expect(at(second).number).toBe(29)
     await addDive("dive-between", "2026-07-20T09:00:00")
-    expect(at("2026-07-20T09:00:00").number).toBe(33)
-    expect(at(second).number).toBe(34)
+    expect(at("2026-07-20T09:00:00").number).toBe(29)
+    expect(at(second).number).toBe(30)
 
     await send(app, "DELETE", "/api/dives/dive-between")
     expect(at("2026-07-20T09:00:00").number).toBeNull()
-    expect(at(second).number).toBe(33)
+    expect(at(second).number).toBe(29)
     await send(app, "POST", "/api/dives/dive-between/restore")
-    expect(at(second).number).toBe(34)
+    expect(at(second).number).toBe(30)
   })
 
   it("numbers dives with the same start time in the order they were written", async () => {
@@ -80,18 +80,18 @@ describe("the derived pass after each write", () => {
     await addDive("dive-earlier-id", tie)
     const number = (id: string) =>
       db.prepare("SELECT number FROM dives WHERE id = ?").pluck().get(id)
-    expect(number("dive-later-id")).toBe(33)
-    expect(number("dive-earlier-id")).toBe(34)
+    expect(number("dive-later-id")).toBe(29)
+    expect(number("dive-earlier-id")).toBe(30)
   })
 
   it("gives an ignored dive no number but keeps it for intervals and CNS", async () => {
     const before = at(second)
     await patch(first, { ignored: true })
     expect(at(first).number).toBeNull()
-    expect(at(second)).toEqual({ ...before, number: 32 })
+    expect(at(second)).toEqual({ ...before, number: 28 })
     await patch(first, { ignored: false })
-    expect(at(first).number).toBe(32)
-    expect(at(second).number).toBe(33)
+    expect(at(first).number).toBe(28)
+    expect(at(second).number).toBe(29)
   })
 
   it("recalculates the next dive's surface interval unless it is overridden", async () => {

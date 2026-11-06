@@ -60,7 +60,7 @@ describe("GET /api/health", () => {
       walBytes: 0,
       integrity: "ok",
       writesPaused: false,
-      diveCount: 46,
+      diveCount: 42,
       lastSnapshotAt: null,
       lastExportAt: null,
       exportFailedAt: null,

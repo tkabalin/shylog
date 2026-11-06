@@ -13,7 +13,7 @@ import { currentVersion } from "../journal.ts"
 import { sparkline } from "../profile.ts"
 import { readUddf, UnreadableUddf, type ReadDive } from "../uddf/reader.ts"
 import { fingerprint } from "./fingerprint.ts"
-import { leftOut, type LeftOut } from "./freedive.ts"
+import { isShort, leftOut, type LeftOut } from "./freedive.ts"
 import { dateOf, estimateOffsets, planDays, shift } from "./offset.ts"
 import { nearestStartGap, pairDay, type HandDive } from "./pairing.ts"
 
@@ -72,20 +72,24 @@ function proposeDay(
       startTime: shift(dive.computerStartTime, offset),
     }))
     .sort((a, b) => a.startTime.localeCompare(b.startTime))
-  const scuba: ComputerDive[] = moved.flatMap(({ reason, ...dive }) =>
-    reason ? [] : [dive]
-  )
+  const scuba = moved.filter((dive) => !dive.reason)
   const dayHands = hands.filter((hand) => dateOf(hand.startTime) === date)
-  const pairs = pairDay(dayHands, scuba)
+  // A dive under five minutes that a logged dive matches was a real dive,
+  // so it pairs as usual; only an unmatched one is left out as a blip.
+  const pairs = pairDay(
+    dayHands,
+    moved.filter((dive) => dive.reason !== "freedive")
+  )
   const paired = new Set(pairs.values())
   return {
-    pairs: scuba
-      .filter((dive) => pairs.has(dive.ref))
-      .map((dive) => ({
-        computerDive: dive,
-        diveId: pairs.get(dive.ref)!,
-      })),
-    newDives: scuba.filter((dive) => !pairs.has(dive.ref)),
+    pairs: moved.flatMap(({ reason, ...dive }) =>
+      reason !== "freedive" && pairs.has(dive.ref)
+        ? [{ computerDive: dive, diveId: pairs.get(dive.ref)! }]
+        : []
+    ),
+    newDives: moved.flatMap(({ reason, ...dive }) =>
+      !reason && !pairs.has(dive.ref) ? [dive] : []
+    ),
     unpaired: dayHands
       .filter((hand) => !paired.has(hand.id))
       .map((hand) => ({
@@ -94,7 +98,7 @@ function proposeDay(
         nearestStartGap: nearestStartGap(hand, scuba),
       })),
     leftOut: moved.flatMap(({ reason, ...dive }) =>
-      reason ? [{ ...dive, reason }] : []
+      reason && !pairs.has(dive.ref) ? [{ ...dive, reason }] : []
     ),
   }
 }
@@ -223,9 +227,11 @@ export function setDayOffset(
   const others = <T extends { day: string }>(list: T[]) =>
     list.filter((item) => item.day !== day.date)
   const entries: Entry[] = [
+    // A paired dive is never a freedive, so a short one is a blip again
+    // if the new offset unpairs it.
     ...preview.pairs.map(({ computerDive }) => ({
       ...computerDive,
-      reason: null,
+      reason: isShort(computerDive.duration) ? ("short" as const) : null,
     })),
     ...preview.newDives.map((dive) => ({ ...dive, reason: null })),
     ...preview.leftOut,

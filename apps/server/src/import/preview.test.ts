@@ -139,6 +139,38 @@ describe("setDayOffset", () => {
     expect(reset.newDives).toEqual([])
   })
 
+  it("pairs a logged dive under five minutes, and leaves it out again once unpaired", () => {
+    const db = testDb()
+    // The D4i's 2-minute dive at 09:25:51 on 7 March 2026, logged by hand.
+    logByHand(db, [
+      {
+        id: "dive-check",
+        startTime: "2026-03-07T09:26:00",
+        duration: 120,
+        maxDepth: 3.2,
+      },
+    ])
+    const preview = storePreview(db, d4iXml, now)
+    const blip = preview.pairs.find((pair) => pair.diveId === "dive-check")
+    expect(blip?.computerDive.startTime).toBe("2026-03-07T09:25:51")
+    expect(preview.leftOut.map((dive) => dive.ref)).not.toContain(
+      blip?.computerDive.ref
+    )
+    const moved = setDayOffset(
+      db,
+      preview.id,
+      { date: "2026-03-07", offset: 60 },
+      now
+    )
+    expect(moved.pairs.map((pair) => pair.diveId)).not.toContain("dive-check")
+    expect(moved.leftOut).toContainEqual(
+      expect.objectContaining({ ref: blip?.computerDive.ref, reason: "short" })
+    )
+    expect(moved.newDives.map((dive) => dive.ref)).not.toContain(
+      blip?.computerDive.ref
+    )
+  })
+
   it("refuses a preview that isn't waiting, or a day it doesn't hold", () => {
     const db = tripLog()
     const preview = storePreview(db, abroad, now)

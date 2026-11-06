@@ -119,8 +119,9 @@ describe("Shylog's reader against Subsurface's", { timeout: 20_000 }, () => {
 
     // Departure: Subsurface keeps every dive, where Shylog leaves out
     // freedives (no cylinder, no gas change, two or more samples with no
-    // gap over 2 s) and dives under a minute, worked out here from its answer.
-    it("leaves out the freedives and dives under a minute", () => {
+    // gap over 2 s) and dives under five minutes, worked out here from its
+    // answer.
+    it("leaves out the freedives and dives under five minutes", () => {
       const { theirs, ours } = both()
       for (const dive of theirs) {
         const freedive =
@@ -136,7 +137,7 @@ describe("Shylog's reader against Subsurface's", { timeout: 20_000 }, () => {
           leftOut: ours.get(dive.startTime)!.leftOut,
         }).toEqual({
           at: dive.startTime,
-          leftOut: freedive ? "freedive" : dive.duration < 60 ? "short" : null,
+          leftOut: freedive ? "freedive" : dive.duration < 300 ? "short" : null,
         })
       }
     })

@@ -342,8 +342,18 @@ describe("readUddf on the D4i export", () => {
     }
     expect(Math.min(...freedives.map((dive) => dive.duration))).toBe(8)
     expect(Math.max(...freedives.map((dive) => dive.duration))).toBe(26)
-    // The shortest scuba dive is 100 s, so none is left out as short.
-    expect(dives.filter((dive) => leftOut(dive) === "short")).toEqual([])
+    // Four blips of 100 to 180 s are left out as short; the shortest real
+    // dive is 15 minutes.
+    expect(
+      dives
+        .filter((dive) => leftOut(dive) === "short")
+        .map((dive) => [dive.startTime, dive.duration])
+    ).toEqual([
+      ["2021-02-18T09:45:24", 180],
+      ["2025-11-05T16:48:12", 100],
+      ["2026-01-14T12:46:52", 160],
+      ["2026-03-07T09:25:51", 120],
+    ])
   })
 
   it("pairs 59 ascent alarms and keeps 159 surfacings", () => {

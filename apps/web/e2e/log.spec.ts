@@ -10,10 +10,10 @@ const month = (page: Page, label: string) =>
 
 test("shows the seeded log as cards in month groups", async ({ page }) => {
   await page.goto("/")
-  await expect(header(page)).toContainText("46dives logged")
+  await expect(header(page)).toContainText("42dives logged")
   await expect(header(page)).toContainText(/\d+ h underwater/)
   await expect(header(page)).toContainText("deepest 42.3 m")
-  await expect(cards(page)).toHaveCount(46)
+  await expect(cards(page)).toHaveCount(42)
 
   const july = month(page, "July 2026")
   await expect(july.getByRole("heading")).toHaveText("July 2026")
@@ -22,7 +22,7 @@ test("shows the seeded log as cards in month groups", async ({ page }) => {
   // Every fixture dive has samples, so every card has a sparkline.
   await expect(
     page.getByRole("img", { name: /^Depth profile to/ })
-  ).toHaveCount(46)
+  ).toHaveCount(42)
 })
 
 test("puts the date before the place and shortens only the place", async ({
@@ -57,7 +57,7 @@ test("searches sites, and leaves the header figures alone", async ({
   await page.getByRole("searchbox", { name: "Search dives" }).fill("Sodwana")
   // The seed names the Sodwana week's site Sodwana and every other dive's
   // site Unnamed site.
-  await expect(cards(page)).not.toHaveCount(46)
+  await expect(cards(page)).not.toHaveCount(42)
   const count = await cards(page).count()
   expect(count).toBeGreaterThan(0)
   for (const site of await cards(page)
@@ -65,7 +65,7 @@ test("searches sites, and leaves the header figures alone", async ({
     .allTextContents()) {
     expect(site).toBe("Sodwana")
   }
-  await expect(header(page)).toContainText("46dives logged")
+  await expect(header(page)).toContainText("42dives logged")
   await page
     .getByRole("searchbox", { name: "Search dives" })
     .fill("no such reef")
@@ -78,7 +78,7 @@ test("narrows the header figures to a year", async ({ page }) => {
   await page.getByRole("option", { name: "2026" }).click()
   await expect(page).toHaveURL(/year=2026/)
   const count = await cards(page).count()
-  expect(count).toBeLessThan(46)
+  expect(count).toBeLessThan(42)
   await expect(header(page)).toContainText(`${count}dives logged`)
   await expect(page.getByRole("region", { name: /2025$/ })).toHaveCount(0)
 })
@@ -159,7 +159,7 @@ test("scrolls the count away and sticks the bar to the top", async ({
   await page.goto("/")
   const main = page.locator("#main")
   const bar = page.locator("[data-log-bar]")
-  await expect(header(page)).toContainText("46dives logged")
+  await expect(header(page)).toContainText("42dives logged")
   await main.evaluate((el) => el.scrollBy(0, 400))
   await expect(bar).toHaveAttribute("data-stuck", "")
   await expect(bar).not.toContainText("dives")
@@ -207,7 +207,7 @@ test("opens a dive from its card with no request but its samples", async ({
 }) => {
   const id = await diveId(request, 63)
   await page.goto("/")
-  await expect(cards(page)).toHaveCount(46)
+  await expect(cards(page)).toHaveCount(42)
   // The log copy is all the detail needs, so its figures are there at once;
   // only the profile chart asks for samples, the dive's own or, in the
   // background, every dive's.
@@ -220,7 +220,7 @@ test("opens a dive from its card with no request but its samples", async ({
   })
   await tapCard(page.locator(`a[href='/dive/${id}']`))
   await expect(page).toHaveURL(`/dive/${id}`)
-  await expect(page.getByText("Dive 37")).toBeVisible()
+  await expect(page.getByText("Dive 33")).toBeVisible()
   await expect(page.getByText("MOD at 1.4 bar")).toBeVisible()
   expect(requests).toEqual([])
 })
@@ -263,7 +263,7 @@ test.describe("screenshots", () => {
     test(`log 390 ${colorScheme}`, async ({ page }) => {
       await page.emulateMedia({ colorScheme })
       await page.goto("/")
-      await expect(cards(page)).toHaveCount(46)
+      await expect(cards(page)).toHaveCount(42)
       await page.evaluate(() => document.fonts.ready)
       await page.screenshot({
         path: `${import.meta.dirname}/__screenshots__/log-390-${colorScheme}.png`,
@@ -289,7 +289,7 @@ test("says it can't reach Shylog on a first visit offline, and tries again", asy
   await expect(page.getByText("Can't reach Shylog")).toBeVisible()
   await page.unroute("**/api/log")
   await page.getByRole("button", { name: "Try again" }).click()
-  await expect(cards(page)).toHaveCount(46)
+  await expect(cards(page)).toHaveCount(42)
 })
 
 // The log as a newer server sends it, fetched in full so a phone with a
@@ -322,14 +322,14 @@ test("keeps the log and offers a reload on every tab when the server is newer", 
   page,
 }) => {
   await page.goto("/")
-  await expect(cards(page)).toHaveCount(46)
+  await expect(cards(page)).toHaveCount(42)
   await newerServer(page)
   await page.reload()
   const offer = page
     .locator("[data-sonner-toast]")
     .filter({ hasText: "A new version of Shylog is ready" })
   await expect(offer).toBeVisible()
-  await expect(cards(page)).toHaveCount(46)
+  await expect(cards(page)).toHaveCount(42)
   await page.getByRole("link", { name: "You" }).click()
   await expect(page).toHaveURL(/\/you$/)
   await expect(offer.getByRole("button", { name: "Reload" })).toBeVisible()

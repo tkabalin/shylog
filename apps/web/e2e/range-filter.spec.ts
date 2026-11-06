@@ -15,7 +15,7 @@ test("narrows the Log to a depth range", async ({ page, request }) => {
   ).length
 
   await page.goto("/")
-  await expect(cards(page)).toHaveCount(46)
+  await expect(cards(page)).toHaveCount(42)
   const pill = page.getByRole("button", { name: "Depth" })
   await pill.click()
   const sheet = page.getByRole("dialog", { name: "Depth" })
@@ -67,7 +67,7 @@ test("narrows the Log to a depth range", async ({ page, request }) => {
   await expect(min).toHaveAttribute("aria-valuetext", "0 metres")
   await expect(max).toHaveAttribute("aria-valuetext", "More than 40 metres")
   await sheet.getByRole("button", { name: "Apply" }).click()
-  await expect(cards(page)).toHaveCount(46)
+  await expect(cards(page)).toHaveCount(42)
   await expect(page.getByRole("button", { name: "Depth" })).not.toHaveAttribute(
     "data-active"
   )

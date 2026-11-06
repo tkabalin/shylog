@@ -38,15 +38,18 @@ describe("the Zoop Novo export", () => {
     expect(Math.max(...freedives.map((dive) => dive.duration))).toBe(26)
   })
 
-  it("leaves out dives 42 and 54 as under a minute, with no closing surfacing", () => {
+  it("leaves out dives 42, 53 and 54 as under five minutes", () => {
     const short = dives.filter((dive) => leftOut(dive) === "short")
-    expect(short.map((dive) => dive.startTime)).toEqual([
-      starts.get(42),
-      starts.get(54),
+    expect(short.map((dive) => [dive.startTime, dive.duration])).toEqual([
+      [starts.get(42), 20],
+      [starts.get(53), 160],
+      [starts.get(54), 4],
     ])
-    expect(short.map((dive) => dive.duration)).toEqual([20, 4])
-    for (const dive of short)
-      expect(dive.events).toEqual([{ type: "surface", start: 0, end: null }])
+    // The two under a minute end with no surfacing.
+    for (const n of [42, 54])
+      expect(fixture(n).events).toEqual([
+        { type: "surface", start: 0, end: null },
+      ])
   })
 
   it("gives dive 54 no average depth: one sample at 0 s has none", () => {

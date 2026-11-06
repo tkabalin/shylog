@@ -65,7 +65,7 @@ export const importPreviewSchema = z.strictObject({
       nearestStartGap: z.int().nonnegative().nullable(),
     })
   ),
-  // Freedives and dives under a minute, offered only to include.
+  // Freedives and dives under five minutes, offered only to include.
   leftOut: z.array(
     computerDiveSchema.extend({ reason: z.enum(["freedive", "short"]) })
   ),
