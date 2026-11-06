@@ -6,6 +6,7 @@ import {
 import type { Element } from "@xmldom/xmldom"
 import { describe, expect, it } from "vitest"
 
+import { leftOut } from "../../src/import/freedive.ts"
 import { readUddf } from "../../src/uddf/reader.ts"
 import { d4iXml, zoopXml } from "../uddf-fixtures.ts"
 import { readAsSubsurface } from "./subsurface-uddf.ts"
@@ -67,6 +68,7 @@ function subsurfaceDives(uddf: string) {
 function shylogDives(uddf: string) {
   return readUddf(uddf).map((dive) => ({
     ...dive,
+    leftOut: leftOut(dive),
     maxDepth: toMillimetres(dive.maxDepth),
     averageDepth:
       dive.averageDepth == null ? null : toMillimetres(dive.averageDepth),
@@ -90,9 +92,9 @@ function shylogDives(uddf: string) {
 // timeout rather than at collection, where a failure would hide the report.
 describe("Shylog's reader against Subsurface's", { timeout: 20_000 }, () => {
   describe.each([
-    ["D4i", d4iXml, 72, 46],
-    ["Zoop Novo", zoopXml, 61, 31],
-  ])("on the %s export", (_, uddf, all, scuba) => {
+    ["D4i", d4iXml, 72],
+    ["Zoop Novo", zoopXml, 61],
+  ])("on the %s export", (_, uddf, all) => {
     let read:
       | {
           theirs: ReturnType<typeof subsurfaceDives>
@@ -105,25 +107,41 @@ describe("Shylog's reader against Subsurface's", { timeout: 20_000 }, () => {
         ours: new Map(shylogDives(uddf).map((dive) => [dive.startTime, dive])),
       })
 
-    // Departure: the seeding reader leaves out dives with no tank data, the
-    // freedives (the import applies the full rule, milestone 14).
-    it("reads the same dives, leaving out exactly those with no tank data", () => {
+    it("reads the same dives", () => {
       const { theirs, ours } = both()
       expect(theirs).toHaveLength(all)
-      expect(ours.size).toBe(scuba)
-      expect(
-        theirs
-          .filter((dive) => dive.hasCylinder)
-          .map((d) => d.startTime)
-          .sort()
-      ).toEqual([...ours.keys()].sort())
+      expect([...ours.keys()].sort()).toEqual(
+        theirs.map((dive) => dive.startTime).sort()
+      )
+    })
+
+    // Departure: Subsurface keeps every dive, where Shylog leaves out
+    // freedives (no cylinder, no gas change, two or more samples with no
+    // gap over 2 s) and dives under a minute, worked out here from its answer.
+    it("leaves out the freedives and dives under a minute", () => {
+      const { theirs, ours } = both()
+      for (const dive of theirs) {
+        const freedive =
+          !dive.hasCylinder &&
+          !dive.gasChanges.length &&
+          dive.samples.length > 1 &&
+          dive.samples.every(
+            (sample, i) =>
+              i === 0 || sample.time - dive.samples[i - 1].time <= 2
+          )
+        expect({
+          at: dive.startTime,
+          leftOut: ours.get(dive.startTime)!.leftOut,
+        }).toEqual({
+          at: dive.startTime,
+          leftOut: freedive ? "freedive" : dive.duration < 60 ? "short" : null,
+        })
+      }
     })
 
     const paired = () => {
       const { theirs, ours } = both()
-      return theirs
-        .map((dive) => [dive, ours.get(dive.startTime)!] as const)
-        .filter(([, mine]) => mine)
+      return theirs.map((dive) => [dive, ours.get(dive.startTime)!] as const)
     }
 
     it("agrees on each dive's figures, gas and computer", () => {
@@ -177,7 +195,10 @@ describe("Shylog's reader against Subsurface's", { timeout: 20_000 }, () => {
           alarms: dive.alarms,
         })
         // Departure: the time-0 gas change is the dive's gas, never an event.
-        expect(dive.gasChanges.map((change) => change.time)).toEqual([0])
+        // A freedive has none.
+        expect(dive.gasChanges.map((change) => change.time)).toEqual(
+          mine.hasGas ? [0] : []
+        )
       }
     })
   })

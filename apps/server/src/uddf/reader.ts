@@ -35,6 +35,10 @@ export interface ReadDive {
   cylinderVolume: number | null
   startPressure: number | null
   endPressure: number | null
+  // Two of the freedive signs: Subsurface writes tank data for a cylinder,
+  // and a switchmix to set its gas at the start.
+  hasTankData: boolean
+  hasGas: boolean
   // Kilograms.
   weight: number | null
   notes: string | null
@@ -105,8 +109,8 @@ function events(waypoints: Element[], times: number[]): ProfileEvent[] {
   return found
 }
 
-// Scuba dives only. A freedive has no tank data, the one sign this reader
-// uses; the import applies the full rule.
+// Every dive in the file, freedives included: import/freedive.ts decides
+// which are left out.
 export function readUddf(xml: string): ReadDive[] {
   const root = new DOMParser().parseFromString(xml, "text/xml").documentElement
   if (!root) throw new Error("Not an XML document")
@@ -134,13 +138,13 @@ export function readUddf(xml: string): ReadDive[] {
     ])
   )
 
-  return all(root, "dive").flatMap((dive, i) => {
+  return all(root, "dive").map((dive, i) => {
     const position = i + 1
     const tank = all(dive, "tankdata")[0]
-    if (!tank) return []
     // The gas the dive starts on is the switchmix at 0 s; without one, the
     // tank's links name its mix, alongside the tank, in either order.
-    const switchmix = all(dive, "switchmix").find(
+    const switchmixes = all(dive, "switchmix")
+    const switchmix = switchmixes.find(
       (gas) => number(gas.parentNode as Element, "divetime") === 0
     )
     const o2 = [switchmix, ...(tank ? all(tank, "link") : [])]
@@ -209,22 +213,22 @@ export function readUddf(xml: string): ReadDive[] {
     const checked = diveFieldsPatch.safeParse(figures)
     if (!checked.success)
       refuse(position, labels[String(checked.error.issues[0].path[0])])
-    return [
-      {
-        ...figures,
-        startTime,
-        duration,
-        maxDepth,
-        // Trimmed, with characters XML can't hold dropped.
-        notes: checked.data.notes ?? null,
-        oxygen: o2 == null || o2 <= air ? null : o2,
-        computerModel: computerOf(dive),
-        samples,
-        events: events(
-          waypoints,
-          written.map((sample) => sample.time)
-        ),
-      },
-    ]
+    return {
+      ...figures,
+      startTime,
+      duration,
+      maxDepth,
+      // Trimmed, with characters XML can't hold dropped.
+      notes: checked.data.notes ?? null,
+      oxygen: o2 == null || o2 <= air ? null : o2,
+      hasTankData: tank !== undefined,
+      hasGas: switchmixes.length > 0,
+      computerModel: computerOf(dive),
+      samples,
+      events: events(
+        waypoints,
+        written.map((sample) => sample.time)
+      ),
+    }
   })
 }

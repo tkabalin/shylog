@@ -567,6 +567,9 @@ describe(
               cylinderVolume: dive.cylinderVolume,
               startPressure: throughPascals(dive.startPressure),
               endPressure: throughPascals(dive.endPressure),
+              // Shylog writes tank data for every dive, and no switchmix.
+              hasTankData: true,
+              hasGas: false,
               // Departure: notes are read trimmed.
               weight: dive.weight,
               notes: dive.notes?.trim() || null,
