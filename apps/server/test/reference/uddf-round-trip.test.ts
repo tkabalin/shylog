@@ -1,4 +1,5 @@
 import {
+  barToPascals,
   bodiesOfWater,
   celsiusToKelvin,
   countryCodes,
@@ -7,7 +8,9 @@ import {
   diveTypes,
   entityFields,
   entries,
+  kelvinToCelsius,
   keysOf,
+  pascalsToBar,
   surfaces,
   surges,
   tags,
@@ -24,7 +27,7 @@ import { describe, expect, it } from "vitest"
 
 import type { Db } from "../../src/db/open.ts"
 import { storeProfile } from "../../src/profile.ts"
-import { readUddf, type ProfileEvent } from "../../src/uddf/sample-reader.ts"
+import { readUddf, type ProfileEvent } from "../../src/uddf/reader.ts"
 import { writeUddf } from "../../src/uddf/writer.ts"
 import { send, testApp } from "../app.ts"
 import { testDb } from "../db.ts"
@@ -479,6 +482,12 @@ interface Row {
 }
 
 // What the export should hold, read from the database in the writer's order.
+// The export writes kelvin to the millikelvin and whole pascals.
+const throughKelvin = (value: number | null) =>
+  value == null ? null : kelvinToCelsius(celsiusToKelvin(value))
+const throughPascals = (value: number | null) =>
+  value == null ? null : pascalsToBar(barToPascals(value))
+
 function stored(db: Db) {
   const rows = db
     .prepare<[], Row>(
@@ -553,11 +562,16 @@ describe(
               duration: dive.duration,
               maxDepth: dive.maxDepth,
               averageDepth: dive.averageDepth,
+              minTemperature: throughKelvin(dive.minTemperature),
               oxygen: dive.oxygen,
+              cylinderVolume: dive.cylinderVolume,
+              startPressure: throughPascals(dive.startPressure),
+              endPressure: throughPascals(dive.endPressure),
+              // Departure: notes are read trimmed.
+              weight: dive.weight,
+              notes: dive.notes?.trim() || null,
               computerModel: dive.computerModel,
-              // Departure: the seeding reader leaves tank pressure for the
-              // import's reader (milestone 14).
-              samples: dive.samples.map((s) => ({ ...s, pressure: null })),
+              samples: dive.samples,
               events: dive.events,
             }))
           )

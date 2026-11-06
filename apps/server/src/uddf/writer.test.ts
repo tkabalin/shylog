@@ -7,7 +7,7 @@ import { diveId, fixtureStart, seededDb } from "../../test/fixture.ts"
 import { readAsSubsurface } from "../../test/reference/subsurface-uddf.ts"
 import { uddfSchemaErrors } from "../../test/uddf-schema.ts"
 import type { Db } from "../db/open.ts"
-import { readUddf } from "./sample-reader.ts"
+import { readUddf } from "./reader.ts"
 import { shylogNamespace } from "./shylog-namespace.ts"
 import { uddfNamespace, writeUddf } from "./writer.ts"
 
