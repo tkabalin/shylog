@@ -487,6 +487,16 @@ The SSI (MySSI) logbook history comes in once, before the first Subsurface impor
 - Before sending, the script reads the log. A dive already uploaded isn't sent again, since the server would skip it; any value the extras now give it differently is listed for the diver to change in the app. An SSI dive in Recently deleted isn't sent either.
 - The script refuses to send anything while another dive in the log overlaps an SSI dive in time, so a dive typed in by hand is never doubled: the diver deletes one copy or skips the SSI one. An overlapping dive in Recently deleted is only a warning not to restore it.
 
+### PADI logbook history
+
+A second diver's history is in the PADI app's logbook, which keeps no start times and no profiles, and nearly every dive in it was also recorded by the dive computer. So it comes in after that diver's first Subsurface import, not before: `apps/server/scripts/padi-import.ts` reads the logbook as the PADI Logbook Exporter browser extension saves it (JSON) and fills in what PADI adds to the dives already in the log.
+
+- A PADI dive matches a live dive in the log on the same date that passes the same-dive test on depth and duration alone. Two possible matches, or two PADI dives matching one dive, stop the run. A dive with no match is sent as an offline draft like an SSI dive, with a start time from the extras file, and the run refuses one that overlaps a dive in the log.
+- On a matched dive the script sets only what the dive lacks or what no one set by hand, through the same edit the app makes, so the values become hand values. It never sends the start time, duration, depths, temperatures or gas, which stay the computer's, and it adds buddies only to a dive that has none. A value the diver set otherwise in the app is kept and listed.
+- PADI's site, buddies and dive centre are free text, so a private extras file maps each location to a site (with its country and region), each name to a person (or to none, such as a club typed in as a buddy), and each dive centre to a name. It can also skip a dive PADI holds twice, correct a dive saved on the wrong date, give a dive's start time, move people to dive professionals, give its buddies in place of PADI's, or replace its notes. A name or code the file doesn't cover stops the run, as with SSI. Existing sites, people and dive centres with the same names are used.
+- PADI's feeling (such as "Good") is added to the notes as "Felt good.", and its suit and extra gear become the gear details. Air temperature and the dive title are left out.
+- A rerun changes nothing that arrived, and a dive it created that is in Recently deleted isn't sent again.
+
 ## Statistics
 
 The Statistics screen is lazy loaded: its code and charts are split into their own chunk, fetched only when you open it, and figures are computed on first visit then cached until the log changes. The service worker still precaches that chunk, so statistics work offline. A year filter applies to every figure. Ignored dives are left out of every figure, chart, and pattern (see Ignored dives).
