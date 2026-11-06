@@ -332,10 +332,10 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 | PUT | `/api/cards/order` | Put the cards in the owner's order, naming every card once; an order that misses or adds one is refused (409), so a list read before another phone's change is never half applied |
 | PUT, DELETE | `/api/cards/:id` | Create or change a card, with its images (multipart PNG, JPEG, or WebP, up to 10 MB each), under a client-generated id, or delete it. The pages are sent in order, each a new file or the hash of an image the card already has, so reordering uploads nothing |
 | GET | `/api/cards/:id/images/:n` | One card image, fetched with the `X-Shylog` header and `?v=<hash>`, so it can be cached for a year, and kept on the phone as a blob for offline viewing |
-| POST | `/api/import` | Upload a Subsurface export (`application/xml`, `text/xml`, or `application/octet-stream` with a `.uddf` or `.xml` name in `Content-Disposition`, up to 25 MB); stores and returns a preview without changing any dive data, replacing any preview still waiting. A file the reader refuses is a 400 naming the dive and figure |
+| POST | `/api/import` | Upload a Subsurface export (`application/xml`, `text/xml`, or `application/octet-stream` with a `.uddf` or `.xml` name in `Content-Disposition`, up to 25 MB); stores and returns a preview without changing any dive data, replacing any preview still waiting. The file is read in the encoding its byte order mark or XML declaration gives, else UTF-8. A file the reader refuses is a 400 naming the dive and figure |
 | GET | `/api/import/pending` | The preview awaiting review, if any |
-| PATCH | `/api/import/:id` | Store a clock-offset override for one day and return that day's re-proposed pairs |
-| DELETE | `/api/import/:id` | Discard a preview |
+| PATCH | `/api/import/:id` | Store a clock-offset override for one day, or reset it to the estimate, and return the preview with that day's pairs proposed again |
+| DELETE | `/api/import/:id` | Discard a preview; safe to repeat |
 | POST | `/api/import/:id/apply` | Apply the pairings, skips, and included left-out dives (freedives and dives under a minute) sent in the body; re-checks every pairing against current data and returns the dives changed since the preview before committing; safe to retry, since the import id makes it idempotent |
 | GET | `/api/export/uddf` | Build a fresh UDDF export and download it, leaving `export/dives.uddf` alone |
 | GET | `/api/export/csv` | Build a fresh CSV export and download it, leaving `export/dives.csv` alone |
