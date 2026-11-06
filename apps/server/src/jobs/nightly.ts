@@ -15,6 +15,7 @@ import { createGzip } from "node:zlib"
 
 import type { Db } from "../db/open.ts"
 import { syncDir } from "../fs.ts"
+import { purgeExpiredPreviews } from "../import/preview.ts"
 import type { Integrity } from "../integrity.ts"
 import { setMeta } from "../journal.ts"
 import { csvFile, exportFile, writeExport } from "./export.ts"
@@ -142,6 +143,14 @@ export async function nightly(
   integrity: Integrity,
   now = new Date()
 ) {
+  // Expired import previews go first, so their files aren't backed up.
+  if (integrity !== "failed") {
+    try {
+      purgeExpiredPreviews(db, now)
+    } catch (error) {
+      console.error("Couldn’t purge expired import previews:", error)
+    }
+  }
   try {
     await checkedSnapshot(db, dataDir, integrity, now)
   } catch (error) {

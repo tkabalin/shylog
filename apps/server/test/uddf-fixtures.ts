@@ -11,6 +11,13 @@ const read = (name: string) =>
 export const d4iXml = read("d4i-2026-10-12.uddf")
 export const zoopXml = read("zoop-novo-2026-11-01.uddf")
 
+// The generated cases the real exports lack (fixtures/synthetic/).
+export const syntheticXml = (name: string) =>
+  readFileSync(
+    new URL(`../../../fixtures/synthetic/${name}`, import.meta.url),
+    "utf8"
+  )
+
 // Start times by the export's own divenumber, which the plan's tests use to
 // name dives (Shylog numbers them differently once freedives are left out).
 export function fixtureStarts(xml: string) {

@@ -118,6 +118,28 @@ describe("nightly", () => {
     expect(health.lastSnapshotAt).toBe(first.toISOString())
   })
 
+  it("purges expired import previews before the snapshot", async () => {
+    const dir = dataDir()
+    const db = seededDb()
+    const now = new Date(2026, 9, 22)
+    const insert = db.prepare(
+      "INSERT INTO import_previews VALUES (?, 'v', 'a', ?, '{}', 'file')"
+    )
+    insert.run("import-old", now.toISOString())
+    insert.run("import-new", new Date(now.getTime() + 1).toISOString())
+    await nightly(db, dir, "ok", now)
+    const file = join(snapshotsDir(dir), "shylog-2026-10-22.db.gz")
+    const copy = join(dir, "copy.db")
+    writeFileSync(copy, gunzipSync(readFileSync(file)))
+    const restored = openDatabase(copy)
+    onTestFinished(() => {
+      restored.close()
+    })
+    expect(
+      restored.prepare("SELECT id FROM import_previews").pluck().all()
+    ).toEqual(["import-new"])
+  })
+
   it("writes the UDDF and CSV exports after the snapshot", async () => {
     const dir = dataDir()
     const db = seededDb()
