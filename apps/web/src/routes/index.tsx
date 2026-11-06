@@ -138,7 +138,7 @@ function LogPage() {
   // log, a newer server's offer to reload is a toast (UpdateToast).
   if (!log) {
     return (
-      <div className="flex min-h-full shrink-0 flex-col pt-[env(safe-area-inset-top)]">
+      <div className="flex min-h-full flex-col pt-[env(safe-area-inset-top)]">
         <h1 className="sr-only">Log</h1>
         {blocked && (
           <Empty className="flex-1">
@@ -189,10 +189,8 @@ function LogPage() {
     )
   }
 
-  // shrink-0: a flex item with min-h-full would shrink to the screen, and
-  // the sticky bar would stop sticking where it ends.
   return (
-    <div className="flex min-h-full shrink-0 flex-col">
+    <div className="flex min-h-full flex-col">
       <h1 className="sr-only">Log</h1>
       {!log.dives.length ? (
         <>
