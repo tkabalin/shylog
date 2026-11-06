@@ -58,7 +58,7 @@ Nothing in the code or the Compose file assumes a single deployment, so the seco
 - **App name**: the display name (`SHYLOG_APP_NAME`) sets the page title and the web app manifest, which the server serves rather than the build baking in, so two installed apps on one phone are told apart.
 - **Diver details**: the owner written to the UDDF export's diver section comes from the You tab, not the code.
 - **Scripts**: the restore drill and backup scripts take the instance name as an argument.
-- **Dive computer**: Suunto import rules (clock offset, freedive detection, Subsurface placeholders) sit in one module covering the D4i and the Zoop Novo, with model-specific rules where the two differ. The module is chosen by the computer model the export names, so any other computer falls back to the generic rules.
+- **Dive computer**: the import's rules (clock offset, freedive detection, dives under a minute, Subsurface's placeholders) apply whatever computer the export names. The placeholders are Subsurface's rather than the computer's, and neither the D4i nor the Zoop Novo needs a rule of its own. A rule for one model, if one is ever needed, is chosen by the model the export names.
 - **Second instance**: the second diver's logbook is the same image run as its own Compose project (such as `shylog-<name>`) with its own data directory, database, UDDF export, and Tailscale sidecar. Its node is shared with the second diver's Tailscale account, and its allowed logins are theirs, optionally plus the owner's for support. The separate hostname gives it a separate origin, so the two apps' offline stores never mix. Serve sends `Tailscale-User-Login` for users on a shared node too ([Tailscale Serve](https://tailscale.com/kb/1312/serve)), so the identity check works for the second diver; the Deploy step smoke-tests it. A login with non-ASCII characters arrives Q-encoded (RFC 2047), so the check decodes it before comparing.
 
 ## Architecture
@@ -448,13 +448,13 @@ Checked against a real Subsurface export of 72 dives on 12 October 2026:
 
 ### The Zoop Novo
 
-Checked against a real Subsurface export of 61 dives (25 November 2025 to 24 October 2026) on 1 November 2026. It has exactly the D4i export's elements and placeholders, and every rule under What the D4i export contains holds, so the Suunto module needs no Zoop Novo rule yet; any later difference becomes one. Its data differs only in ways those rules already cover:
+Checked against a real Subsurface export of 61 dives (25 November 2025 to 24 October 2026) on 1 November 2026. It has exactly the D4i export's elements and placeholders, and every rule under What the D4i export contains holds, so the import needs no Zoop Novo rule yet; any later difference becomes one. Its data differs only in ways those rules already cover:
 
 - Scuba dives are sampled every 10 seconds, freedives every 2.
 - Every dive is on air.
 - Its 8 ascent pairs are 1 to 15 seconds apart.
 - Some very short dives have only the opening `surface` alarm, with none at the end.
-- One dive has a single sample and no `averagedepth`. It is left out as under a minute, but if included its average depth falls back to the samples, following Subsurface's handling of a dive with fewer than two samples.
+- One dive has a single sample and no `averagedepth`. It is left out as under a minute, but if included its average depth falls back to the samples, which give none: as in Subsurface's `fixup_dc_duration`, one sample at 0 s leaves no time under water to average over.
 
 It has a gauge mode, whose dives may carry no gas, but the export has none, so the gauge case stays synthetic.
 
@@ -782,7 +782,7 @@ Each step ends with something usable, and the core package comes first because e
 
 1. **Scaffold**: pnpm workspace, Vite and React app, `shadcn init` with preset `b1sAmWaNW` (the updated preset, set before the repo is initialised), touch-size overrides.
 2. **Core package**: draft upload and edit schemas, name normalisation, unit conversion, and calculations, with the calculation tests under Testing.
-3. **Server**: SQLite schema and migrations, the draft upload and edit endpoints, integrity checks, the security headers, and a dev-only seed script that loads dives, samples, and alarms from the fixture through a small UDDF reader the Import step later grows into the Suunto module.
+3. **Server**: SQLite schema and migrations, the draft upload and edit endpoints, integrity checks, the security headers, and a dev-only seed script that loads dives, samples, and alarms from the fixture through a small UDDF reader the Import step later grows into the full import reader.
 4. **Deploy**: Docker Compose with the Tailscale sidecar on the home server, plus nightly snapshots, so you test on your phone early and backups run from day one. Includes the second instance on a shared node, with a smoke test of its identity check.
 5. **Read-only app**: log list, dive detail, and the profile chart (depth, temperature, events, vertical rate, and the MOD line), using the seeded fixture, with the log mirrored into IndexedDB from the start.
 6. **Editing from day one**: add, edit, delete, Recently deleted, entities (including deletes), settings, and certification cards as plain API calls, with new dives always saved as drafts through the upload path, so offline support later only adds the queue.
