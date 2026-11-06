@@ -175,7 +175,7 @@ function CertificationsPage() {
           </p>
         </div>
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-7 pb-15 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-7 pb-15 text-center md:mx-auto md:w-full md:max-w-xl">
           <span
             aria-hidden
             className="inline-flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary"
