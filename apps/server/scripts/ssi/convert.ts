@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto"
-
 import {
   countryCodes,
   entries,
@@ -17,6 +15,7 @@ import {
 } from "@shylog/core"
 import { z } from "zod"
 
+import { keyedId } from "../ids.ts"
 import * as codes from "./codes.ts"
 import { readCsv } from "./csv.ts"
 
@@ -89,12 +88,6 @@ const unescapeHtml = (text: string) =>
 
 // pandas writes a code from a column with gaps as a float ("24.0").
 const code = (value: string) => value.replace(/\.0$/, "")
-
-// An id from what names the entity rather than when it first appears, so a
-// rerun on a CSV with dives added or people left out never moves an id the
-// server already holds onto someone else.
-const keyedId = (kind: "person" | "region", key: string) =>
-  `${kind}-ssi-${createHash("sha256").update(normaliseName(key)).digest("hex").slice(0, 12)}`
 
 // Local datetimes sort as text.
 const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0)
@@ -228,10 +221,10 @@ export function convertSsi(
     sites.set(siteName, site)
     const regionKey = place && `${place.country} ${place.region}`
     if (regionKey && !regions.has(regionKey))
-      regions.set(regionKey, keyedId("region", regionKey))
+      regions.set(regionKey, keyedId("ssi", "region", regionKey))
 
     for (const name of buddies)
-      if (!people.has(name)) people.set(name, keyedId("person", name))
+      if (!people.has(name)) people.set(name, keyedId("ssi", "person", name))
 
     const material = lookup(row, "var_tanktype_id", codes.cylinderMaterials)
     const litres = number(row, "tank_vol_l")
