@@ -43,6 +43,43 @@ describe("readUddf", () => {
     expect(nitrox.oxygen).toBe(320)
   })
 
+  it("flags helium and under 20.9 % oxygen as gases v1 can't hold, read as air", () => {
+    const file = uddf(
+      dive("air") +
+        dive("ean32") +
+        dive("trimix") +
+        dive("hypoxic") +
+        dive("unnamed")
+    ).replace(
+      "</gasdefinitions>",
+      `<mix id="trimix"><o2>0.32</o2><he>0.10</he></mix>
+       <mix id="hypoxic"><o2>0.18</o2></mix>
+       <mix id="unnamed"><name>air</name></mix></gasdefinitions>`
+    )
+    const dives = readUddf(file)
+    expect(dives.map((read) => read.unsupportedGas)).toEqual([
+      false,
+      false,
+      true,
+      true,
+      false,
+    ])
+    expect(dives.map((read) => read.oxygen)).toEqual([
+      null,
+      320,
+      null,
+      null,
+      null,
+    ])
+  })
+
+  it("keeps each dive's export id, or its place in the file without one", () => {
+    const file = uddf(
+      dive("air").replace("<dive>", '<dive id="id7">') + dive("air")
+    )
+    expect(readUddf(file).map((read) => read.ref)).toEqual(["id7", "dive 2"])
+  })
+
   it("finds the gas whichever tank data link names it", () => {
     const tankFirst = dive("ean32").replace(
       "<tankdata>",

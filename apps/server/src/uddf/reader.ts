@@ -1,4 +1,5 @@
 import {
+  airOxygen,
   cubicMetresToMillilitres,
   diveFieldsPatch,
   fractionToTenths,
@@ -22,6 +23,8 @@ export interface ProfileEvent {
 }
 
 export interface ReadDive {
+  // The export's own id for the dive, which only links within the file.
+  ref: string
   startTime: string
   duration: number
   maxDepth: number
@@ -31,6 +34,9 @@ export interface ReadDive {
   minTemperature: number | null
   // Tenths of a per cent; null is air.
   oxygen: number | null
+  // Helium or under 20.9 % oxygen, which v1 can't hold: read as air, and
+  // the import review says so.
+  unsupportedGas: boolean
   // Millilitres and bar.
   cylinderVolume: number | null
   startPressure: number | null
@@ -132,10 +138,17 @@ export function readUddf(xml: string): ReadDive[] {
     linked(dive) ??
     (!anyLinked && computers.size === 1 ? [...computers.values()][0] : null)
   const mixes = new Map(
-    all(root, "mix").map((mix) => [
-      mix.getAttribute("id"),
-      fractionToTenths(number(mix, "o2")!),
-    ])
+    all(root, "mix").map((mix) => {
+      // A mix that gives no oxygen is air, not a hypoxic mix to flag.
+      const o2 = number(mix, "o2")
+      return [
+        mix.getAttribute("id"),
+        {
+          o2: o2 == null ? air : fractionToTenths(o2),
+          he: fractionToTenths(number(mix, "he") ?? 0),
+        },
+      ]
+    })
   )
 
   return all(root, "dive").map((dive, i) => {
@@ -147,9 +160,13 @@ export function readUddf(xml: string): ReadDive[] {
     const switchmix = switchmixes.find(
       (gas) => number(gas.parentNode as Element, "divetime") === 0
     )
-    const o2 = [switchmix, ...(tank ? all(tank, "link") : [])]
+    const mix = [switchmix, ...(tank ? all(tank, "link") : [])]
       .map((link) => link && mixes.get(link.getAttribute("ref")))
-      .find((fraction) => fraction !== undefined)
+      .find((found) => found !== undefined)
+    const unsupportedGas =
+      mix !== undefined && (mix.he > 0 || mix.o2 < airOxygen)
+    // A trimix's oxygen alone would read as nitrox, so it is air too.
+    const o2 = unsupportedGas ? undefined : mix?.o2
     const waypoints = all(dive, "waypoint")
     const written = waypoints.map((waypoint) => {
       const time = number(waypoint, "divetime")
@@ -215,12 +232,15 @@ export function readUddf(xml: string): ReadDive[] {
       refuse(position, labels[String(checked.error.issues[0].path[0])])
     return {
       ...figures,
+      // Subsurface and Shylog both write one; the position stands in if not.
+      ref: dive.getAttribute("id") || `dive ${position}`,
       startTime,
       duration,
       maxDepth,
       // Trimmed, with characters XML can't hold dropped.
       notes: checked.data.notes ?? null,
       oxygen: o2 == null || o2 <= air ? null : o2,
+      unsupportedGas,
       hasTankData: tank !== undefined,
       hasGas: switchmixes.length > 0,
       computerModel: computerOf(dive),

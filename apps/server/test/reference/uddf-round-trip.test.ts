@@ -558,12 +558,15 @@ describe(
           }))
           expect(read).toEqual(
             stored(db).map((dive) => ({
+              // Shylog's export names each dive by its id.
+              ref: dive.id,
               startTime: dive.startTime,
               duration: dive.duration,
               maxDepth: dive.maxDepth,
               averageDepth: dive.averageDepth,
               minTemperature: throughKelvin(dive.minTemperature),
               oxygen: dive.oxygen,
+              unsupportedGas: false,
               cylinderVolume: dive.cylinderVolume,
               startPressure: throughPascals(dive.startPressure),
               endPressure: throughPascals(dive.endPressure),

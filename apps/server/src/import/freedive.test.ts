@@ -6,12 +6,14 @@ import { leftOut } from "./freedive.ts"
 const dive = (over: Partial<ReadDive> & { every?: number }): ReadDive => {
   const { every = 2, ...rest } = over
   return {
+    ref: "id1",
     startTime: "2025-12-28T10:00:00",
     duration: 20,
     maxDepth: 5,
     averageDepth: 3,
     minTemperature: null,
     oxygen: null,
+    unsupportedGas: false,
     cylinderVolume: null,
     startPressure: null,
     endPressure: null,
