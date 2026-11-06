@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest"
 
+import {
+  byFixtureNumber,
+  fixtureStarts,
+  d4iXml,
+} from "../../test/uddf-fixtures.ts"
+import { sampleTemperatures } from "../derived.ts"
+import { leftOut } from "../import/freedive.ts"
 import { readUddf } from "./reader.ts"
 
 const uddf = (body: string) => `<?xml version="1.0"?>
@@ -83,9 +90,24 @@ describe("readUddf", () => {
     ])
   })
 
-  it("skips a dive with no tank data, as a freedive has", () => {
+  it("reads a dive with no tank data or gas, as a freedive has", () => {
     const freedive = dive("air").replace(/<tankdata>.*<\/tankdata>/, "")
-    expect(readUddf(uddf(freedive + dive("ean32")))).toHaveLength(1)
+    const scuba = dive("ean32").replace(
+      "<divetime>0</divetime>",
+      '<divetime>0</divetime><switchmix ref="ean32"/>'
+    )
+    expect(
+      readUddf(uddf(freedive + scuba)).map(
+        ({ hasTankData, hasGas, oxygen }) => ({
+          hasTankData,
+          hasGas,
+          oxygen,
+        })
+      )
+    ).toEqual([
+      { hasTankData: false, hasGas: false, oxygen: null },
+      { hasTankData: true, hasGas: true, oxygen: 320 },
+    ])
   })
 
   it("reads tank pressure from pascals", () => {
@@ -240,5 +262,102 @@ describe("readUddf", () => {
 
   it("refuses a file that isn't XML", () => {
     expect(() => readUddf("")).toThrow()
+  })
+})
+
+describe("readUddf on the D4i export", () => {
+  const dives = readUddf(d4iXml)
+  const starts = fixtureStarts(d4iXml)
+  const fixture = byFixtureNumber(d4iXml, dives)
+  const events = dives.flatMap((dive) => dive.events)
+
+  it("reads all 72 dives, with no offset on any start", () => {
+    expect(dives).toHaveLength(72)
+    for (const dive of dives)
+      expect(dive.startTime).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d$/)
+  })
+
+  it("finds the 26 freedives of 28 December 2025 and nothing else", () => {
+    const freedives = dives.filter((dive) => leftOut(dive) === "freedive")
+    expect(freedives.map((dive) => dive.startTime)).toEqual(
+      Array.from({ length: 26 }, (_, i) => starts.get(i + 9))
+    )
+    for (const dive of freedives) {
+      expect(dive.startTime.slice(0, 10)).toBe("2025-12-28")
+      expect(dive.duration).toBeGreaterThanOrEqual(8)
+      expect(dive.duration).toBeLessThanOrEqual(26)
+    }
+    expect(Math.min(...freedives.map((dive) => dive.duration))).toBe(8)
+    expect(Math.max(...freedives.map((dive) => dive.duration))).toBe(26)
+    // The shortest scuba dive is 100 s, so none is left out as short.
+    expect(dives.filter((dive) => leftOut(dive) === "short")).toEqual([])
+  })
+
+  it("pairs 59 ascent alarms and keeps 159 surfacings", () => {
+    expect(new Set(events.map((event) => event.type))).toEqual(
+      new Set(["ascent", "surface"])
+    )
+    const ascents = events.filter((event) => event.type === "ascent")
+    expect(ascents).toHaveLength(59)
+    expect(ascents.every((event) => event.end != null)).toBe(true)
+    expect(fixture(3).events.find((e) => e.type === "ascent")).toEqual({
+      type: "ascent",
+      start: 290,
+      end: 311,
+    })
+    const surfacings = events.filter((event) => event.type === "surface")
+    expect(surfacings).toHaveLength(159)
+    expect(surfacings.every((event) => event.end == null)).toBe(true)
+  })
+
+  it("takes the gas from the start, 21 % as air and 32 % as Nitrox 32.0", () => {
+    const scuba = dives.filter((dive) => leftOut(dive) == null)
+    expect(scuba.every((dive) => dive.hasGas && dive.hasTankData)).toBe(true)
+    // Its three mixes: air, EANx32 and EANx33.
+    expect(new Set(scuba.map((dive) => dive.oxygen))).toEqual(
+      new Set([null, 320, 330])
+    )
+    expect(fixture(63).oxygen).toBe(320)
+  })
+
+  it("merges dive 3's five repeated times", () => {
+    const raw = /<divenumber>3<\/divenumber>[\s\S]*?<\/dive>/.exec(d4iXml)![0]
+    const written = raw.split("<waypoint>").length - 1
+    const times = fixture(3).samples.map((sample) => sample.time)
+    expect(new Set(times).size).toBe(times.length)
+    expect(times).toHaveLength(written - 5)
+  })
+
+  it("keeps dive 6's samples past its duration", () => {
+    const dive = fixture(6)
+    expect(dive.duration).toBe(180)
+    expect(dive.samples.at(-1)!.time).toBe(502)
+  })
+
+  it("takes max and average depth from the computer's figures", () => {
+    const dive = fixture(63)
+    expect(dive.maxDepth).toBe(32.66)
+    expect(
+      Math.max(...dive.samples.map((sample) => sample.depth))
+    ).toBeLessThan(32.66)
+    const average =
+      /<divenumber>63<\/divenumber>[\s\S]*?<averagedepth>([^<]+)</.exec(
+        d4iXml
+      )![1]
+    expect(dive.averageDepth).toBe(Number(average))
+  })
+
+  it("converts temperatures from kelvin, only where the computer wrote one", () => {
+    const dive = fixture(63)
+    expect(dive.samples[0].temperature).not.toBeNull()
+    expect(dive.samples.some((sample) => sample.temperature == null)).toBe(true)
+    expect(sampleTemperatures(dive.samples)).toEqual({ min: 23, max: 24 })
+  })
+
+  it("reads none of Subsurface's placeholders as data", () => {
+    for (const dive of dives) {
+      expect(dive.weight).toBeNull()
+      expect(dive.notes).toBeNull()
+    }
   })
 })

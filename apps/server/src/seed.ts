@@ -2,6 +2,7 @@ import { newId, placeKey } from "@shylog/core"
 
 import type { Db } from "./db/open.ts"
 import { recalculate, sampleTemperatures } from "./derived.ts"
+import { leftOut } from "./import/freedive.ts"
 import { write } from "./journal.ts"
 import { storeProfile } from "./profile.ts"
 import { readUddf } from "./uddf/reader.ts"
@@ -16,7 +17,7 @@ export function seed(db: Db, xml: string, source: string) {
   if (db.prepare("SELECT 1 FROM dives").get()) {
     throw new Error("The log already has dives; seed an empty one")
   }
-  const dives = readUddf(xml)
+  const dives = readUddf(xml).filter((dive) => leftOut(dive) == null)
 
   return write(db, (journal) => {
     const site = db.prepare(
