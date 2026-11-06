@@ -9,7 +9,7 @@ import {
 } from "../../test/uddf-fixtures.ts"
 import { sampleTemperatures } from "../derived.ts"
 import { leftOut } from "../import/freedive.ts"
-import { readUddf } from "./reader.ts"
+import { readUddf, UnreadableUddf } from "./reader.ts"
 
 const uddf = (body: string) => `<?xml version="1.0"?>
 <uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.0">
@@ -299,8 +299,22 @@ describe("readUddf", () => {
     )
   })
 
+  it("refuses a file in which two dives share an id", () => {
+    const named = dive("air").replace("<dive>", '<dive id="id7">')
+    expect(() => readUddf(uddf(named + named))).toThrow(
+      new UnreadableUddf("Dive 2 in the file repeats another's id")
+    )
+  })
+
   it("refuses a file that isn't XML", () => {
-    expect(() => readUddf("")).toThrow()
+    for (const file of ["", "garbage", "<uddf>"]) {
+      expect(() => readUddf(file)).toThrow(UnreadableUddf)
+    }
+  })
+
+  it("refuses an XML file that isn't UDDF", () => {
+    const log = `<divelog program="subsurface"><dives><dive number="1" /></dives></divelog>`
+    expect(() => readUddf(log)).toThrow(new UnreadableUddf("Not a UDDF file"))
   })
 })
 
