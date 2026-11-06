@@ -70,10 +70,13 @@ const celsius = (kelvin: number | null) =>
 const bar = (pascals: number | null) =>
   pascals == null ? null : pascalsToBar(pascals)
 
+// A file the import can't take, with a reason fit to show the diver.
+export class UnreadableUddf extends Error {}
+
 // A dive the database wouldn't take would fail part-way through an import,
 // so the whole file is refused instead, naming the dive and the figure.
 function refuse(position: number, what: string): never {
-  throw new Error(`Dive ${position} in the file has no valid ${what}`)
+  throw new UnreadableUddf(`Dive ${position} in the file has no valid ${what}`)
 }
 const labels: Record<string, string> = {
   startTime: "start time",
@@ -118,8 +121,21 @@ function events(waypoints: Element[], times: number[]): ProfileEvent[] {
 // Every dive in the file, freedives included: import/freedive.ts decides
 // which are left out.
 export function readUddf(xml: string): ReadDive[] {
-  const root = new DOMParser().parseFromString(xml, "text/xml").documentElement
-  if (!root) throw new Error("Not an XML document")
+  // xmldom throws on what it can't parse at all, and reports the rest,
+  // which is read as it stands.
+  let root: Element | null
+  try {
+    root = new DOMParser({ onError: () => {} }).parseFromString(
+      xml,
+      "text/xml"
+    ).documentElement
+  } catch {
+    throw new UnreadableUddf("Not an XML document")
+  }
+  if (!root) throw new UnreadableUddf("Not an XML document")
+  // Subsurface's own .xml log also has <dive>s, which would be refused for
+  // a missing figure rather than as the wrong kind of file.
+  if (root.localName !== "uddf") throw new UnreadableUddf("Not a UDDF file")
   const computers = new Map(
     all(root, "divecomputer").map((computer) => [
       computer.getAttribute("id"),
@@ -151,8 +167,18 @@ export function readUddf(xml: string): ReadDive[] {
     })
   )
 
+  // The preview names dives by their ids, so two alike would be confused.
+  const refs = new Set<string>()
   return all(root, "dive").map((dive, i) => {
     const position = i + 1
+    // Subsurface and Shylog both write one; the position stands in if not.
+    const ref = dive.getAttribute("id") || `dive ${position}`
+    if (refs.has(ref)) {
+      throw new UnreadableUddf(
+        `Dive ${position} in the file repeats another's id`
+      )
+    }
+    refs.add(ref)
     const tank = all(dive, "tankdata")[0]
     // The gas the dive starts on is the switchmix at 0 s; without one, the
     // tank's links name its mix, alongside the tank, in either order.
@@ -232,8 +258,7 @@ export function readUddf(xml: string): ReadDive[] {
       refuse(position, labels[String(checked.error.issues[0].path[0])])
     return {
       ...figures,
-      // Subsurface and Shylog both write one; the position stands in if not.
-      ref: dive.getAttribute("id") || `dive ${position}`,
+      ref,
       startTime,
       duration,
       maxDepth,
