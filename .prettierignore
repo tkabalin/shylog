@@ -1,6 +1,8 @@
 # Source material that is not ours to reformat
 docs/
-fixtures/
+fixtures/*
+!fixtures/synthetic/
+fixtures/synthetic/*.uddf
 planning/
 .claude/skills/
 LICENSE

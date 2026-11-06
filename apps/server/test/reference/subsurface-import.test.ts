@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+
 import {
   fractionToTenths,
   mergeDuplicateSamples,
@@ -200,6 +202,49 @@ describe("Shylog's reader against Subsurface's", { timeout: 20_000 }, () => {
           mine.hasGas ? [0] : []
         )
       }
+    })
+  })
+})
+
+// Neither real export has a weight, notes or tank pressure, so the synthetic
+// pressure dive gets a weight and notes where Subsurface writes them.
+describe("Shylog's reader against Subsurface's on weight, notes and pressure", () => {
+  const uddf = readFileSync(
+    new URL("../../../../fixtures/synthetic/pressure.uddf", import.meta.url),
+    "utf8"
+  )
+    .replace(
+      "<leadquantity>0</leadquantity>",
+      "<leadquantity>6.5</leadquantity>"
+    )
+    .replace("<para/>", "<para>Strong surge on the reef</para>")
+  const [mine] = readUddf(uddf)
+  const dive = tags(readAsSubsurface(uddf).documentElement!, "dive")[0]!
+
+  it("agrees on the weight and the notes", () => {
+    expect(mine.weight).toBe(6.5)
+    expect(tags(dive, "weightsystem")[0]!.getAttribute("weight")).toBe("6.5 kg")
+    expect(mine.notes).toBe("Strong surge on the reef")
+    expect(tags(dive, "notes")[0]!.textContent!.trim()).toBe(mine.notes)
+  })
+
+  it("agrees on every sample's tank pressure", () => {
+    const theirs = mergeDuplicateSamples(
+      tags(dive, "sample").map((sample) => ({
+        time: seconds(sample.getAttribute("time")!),
+        depth: 0,
+        temperature: null,
+        pressure: parseFloat(sample.getAttribute("pressure")!),
+      }))
+    )
+    expect(mine.samples).toHaveLength(theirs.length)
+    // Departure: Shylog keeps the export's pascals to the mbar, where
+    // Subsurface's stylesheet writes 0.1 bar (format-number '0.0').
+    mine.samples.forEach((sample, i) => {
+      expect(sample.time).toBe(theirs[i].time)
+      expect(
+        Math.abs(sample.pressure! - theirs[i].pressure!)
+      ).toBeLessThanOrEqual(0.05)
     })
   })
 })
