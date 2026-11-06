@@ -17,6 +17,13 @@ import { QueueDb } from "./drafts"
 import { readLog } from "./log"
 import { syncLog } from "./sync"
 
+// A save's own sync goes unawaited to the real server, and its failure,
+// logged after the file ends, fails the run in Vitest's teardown.
+vi.mock("./log", async (original) => ({
+  ...(await original<typeof import("./log")>()),
+  sync: vi.fn(async () => {}),
+}))
+
 const card = (id: string, images: string[], name = "Open Water") => ({
   id,
   name,
