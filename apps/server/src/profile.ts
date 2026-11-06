@@ -2,7 +2,7 @@ import { diveEnd, underwater, type Sample } from "@shylog/core"
 
 import type { Db } from "./db/open.ts"
 import { prepared } from "./db/prepared.ts"
-import type { ProfileEvent } from "./uddf/sample-reader.ts"
+import type { ProfileEvent } from "./uddf/reader.ts"
 
 const points = 24
 

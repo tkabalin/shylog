@@ -4,7 +4,7 @@ import type { Db } from "./db/open.ts"
 import { recalculate, sampleTemperatures } from "./derived.ts"
 import { write } from "./journal.ts"
 import { storeProfile } from "./profile.ts"
-import { readUddf } from "./uddf/sample-reader.ts"
+import { readUddf } from "./uddf/reader.ts"
 
 // The fixture names no sites, so its Sodwana week gets a Sodwana site and
 // every other dive one unnamed site, both in South Africa.

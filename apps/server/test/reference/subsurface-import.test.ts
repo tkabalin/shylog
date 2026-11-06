@@ -6,7 +6,7 @@ import {
 import type { Element } from "@xmldom/xmldom"
 import { describe, expect, it } from "vitest"
 
-import { readUddf } from "../../src/uddf/sample-reader.ts"
+import { readUddf } from "../../src/uddf/reader.ts"
 import { d4iXml, zoopXml } from "../uddf-fixtures.ts"
 import { readAsSubsurface } from "./subsurface-uddf.ts"
 
