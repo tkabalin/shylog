@@ -134,6 +134,20 @@ export async function putEntity(
   if (!res.ok()) throw new Error(`PUT: ${res.status()} ${await res.text()}`)
 }
 
+// Puts dives on a trip, dive centre or person, or takes them off.
+export async function setEntityDives(
+  request: APIRequestContext,
+  kind: string,
+  id: string,
+  body: Record<string, unknown>
+) {
+  const res = await request.post(`/api/entities/${kind}/${id}/dives`, {
+    headers: headers(),
+    data: body,
+  })
+  if (!res.ok()) throw new Error(`POST: ${res.status()} ${await res.text()}`)
+}
+
 // Gone already, merged or deleted, is fine for an undo.
 export async function deleteEntity(
   request: APIRequestContext,

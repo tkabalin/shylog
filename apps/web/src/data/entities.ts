@@ -1,12 +1,18 @@
-import { normaliseName, type EntityKind } from "@shylog/core"
+import {
+  normaliseName,
+  type DiveRole,
+  type DiveSetKind,
+  type EntityKind,
+  type SetEntityDivesRequest,
+} from "@shylog/core"
 
 import { apiClient } from "@/api/client"
 import { countText } from "@/components/pickers/match"
-import { monthLabel, months } from "@/format/dates"
+import { longDate, monthLabel, months } from "@/format/dates"
 
 import type { Dive } from "./db"
-import { commit } from "./edits"
-import type { LogView } from "./log"
+import { commit, Refused } from "./edits"
+import { sync, type LogView } from "./log"
 
 // The entity screens' reading of the log: which dives use what, the
 // figures on each detail, and likely duplicates to merge (see Sites, people
@@ -349,3 +355,82 @@ export const deleteEntity = (
   id: string,
   options?: { settle?: boolean }
 ) => commit(entities().$delete({ param: { kind, id } }), options)
+
+// The dives ticked in the dive picker, each with a person's role on it; a
+// trip's or a dive centre's have none.
+export type Picked = Map<string, DiveRole | null>
+
+// What an entity is on now, as the picker starts: logged dives only, as
+// drafts can't be named in a request and deleted ones aren't listed.
+export function pickedOf(log: LogView, kind: DiveSetKind, id: string): Picked {
+  const picked: Picked = new Map()
+  for (const dive of log.dives) {
+    if (dive.draft) continue
+    if (kind === "person") {
+      const links = log.links.get(dive.id)
+      if (links?.buddies.includes(id)) picked.set(dive.id, "buddy")
+      else if (links?.professionals.includes(id))
+        picked.set(dive.id, "professional")
+    } else if ((kind === "trip" ? dive.tripId : dive.diveCentreId) === id) {
+      picked.set(dive.id, null)
+    }
+  }
+  return picked
+}
+
+// Whether unticking every dive leaves nothing using it, so the picker can
+// offer to delete it: no draft names it, and for a person or dive centre no
+// dive in Recently deleted either, as the server would keep those.
+export function emptiable(log: LogView, kind: DiveSetKind, id: string) {
+  return ![...log.dive.values()].some(
+    (dive) =>
+      (dive.draft || (kind !== "trip" && dive.deletedAt)) &&
+      uses(log, kind, id, dive)
+  )
+}
+
+// The request that turns `before` into `after`: dives newly ticked, or
+// ticked in another role, and dives unticked.
+export function changesOf<K extends DiveSetKind>(
+  kind: K,
+  before: Picked,
+  after: Picked
+): SetEntityDivesRequest<K> {
+  const add = [...after]
+    .filter(([id, role]) => !before.has(id) || before.get(id) !== role)
+    .map(([diveId, role]) =>
+      kind === "person" ? { diveId, role: role ?? "buddy" } : diveId
+    )
+  const remove = [...before.keys()].filter((id) => !after.has(id))
+  return { add, remove } as SetEntityDivesRequest<K>
+}
+
+export async function setEntityDives<K extends DiveSetKind>(
+  kind: K,
+  id: string,
+  request: SetEntityDivesRequest<K>,
+  options?: { settle?: boolean }
+) {
+  try {
+    await commit(
+      entities().dives.$post({ param: { kind, id }, json: request }),
+      options
+    )
+  } catch (failure) {
+    // A refusal usually means this phone's copy is behind (a dive deleted
+    // or a trip merged elsewhere), so it catches up for the next try.
+    void sync()
+    throw failure
+  }
+}
+
+// What a refused save says, naming the dive when one of many was the
+// reason.
+export function failureText(log: LogView, failure: unknown) {
+  const message = failure instanceof Error ? failure.message : String(failure)
+  const diveId = failure instanceof Refused ? failure.details.diveId : undefined
+  const dive = typeof diveId === "string" ? log.dive.get(diveId) : undefined
+  if (!dive) return message
+  const site = log.sites.get(dive.siteId)?.name
+  return `${[site, longDate(dive.startTime)].filter(Boolean).join(", ")}: ${message}`
+}

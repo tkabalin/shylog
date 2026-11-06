@@ -178,6 +178,37 @@ test.describe("at desktop width", () => {
     await expect(dialog).toBeHidden()
   })
 
+  test("starts a trip from a bar button and picks its dives in a dialog", async ({
+    page,
+  }) => {
+    await page.goto("/you/entities?kind=trip")
+    await page.getByRole("link", { name: "New trip" }).click()
+    await expect(page).toHaveURL("/you/entities/trip/new")
+    await page.getByRole("button", { name: "Choose dives" }).click()
+    const dialog = page.getByRole("dialog", { name: "Choose dives" })
+    await expect(dialog).toBeVisible()
+    // The bar's actions sit in the dialog's footer, as shadcn's do.
+    await expect(dialog.getByRole("button", { name: "Done" })).toBeVisible()
+    await dialog.getByRole("button", { name: "Cancel" }).click()
+    await expect(dialog).toBeHidden()
+  })
+
+  test("asks before leaving a new trip with a name typed", async ({ page }) => {
+    await page.goto("/you/entities?kind=trip")
+    await page.getByRole("link", { name: "New trip" }).click()
+    await page.getByLabel("Name").fill("Unsaved trip")
+    await page.getByRole("link", { name: "Trips", exact: true }).click()
+    const ask = page.getByRole("dialog", { name: "Discard changes?" })
+    await expect(ask).toBeVisible()
+    await ask.getByRole("button", { name: "Keep editing" }).click()
+    await expect(page).toHaveURL("/you/entities/trip/new")
+    await expect(page.getByLabel("Name")).toHaveValue("Unsaved trip")
+
+    await page.getByRole("link", { name: "Trips", exact: true }).click()
+    await ask.getByRole("button", { name: "Discard changes" }).click()
+    await expect(page).toHaveURL(/\/you\/entities\?kind=trip/)
+  })
+
   test("picks a choice from a select below its row", async ({ page }) => {
     await page.goto("/dive/new")
     const type = page.getByRole("combobox", { name: /^Type,/ })
