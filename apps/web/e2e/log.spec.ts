@@ -153,6 +153,9 @@ test("clears every filter at once, and only shows Clear while one is set", async
 test("scrolls the count away and sticks the bar to the top", async ({
   page,
 }) => {
+  // Its 300-frame walk alone takes about 9 s in WebKit, so under the other
+  // stacks' load it ran out of the default 30 s.
+  test.slow()
   await page.goto("/")
   const main = page.locator("#main")
   const bar = page.locator("[data-log-bar]")
