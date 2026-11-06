@@ -2,12 +2,15 @@ import {
   entityKinds,
   idSchema,
   mergeEntityRequests,
+  setEntityDivesRequests,
+  type DiveSetKind,
   type EntityKind,
 } from "@shylog/core"
 import { validator } from "hono/validator"
 import { z } from "zod"
 
 import { deleteEntity, feedsDiveFigures, putEntity } from "../apply/entity.ts"
+import { setEntityDives } from "../apply/entity-dives.ts"
 import { mergeEntity } from "../apply/merge.ts"
 import { Rejected } from "../apply/rejected.ts"
 import { factory } from "../factory.ts"
@@ -24,7 +27,8 @@ const target = validator("param", (value: Record<string, string>) => {
   }
 })
 
-// Renames, merges and deletes from Settings, and creates for a new id.
+// Renames, merges and deletes from Settings, and creates for a new id,
+// alone or with the dives a new trip, dive centre or person is on.
 // The body is checked inside the write, as which schema applies depends on
 // whether the entity exists.
 export const entities = factory
@@ -52,6 +56,24 @@ export const entities = factory
         () => mergeEntity(db, kind, id, into),
         { type: "mergeEntity", payload: { kind, id, into } },
         feedsDiveFigures(kind)
+      )
+    )
+  })
+  .post("/entities/:kind/:id/dives", target, json(z.unknown()), (c) => {
+    const { db } = c.var.deps
+    const { kind, id } = c.req.valid("param")
+    if (!(kind in setEntityDivesRequests)) {
+      throw new Rejected("Only trips, dive centres and people", 404)
+    }
+    const setKind = kind as DiveSetKind
+    const request = parse(setEntityDivesRequests[setKind], c.req.valid("json"))
+    return c.json(
+      change(
+        db,
+        () => setEntityDives(db, setKind, id, request),
+        // Always the derived pass, as for any dive edit: saving a dive
+        // leaves its calculated surface interval to it.
+        { type: "setEntityDives", payload: { kind, id, ...request } }
       )
     )
   })

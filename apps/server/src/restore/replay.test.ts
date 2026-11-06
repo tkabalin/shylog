@@ -107,6 +107,23 @@ describe("replay", () => {
       })
     )
     await ok(send(app, "DELETE", "/api/entities/trip/trip-cape"))
+    await ok(
+      send(app, "POST", "/api/entities/trip/trip-sodwana/dives", {
+        create: { name: "Sodwana 2026" },
+        add: [dive, diveId(db, 61)],
+      })
+    )
+    await ok(
+      send(app, "POST", "/api/entities/person/person-sam/dives", {
+        add: [{ diveId: dive, role: "professional" }],
+      })
+    )
+    await ok(
+      send(app, "POST", "/api/entities/trip/trip-sodwana/dives", {
+        remove: [dive, diveId(db, 61)],
+        deleteIfEmpty: true,
+      })
+    )
     await ok(send(app, "DELETE", `/api/dives/${dive}`))
     await ok(send(app, "POST", `/api/dives/${dive}/restore`))
     await ok(send(app, "DELETE", `/api/dives/${diveId(db, 61)}`))
@@ -167,6 +184,7 @@ describe("replay", () => {
         "editDive",
         "mergeEntity",
         "deleteEntity",
+        "setEntityDives",
         "deleteDive",
         "restoreDive",
         "putSettings",

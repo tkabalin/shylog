@@ -99,7 +99,7 @@ const aliasTarget = (db: Db, kind: EntityKind, id: string) =>
 
 // Whether an id that resolves to nothing was deleted, itself or as the end
 // of the aliases merges left, rather than never being on the server.
-function deletedAlong(db: Db, kind: EntityKind, id: string) {
+export function deletedAlong(db: Db, kind: EntityKind, id: string) {
   const seen = new Set<string>()
   for (let current: string | undefined = id; current && !seen.has(current);) {
     seen.add(current)
@@ -364,6 +364,22 @@ function uses(db: Db, kind: keyof typeof users, id: string) {
     .filter(([, n]) => n !== 0)
     .map(([noun, n]) => `${n} ${noun}${n === 1 ? "" : "s"}`)
     .join(" and ")
+}
+
+// Whether an entity is still in use, for one emptied from You. A trip is
+// in use while a dive outside Recently deleted is on it, as deleting it
+// would unlink only those in the bin; anything else while a delete would
+// be refused.
+export function inUse(db: Db, kind: EntityKind, id: string) {
+  if (kind === "trip") {
+    return (
+      prepared(
+        db,
+        "SELECT 1 FROM dives WHERE trip_id = ? AND deleted_at IS NULL"
+      ).get(id) !== undefined
+    )
+  }
+  return uses(db, kind, id) !== ""
 }
 
 // `DELETE /api/entities/:kind/:id`. A trip unlinks its dives; anything else

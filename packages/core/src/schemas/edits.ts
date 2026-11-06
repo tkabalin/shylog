@@ -1,9 +1,14 @@
 import { z } from "zod"
 
-import { idSchema } from "../ids.ts"
+import { idSchema, type Id } from "../ids.ts"
 import { patchShape, uniqueList } from "./common.ts"
 import { comparedFields, diveFieldsPatch } from "./dive.ts"
-import { entityShapes, type EntityKind, type EntityShape } from "./entities.ts"
+import {
+  entityFields,
+  entityShapes,
+  type EntityKind,
+  type EntityShape,
+} from "./entities.ts"
 import { settingsFields } from "./settings.ts"
 
 // Requests for edits to synced data. Each sends only what changed, so an
@@ -69,6 +74,67 @@ export const mergeEntityRequests = {
   diveCentre: mergeEntity("diveCentre"),
   trip: mergeEntity("trip"),
 }
+
+// `POST /api/entities/:kind/:id/dives` sets which dives a trip, dive centre
+// or person is on, in one write. A new one comes with its fields and at
+// least one dive, so nothing is ever saved with none. `deleteIfEmpty` asks
+// for it to go once nothing uses it, after the diver confirmed.
+export const diveRoles = ["buddy", "professional"] as const
+export type DiveRole = (typeof diveRoles)[number]
+
+const setEntityDives = <F extends z.ZodType, A extends z.ZodType>(
+  fields: F,
+  add: A,
+  diveOf: (item: z.output<A>) => string
+) =>
+  z
+    .strictObject({
+      create: fields.optional(),
+      add: z.array(add).default([]),
+      remove: uniqueList(idSchema("dive")).default([]),
+      deleteIfEmpty: z.boolean().default(false),
+    })
+    .refine(
+      ({ create, add }) => !create || add.length > 0,
+      "A new one needs at least one dive"
+    )
+    .refine(({ add, remove }) => {
+      const ids = add.map(diveOf)
+      return (
+        new Set(ids).size === ids.length &&
+        !ids.some((id) => remove.includes(id as Id<"dive">))
+      )
+    }, "A dive is either added or removed")
+    .refine(
+      ({ create, add, remove, deleteIfEmpty }) =>
+        create !== undefined ||
+        add.length > 0 ||
+        remove.length > 0 ||
+        deleteIfEmpty,
+      "Nothing to change"
+    )
+
+export const setEntityDivesRequests = {
+  trip: setEntityDives(entityFields.trip, idSchema("dive"), (id) => id),
+  diveCentre: setEntityDives(
+    entityFields.diveCentre,
+    idSchema("dive"),
+    (id) => id
+  ),
+  person: setEntityDives(
+    entityFields.person,
+    z.strictObject({ diveId: idSchema("dive"), role: z.enum(diveRoles) }),
+    (item) => item.diveId
+  ),
+}
+export type DiveSetKind = keyof typeof setEntityDivesRequests
+// As the server reads it, defaults filled in.
+export type SetEntityDivesParsed = z.output<
+  (typeof setEntityDivesRequests)[DiveSetKind]
+>
+export type SetEntityDivesRequest<K extends DiveSetKind> = z.input<
+  (typeof setEntityDivesRequests)[K]
+>
 
 // `PUT /api/settings`. New-dive defaults are replaced as a whole.
 export const putSettingsRequest = z
