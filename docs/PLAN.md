@@ -866,13 +866,35 @@ Deferred, or to watch:
 
 **Not in this milestone**: pairing, preview, apply, UI.
 
-- [ ] Reader covering every element and placeholder in the spec's list
-- [ ] One rule set for every computer (D37)
-- [ ] Freedive rule and the under-a-minute rule (D33)
-- [ ] Fingerprints
-- [ ] Zoop Novo fixture and rules
-- [ ] Synthetic fixture generator
-- [ ] Tests listed above
+- [x] Reader covering every element and placeholder in the spec's list
+- [x] One rule set for every computer (D37)
+- [x] Freedive rule and the under-a-minute rule (D33)
+- [x] Fingerprints
+- [x] Zoop Novo fixture and rules
+- [x] Synthetic fixture generator
+- [x] Tests listed above
+
+**Notes for the next session** (written 6 November 2026, branch `feat/suunto-reader`)
+
+Decisions taken while building:
+
+- One rule set for every computer (D37, the owner's choice): `import/freedive.ts` holds the freedive and under-a-minute rules, the reader reads Subsurface's placeholders as nothing, and milestone 15's clock-offset estimate should apply whatever the model. There is no `suunto.ts`; add a model switch only with the first rule one model needs.
+- `uddf/reader.ts` (the old sample reader) returns every dive: the computer's start, duration, max and average depth, `lowesttemperature` when present, the gas (the switchmix at 0 s, else the tank's link), the tank's volume and start and end pressures, weight, notes, samples (with tank pressure) and paired alarms, plus `hasTankData` and `hasGas` for the freedive rule. Temperatures stay only on the samples that carry one; the chart carries them forward.
+- A 0 kg under `informationbeforedive` is Subsurface's placeholder; under `informationafterdive` (UDDF's place, where Shylog writes it) it is a real 0. Notes are joined by paragraph, trimmed, with unwritable characters dropped.
+- Each dive's figures go through core's `diveFieldsPatch`, and sample times must be whole and in order, or the whole file is refused with "Dive N in the file has no valid …" (start time, duration, depth, average depth, weight, tank pressures, sample time). Milestone 15's upload route should turn that error into a 400. A dive with depth or duration 0 also refuses the file, even though it would be left out as short; kept for now, as neither computer writes one.
+- A freedive needs two or more samples; a dive with fewer is never one (in the spec). Zoop Novo dive 54 has no average depth when included, as one sample at 0 s gives none, as in Subsurface's `fixup_dc_duration`. The Zoop Novo's freedives last 4 to 26 s (the spec said 27).
+- The fingerprint is `<computer start> <duration> <max depth in mm>`, from the reader's values before any offset.
+- `fixtures/synthetic/generate.ts` runs on plain Node (`node fixtures/synthetic/generate.ts`) and makes `abroad.uddf` (dives 52 to 65 five hours behind, 51 and 66 at home), `midnight.uddf` (dive 63 at 23:40), `gauge.uddf` (dive 66 without tank or gas), `pressure.uddf` (dive 63 with pressure on samples and tank) and `high-po2.uddf` (dive 63 on EANx36). Prettier now formats `fixtures/synthetic/` but not its `.uddf` files. Milestone 16's 120-dive export and its extra-channel file aren't made yet: add them to the generator then.
+- The seed uses the same left-out rule: the D4i export still seeds 46 dives, the Zoop Novo 29 (was 31).
+
+Deferred, or to watch:
+
+- O₂ under 20.8 % and any helium read as air, as v1 has no trimix; the preview should flag such dives rather than import them silently.
+- Subsurface links no dive to its computer, so an export holding two computers gives every dive a null model ("dive computer").
+- The reader doesn't read sites (the spec's site matching on apply), the raw dive fragment for `import_raw`, or standard elements Shylog doesn't model; milestone 16 needs all three. The "empty site link, dummy divebase and empty divetrip are ignored" bullet holds because none of them is read yet.
+- `abroad.uddf` never puts a dive on another date on the computer's clock; milestone 15 may want such a case for per-day offsets.
+- The seed still stores only the fields it did (no weight, notes or tank data from the file), as the apply step will define how those become computer values.
+- Carried over from milestone 13: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the export's xmldom re-parse at about 1,000 dives (3–5 s); the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 22). From milestone 12 and earlier: the viewer and reorder gestures, the photo picker and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days.
 
 ## Milestone 15: Import, preview, clock offsets and pairing
 
