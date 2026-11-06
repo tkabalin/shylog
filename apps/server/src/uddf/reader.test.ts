@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+
 import { describe, expect, it } from "vitest"
 
 import {
@@ -360,4 +362,14 @@ describe("readUddf on the D4i export", () => {
       expect(dive.notes).toBeNull()
     }
   })
+})
+
+it("reads the synthetic gauge dive, no gas and 20 s sampling, as a dive", () => {
+  const xml = readFileSync(
+    new URL("../../../../fixtures/synthetic/gauge.uddf", import.meta.url),
+    "utf8"
+  )
+  const [dive] = readUddf(xml)
+  expect(dive.oxygen).toBeNull()
+  expect(leftOut(dive)).toBeNull()
 })
