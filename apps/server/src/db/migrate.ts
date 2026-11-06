@@ -7,6 +7,7 @@ import { tombstonesCardHashes } from "./migrations/002-tombstones-card-hashes.ts
 import { sampleFigures } from "./migrations/003-sample-figures.ts"
 import { dropVisibilityMode } from "./migrations/004-drop-visibility-mode.ts"
 import { dropUnwritableCharacters } from "./migrations/005-drop-unwritable-characters.ts"
+import { importPreviewFile } from "./migrations/006-import-preview-file.ts"
 import type { Db } from "./open.ts"
 
 export interface Migration {
@@ -21,6 +22,7 @@ export const migrations: Migration[] = [
   sampleFigures,
   dropVisibilityMode,
   dropUnwritableCharacters,
+  importPreviewFile,
 ]
 
 export function schemaVersion(db: Db): number {
