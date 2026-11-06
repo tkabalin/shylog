@@ -348,6 +348,263 @@ describe("POST /api/entities/:kind/:id/merge", () => {
   })
 })
 
+describe("POST /api/entities/:kind/:id/dives", () => {
+  const setDives = (kind: string, id: string, request: unknown) =>
+    send(app, "POST", `/api/entities/${kind}/${id}/dives`, request)
+  const tripOf = (id: string) =>
+    db.prepare("SELECT trip_id FROM dives WHERE id = ?").pluck().get(id)
+  const roles = (personId: string) =>
+    db
+      .prepare(
+        `SELECT dive_id AS diveId, 'buddy' AS role FROM dive_buddies WHERE person_id = ?
+         UNION SELECT dive_id, 'professional' FROM dive_professionals WHERE person_id = ?
+         ORDER BY role`
+      )
+      .all(personId, personId)
+
+  it("creates a trip with its dives in one journalled write, moving one from another trip", async () => {
+    await put("trip", "trip-old", { name: "Sodwana July" })
+    await patchDive(first(), { tripId: "trip-old" })
+    const before = journal().length
+    const res = await setDives("trip", "trip-new", {
+      create: { name: "Sodwana 2026" },
+      add: [second()],
+    })
+    expect(res.status).toBe(200)
+    expect(tripOf(second())).toBe("trip-new")
+    // In another trip, the dive before carries nothing over.
+    expect(cns(second())).toBeLessThan(10)
+    expect(
+      journal()
+        .slice(before)
+        .map((entry) => entry.type)
+    ).toEqual(["setEntityDives"])
+
+    await setDives("trip", "trip-new", { add: [first()] })
+    expect(tripOf(first())).toBe("trip-new")
+    expect(cns(second())).toBe(10)
+    const log = await getLog()
+    expect(
+      log.fieldMeta
+        .filter((meta) => meta.field === "tripId")
+        .map(({ diveId, source }) => ({ diveId, source }))
+    ).toEqual(
+      expect.arrayContaining([
+        { diveId: first(), source: "hand" },
+        { diveId: second(), source: "hand" },
+      ])
+    )
+  })
+
+  it("refuses a new one with no dives, and saves nothing when a dive is refused", async () => {
+    const none = await setDives("trip", "trip-new", {
+      create: { name: "Sodwana 2026" },
+    })
+    expect(none.status).toBe(400)
+    await send(app, "DELETE", `/api/dives/${first()}`)
+    const before = journal().length
+    const refused = await setDives("trip", "trip-new", {
+      create: { name: "Sodwana 2026" },
+      add: [second(), first()],
+    })
+    expect(refused.status).toBe(409)
+    expect((await getLog()).trips).toEqual([])
+    expect(tripOf(second())).toBeNull()
+    expect(journal()).toHaveLength(before)
+  })
+
+  it("refuses a name another one has, naming it", async () => {
+    await put("diveCentre", "centre-a", { name: "Coral Divers" })
+    const res = await setDives("diveCentre", "centre-b", {
+      create: { name: "Coral Divers" },
+      add: [first()],
+    })
+    expect(res.status).toBe(409)
+    expect(await body(res)).toMatchObject({
+      conflict: { id: "centre-a" },
+    })
+  })
+
+  it("moves a dive between dive centres and takes one off only its own", async () => {
+    await put("diveCentre", "centre-a", { name: "Coral Divers" })
+    await put("diveCentre", "centre-b", { name: "Da Blu Juice" })
+    await patchDive(first(), { diveCentreId: "centre-a" })
+    await setDives("diveCentre", "centre-b", { add: [first()] })
+    const centreOf = () =>
+      db
+        .prepare("SELECT dive_centre_id FROM dives WHERE id = ?")
+        .pluck()
+        .get(first())
+    expect(centreOf()).toBe("centre-b")
+    const { version } = await body(
+      await setDives("diveCentre", "centre-a", { remove: [first()] })
+    )
+    expect(centreOf()).toBe("centre-b")
+    expect(version).toBe(
+      (
+        await body(
+          await setDives("diveCentre", "centre-a", { remove: [first()] })
+        )
+      ).version
+    )
+  })
+
+  it("adds a person in a role, switches it, and writes nothing when resent", async () => {
+    await put("person", "person-sam", { name: "Sam Naidoo" })
+    await setDives("person", "person-sam", {
+      add: [
+        { diveId: first(), role: "buddy" },
+        { diveId: second(), role: "professional" },
+      ],
+    })
+    expect(roles("person-sam")).toEqual([
+      { diveId: first(), role: "buddy" },
+      { diveId: second(), role: "professional" },
+    ])
+    const switched = { add: [{ diveId: first(), role: "professional" }] }
+    const { version } = await body(
+      await setDives("person", "person-sam", switched)
+    )
+    expect(roles("person-sam")).toEqual(
+      expect.arrayContaining([{ diveId: first(), role: "professional" }])
+    )
+    expect(roles("person-sam")).toHaveLength(2)
+    const again = await body(await setDives("person", "person-sam", switched))
+    expect(again.version).toBe(version)
+    // A person's dives need a role.
+    expect(
+      (await setDives("person", "person-sam", { add: [first()] })).status
+    ).toBe(400)
+  })
+
+  it("deletes an emptied one when asked, unless a dive in Recently deleted still has it", async () => {
+    await setDives("trip", "trip-a", {
+      create: { name: "Sodwana 2026" },
+      add: [first()],
+    })
+    await setDives("trip", "trip-a", { remove: [first()], deleteIfEmpty: true })
+    expect((await getLog()).trips).toEqual([])
+    expect(
+      db
+        .prepare("SELECT kind FROM deleted_entities WHERE id = 'trip-a'")
+        .pluck()
+        .get()
+    ).toBe("trip")
+
+    await setDives("person", "person-sam", {
+      create: { name: "Sam Naidoo" },
+      add: [
+        { diveId: first(), role: "buddy" },
+        { diveId: second(), role: "buddy" },
+      ],
+    })
+    await send(app, "DELETE", `/api/dives/${first()}`)
+    expect(
+      (
+        await setDives("person", "person-sam", {
+          remove: [second()],
+          deleteIfEmpty: true,
+        })
+      ).status
+    ).toBe(200)
+    expect((await getLog()).people).toEqual([
+      { id: "person-sam", name: "Sam Naidoo" },
+    ])
+  })
+
+  it("keeps each dive's calculated surface interval", async () => {
+    const interval = () =>
+      db
+        .prepare("SELECT surface_interval FROM dives WHERE id = ?")
+        .pluck()
+        .get(second())
+    const before = interval()
+    expect(before).not.toBeNull()
+    await setDives("person", "person-sam", {
+      create: { name: "Sam Naidoo" },
+      add: [{ diveId: second(), role: "buddy" }],
+    })
+    await setDives("diveCentre", "centre-a", {
+      create: { name: "Coral Divers" },
+      add: [second()],
+    })
+    expect(interval()).toBe(before)
+  })
+
+  it("writes nothing when a create or a delete is resent", async () => {
+    const created = { create: { name: "Sodwana 2026" }, add: [first()] }
+    const { version } = await body(await setDives("trip", "trip-a", created))
+    const again = await setDives("trip", "trip-a", created)
+    expect(again.status).toBe(200)
+    expect((await body(again)).version).toBe(version)
+
+    const emptied = { remove: [first()], deleteIfEmpty: true }
+    const deleted = await body(await setDives("trip", "trip-a", emptied))
+    const resent = await setDives("trip", "trip-a", emptied)
+    expect(resent.status).toBe(200)
+    expect((await body(resent)).version).toBe(deleted.version)
+  })
+
+  it("deletes an emptied trip whose other dive is in Recently deleted, unlinking it", async () => {
+    await setDives("trip", "trip-a", {
+      create: { name: "Sodwana 2026" },
+      add: [first(), second()],
+    })
+    await send(app, "DELETE", `/api/dives/${first()}`)
+    await setDives("trip", "trip-a", {
+      remove: [second()],
+      deleteIfEmpty: true,
+    })
+    expect((await getLog()).trips).toEqual([])
+    expect(tripOf(first())).toBeNull()
+  })
+
+  it("skips taking off a dive put in Recently deleted since", async () => {
+    await setDives("trip", "trip-a", {
+      create: { name: "Sodwana 2026" },
+      add: [first(), second()],
+    })
+    await send(app, "DELETE", `/api/dives/${first()}`)
+    const res = await setDives("trip", "trip-a", {
+      remove: [first(), second()],
+    })
+    expect(res.status).toBe(200)
+    expect(tripOf(first())).toBe("trip-a")
+    expect(tripOf(second())).toBeNull()
+  })
+
+  it("adds under a merged-away id to the survivor, but takes none off it", async () => {
+    await put("trip", "trip-a", { name: "Sodwana 2026" })
+    await put("trip", "trip-b", { name: "Sodwana July" })
+    await merge("trip", "trip-a", "trip-b")
+    await setDives("trip", "trip-a", { add: [first()] })
+    expect(tripOf(first())).toBe("trip-b")
+    const res = await setDives("trip", "trip-a", { remove: [first()] })
+    expect(res.status).toBe(409)
+    expect(tripOf(first())).toBe("trip-b")
+  })
+
+  it("names the dive it refuses", async () => {
+    await send(app, "DELETE", `/api/dives/${first()}`)
+    const res = await setDives("trip", "trip-a", {
+      create: { name: "Sodwana 2026" },
+      add: [second(), first()],
+    })
+    expect(res.status).toBe(409)
+    expect(await body(res)).toMatchObject({
+      error: "This dive is in Recently deleted",
+      path: ["add", 1],
+      diveId: first(),
+    })
+  })
+
+  it("is only for trips, dive centres and people", async () => {
+    expect((await setDives("site", sodwana, { add: [first()] })).status).toBe(
+      404
+    )
+  })
+})
+
 describe("DELETE /api/entities/:kind/:id", () => {
   it("refuses a site used only by a dive in Recently deleted", async () => {
     await put("site", "site-quiet", { name: "Quiet Reef", countryCode: "ZA" })

@@ -5,6 +5,7 @@ import {
   patchDiveRequest,
   putEntityRequests,
   putSettingsRequest,
+  setEntityDivesRequests,
 } from "./edits.ts"
 
 describe("patchDiveRequest", () => {
@@ -89,5 +90,42 @@ describe("putSettingsRequest", () => {
     expect(putSettingsRequest.parse({ maxPo2: 1.5 })).toEqual({ maxPo2: 1.5 })
     expect(putSettingsRequest.safeParse({ maxPo2: 3 }).success).toBe(false)
     expect(putSettingsRequest.safeParse({}).success).toBe(false)
+  })
+})
+
+describe("setEntityDivesRequests", () => {
+  const { trip, person } = setEntityDivesRequests
+
+  it("creates only with at least one dive", () => {
+    expect(
+      trip.safeParse({ create: { name: "Sodwana 2026" }, add: ["dive-a"] })
+        .success
+    ).toBe(true)
+    expect(trip.safeParse({ create: { name: "Sodwana 2026" } }).success).toBe(
+      false
+    )
+  })
+
+  it("lists each dive once, either added or removed", () => {
+    expect(trip.safeParse({ add: ["dive-a", "dive-a"] }).success).toBe(false)
+    expect(
+      trip.safeParse({ add: ["dive-a"], remove: ["dive-a"] }).success
+    ).toBe(false)
+    expect(trip.safeParse({}).success).toBe(false)
+  })
+
+  it("gives each of a person's dives a role", () => {
+    expect(
+      person.safeParse({ add: [{ diveId: "dive-a", role: "buddy" }] }).success
+    ).toBe(true)
+    expect(person.safeParse({ add: ["dive-a"] }).success).toBe(false)
+    expect(
+      person.safeParse({
+        add: [
+          { diveId: "dive-a", role: "buddy" },
+          { diveId: "dive-a", role: "professional" },
+        ],
+      }).success
+    ).toBe(false)
   })
 })

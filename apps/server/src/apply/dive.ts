@@ -69,9 +69,9 @@ const column = (field: string) =>
 const booleans = new Set<string>(["nitrox", "ignored"])
 
 // A dive's fields as a draft would carry them, with absent meaning empty.
-type Fields = Partial<Record<keyof DiveFields, unknown>>
+export type Fields = Partial<Record<keyof DiveFields, unknown>>
 
-interface Stored {
+export interface Stored {
   fields: Fields
   deleted: boolean
 }
@@ -230,6 +230,13 @@ export function createDive(db: Db, id: string, draft: DiveFields) {
   for (const field of Object.keys(fields)) recordHand(db, id, field)
 }
 
+// A patch over the stored fields: a value sets a field, null clears it.
+type Edit = {
+  fields?: Partial<Record<keyof DiveFields, unknown>>
+  adopt?: PatchDiveRequest["adopt"]
+  dismiss?: PatchDiveRequest["dismiss"]
+}
+
 const same = (a: unknown, b: unknown) =>
   Array.isArray(a) && Array.isArray(b)
     ? a.length === b.length && a.every((value, i) => value === b[i])
@@ -237,14 +244,25 @@ const same = (a: unknown, b: unknown) =>
 
 // Applies the changed fields, adoptions and dismissals of a synced dive.
 // True when anything changed, so a repeated edit writes nothing.
-export function editDive(
+export function editDive(db: Db, id: string, request: PatchDiveRequest) {
+  return editDiveFrom(db, id, () => request)
+}
+
+// The same edit with the change worked out from the dive as stored, read
+// once, as adding a person to its buddies needs the buddies it has. Null
+// leaves the dive alone, even one in Recently deleted, which an edit can't
+// change.
+export function editDiveFrom(
   db: Db,
   id: string,
-  { fields: patch = {}, adopt = [], dismiss: keep = [] }: PatchDiveRequest
+  changeOf: (dive: Stored) => Edit | null
 ): boolean {
   const meta = metaOf(db, id)
   const before = stored(db, id, meta)
   if (!before) throw new Rejected("No such dive", 404)
+  const change = changeOf(before)
+  if (!change) return false
+  const { fields: patch = {}, adopt = [], dismiss: keep = [] } = change
   if (before.deleted) {
     throw new Rejected("This dive is in Recently deleted", 409)
   }

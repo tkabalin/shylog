@@ -1,6 +1,13 @@
 import { randomUUID } from "node:crypto"
 
-import type { EntityKind, Op, PatchDiveRequest, Settings } from "@shylog/core"
+import type {
+  DiveSetKind,
+  EntityKind,
+  Op,
+  PatchDiveRequest,
+  SetEntityDivesParsed,
+  Settings,
+} from "@shylog/core"
 
 import { editDive, setDeleted } from "../apply/dive.ts"
 import { applyDiveOp } from "../apply/draft.ts"
@@ -11,6 +18,7 @@ import {
   feedsDiveFigures,
   putEntity,
 } from "../apply/entity.ts"
+import { setEntityDives } from "../apply/entity-dives.ts"
 import { mergeEntity } from "../apply/merge.ts"
 import { putSettings } from "../apply/settings.ts"
 import {
@@ -99,6 +107,17 @@ const entries: Record<
     apply: (db, { kind, id }: { kind: EntityKind; id: string }) =>
       deleteEntity(db, kind, id),
     derived: ({ kind }) => feedsDiveFigures(kind),
+  },
+  setEntityDives: {
+    apply: (
+      db,
+      {
+        kind,
+        id,
+        ...request
+      }: { kind: DiveSetKind; id: string } & SetEntityDivesParsed
+    ) => setEntityDives(db, kind, id, request),
+    derived: true,
   },
   putSettings: {
     apply: (db, request: Partial<Settings>) => putSettings(db, request),

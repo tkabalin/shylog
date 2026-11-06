@@ -15,14 +15,14 @@ A mobile-first PWA for logging dives, self-hosted on a home server and reachable
 - Add, edit, and delete dives. New dives can be logged offline and sync later; changing a synced dive needs a connection
 - Dive list, dive detail with a time series profile chart (depth, temperature, and computer events), and aggregate statistics
 - Attaching the dive computer's time series from a Subsurface UDDF export to hand-logged dives, for the Suunto D4i and the Suunto Zoop Novo
-- Managing sites, people, dive centres, and trips
+- Managing sites, people, dive centres, and trips, including putting many dives on a trip, a dive centre, or a person at once
 - Certification cards, viewable offline
 - A second instance for a second diver
 - Installable on a phone home screen
 
 ### Not in v1
 
-- Bulk editing
+- Bulk editing of other fields
 - MCP integration for logging dives with Claude
 - Downloading directly from the dive computer
 - Several divers in one instance, or public access (the second diver gets a separate instance; see Instance configuration)
@@ -106,7 +106,7 @@ Foreign keys and unique constraints enforce integrity on every write. Unique key
 
 - Dives, sites, regions, people, dive centres, trips, and certification cards have stable ids generated on the client, such as `dive-<uuid>`. All ids start with a letter, so they are valid UDDF ids in the export too.
 - Deleting a dive sets `deleted_at`. Deleted dives appear only in Recently deleted, are left out of the log and the UDDF export, and are never purged, so any of them can be restored and their fingerprints keep blocking re-imports.
-- A trip can be deleted, which unlinks its dives. A site, region, person, or dive centre can be deleted only while nothing uses it, counting dives in Recently deleted (and, for a region, sites and dive centres); otherwise it is merged into another. Nothing is deleted automatically, and every delete is journalled.
+- A trip can be deleted, which unlinks its dives. A site, region, person, or dive centre can be deleted only while nothing uses it, counting dives in Recently deleted (and, for a region, sites and dive centres); otherwise it is merged into another. Nothing is deleted automatically, and every delete is journalled. Unticking every dive of a trip, dive centre, or person from You deletes it after the diver confirms, in the same write, where a delete is allowed; a person or dive centre still on a dive in Recently deleted stays. Taking dives off skips one moved to Recently deleted since the screen loaded, and a merged-away id can be given dives (they land on the survivor) but takes none off, so a stale screen never strips the survivor.
 - Merging moves everything that uses the merged-away entity onto the survivor. Two regions merge only within one country. Where a dive has both people being merged, the survivor keeps the role and place it already had on that dive (buddy or dive professional), since one person can't be both on a dive.
 - Changing a region's country moves its sites to that country too, rechecking their names there, since a site's region is always in the site's country.
 - Cylinder material, cylinder volume, and oxygen percentage are plain columns on each dive, so changing one dive never affects another. The export groups dives with the same material and volume into one UDDF tank, and dives with the same oxygen fraction into one gas mix, so 32.4% nitrox never shares a mix with 32%.
@@ -326,6 +326,7 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 | DELETE, POST | `/api/dives/:id`, `/api/dives/:id/restore` | Move a dive to Recently deleted, or back |
 | PUT | `/api/entities/:kind/:id` | Create or rename a site, region, person, dive centre, or trip |
 | POST | `/api/entities/:kind/:id/merge` | Merge an entity into another, recording an alias |
+| POST | `/api/entities/:kind/:id/dives` | Put dives on a trip, dive centre, or person (in a role) and take them off in one write, creating it with its first dives, and deleting it if asked once nothing uses it |
 | DELETE | `/api/entities/:kind/:id` | Delete a trip (unlinking its dives), or a site, region, person, or dive centre that nothing uses |
 | GET, PUT | `/api/settings` | Read or change the log-wide settings: diver name, maximum PO₂, and new-dive defaults |
 | GET | `/api/cards` | List certification cards |
@@ -817,7 +818,7 @@ The sync rules and the UDDF import and export carry most of the risk, so they ge
 ### Later
 
 - Consider Cloudflare Tunnel with Cloudflare Access on a subdomain of a personal domain, so the app works without the Tailscale app on the phone. This would need real app authentication, and a second origin would get its own offline queue and storage.
-- Bulk editing, including how mixed values show when selected dives disagree
+- Bulk editing of other fields, including how mixed values show when selected dives disagree
 - MCP tools for logging with Claude. A tailnet-only server is reachable from Claude Desktop or Claude Code on a tailnet device, not from Claude on the web, unless the MCP endpoint is exposed through Tailscale Funnel with its own auth. Keep the MCP layer separate in the server.
 - Direct download from the D4i and the Zoop Novo, so the Subsurface step goes away. This is the intended approach once the MVP works: the D4i's USB cable is plugged into the server, and the server downloads the dives with libdivecomputer, the library Subsurface uses for its downloads, through its Node wrapper or its command-line tool. First check that the wrapper supports the serial connection the D4i cable needs, and fall back to the command-line tool if it does not. On Linux the cable should appear as an ordinary serial device, which avoids the Windows FTDI driver problem. The alternative is to run libdivecomputer as WebAssembly in the browser and talk to the cable over Web Serial from Chrome or Edge on the laptop; it needs HTTPS, still needs the Windows driver, and is a much larger build, so it is only worth it if plugging into the server proves a nuisance. The Subsurface UDDF import stays regardless, for the history and as a fallback.
 
