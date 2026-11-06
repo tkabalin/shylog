@@ -58,7 +58,7 @@ test("offers Merge instead for a rename that collides @writes", async ({
   await expect(
     page.getByText(`There is already a site called E2E Keep ${tag}`)
   ).toBeVisible()
-  await page.getByRole("button", { name: "Merge instead" }).click()
+  await page.getByRole("button", { name: `Merge into E2E Keep ${tag}` }).click()
   // The survivor takes the merged-away site's place.
   await expect(page).toHaveURL(new RegExp(`/you/entities/site/${keep}$`))
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(

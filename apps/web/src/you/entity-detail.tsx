@@ -444,26 +444,6 @@ export function EntityDetail({
                   aria-describedby={nameError ? "error-name" : undefined}
                 />
               </Row>
-              {nameError && (
-                <div className="-mt-1.5 flex flex-col items-end gap-0.5 px-4 pb-2">
-                  <p
-                    id="error-name"
-                    className="-mt-1 self-stretch text-right text-[13px] [overflow-wrap:anywhere] text-destructive"
-                  >
-                    {nameError}
-                  </p>
-                  {conflict && (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={mergeInstead}
-                      className="relative inline-flex h-9 items-center text-[15px] font-semibold text-primary transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50"
-                    >
-                      Merge instead
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
             {(kind === "site" || kind === "region") && (
               <PickRow
@@ -536,6 +516,32 @@ export function EntityDetail({
               </>
             )}
           </Section>
+          {/* Under the card, so the field's row keeps its shape, with the
+              way out as a row of its own. */}
+          {nameError && (
+            <p
+              id="error-name"
+              role="alert"
+              className="mt-2 px-1 text-[13px] [overflow-wrap:anywhere] text-destructive"
+            >
+              {nameError}
+            </p>
+          )}
+          {nameError && conflict && (
+            <Card className="mt-3 gap-0 py-0">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={mergeInstead}
+                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+              >
+                <IconArrowMerge aria-hidden className="size-[1.15em]" />
+                <span className="[overflow-wrap:anywhere]">
+                  Merge into {conflict.name}
+                </span>
+              </button>
+            </Card>
+          )}
           {error && (
             <p role="alert" className="mt-2 px-1 text-[13px] text-destructive">
               {error}
