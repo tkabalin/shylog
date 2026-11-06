@@ -914,11 +914,29 @@ Deferred, or to watch:
 
 **Not in this milestone**: apply (milestone 16), UI (milestone 17).
 
-- [ ] Clock-offset estimation per day
-- [ ] Pairing with `likely_same`
-- [ ] Preview storage, expiry, overrides
-- [ ] Routes: upload, pending, patch, delete
-- [ ] Tests listed above
+- [x] Clock-offset estimation per day
+- [x] Pairing with `likely_same`
+- [x] Preview storage, expiry, overrides
+- [x] Routes: upload, pending, patch, delete
+- [x] Tests listed above
+
+**Notes for the next session** (written 6 November 2026, branch `feat/import-preview`)
+
+Decisions taken while building:
+
+- Previews are scratch (D38, the owner's choice): `import/preview.ts` writes them outside `write()`, so no journal entry and no new version; the restore drill skips `import_previews`; migration 6 adds the uploaded file (`uddf`) to the row, which apply should read again with `readUddf` for samples, sites and fragments. One preview at a time; a new upload replaces it. `GET /api/import/pending` writes nothing (so it works while saving is paused) and the nightly job purges expired previews before its snapshot.
+- Days: each hand-logged day's offset is the 15-minute step that pairs most of its hand dives (halves round away from zero, ±14 h at most, dives an earlier day paired with don't vote). A dive goes to the day it paired with, else an estimated day it lands on, else the day the nearest estimate's offset puts it on, which takes that offset. Only clocks that disagree by hours on neighbouring days can leave a dive starting off its day. A day's dives are fixed: `PATCH` re-proposes that day only, against the log as it is then, and returns the whole preview. Other days' lists stay as built, so apply's re-check is what catches changes there.
+- Hand dives paired or listed: live, without a fingerprint, ignored dives included, and only on the export's days. The unpaired gap is to the nearest computer dive on the same day, null on a day with none.
+- Computer dives are named by the export's own ids (`ref`); a file repeating one is refused, as is XML that isn't UDDF. A dive the file holds twice counts as already imported. The preview's computer is named from every dive in the file, so a re-upload still names it.
+- Gases v1 can't hold (helium or under 20.9 % O₂) are read as air and marked `unsupportedGas`; milestone 17's review must say the gas isn't supported and the dive will be stored as air, as the owner asked. A mix with no `<o2>` is air and not marked.
+- Uploads: XML types, or `application/octet-stream` with a `.uddf`/`.xml` name in `Content-Disposition` (`filename*` wins), up to 25 MB, decoded by BOM or XML declaration, else UTF-8. Reader refusals are `UnreadableUddf` and a 400 with their message; DELETE is safe to repeat (204). Each computer dive carries its day, both starts, figures, temperatures from the samples and the 24-point sparkline for the review.
+- `latestSchemaVersion` is now 6 for the migration, so a phone on older code stops syncing until it reloads.
+
+Deferred, or to watch:
+
+- Apply has to return "the dives changed since the preview", but `basedOnVersion` is a random id that can't name them. Record the journal's `MAX(seq)` with the preview and scan later entries, or snapshot the paired hand dives' figures; previews are scratch, so their shape can change freely.
+- The import-route bullet's "needs a connection" is the app's job (milestone 17's offline state); the server can't test it.
+- Carried over from milestone 14: Subsurface links no dive to its computer, so a two-computer export gives a null model; the reader doesn't read sites, the raw fragment or standard elements Shylog doesn't model (milestone 16); a dive with depth or duration 0 still refuses the whole file; the seed stores only the fields it did. From milestone 13 and earlier: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the export's xmldom re-parse at about 1,000 dives (3–5 s); the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 22); the viewer and reorder gestures, the photo picker and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days.
 
 ## Milestone 16: Import, apply, fingerprints and pass-through export
 
