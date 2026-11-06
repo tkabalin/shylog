@@ -96,7 +96,8 @@ These were settled while planning the build (see the decisions in `docs/PLAN.md`
 - The upload card shows an indeterminate "Reading your export" state. The board's "48 of 72 dives" progress bar implies streaming that the server does not do.
 - The import summary counts included freedives separately when there are any. The review board folds them into "new".
 - Dives under five minutes are left out and listed with the freedives, which the boards don't draw.
-- Entities are created only from the dive form's pickers; the entity screens list, rename, merge and delete.
+- Entities are created from the dive form's pickers, and trips, dive centres and people also from their list's add button with their dives; the entity screens list, rename, merge, delete, and tick dives onto a trip, dive centre or person. No board draws the add button, the New screen or the dive picker.
+- A list that picks several things puts a round check before each row (the dive picker); a list that picks one thing ticks it on the right (option sheets), or uses a radio before it when a confirm button follows (merge). Buddies and dive professionals stay as chips.
 - The entity list has no kind tabs: each kind opens from its row on You, which already lists all five, so `EntitiesHifi`'s tabs repeated it (and five no longer fit).
 - The boards' explanatory notes on You, the entity list and entity detail are cut where the screen or the next step already says it. An entity's note shows only when Delete is disabled, Recently deleted keeps only the re-import note, and Defaults is titled New dive defaults instead of carrying a note. Restore is a words-only pill.
 - The Icon key is a reference, not a screen. Each board's Essential icon set is what gets built; the key's Essential column is a vocabulary, not a per-screen rule.

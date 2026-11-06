@@ -2,11 +2,16 @@ import { defaultSettings } from "@shylog/core"
 import { describe, expect, it } from "vitest"
 
 import type { Dive } from "./db"
+import { Refused } from "./edits"
 import {
+  changesOf,
   duplicates,
+  emptiable,
+  failureText,
   figuresOf,
   likelySameName,
   mergeCandidates,
+  pickedOf,
   tripDates,
   usedBy,
 } from "./entities"
@@ -259,5 +264,85 @@ describe("merging", () => {
       dive("dive-new", { tripId: "trip-july", draft: true } as Partial<Dive>),
     ])
     expect(usedBy(log, "trip", "trip-july")).toBe("1 dive not synced yet")
+  })
+})
+
+describe("picking dives", () => {
+  it("starts from the logged dives it is on, leaving out drafts", () => {
+    const log = view([
+      dive("dive-a", { tripId: "trip-july" }),
+      dive("dive-b", { tripId: "trip-july", draft: true }),
+      dive("dive-c", { tripId: "trip-other" }),
+    ])
+    expect([...pickedOf(log, "trip", "trip-july")]).toEqual([["dive-a", null]])
+  })
+
+  it("reads a person's role on each dive", () => {
+    const log = view([dive("dive-a", {}), dive("dive-b", {})], {
+      "dive-a": ["person-sam"],
+    })
+    log.links.get("dive-b")!.professionals.push("person-sam")
+    expect(pickedOf(log, "person", "person-sam")).toEqual(
+      new Map([
+        ["dive-a", "buddy"],
+        ["dive-b", "professional"],
+      ])
+    )
+  })
+
+  it("sends the dives ticked, those in a new role, and those unticked", () => {
+    const before = new Map([
+      ["dive-a", "buddy"],
+      ["dive-b", "buddy"],
+    ] as const)
+    const after = new Map([
+      ["dive-a", "buddy"],
+      ["dive-b", "professional"],
+      ["dive-c", "buddy"],
+    ] as const)
+    expect(changesOf("person", new Map(before), new Map(after))).toEqual({
+      add: [
+        { diveId: "dive-b", role: "professional" },
+        { diveId: "dive-c", role: "buddy" },
+      ],
+      remove: [],
+    })
+    expect(
+      changesOf(
+        "trip",
+        new Map([["dive-a", null]]),
+        new Map([["dive-c", null]])
+      )
+    ).toEqual({ add: ["dive-c"], remove: ["dive-a"] })
+  })
+
+  it("offers to delete only what nothing else would keep", () => {
+    const deleted = view(
+      [dive("dive-a", { diveCentreId: "centre-a", deletedAt: "2026-08-01" })],
+      {}
+    )
+    expect(emptiable(deleted, "diveCentre", "centre-a")).toBe(false)
+    // A trip in the bin is unlinked by the delete.
+    const trip = view([
+      dive("dive-a", { tripId: "trip-july", deletedAt: "2026-08-01" }),
+    ])
+    expect(emptiable(trip, "trip", "trip-july")).toBe(true)
+    const drafted = view([dive("dive-a", { tripId: "trip-july", draft: true })])
+    expect(emptiable(drafted, "trip", "trip-july")).toBe(false)
+  })
+})
+
+describe("failureText", () => {
+  it("names the dive a refused save was about", () => {
+    const log = view([dive("dive-a", {})])
+    expect(
+      failureText(
+        log,
+        new Refused("This dive is in Recently deleted", { diveId: "dive-a" })
+      )
+    ).toBe("Two Mile Reef, Sat 25 Jul 2026: This dive is in Recently deleted")
+    expect(failureText(log, new Error("Can’t reach the server"))).toBe(
+      "Can’t reach the server"
+    )
   })
 })

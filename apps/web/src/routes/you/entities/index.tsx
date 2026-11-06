@@ -11,11 +11,13 @@ import {
   IconAlertTriangle,
   IconFlag,
   IconMap,
+  IconPlus,
 } from "@tabler/icons-react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 
 import { countText } from "@/components/pickers/match"
 import { SheetSearch } from "@/components/pickers/sheet"
+import { buttonVariants } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
   diveCounts,
@@ -27,7 +29,9 @@ import {
 import type { Dive } from "@/data/db"
 import { useLog, type LogView } from "@/data/log"
 import type { Icon } from "@/dive/form/rows"
+import { useDesk } from "@/hooks/use-desk"
 import { PageBar } from "@/you/bar"
+import { pickable } from "@/you/entity-detail"
 import { kindLabels } from "@/you/kinds"
 
 interface EntitiesSearch {
@@ -140,7 +144,11 @@ function EntitiesPage() {
     })
   return (
     <div className="flex min-h-full flex-col">
-      <PageBar back={{ label: "You", to: "/you" }} title={label.title} />
+      <PageBar
+        back={{ label: "You", to: "/you" }}
+        title={label.title}
+        end={pickable(kind) && <NewButton kind={kind} />}
+      />
       <div className="flex flex-col gap-2.5 px-4 pt-1 pb-3 md:mx-auto md:w-full md:max-w-xl">
         <SheetSearch
           value={q}
@@ -226,11 +234,42 @@ function EntitiesPage() {
             <p className="py-6 text-center text-sm text-muted-foreground">
               {key
                 ? `No ${label.title.toLowerCase()} match.`
-                : `No ${label.title.toLowerCase()} yet. They’re added from a dive’s form.`}
+                : pickable(kind)
+                  ? `No ${label.title.toLowerCase()} yet.`
+                  : `No ${label.title.toLowerCase()} yet. They’re added from a dive’s form.`}
             </p>
           )}
         </div>
       )}
     </div>
+  )
+}
+
+// A new trip, dive centre or person, one level deeper, so Back returns to
+// this list. A shadcn button with a mouse, as the Log's New dive is.
+function NewButton({ kind }: { kind: EntityKind }) {
+  const desk = useDesk()
+  const one = kindLabels[kind].one
+  return (
+    <Link
+      to="/you/entities/$kind/new"
+      params={{ kind }}
+      state={{ pushed: true }}
+      aria-label={`New ${one}`}
+      className={
+        desk
+          ? buttonVariants()
+          : "inline-flex size-11 items-center justify-center text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
+      }
+    >
+      {desk ? (
+        <>
+          <IconPlus data-icon="inline-start" />
+          New {one}
+        </>
+      ) : (
+        <IconPlus aria-hidden className="size-5.5 stroke-[2.25]" />
+      )}
+    </Link>
   )
 }

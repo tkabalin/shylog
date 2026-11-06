@@ -26,6 +26,7 @@ import { Route as DiveDiveIdEditRouteImport } from './routes/dive/$diveId_.edit'
 import { Route as YouCertificationsCardIdRouteImport } from './routes/you/certifications/$cardId'
 import { Route as YouEntitiesIndexRouteImport } from './routes/you/entities/index'
 import { Route as YouEntitiesKindIdRouteImport } from './routes/you/entities/$kind.$id'
+import { Route as YouEntitiesKindNewRouteImport } from './routes/you/entities/$kind.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -112,6 +113,11 @@ const YouEntitiesKindIdRoute = YouEntitiesKindIdRouteImport.update({
   path: '/you/entities/$kind/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const YouEntitiesKindNewRoute = YouEntitiesKindNewRouteImport.update({
+  id: '/you/entities/$kind/new',
+  path: '/you/entities/$kind/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/you/certifications/$cardId': typeof YouCertificationsCardIdRoute
   '/you/entities/': typeof YouEntitiesIndexRoute
   '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
+  '/you/entities/$kind/new': typeof YouEntitiesKindNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/you/certifications/$cardId': typeof YouCertificationsCardIdRoute
   '/you/entities': typeof YouEntitiesIndexRoute
   '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
+  '/you/entities/$kind/new': typeof YouEntitiesKindNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,6 +178,7 @@ export interface FileRoutesById {
   '/you/certifications/$cardId': typeof YouCertificationsCardIdRoute
   '/you/entities/': typeof YouEntitiesIndexRoute
   '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
+  '/you/entities/$kind/new': typeof YouEntitiesKindNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/you/certifications/$cardId'
     | '/you/entities/'
     | '/you/entities/$kind/$id'
+    | '/you/entities/$kind/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/you/certifications/$cardId'
     | '/you/entities'
     | '/you/entities/$kind/$id'
+    | '/you/entities/$kind/new'
   id:
     | '__root__'
     | '/'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/you/certifications/$cardId'
     | '/you/entities/'
     | '/you/entities/$kind/$id'
+    | '/you/entities/$kind/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -247,6 +259,7 @@ export interface RootRouteChildren {
   DiveDiveIdEditRoute: typeof DiveDiveIdEditRoute
   YouEntitiesIndexRoute: typeof YouEntitiesIndexRoute
   YouEntitiesKindIdRoute: typeof YouEntitiesKindIdRoute
+  YouEntitiesKindNewRoute: typeof YouEntitiesKindNewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -370,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof YouEntitiesKindIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/you/entities/$kind/new': {
+      id: '/you/entities/$kind/new'
+      path: '/you/entities/$kind/new'
+      fullPath: '/you/entities/$kind/new'
+      preLoaderRoute: typeof YouEntitiesKindNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -415,6 +435,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiveDiveIdEditRoute: DiveDiveIdEditRoute,
   YouEntitiesIndexRoute: YouEntitiesIndexRoute,
   YouEntitiesKindIdRoute: YouEntitiesKindIdRoute,
+  YouEntitiesKindNewRoute: YouEntitiesKindNewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

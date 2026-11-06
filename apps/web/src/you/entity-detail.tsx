@@ -4,6 +4,8 @@ import {
   countryName,
   defaultWaterType,
   type BodyOfWater,
+  type DiveRole,
+  type DiveSetKind,
   type CountryCode,
   type EntityKind,
   type WaterType,
@@ -13,17 +15,13 @@ import {
   IconArrowMerge,
   IconCalendar,
   IconCheck,
-  IconChevronDown,
-  IconChevronRight,
-  IconClock,
   IconDroplet,
-  IconClockPlay,
   IconSalt,
   IconMapPin,
   IconTrash,
   IconUsers,
 } from "@tabler/icons-react"
-import { Link, useRouter } from "@tanstack/react-router"
+import { useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
 
 import { LeaveGuard, type Leave } from "@/components/leave-guard"
@@ -49,24 +47,29 @@ import {
 import type { Dive } from "@/data/db"
 import { Refused } from "@/data/edits"
 import {
+  changesOf,
   deleteEntity,
   diveCounts,
   divesUsing,
+  emptiable,
+  entitiesOf,
+  failureText,
   figuresOf,
   likelySameName,
   mergeCandidates,
   mergeEntity,
+  pickedOf,
   putEntity,
+  setEntityDives,
   sitesIn,
   tripDates,
   usedBy,
   type Entity,
 } from "@/data/entities"
-import type { LogView } from "@/data/log"
+import { currentLog, type LogView } from "@/data/log"
 import {
   Label,
   PickRow,
-  Reveal,
   Row,
   RowInput,
   Section,
@@ -74,11 +77,13 @@ import {
   SelectRow,
   type Icon,
 } from "@/dive/form/rows"
-import { clockTime, longDate, months } from "@/format/dates"
-import { depth, minutes } from "@/format/figures"
+import { months } from "@/format/dates"
+import { depth } from "@/format/figures"
 import { useDesk } from "@/hooks/use-desk"
 
 import { PageBar, useBack } from "./bar"
+import { DivePicker } from "./dive-picker"
+import { ChooseDivesRow, DivesCard } from "./dives-card"
 import { kindLabels } from "./kinds"
 import { MergeSheet, type Candidate } from "./merge-sheet"
 
@@ -131,7 +136,11 @@ const figureIcons: Record<string, Icon | undefined> = {
   Days: IconCalendar,
 }
 
-type Sheet = "country" | "region" | "body" | "merge" | "delete" | null
+type Sheet = "country" | "region" | "body" | "merge" | "delete" | "dives" | null
+
+// The kinds whose dives can be ticked from their detail.
+export const pickable = (kind: EntityKind): kind is DiveSetKind =>
+  kind === "trip" || kind === "diveCentre" || kind === "person"
 
 const unitOf = (kind: EntityKind): [string, string] =>
   kind === "region" ? ["site", "sites"] : ["dive", "dives"]
@@ -160,9 +169,6 @@ export function EntityDetail({
   const [conflict, setConflict] = useState<Entity>()
   const [nameError, setNameError] = useState<string>()
   const [deleteError, setDeleteError] = useState<string>()
-  // Three, then the rest 50 at a time, so a busy site never renders
-  // hundreds of rows at once.
-  const [shownDives, setShownDives] = useState(3)
   const changed = fieldsOf[kind].some((field) => values[field] !== base[field])
   // Set as a merge or delete takes this screen away, so LeaveGuard lets
   // them go; a move elsewhere it held waits on Discard changes?.
@@ -239,6 +245,53 @@ export function EntityDetail({
       }
     }, [log, kind, id, saved.name])
   const pending = log.pending.has(id)
+  // Only one the server knows can be named in a request.
+  const choosing = pickable(kind) && !pending ? kind : null
+
+  // The picker starts from these, worked out once per log rather than on
+  // every keystroke in the name.
+  const { opening, canEmpty } = useMemo(
+    () =>
+      choosing
+        ? {
+            opening: pickedOf(log, choosing, id),
+            canEmpty: emptiable(log, choosing, id),
+          }
+        : { opening: new Map(), canEmpty: false },
+    [log, choosing, id]
+  )
+
+  // Saves the picker's ticks, as changes from what it opened with.
+  // Unticking every dive deletes it, once the diver has confirmed, and
+  // goes back to the list as Delete does; if something it can't see still
+  // uses it, the server keeps it and this screen stays.
+  const chooseDives = async (
+    setKind: DiveSetKind,
+    ticked: Map<string, DiveRole | null>,
+    opened: Map<string, DiveRole | null>,
+    deleteIfEmpty: boolean
+  ) => {
+    const changes = changesOf(setKind, opened, ticked)
+    if (!changes.add?.length && !changes.remove?.length && !deleteIfEmpty)
+      return
+    try {
+      await setEntityDives(setKind, id, { ...changes, deleteIfEmpty })
+    } catch (failure) {
+      throw new Error(failureText(log, failure), { cause: failure })
+    }
+    if (
+      !deleteIfEmpty ||
+      entitiesOf(currentLog() ?? log, kind).some((one) => one.id === id)
+    )
+      return
+    leaving.current = true
+    if (!goBack())
+      void router.navigate({
+        to: "/you/entities",
+        search: { kind },
+        replace: true,
+      })
+  }
 
   const save = async () => {
     const name = tidyName(values.name)
@@ -549,7 +602,7 @@ export function EntityDetail({
           )}
         </div>
 
-        {dives.length > 0 && (
+        {(dives.length > 0 || choosing) && (
           <section aria-labelledby="entity-dives">
             <div className="mb-2 flex items-baseline justify-between px-1">
               <h2
@@ -562,62 +615,9 @@ export function EntityDetail({
                 {countText(dives.length)}
               </span>
             </div>
-            <Card className="gap-0 divide-y py-0">
-              {dives.slice(0, 3).map((dive) => (
-                <DiveRow
-                  key={dive.id}
-                  dive={dive}
-                  kind={kind}
-                  log={log}
-                  parent={saved.name}
-                />
-              ))}
-              {/* The rest ease open rather than pushing Actions down at once. */}
-              {/* One reveal per batch, so each "more" eases open too. */}
-              {Array.from(
-                { length: Math.ceil((shownDives - 3) / 50) },
-                (_, batch) => 3 + batch * 50
-              ).map((start) => (
-                <Reveal key={start} className="divide-y">
-                  {dives.slice(start, start + 50).map((dive) => (
-                    <DiveRow
-                      key={dive.id}
-                      dive={dive}
-                      kind={kind}
-                      log={log}
-                      parent={saved.name}
-                    />
-                  ))}
-                </Reveal>
-              ))}
-              {/* Folds shut as the last batch opens, rather than leaving
-                  at once and dropping the page under the finger. */}
-              {dives.length > 3 && (
-                <div
-                  inert={dives.length <= shownDives}
-                  className={cn(
-                    "grid transition-[grid-template-rows,opacity,visibility] duration-200 ease-out motion-reduce:transition-[opacity,visibility]",
-                    dives.length > shownDives
-                      ? "visible grid-rows-[1fr] opacity-100"
-                      : "invisible grid-rows-[0fr] opacity-0"
-                  )}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setShownDives((was) => was + 50)}
-                    className="flex min-h-0 items-center gap-1.5 overflow-hidden px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none hover:bg-muted/60 active:bg-muted active:duration-0"
-                  >
-                    {/* "All" only when one tap shows them all. */}
-                    <span className="flex min-h-12 items-center gap-1.5">
-                      {dives.length - shownDives <= 50
-                        ? `All ${countText(dives.length)} dives`
-                        : "50 more"}
-                      <IconChevronDown aria-hidden className="size-4" />
-                    </span>
-                  </button>
-                </div>
-              )}
-            </Card>
+            <DivesCard dives={dives} kind={kind} log={log} parent={saved.name}>
+              {choosing && <ChooseDivesRow onClick={() => setSheet("dives")} />}
+            </DivesCard>
           </section>
         )}
 
@@ -652,6 +652,34 @@ export function EntityDetail({
           )}
         </section>
       </div>
+
+      {choosing && (
+        <DivePicker
+          open={sheet === "dives"}
+          onOpenChange={(open) => !open && setSheet(null)}
+          log={log}
+          kind={choosing}
+          entityId={id}
+          name={saved.name}
+          picked={opening}
+          action="Save"
+          onConfirm={(ticked, opened, deleteIfEmpty) =>
+            chooseDives(choosing, ticked, opened, deleteIfEmpty)
+          }
+          emptyConfirm={
+            canEmpty
+              ? {
+                  title: `Delete ${saved.name}?`,
+                  description:
+                    kind === "trip"
+                      ? "No dives are left in it. They stay in your log, in no trip."
+                      : `No dives are left with this ${label.one}.`,
+                  action: `Delete ${label.one}`,
+                }
+              : undefined
+          }
+        />
+      )}
 
       <Drawer
         open={sheet === "country"}
@@ -883,66 +911,4 @@ function shortDate(startTime: string) {
   return year === String(new Date().getFullYear())
     ? `${Number(startTime.slice(8, 10))} ${month}`
     : `${month} ${year}`
-}
-
-// A site's dives are told apart by date; anything else's by site.
-function DiveRow({
-  dive,
-  kind,
-  log,
-  parent,
-}: {
-  dive: Dive
-  kind: EntityKind
-  log: LogView
-  // The entity's name, which the dive's Back link says.
-  parent: string
-}) {
-  const site = log.sites.get(dive.siteId)?.name
-  const title = kind === "site" ? longDate(dive.startTime) : site
-  const parts =
-    kind === "site"
-      ? [
-          { icon: IconClockPlay, text: clockTime(dive.startTime) },
-          { icon: IconClock, text: `${minutes(dive.duration)} min` },
-        ]
-      : [
-          { icon: IconCalendar, text: longDate(dive.startTime) },
-          { icon: IconClock, text: `${minutes(dive.duration)} min` },
-        ]
-  return (
-    <Link
-      to="/dive/$diveId"
-      params={{ diveId: dive.id }}
-      state={{ pushed: true, parent }}
-      className="flex min-h-14 items-center gap-3 py-2.5 pr-3 pl-4 transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 active:bg-muted active:duration-0"
-    >
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="truncate text-[15px] font-medium">{title}</span>
-        {/* The date gives way before the duration does. */}
-        <span className="flex min-w-0 items-center gap-3 overflow-hidden text-[13px] whitespace-nowrap text-muted-foreground tabular-nums">
-          {parts.map(({ icon: Icon, text }) => (
-            <span
-              key={text}
-              className="inline-flex min-w-0 items-center gap-1 last:shrink-0"
-            >
-              <Icon aria-hidden className="size-[1.15em] shrink-0" />
-              <span className="truncate">{text}</span>
-            </span>
-          ))}
-        </span>
-      </span>
-      <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium tabular-nums">
-        <IconArrowBarToDown
-          aria-hidden
-          className="size-3.5 text-muted-foreground"
-        />
-        {depth(dive.maxDepth)} m
-      </span>
-      <IconChevronRight
-        aria-hidden
-        className="size-4.5 shrink-0 text-muted-foreground/60"
-      />
-    </Link>
-  )
 }
