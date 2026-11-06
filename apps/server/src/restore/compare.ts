@@ -9,6 +9,10 @@ const unreplayedMeta = new Set([
   "export_failed_at",
 ])
 
+// Import previews are scratch, written outside the journal, so a restore
+// may lose the one waiting, which is uploaded again.
+const unreplayedTables = new Set(["import_previews"])
+
 const quote = (name: string) => `"${name.replaceAll('"', '""')}"`
 
 // Rows in a fixed order, streamed, so no table is held in memory whole.
@@ -53,6 +57,7 @@ export function compare(restored: Db, live: Db): string[] {
     .pluck()
     .all() as string[]
   for (const table of tables) {
+    if (unreplayedTables.has(table)) continue
     const left = rows(restored, table)
     const right = rows(live, table)
     let counts = [0, 0]

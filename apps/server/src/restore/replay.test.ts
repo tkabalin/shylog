@@ -374,10 +374,13 @@ describe("replay", () => {
 })
 
 describe("compare", () => {
-  it("names the tables that differ and ignores the version", async () => {
+  it("names the tables that differ, ignoring the version and previews", async () => {
     const { db, app } = liveApp()
     const copy = copyOf(db)
     db.prepare("UPDATE meta SET value = 'other' WHERE key = 'version'").run()
+    db.prepare(
+      "INSERT INTO import_previews VALUES ('import-1', 'v', 'a', 'b', '{}', '')"
+    ).run()
     expect(compare(copy, db)).toEqual([])
     await send(app, "PUT", "/api/settings", { diverName: "Thomas" })
     expect(compare(copy, db)).toEqual([
