@@ -39,7 +39,7 @@ The Claude Design hi-fi wireframes in `docs/design/hifi/` are the source of trut
 - **Ids** are client-generated, start with a letter (e.g. `dive-<uuid>`), and are valid UDDF ids.
 - **Config**: nothing assumes a single instance. Logins, hostname, origin, data directory, and app name come from env (`SHYLOG_ALLOWED_LOGINS`, `TS_HOSTNAME`, `SHYLOG_ORIGIN`, `SHYLOG_DATA_DIR`, `SHYLOG_APP_NAME`). No hard-coded paths, ports, `container_name`, or named volumes.
 - **Security**: checks apply to `/api/*` only. The dev identity bypass must refuse to start in production.
-- **Data safety**: every write is one transaction (an import, one per chunk of 50 dives) and journalled in `ops`. Schema changes are numbered migrations preceded by a snapshot.
+- **Data safety**: every write is one transaction (an import, one per chunk of 50 dives) and journalled in `ops`, except import previews, which are scratch. Schema changes are numbered migrations preceded by a snapshot.
 
 ## UI conventions
 
