@@ -115,7 +115,7 @@ export function Field({
 
 // A bar down the left of a row holding a marked value, in place of an icon
 // on each label, which made the form busy. The card clips it to its corners.
-const sourceBar = "has-data-source:shadow-[inset_3px_0_0_var(--primary)]"
+export const sourceBar = "has-data-source:shadow-[inset_3px_0_0_var(--primary)]"
 
 export function Row({
   children,

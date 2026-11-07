@@ -227,3 +227,93 @@ describe("typing after answering a difference", () => {
     })
   })
 })
+
+// The gas as one compared value: the computer's reading on oxygen's row,
+// 210 for air.
+describe("the gas", () => {
+  function showGas(
+    gas: { nitrox: boolean; oxygen?: number },
+    rows: Omit<FieldMeta, "diveId">[]
+  ) {
+    const gasDive = testDive({
+      id: "dive-g",
+      ...gas,
+      computerModel: "Suunto D4i",
+    })
+    const gasLog = testLog({
+      dives: [gasDive],
+      meta: rows.map((row) => ({ ...row, diveId: "dive-g" })),
+    })
+    const onSave = vi.fn((values: FormValues) => {
+      void values
+      return Promise.resolve()
+    })
+    render(
+      <DiveForm
+        title="Edit dive"
+        log={gasLog}
+        dive={gasDive}
+        original={fromDive(gasDive, gasLog)}
+        initial={fromDive(gasDive, gasLog)}
+        onSave={onSave}
+        onCancel={vi.fn()}
+      />
+    )
+    return { onSave, gasDive, gasLog }
+  }
+  const handGas = (computerValue: number) => ({
+    field: "oxygen",
+    source: "hand" as const,
+    computerValue,
+    dismissed: false,
+  })
+
+  it("offers the computer's air against a hand nitrox, and ✓ turns Nitrox off", async () => {
+    const { onSave, gasDive, gasLog } = showGas({ nitrox: true, oxygen: 320 }, [
+      handGas(210),
+    ])
+    expect(group("gas")!.textContent).toContain("D4i: Air")
+    click(button("Use D4i value", group("gas")!))
+    // Nitrox off hides the oxygen box.
+    expect(document.querySelector("#field-oxygen")).toBeNull()
+    const values = await save(onSave)
+    expect(values.adopt).toEqual(["oxygen"])
+    // Adopted, not typed: neither Nitrox nor the oxygen goes in `fields`.
+    expect(changedFields(fromDive(gasDive, gasLog), values)).toEqual({})
+  })
+
+  it("compares nitrox mixes at the computer's whole per cent", () => {
+    const flagged = testDive({ id: "dive-g", nitrox: true, oxygen: 320 })
+    const rows = (value: number) =>
+      new Map([["oxygen", { ...handGas(value), diveId: "dive-g" }]])
+    expect(differences(flagged, rows(330))).toEqual(["oxygen"])
+    expect(differences({ ...flagged, oxygen: 324 }, rows(320))).toEqual([])
+  })
+
+  it("marks a gas from the computer and resets both its controls", () => {
+    showGas({ nitrox: true, oxygen: 320 }, [
+      {
+        field: "nitrox",
+        source: "computer",
+        computerValue: null,
+        dismissed: false,
+      },
+      {
+        field: "oxygen",
+        source: "computer",
+        computerValue: null,
+        dismissed: false,
+      },
+    ])
+    const block = () =>
+      document.querySelector("#field-nitrox")!.closest("div.flex-col")!
+    expect(block().querySelector('[data-source="computer"]')).not.toBeNull()
+    click(document.querySelector<HTMLButtonElement>("#field-nitrox")!)
+    expect(block().querySelector('[data-source="computer"]')).toBeNull()
+    click(button("Reset to the D4i value", block()))
+    expect(
+      document.querySelector<HTMLInputElement>("#field-oxygen")!.value
+    ).toBe("32")
+    expect(block().querySelector('[data-source="computer"]')).not.toBeNull()
+  })
+})
