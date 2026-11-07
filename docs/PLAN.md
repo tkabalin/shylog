@@ -961,11 +961,29 @@ Deferred, or to watch:
 
 **Not in this milestone**: UI (milestone 17).
 
-- [ ] Apply with re-check, chunks, idempotency
-- [ ] `field_meta`, fingerprints, `import_raw`
-- [ ] CNS and OTU stored from imported samples
-- [ ] Pass-through in the export
-- [ ] Tests listed above
+- [x] Apply with re-check, chunks, idempotency
+- [x] `field_meta`, fingerprints, `import_raw`
+- [x] CNS and OTU stored from imported samples
+- [x] Pass-through in the export
+- [x] Tests listed above
+
+**Notes for the next session** (written 7 November 2026, branch `feat/import-apply`)
+
+Decisions taken while building:
+
+- An added computer dive with no site goes to one shared "Unknown site" in South Africa (D40, the owner's choice), with no `field_meta` row so the PADI script and the form replace it. A site another program's file names in no ISO country is made in South Africa the same way.
+- The round trip is whole (D41, the owner's choice): `<shylog>` carries the dive professionals, the dive centre's region, the site's water type where its body of water doesn't imply it, and a hand surface interval. The reader knows Shylog's own file by `<generator><name>` and takes everything in it: standard elements as computer values, `<shylog>` as hand values (so Ignore this dive comes back), and no temperatures from the samples. The fifth round-trip property checks every v1 field; person names come back with their words joined by one space, as UDDF's first and last name hold them.
+- Pass-through (D42, the owner's choice): `import_raw` holds `<fragment>` with the dive and the mixes it links to. The writer re-parses it on every export and writes the standard elements Shylog doesn't model in UDDF's order. Mix links are remapped (a helium mix as `mix-<o2>-<he>`), other links are dropped, and the gas switch at 0 s takes the dive's own mix. A security review found that a crafted file could break out of a passed element (a processing instruction or CDATA turned into markup by a global namespace replace), so comments, instructions and CDATA are scrubbed, characters XML can't hold are dropped, and the namespace comes off the root tag only.
+- Apply (D43): the stored preview keeps a digest of every hand dive it read, a `revision` bumped by each re-proposal (the request must echo it), the dives a failed apply already applied, and the ids it last asked about. Changed hand dives re-propose their days and return `changed`; a resent stale request gets `changed` again. Chunks of 50 are journalled as `importChunk` under op id `<import id>:<n>` with everything a replay needs. They run back to back: yielding between them was tried in review and let a resend or a clock change race the import, which a lock across five routes would have had to stop, for an import that takes well under a second. After a failed chunk the stored preview counts the applied dives as imported and unpairs any proposed pair whose hand dive went elsewhere. A preview stored before this change gets defaults and asks again on its first apply. The finished summary is `meta.last_import`, which a late retry gets back. `POST /api/import/:id/apply` answers 200 with `applied` or `changed`, and 500 with `failed`, the error and what was applied.
+- Fingerprint reasons are `paired`, `added` (included left-out dives too), `freedive` and `short`. A filled computer value that breaks a rule with a hand one (an average depth below a shallower hand max depth) is left empty, not kept.
+
+Deferred, or to watch:
+
+- **Open for the owner**: a paired dive logged with the default Nitrox no keeps it, and the computer's EAN32 is dropped without a flag, as gas isn't a compared field; CNS and OTU are then worked out on air. Comparing the gas would change the spec and the form (milestone 17 or its own issue).
+- Milestone 17's review must send `revision`, handle `changed` (re-fetch the pending preview) and `failed` (retry), show the Unknown site, and name the unsupported gas as air.
+- Each imported dive costs about 1.5 ms of export time for its fragment (190 dives: 353 ms, against 76 ms without), on top of the re-parse noted at about 1,000 dives. Each `importChunk` entry carries the samples and the fragment, so the journal grows by roughly the export's size per import.
+- The seed still stores only the fields it did, rather than going through apply.
+- Carried over from milestone 15: a dive with depth or duration 0 still refuses the whole file; Subsurface links no dive to its computer, so a two-computer export gives a null model. From milestone 13 and earlier: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 22); the viewer and reorder gestures, the photo picker and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days.
 
 ## Milestone 17: Import, screens
 
