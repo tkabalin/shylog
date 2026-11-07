@@ -115,7 +115,9 @@ export function SheetBar({
       </>
     )
   return (
-    <div className="grid h-11 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-2">
+    // An iOS sheet's bar sits clear of the sheet's top edge; flush, with 44
+    // px for the row alone, it read as cramped next to Apple's.
+    <div className="grid h-14 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-2 pt-2">
       <span className="justify-self-start">{start}</span>
       <DrawerTitle>{title}</DrawerTitle>
       <span className="justify-self-end">{end}</span>
