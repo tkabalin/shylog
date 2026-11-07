@@ -245,6 +245,46 @@
   }
 }
 
+/* A sheet's drag rewrites these on its popup every frame. Inherited, they
+   restyled every row inside it per move (1,100 in the dive picker); only
+   the popup and backdrop read them, so nothing below needs them. */
+@property --drawer-swipe-movement-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --drawer-swipe-movement-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --drawer-swipe-progress {
+  syntax: "*";
+  inherits: false;
+}
+@property --translate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --translate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --stack-progress {
+  syntax: "*";
+  inherits: false;
+}
+@property --stack-peek-offset {
+  syntax: "*";
+  inherits: false;
+}
+@property --stack-scale {
+  syntax: "*";
+  inherits: false;
+}
+@property --stack-shrink {
+  syntax: "*";
+  inherits: false;
+}
+
 .dark {
   color-scheme: dark;
   /* The preset's cyan-800 is unreadable as text on a dark background. */
