@@ -74,8 +74,9 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 ## Import
 
 - Name the computer by the model the export gives, not a hard-coded "D4i".
-- The review's bar has Discard on the right, which the boards leave empty. A hand-logged dive under Not paired opens the pairing screen turned round, with that day's computer dives and Leave unpaired.
-- `ImportReviewHifi`'s Freedives row is a Left out row covering dives under five minutes too, each row saying "Freedive" or "Under 5 min". Its "From earlier imports" row reads Already imported, with no split, as the preview counts them together.
+- On a phone, the upload's Choose file sits in a bar pinned above the tab bar, in thumb reach; `ImportHifi` puts it in the card at the top of the screen. With a mouse it stays in the card.
+- The review's bar has Discard on the right, which the boards leave empty. A hand-logged dive under Your dives with no match opens the pairing screen turned round, with that day's computer dives and Leave unpaired.
+- `ImportReviewHifi`'s Freedives row is a Left out row covering dives under five minutes too, called false starts, each row saying "Freedive" or "Under 5 min". Its "From earlier imports" row reads Already imported, with no split, as the preview counts them together.
 - A dive the review will store on air, as v1 can't hold its gas, says so on its row and on its pairing screen.
 - The Compare table also shows the gas.
 

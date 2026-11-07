@@ -111,22 +111,17 @@ a.rmain{text-decoration:none;color:inherit}
 
 <main class="scr" style="flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; padding: 8px 16px 32px">
 
-<sc-if value="{{hasUn}}" hint-placeholder-val="{{false}}">
-<section aria-labelledby="r-un">
-<h2 id="r-un" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 16l-4 4 M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z M3 21l2.5 -2.5 M18.5 5.5l2.5 -2.5 M10 11l-2 2 M13 14l-2 2 M16 16l4 4"></path></svg>Not paired</h2>
 <div class="card">
-<sc-for list="{{un}}" as="x" hint-placeholder-count="1">
-<a href="ChangePairingHifi.dc.html" class="rmain {{x.cls}}" aria-label="{{x.aria}}">
-<span class="rt"><span class="rn">{{x.name}}</span><span class="rm tn">{{x.meta}}</span><span class="rm tn" style="color: var(--warn)">{{x.note}}</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
+<a href="PairedHifi.dc.html" class="xrow" style="text-decoration: none" aria-label="{{pairedAria}}">
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z M3 21l2.5 -2.5 M18.5 5.5l2.5 -2.5 M10 11l-2 2 M13 14l-2 2"></path></svg>Paired</span><span class="tn" style="font-size: 13px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><sc-if value="{{hasDiff}}" hint-placeholder-val="{{true}}"><span aria-hidden="true" style="display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 3px; background: var(--warn); vertical-align: 0.1em"></span></sc-if>{{pairedSub}}</span></span>
+<span class="tn" style="font-size: 15px; color: var(--muted-foreground)">{{pairedCount}}</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
 </a>
-</sc-for>
 </div>
-</section>
-</sc-if>
 
 <sc-if value="{{hasNew}}" hint-placeholder-val="{{true}}">
 <section aria-labelledby="r-new">
-<h2 id="r-new" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4 M5 13v-8a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-5.5m-9.5 -2h7m-3 -3l3 3l-3 3"></path></svg>New dives</h2>
+<h2 id="r-new" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9a3 3 0 0 1 3 -3h6a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-6a3 3 0 0 1 -3 -3v-6 M9 18v3h6v-3 M9 6v-3h6v3"></path></svg>New from your D4i</h2>
 <div class="card">
 <sc-for list="{{nw}}" as="x" hint-placeholder-count="2">
 <div class="nrow {{x.cls}}">
@@ -140,16 +135,25 @@ a.rmain{text-decoration:none;color:inherit}
 </section>
 </sc-if>
 
+<sc-if value="{{hasUn}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="r-un">
+<h2 id="r-un" class="sec"><svg class="xi xi2" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18 M13 8l2 0 M13 12l2 0"></path></svg>Your dives with no match</h2>
+<div class="card">
+<sc-for list="{{un}}" as="x" hint-placeholder-count="1">
+<a href="ChangePairingHifi.dc.html" class="rmain {{x.cls}}" aria-label="{{x.aria}}">
+<span class="rt"><span class="rn">{{x.name}}</span><span class="rm tn">{{x.meta}}</span><span class="rm tn">{{x.note}}</span></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
+</a>
+</sc-for>
+</div>
+<p style="margin: 8px 4px 0; font-size: 13px; line-height: 1.5; color: var(--muted-foreground); text-wrap: pretty">These stay in your log as you logged them. Tap one to pair it.</p>
+</section>
+</sc-if>
+
 <section aria-labelledby="r-also">
 <h2 id="r-also" class="sec">Also in this file</h2>
 <div class="card">
-<a href="PairedHifi.dc.html" class="xrow" style="text-decoration: none" aria-label="{{pairedAria}}">
-<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z M3 21l2.5 -2.5 M18.5 5.5l2.5 -2.5 M10 11l-2 2 M13 14l-2 2"></path></svg>Paired</span><span class="tn" style="font-size: 13px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><sc-if value="{{hasDiff}}" hint-placeholder-val="{{true}}"><span aria-hidden="true" style="display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 3px; background: var(--warn); vertical-align: 0.1em"></span></sc-if>{{pairedSub}}</span></span>
-<span class="tn" style="font-size: 15px; color: var(--muted-foreground)">{{pairedCount}}</span>
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; color: var(--faint)"><path d="M9 6l6 6l-6 6"></path></svg>
-</a>
-<div class="xrow hl" style="cursor: default">
-<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z M9 15l2 2l4 -4"></path></svg>From earlier imports</span><span class="tn" style="font-size: 13px; color: var(--muted-foreground)">14 imported · 180 freedives left out</span></span>
+<div class="xrow" style="cursor: default">
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span><svg class="xi" width="1.15em" height="1.15em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5v14l12 -7z M20 5l0 14"></path></svg>From earlier imports</span><span class="tn" style="font-size: 13px; color: var(--muted-foreground)">14 imported · 180 freedives left out</span></span>
 <span class="tn" style="font-size: 15px; color: var(--muted-foreground)">194</span>
 </div>
 <sc-if value="{{hasFree}}" hint-placeholder-val="{{true}}">
@@ -332,7 +336,7 @@ pairedSub: diffCount ? diffCount + (diffCount === 1 ? ' differs' : ' differ') + 
 pairedAria: 'Paired, ' + paired + ' dives. See all',
 showPaired: pOpen, pOpen: pOpen ? 'true' : 'false', pRot: pOpen ? '180deg' : '0deg',
 togglePaired: function () { self.setState({ pOpen: !pOpen }); },
-summary: paired + ' paired · ' + (added + included) + ' new' + (skipped ? ' · ' + skipped + ' skipped' : ''),
+summary: paired + ' paired · ' + (added + included) + ' new' + (skipped ? ' · ' + skipped + ' skipped' : '') + (un.length ? ' · ' + un.length + ' unchanged' : ''),
 cta: 'Import ' + total + ' dives',
 showDone: !!s.doneOpen, doneOpen: s.doneOpen ? 'true' : 'false', doneRot: s.doneOpen ? '180deg' : '0deg',
 toggleDone: function () { self.setState({ doneOpen: !s.doneOpen }); },

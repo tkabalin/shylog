@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ImportRouteImport } from './routes/import'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as DevCardsRouteImport } from './routes/dev.cards'
@@ -18,24 +17,25 @@ import { Route as DevProfileRouteImport } from './routes/dev.profile'
 import { Route as DevUiRouteImport } from './routes/dev.ui'
 import { Route as DiveDiveIdRouteImport } from './routes/dive/$diveId'
 import { Route as DiveNewRouteImport } from './routes/dive/new'
+import { Route as ImportIndexRouteImport } from './routes/import/index'
+import { Route as ImportDoneRouteImport } from './routes/import/done'
+import { Route as ImportReviewRouteImport } from './routes/import/review'
 import { Route as YouIndexRouteImport } from './routes/you/index'
 import { Route as YouCertificationsRouteRouteImport } from './routes/you/certifications/route'
 import { Route as YouDeletedRouteImport } from './routes/you/deleted'
 import { Route as DiveDiveIdProfileRouteImport } from './routes/dive/$diveId.profile'
 import { Route as DiveDiveIdEditRouteImport } from './routes/dive/$diveId_.edit'
+import { Route as ImportReviewPairedRouteImport } from './routes/import/review_.paired'
 import { Route as YouCertificationsCardIdRouteImport } from './routes/you/certifications/$cardId'
 import { Route as YouEntitiesIndexRouteImport } from './routes/you/entities/index'
+import { Route as ImportReviewComputerRefRouteImport } from './routes/import/review_.computer.$ref'
+import { Route as ImportReviewDiveDiveIdRouteImport } from './routes/import/review_.dive.$diveId'
 import { Route as YouEntitiesKindIdRouteImport } from './routes/you/entities/$kind.$id'
 import { Route as YouEntitiesKindNewRouteImport } from './routes/you/entities/$kind.new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ImportRoute = ImportRouteImport.update({
-  id: '/import',
-  path: '/import',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -73,6 +73,21 @@ const DiveNewRoute = DiveNewRouteImport.update({
   path: '/dive/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImportIndexRoute = ImportIndexRouteImport.update({
+  id: '/import/',
+  path: '/import/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportDoneRoute = ImportDoneRouteImport.update({
+  id: '/import/done',
+  path: '/import/done',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportReviewRoute = ImportReviewRouteImport.update({
+  id: '/import/review',
+  path: '/import/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const YouIndexRoute = YouIndexRouteImport.update({
   id: '/you/',
   path: '/you/',
@@ -98,6 +113,11 @@ const DiveDiveIdEditRoute = DiveDiveIdEditRouteImport.update({
   path: '/dive/$diveId/edit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImportReviewPairedRoute = ImportReviewPairedRouteImport.update({
+  id: '/import/review_/paired',
+  path: '/import/review/paired',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const YouCertificationsCardIdRoute = YouCertificationsCardIdRouteImport.update({
   id: '/$cardId',
   path: '/$cardId',
@@ -106,6 +126,16 @@ const YouCertificationsCardIdRoute = YouCertificationsCardIdRouteImport.update({
 const YouEntitiesIndexRoute = YouEntitiesIndexRouteImport.update({
   id: '/you/entities/',
   path: '/you/entities/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportReviewComputerRefRoute = ImportReviewComputerRefRouteImport.update({
+  id: '/import/review_/computer/$ref',
+  path: '/import/review/computer/$ref',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportReviewDiveDiveIdRoute = ImportReviewDiveDiveIdRouteImport.update({
+  id: '/import/review_/dive/$diveId',
+  path: '/import/review/dive/$diveId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const YouEntitiesKindIdRoute = YouEntitiesKindIdRouteImport.update({
@@ -121,7 +151,6 @@ const YouEntitiesKindNewRoute = YouEntitiesKindNewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/you/certifications': typeof YouCertificationsRouteRouteWithChildren
@@ -130,18 +159,23 @@ export interface FileRoutesByFullPath {
   '/dev/ui': typeof DevUiRoute
   '/dive/$diveId': typeof DiveDiveIdRouteWithChildren
   '/dive/new': typeof DiveNewRoute
+  '/import/done': typeof ImportDoneRoute
+  '/import/review': typeof ImportReviewRoute
   '/you/deleted': typeof YouDeletedRoute
+  '/import/': typeof ImportIndexRoute
   '/you/': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
   '/dive/$diveId/edit': typeof DiveDiveIdEditRoute
+  '/import/review/paired': typeof ImportReviewPairedRoute
   '/you/certifications/$cardId': typeof YouCertificationsCardIdRoute
   '/you/entities/': typeof YouEntitiesIndexRoute
+  '/import/review/computer/$ref': typeof ImportReviewComputerRefRoute
+  '/import/review/dive/$diveId': typeof ImportReviewDiveDiveIdRoute
   '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
   '/you/entities/$kind/new': typeof YouEntitiesKindNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/you/certifications': typeof YouCertificationsRouteRouteWithChildren
@@ -150,19 +184,24 @@ export interface FileRoutesByTo {
   '/dev/ui': typeof DevUiRoute
   '/dive/$diveId': typeof DiveDiveIdRouteWithChildren
   '/dive/new': typeof DiveNewRoute
+  '/import/done': typeof ImportDoneRoute
+  '/import/review': typeof ImportReviewRoute
   '/you/deleted': typeof YouDeletedRoute
+  '/import': typeof ImportIndexRoute
   '/you': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
   '/dive/$diveId/edit': typeof DiveDiveIdEditRoute
+  '/import/review/paired': typeof ImportReviewPairedRoute
   '/you/certifications/$cardId': typeof YouCertificationsCardIdRoute
   '/you/entities': typeof YouEntitiesIndexRoute
+  '/import/review/computer/$ref': typeof ImportReviewComputerRefRoute
+  '/import/review/dive/$diveId': typeof ImportReviewDiveDiveIdRoute
   '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
   '/you/entities/$kind/new': typeof YouEntitiesKindNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/import': typeof ImportRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/you/certifications': typeof YouCertificationsRouteRouteWithChildren
@@ -171,12 +210,18 @@ export interface FileRoutesById {
   '/dev/ui': typeof DevUiRoute
   '/dive/$diveId': typeof DiveDiveIdRouteWithChildren
   '/dive/new': typeof DiveNewRoute
+  '/import/done': typeof ImportDoneRoute
+  '/import/review': typeof ImportReviewRoute
   '/you/deleted': typeof YouDeletedRoute
+  '/import/': typeof ImportIndexRoute
   '/you/': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
   '/dive/$diveId_/edit': typeof DiveDiveIdEditRoute
+  '/import/review_/paired': typeof ImportReviewPairedRoute
   '/you/certifications/$cardId': typeof YouCertificationsCardIdRoute
   '/you/entities/': typeof YouEntitiesIndexRoute
+  '/import/review_/computer/$ref': typeof ImportReviewComputerRefRoute
+  '/import/review_/dive/$diveId': typeof ImportReviewDiveDiveIdRoute
   '/you/entities/$kind/$id': typeof YouEntitiesKindIdRoute
   '/you/entities/$kind/new': typeof YouEntitiesKindNewRoute
 }
@@ -184,7 +229,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/import'
     | '/settings'
     | '/stats'
     | '/you/certifications'
@@ -193,18 +237,23 @@ export interface FileRouteTypes {
     | '/dev/ui'
     | '/dive/$diveId'
     | '/dive/new'
+    | '/import/done'
+    | '/import/review'
     | '/you/deleted'
+    | '/import/'
     | '/you/'
     | '/dive/$diveId/profile'
     | '/dive/$diveId/edit'
+    | '/import/review/paired'
     | '/you/certifications/$cardId'
     | '/you/entities/'
+    | '/import/review/computer/$ref'
+    | '/import/review/dive/$diveId'
     | '/you/entities/$kind/$id'
     | '/you/entities/$kind/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/import'
     | '/settings'
     | '/stats'
     | '/you/certifications'
@@ -213,18 +262,23 @@ export interface FileRouteTypes {
     | '/dev/ui'
     | '/dive/$diveId'
     | '/dive/new'
+    | '/import/done'
+    | '/import/review'
     | '/you/deleted'
+    | '/import'
     | '/you'
     | '/dive/$diveId/profile'
     | '/dive/$diveId/edit'
+    | '/import/review/paired'
     | '/you/certifications/$cardId'
     | '/you/entities'
+    | '/import/review/computer/$ref'
+    | '/import/review/dive/$diveId'
     | '/you/entities/$kind/$id'
     | '/you/entities/$kind/new'
   id:
     | '__root__'
     | '/'
-    | '/import'
     | '/settings'
     | '/stats'
     | '/you/certifications'
@@ -233,19 +287,24 @@ export interface FileRouteTypes {
     | '/dev/ui'
     | '/dive/$diveId'
     | '/dive/new'
+    | '/import/done'
+    | '/import/review'
     | '/you/deleted'
+    | '/import/'
     | '/you/'
     | '/dive/$diveId/profile'
     | '/dive/$diveId_/edit'
+    | '/import/review_/paired'
     | '/you/certifications/$cardId'
     | '/you/entities/'
+    | '/import/review_/computer/$ref'
+    | '/import/review_/dive/$diveId'
     | '/you/entities/$kind/$id'
     | '/you/entities/$kind/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ImportRoute: typeof ImportRoute
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
   YouCertificationsRouteRoute: typeof YouCertificationsRouteRouteWithChildren
@@ -254,10 +313,16 @@ export interface RootRouteChildren {
   DevUiRoute: typeof DevUiRoute
   DiveDiveIdRoute: typeof DiveDiveIdRouteWithChildren
   DiveNewRoute: typeof DiveNewRoute
+  ImportDoneRoute: typeof ImportDoneRoute
+  ImportReviewRoute: typeof ImportReviewRoute
   YouDeletedRoute: typeof YouDeletedRoute
+  ImportIndexRoute: typeof ImportIndexRoute
   YouIndexRoute: typeof YouIndexRoute
   DiveDiveIdEditRoute: typeof DiveDiveIdEditRoute
+  ImportReviewPairedRoute: typeof ImportReviewPairedRoute
   YouEntitiesIndexRoute: typeof YouEntitiesIndexRoute
+  ImportReviewComputerRefRoute: typeof ImportReviewComputerRefRoute
+  ImportReviewDiveDiveIdRoute: typeof ImportReviewDiveDiveIdRoute
   YouEntitiesKindIdRoute: typeof YouEntitiesKindIdRoute
   YouEntitiesKindNewRoute: typeof YouEntitiesKindNewRoute
 }
@@ -269,13 +334,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/import': {
-      id: '/import'
-      path: '/import'
-      fullPath: '/import'
-      preLoaderRoute: typeof ImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -327,6 +385,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DiveNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/import/': {
+      id: '/import/'
+      path: '/import'
+      fullPath: '/import/'
+      preLoaderRoute: typeof ImportIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import/done': {
+      id: '/import/done'
+      path: '/import/done'
+      fullPath: '/import/done'
+      preLoaderRoute: typeof ImportDoneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import/review': {
+      id: '/import/review'
+      path: '/import/review'
+      fullPath: '/import/review'
+      preLoaderRoute: typeof ImportReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/you/': {
       id: '/you/'
       path: '/you'
@@ -362,6 +441,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DiveDiveIdEditRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/import/review_/paired': {
+      id: '/import/review_/paired'
+      path: '/import/review/paired'
+      fullPath: '/import/review/paired'
+      preLoaderRoute: typeof ImportReviewPairedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/you/certifications/$cardId': {
       id: '/you/certifications/$cardId'
       path: '/$cardId'
@@ -374,6 +460,20 @@ declare module '@tanstack/react-router' {
       path: '/you/entities'
       fullPath: '/you/entities/'
       preLoaderRoute: typeof YouEntitiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import/review_/computer/$ref': {
+      id: '/import/review_/computer/$ref'
+      path: '/import/review/computer/$ref'
+      fullPath: '/import/review/computer/$ref'
+      preLoaderRoute: typeof ImportReviewComputerRefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import/review_/dive/$diveId': {
+      id: '/import/review_/dive/$diveId'
+      path: '/import/review/dive/$diveId'
+      fullPath: '/import/review/dive/$diveId'
+      preLoaderRoute: typeof ImportReviewDiveDiveIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/you/entities/$kind/$id': {
@@ -421,7 +521,6 @@ const DiveDiveIdRouteWithChildren = DiveDiveIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ImportRoute: ImportRoute,
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
   YouCertificationsRouteRoute: YouCertificationsRouteRouteWithChildren,
@@ -430,10 +529,16 @@ const rootRouteChildren: RootRouteChildren = {
   DevUiRoute: DevUiRoute,
   DiveDiveIdRoute: DiveDiveIdRouteWithChildren,
   DiveNewRoute: DiveNewRoute,
+  ImportDoneRoute: ImportDoneRoute,
+  ImportReviewRoute: ImportReviewRoute,
   YouDeletedRoute: YouDeletedRoute,
+  ImportIndexRoute: ImportIndexRoute,
   YouIndexRoute: YouIndexRoute,
   DiveDiveIdEditRoute: DiveDiveIdEditRoute,
+  ImportReviewPairedRoute: ImportReviewPairedRoute,
   YouEntitiesIndexRoute: YouEntitiesIndexRoute,
+  ImportReviewComputerRefRoute: ImportReviewComputerRefRoute,
+  ImportReviewDiveDiveIdRoute: ImportReviewDiveDiveIdRoute,
   YouEntitiesKindIdRoute: YouEntitiesKindIdRoute,
   YouEntitiesKindNewRoute: YouEntitiesKindNewRoute,
 }

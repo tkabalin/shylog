@@ -199,7 +199,7 @@ var pr = [[0,0],[1,4],[2,14],[3.5,22],[5,30],[7,32.4],[9,31.2],[12,29.7],[14,27.
 var line = pr.map(function (q, i) { return (i ? 'L' : 'M') + X(q[0]) + ' ' + Y(q[1]); }).join(' ');
 var area = line + ' L' + X(44) + ' 2 L0 2 Z';
 var tail = 'M' + X(44) + ' 2 L' + X(46) + ' 2';
-var OI = { tm: "M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z", sm: "M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z", 'new': "M14 3v4a1 1 0 0 0 1 1h4 M5 13v-8a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-5.5m-9.5 -2h7m-3 -3l3 3l-3 3", skip: "M4 5v14l12 -7z M20 5l0 14" };
+var OI = { tm: "M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z", sm: "M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0 M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z", 'new': "M14 3v4a1 1 0 0 0 1 1h4 M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2 M12 11l0 6 M9 14l6 0", skip: "M4 5v14l12 -7z M20 5l0 14" };
 var mk = function (id, name, meta, note, current, i) { var on = ch === id; return { ic: OI[id], icc: '', name: name, meta: meta, note: note, hasNote: !!note && on, current: current, on: on ? 'true' : 'false', dot: on ? '1' : '0', pick: pick(id), cls: i ? 'hl' : '' }; };
 var logged = [mk('tm', 'Two Mile Reef', '09:12 · 32.7 m · 45 min', '', true, 0), mk('sm', 'Seven Mile Reef', '12:38 · 21.4 m · 52 min', 'Now paired with the 12:40 D4i dive, which will be left unpaired', false, 1)];
 var alts = [mk('new', 'Add as a new dive', 'Uses the D4i’s time, depth and profile', '', false, 0), mk('skip', 'Don’t import', 'Leave this D4i dive out', '', false, 1)];
