@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { importOffsetRequest, importPreviewSchema } from "./import.ts"
+import {
+  importApplyRequest,
+  importOffsetRequest,
+  importPreviewSchema,
+} from "./import.ts"
 
 const computerDive = {
   ref: "id119",
@@ -60,6 +64,36 @@ describe("importOffsetRequest", () => {
   it("refuses a day that isn't a date", () => {
     expect(
       importOffsetRequest.safeParse({ date: "22 Jul", offset: 0 }).success
+    ).toBe(false)
+  })
+})
+
+describe("importApplyRequest", () => {
+  const request = {
+    pairs: [{ computerDive: "id119", diveId: "dive-1" }],
+    add: ["id120"],
+    include: ["id121"],
+  }
+
+  it("takes pairs, dives to add and left-out dives to include", () => {
+    expect(importApplyRequest.parse(request)).toEqual(request)
+  })
+
+  it("refuses a computer dive named twice", () => {
+    expect(
+      importApplyRequest.safeParse({ ...request, include: ["id120"] }).success
+    ).toBe(false)
+  })
+
+  it("refuses a logged dive paired twice", () => {
+    expect(
+      importApplyRequest.safeParse({
+        ...request,
+        pairs: [
+          { computerDive: "id119", diveId: "dive-1" },
+          { computerDive: "id122", diveId: "dive-1" },
+        ],
+      }).success
     ).toBe(false)
   })
 })
