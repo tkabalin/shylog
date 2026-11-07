@@ -1,6 +1,8 @@
 import {
   comparedFields,
+  computerAir,
   diveFieldsSchema,
+  gasDiffers,
   litresToMillilitres,
   minutesToSeconds,
   parseDecimal,
@@ -20,6 +22,7 @@ import {
   type Workload,
 } from "@shylog/core"
 
+import { gasDetail } from "@/format/figures"
 import type { Dive, FieldMeta, Settings } from "@/data/db"
 import type { DraftFields, NewEntity } from "@/data/drafts"
 import type { LogView } from "@/data/log"
@@ -460,6 +463,8 @@ export function changedFields(before: FormValues, after: FormValues) {
   const was = toFields(before).fields as Record<string, unknown>
   const now = toFields(after).fields as Record<string, unknown>
   const answered = new Set<string>([...after.adopt, ...after.dismiss])
+  // The gas answered spans the Nitrox switch too.
+  if (answered.has("oxygen")) answered.add("nitrox")
   const patch: Record<string, unknown> = {}
   for (const key of new Set([...Object.keys(was), ...Object.keys(now)])) {
     if (answered.has(key) || same(was[key], now[key])) continue
@@ -472,6 +477,9 @@ export function changedFields(before: FormValues, after: FormValues) {
 // value can be typed back in by ✓ or Reset.
 export function comparedText(field: ComparedField, value: string | number) {
   if (field === "startTime") return String(value).slice(11, 16)
+  // The gas's oxygen box; the computer's air leaves it empty (see gasValues).
+  if (field === "oxygen")
+    return Number(value) === computerAir ? "" : shown(Number(value) / 10)
   if (field === "duration") return String(Math.round(Number(value) / 60))
   return shown(Number(value))
 }
@@ -493,11 +501,26 @@ export function differences(
       // reads the same, so it isn't offered as a difference.
       (field === "startTime"
         ? String(row.computerValue).slice(0, 16) !== dive.startTime.slice(0, 16)
-        : comparedText(field, row.computerValue) !==
-          comparedText(field, dive[field] as number))
+        : field === "oxygen"
+          ? gasDiffers(
+              { nitrox: dive.nitrox, oxygen: dive.oxygen ?? undefined },
+              Number(row.computerValue)
+            )
+          : comparedText(field, row.computerValue) !==
+            comparedText(field, dive[field] as number))
     )
   })
 }
+
+// The gas as the form holds it, from the computer's value for the gas.
+export const gasValues = (value: string | number) => ({
+  nitrox: Number(value) !== computerAir,
+  oxygen: comparedText("oxygen", value),
+})
+
+// The computer's gas as the form's difference line names it.
+export const gasText = (value: string | number) =>
+  gasDetail(Number(value) === computerAir ? null : Number(value))
 
 // "Suunto D4i" → "D4i": screens name the computer by its model (see For a
 // matched dive), or "dive computer" when the export gives none.
