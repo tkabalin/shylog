@@ -77,8 +77,9 @@ test("narrows the header figures to a year", async ({ page }) => {
   await page.getByRole("combobox", { name: "Year, All years" }).click()
   await page.getByRole("option", { name: "2026" }).click()
   await expect(page).toHaveURL(/year=2026/)
+  // The cards follow the pills a moment later, as a deferred render.
+  await expect(cards(page)).not.toHaveCount(42)
   const count = await cards(page).count()
-  expect(count).toBeLessThan(42)
   await expect(header(page)).toContainText(`${count}dives logged`)
   await expect(page.getByRole("region", { name: /2025$/ })).toHaveCount(0)
 })
