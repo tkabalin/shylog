@@ -234,14 +234,19 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
           regionId: "region-sodwana",
           bodyOfWater: "oceanSea",
         }),
+        // Fresh water with no body of water, which UDDF can't say.
         entity("site", "site-quarry", {
           name: "Miracle Waters",
           countryCode: "ZA",
+          waterType: "fresh",
         }),
         entity("person", "person-sam", { name: "Sam Naidoo" }),
         entity("person", "person-lee", { name: "Lee" }),
         entity("trip", "trip-sodwana", { name: "Sodwana & friends" }),
-        entity("diveCentre", "centre-coral", { name: "Coral Divers" }),
+        entity("diveCentre", "centre-coral", {
+          name: "Coral Divers",
+          regionId: "region-sodwana",
+        }),
         dive("dive-a", {
           startTime: "2026-07-20T08:10:00",
           nitrox: true,
@@ -291,6 +296,7 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
           startTime: "2026-07-21T08:00:00",
           siteId: "site-quarry",
           ignored: true,
+          surfaceInterval: 5400,
         }),
       ],
       [dive("dive-gone", { startTime: "2026-07-21T10:00:00" })],
@@ -371,10 +377,13 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
       ["trainingCourse", "Deep"],
       ["tag", "drift"],
       ["tag", "wreck"],
+      ["professional", "person-lee"],
       ["tripId", "trip-sodwana"],
       ["tripName", "Sodwana & friends"],
       ["diveCentreId", "centre-coral"],
       ["diveCentreName", "Coral Divers"],
+      ["diveCentreRegion", "Sodwana"],
+      ["diveCentreRegionCountry", "ZA"],
       ["surge", "moderate"],
       ["surface", "calm"],
       ["weather", "cloudy"],
@@ -382,7 +391,15 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
       ["visibilityRating", "high"],
       ["gearDetails", "5 mm suit"],
     ])
-    expect(own(byId(root, "dive", "dive-c"), "ignored")).toEqual(["true"])
+    const c = byId(root, "dive", "dive-c")
+    expect(own(c, "ignored")).toEqual(["true"])
+    expect(own(c, "siteWaterType")).toEqual(["fresh"])
+    expect(own(c, "surfaceIntervalOverride")).toEqual(["true"])
+    // Only what differs from the body of water's default is written.
+    expect(own(byId(root, "dive", "dive-b"), "siteWaterType")).toEqual([])
+    expect(
+      own(byId(root, "dive", "dive-b"), "surfaceIntervalOverride")
+    ).toEqual([])
   })
 
   it("writes the standard fields in UDDF's units and strings", () => {
