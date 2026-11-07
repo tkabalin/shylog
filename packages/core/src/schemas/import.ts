@@ -80,23 +80,58 @@ export const importOffsetRequest = z.strictObject({
 })
 export type ImportOffsetRequest = z.output<typeof importOffsetRequest>
 
-// `POST /api/import/:id/apply`, settled with apply. Computer dives in none
-// of these lists are skipped and get no fingerprint.
-export type ImportApplyRequest = {
-  pairs: { computerDive: ComputerDiveRef; diveId: DiveId }[]
-  add: ComputerDiveRef[]
-  includeFreedives: ComputerDiveRef[]
+// `POST /api/import/:id/apply`. Computer dives in none of these lists are
+// skipped and get no fingerprint; `include` takes left-out dives (freedives
+// and dives under five minutes) as new dives. A dive is named once.
+export const importApplyRequest = z
+  .strictObject({
+    pairs: z.array(
+      z.strictObject({
+        computerDive: z.string().min(1),
+        diveId: idSchema("dive"),
+      })
+    ),
+    add: z.array(z.string().min(1)),
+    include: z.array(z.string().min(1)),
+  })
+  .superRefine((request, ctx) => {
+    const refs = [
+      ...request.pairs.map((pair) => pair.computerDive),
+      ...request.add,
+      ...request.include,
+    ]
+    if (new Set(refs).size !== refs.length) {
+      ctx.addIssue({
+        code: "custom",
+        message: "A computer dive is named more than once",
+      })
+    }
+    const dives = request.pairs.map((pair) => pair.diveId)
+    if (new Set(dives).size !== dives.length) {
+      ctx.addIssue({
+        code: "custom",
+        message: "A logged dive is paired more than once",
+        path: ["pairs"],
+      })
+    }
+  })
+export type ImportApplyRequest = z.output<typeof importApplyRequest>
+
+// What an import did (see Summary in the spec), and the paired dives whose
+// computer values differ from the hand ones.
+export interface ImportSummary {
+  paired: number
+  added: number
+  alreadyImported: number
+  leftOut: number
+  included: number
+  differing: DiveId[]
 }
 
 export type ImportApplyResult =
-  | {
-      status: "applied"
-      paired: number
-      added: number
-      alreadyImported: number
-      freedivesLeftOut: number
-      freedivesIncluded: number
-      differing: DiveId[]
-    }
-  // Nothing is committed; the review asks again about these dives.
+  | ({ status: "applied" } & ImportSummary)
+  // Nothing is committed; those days were proposed again, so the review
+  // asks about these dives once more.
   | { status: "changed"; diveIds: DiveId[] }
+  // A chunk failed: the ones before it stay, and a retry carries on.
+  | { status: "failed"; error: string; applied: ImportSummary }
