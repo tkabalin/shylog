@@ -1,6 +1,10 @@
 import {
   comparedFields,
+  computerAir,
+  computerGas,
   defaultWaterType,
+  gasDiffers,
+  importFile,
   newId,
   normaliseName,
   type ComputerDive,
@@ -82,6 +86,9 @@ export interface ImportedDive {
   trip: Named | null
   diveCentre: (Named & { region: Region | null }) | null
   computerModel: string | null
+  // Helium or under 20.9 % oxygen, imported on air; absent from entries
+  // journalled before the gas was compared.
+  unsupportedGas?: boolean
   samples: Sample[]
   events: ProfileEvent[]
   fragment: string
@@ -105,6 +112,20 @@ export interface Chunk {
   // The apply's last chunk, after which the summary is complete.
   last: boolean
   dives: ChunkDive[]
+  // What the file held, for the Import screen; absent from older entries.
+  file?: ImportFile
+  // The gas is compared (see importGas); a replay of an older entry leaves
+  // it alone, as it was applied, so a restore matches the log.
+  gasCompared?: true
+}
+
+// How many computer dives the file held and the days they span (null when
+// every one was imported before), and the computer it names, if one.
+export interface ImportFile {
+  dives: number
+  from: string | null
+  to: string | null
+  computerModel: string | null
 }
 
 interface LastImport {
@@ -112,6 +133,7 @@ interface LastImport {
   at: string
   complete: boolean
   summary: ImportSummary
+  file?: ImportFile
 }
 
 export function lastImport(db: Db): LastImport | null {
@@ -148,7 +170,8 @@ function importDive(
   db: Db,
   diveId: string,
   dive: ImportedDive,
-  paired: boolean
+  paired: boolean,
+  gasCompared: boolean
 ): boolean {
   const meta = metaOf(db, diveId)
   const before: Fields = paired ? storedDive(db, diveId, meta)!.fields : {}
@@ -167,6 +190,7 @@ function importDive(
       if (
         source === "computer" &&
         compared.has(field) &&
+        field !== "oxygen" &&
         !same(before[field], value)
       ) {
         differing.set(field, value)
@@ -247,7 +271,31 @@ function importDive(
   // <shylog> first: its maximum temperature is the one the log held.
   for (const [field, value] of Object.entries(dive.hand))
     offer(field as keyof Fields, value, "hand")
-  for (const [field, value] of Object.entries(dive.computer))
+  const computer = { ...dive.computer }
+  // A gas v1 can't hold is stored as air, which isn't the computer's gas,
+  // so it is never compared with a hand one.
+  if (
+    gasCompared &&
+    (taken("nitrox") || taken("oxygen")) &&
+    !dive.unsupportedGas
+  ) {
+    const gas = computerGas(computer as { nitrox?: boolean; oxygen?: number })
+    delete computer.nitrox
+    delete computer.oxygen
+    // A hand Nitrox no, often only the new-dive default, takes the
+    // computer's nitrox; a hand mix stays, flagged if the computer differs.
+    if (gas !== computerAir && !before.nitrox) {
+      next.nitrox = true
+      next.oxygen = gas
+      filled.set("nitrox", "computer")
+      filled.set("oxygen", "computer")
+    } else if (
+      gasDiffers(before as { nitrox?: boolean; oxygen?: number }, gas)
+    ) {
+      differing.set("oxygen", gas)
+    }
+  }
+  for (const [field, value] of Object.entries(computer))
     offer(field as keyof Fields, value, "computer")
 
   // A filled value that breaks a rule with a hand one is left empty, such
@@ -266,7 +314,11 @@ function importDive(
         [field, partners[field]].find((found) => filled.has(found)) ??
         [...filled.keys()].at(-1)
       if (!drop) throw error
-      delete next[drop as keyof Fields]
+      // A filled gas replaced a hand Nitrox no, which comes back.
+      if (taken(drop)) next[drop as keyof Fields] = before[drop as keyof Fields]
+      else delete next[drop as keyof Fields]
+      if (next[drop as keyof Fields] === undefined)
+        delete next[drop as keyof Fields]
       filled.delete(drop)
     }
   }
@@ -321,7 +373,13 @@ export function applyChunk(db: Db, chunk: Chunk, at: Date) {
       continue
     }
     const paired = entry.kind === "paired"
-    const differs = importDive(db, entry.diveId, entry.dive, paired)
+    const differs = importDive(
+      db,
+      entry.diveId,
+      entry.dive,
+      paired,
+      !!chunk.gasCompared
+    )
     print.run(entry.fingerprint, entry.diveId, paired ? "paired" : "added")
     if (paired) summary.paired++
     else if (entry.kind === "included") summary.included++
@@ -336,6 +394,7 @@ export function applyChunk(db: Db, chunk: Chunk, at: Date) {
       at: at.toISOString(),
       complete: chunk.last,
       summary,
+      file: chunk.file ?? (last?.id === chunk.importId ? last.file : undefined),
     } satisfies LastImport)
   )
 }
@@ -405,6 +464,7 @@ function imported(
         }
       : null,
     computerModel: read.computerModel,
+    unsupportedGas: read.unsupportedGas,
     samples: read.samples,
     events: read.events,
     fragment: read.fragment!,
@@ -574,6 +634,7 @@ export function applyImport(
     .pluck()
     .get(id)!
 
+  const file: ImportFile = importFile(preview)
   let current = preview
   for (const [i, chunkDives] of chunks.entries()) {
     const chunk: Chunk = {
@@ -581,6 +642,8 @@ export function applyImport(
       alreadyImported: preview.alreadyImported,
       last: i === chunks.length - 1,
       dives: chunkDives,
+      file,
+      gasCompared: true,
     }
     try {
       write(db, (journal, at) => {

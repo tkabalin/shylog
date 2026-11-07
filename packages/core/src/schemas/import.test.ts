@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  fileDives,
   importApplyRequest,
+  importFile,
   importOffsetRequest,
   importPreviewSchema,
 } from "./import.ts"
@@ -97,5 +99,50 @@ describe("importApplyRequest", () => {
         ],
       }).success
     ).toBe(false)
+  })
+})
+
+describe("fileDives", () => {
+  it("counts every computer dive the file held, imported before or not", () => {
+    const dive = { ref: "d" } as never
+    expect(
+      fileDives({
+        pairs: [{ computerDive: dive, diveId: "dive-1" }],
+        newDives: [dive, dive],
+        leftOut: [dive],
+        alreadyImported: 14,
+      })
+    ).toBe(18)
+  })
+})
+
+describe("importFile", () => {
+  const empty = { pairs: [], newDives: [], leftOut: [], alreadyImported: 3 }
+
+  it("gives the file's days in order and its computer", () => {
+    expect(
+      importFile({
+        ...empty,
+        days: [
+          { date: "2026-07-21", estimatedOffset: 0, offset: 0 },
+          { date: "2026-07-18", estimatedOffset: 0, offset: 0 },
+        ],
+        computerModel: "Suunto D4i",
+      })
+    ).toEqual({
+      dives: 3,
+      from: "2026-07-18",
+      to: "2026-07-21",
+      computerModel: "Suunto D4i",
+    })
+  })
+
+  it("has no days when every dive was imported before", () => {
+    expect(importFile({ ...empty, days: [], computerModel: null })).toEqual({
+      dives: 3,
+      from: null,
+      to: null,
+      computerModel: null,
+    })
   })
 })

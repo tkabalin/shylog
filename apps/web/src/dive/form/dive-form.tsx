@@ -113,6 +113,7 @@ import {
   Row,
   RowInput,
   Section,
+  sourceBar,
   SourceNote,
   Reveal,
   Segmented,
@@ -122,6 +123,8 @@ import {
 import { byRecent, logUsage } from "./usage"
 import {
   comparedText,
+  gasText,
+  gasValues,
   computerName,
   copyFromDive,
   differences,
@@ -283,9 +286,14 @@ export function DiveForm({
 
   const update = (next: Partial<FormValues>) => {
     setValues((was) => {
-      // The compared fields typed in: a start time is its date and time.
+      // The compared fields typed in: a start time is its date and time,
+      // and the gas its Nitrox switch and oxygen box.
       const changed = Object.keys(next).map((name) =>
-        name === "date" || name === "time" ? "startTime" : name
+        name === "date" || name === "time"
+          ? "startTime"
+          : name === "nitrox"
+            ? "oxygen"
+            : name
       )
       // A typed value replaces an adopted or dismissed one, which would
       // otherwise keep it out of the edit (see changedFields).
@@ -420,6 +428,13 @@ export function DiveForm({
     return water === "fresh" ? "fresh" : "salt"
   }
 
+  // The form fields a compared field is typed in.
+  const formKeys = (field: ComparedField): FieldName[] =>
+    field === "startTime"
+      ? ["date", "time"]
+      : field === "oxygen"
+        ? ["nitrox", "oxygen"]
+        : [field]
   // The form field a compared field is typed in: a start time's clock part.
   const textField = (field: ComparedField): FieldName =>
     field === "startTime" ? "time" : field
@@ -442,7 +457,9 @@ export function DiveForm({
     if (!original || !dive) return null
     if (values.adopt.includes(field))
       return <Marker source="computer" computer={computer} />
-    const row = meta?.get(field)
+    // The computer's air fills Nitrox alone, with no oxygen to record.
+    const row =
+      meta?.get(field) ?? (field === "oxygen" ? meta?.get("nitrox") : undefined)
     // A draft has no field records yet, and its values are all typed.
     const derived =
       field === "averageDepth" &&
@@ -450,8 +467,9 @@ export function DiveForm({
       !dive.draft &&
       dive.averageDepth != null
     if (row?.source !== "computer" && !derived) return null
-    const key = textField(field)
-    if (values[key] === original[key])
+    const keys: FieldName[] =
+      field === "oxygen" ? ["nitrox", "oxygen"] : [textField(field)]
+    if (keys.every((key) => values[key] === original[key]))
       return (
         <Marker
           source={derived ? "calculated" : "computer"}
@@ -465,7 +483,13 @@ export function DiveForm({
             ? "Reset to the calculated value"
             : `Reset to the ${computer} value`
         }
-        onClick={() => update({ [key]: original[key] } as Partial<FormValues>)}
+        onClick={() =>
+          update(
+            Object.fromEntries(
+              keys.map((key) => [key, original[key]])
+            ) as Partial<FormValues>
+          )
+        }
       />
     )
   }
@@ -484,14 +508,26 @@ export function DiveForm({
                   date: String(value).slice(0, 10),
                   time: comparedText(field, value),
                 }
-              : { [field]: comparedText(field, value) }
+              : field === "oxygen"
+                ? gasValues(value)
+                : { [field]: comparedText(field, value) }
           update({
             ...next,
             adopt: [...values.adopt, field],
             dismiss: values.dismiss.filter((f) => f !== field),
           })
         }}
-        onKeep={() => update({ dismiss: [...values.dismiss, field] })}
+        // Keeping yours is the saved value: anything typed over it goes,
+        // as a dismissed field sends no typed value.
+        onKeep={() =>
+          update({
+            ...(original &&
+              Object.fromEntries(
+                formKeys(field).map((key) => [key, original[key]])
+              )),
+            dismiss: [...values.dismiss, field],
+          })
+        }
       />
     )
   }
@@ -973,7 +1009,10 @@ export function DiveForm({
             </Block>
           </Section>
 
-          <Section title="Cylinder and gas">
+          <Section
+            title="Cylinder and gas"
+            note={<SourceNote computer={!!dive?.computerModel} />}
+          >
             <div className="flex flex-col gap-2 px-4 py-3">
               <Label id="label-cylinder">Cylinder</Label>
               {/* Below 375 px "Aluminium" can't fit beside Volume, so
@@ -1016,31 +1055,44 @@ export function DiveForm({
               </div>
               {errorLine("cylinderVolume", true)}
             </div>
-            <div className="flex flex-col gap-1.5 px-4 py-3">
-              <div className="flex min-h-8.5 items-center justify-between">
-                <Label htmlFor="field-nitrox">Nitrox</Label>
-                <Switch
-                  id="field-nitrox"
-                  checked={values.nitrox}
-                  onCheckedChange={set("nitrox")}
-                />
-              </div>
-              {values.nitrox && (
-                <Reveal>
-                  <PairInput
-                    id="field-oxygen"
-                    label="Oxygen"
-                    unit="%"
-                    inputMode="decimal"
-                    value={values.oxygen}
-                    onChange={(event) => set("oxygen")(event.target.value)}
-                    placeholder="—"
-                    {...error("oxygen")}
+            <Field
+              under={
+                open.includes("oxygen") &&
+                difference(
+                  "oxygen",
+                  "gas",
+                  gasText(meta!.get("oxygen")!.computerValue!)
+                )
+              }
+            >
+              <div className={cn(sourceBar, "flex flex-col gap-1.5 px-4 py-3")}>
+                <div className="flex min-h-8.5 items-center justify-between">
+                  <Label htmlFor="field-nitrox" after={source("oxygen")}>
+                    Nitrox
+                  </Label>
+                  <Switch
+                    id="field-nitrox"
+                    checked={values.nitrox}
+                    onCheckedChange={set("nitrox")}
                   />
-                  {errorLine("oxygen", true)}
-                </Reveal>
-              )}
-            </div>
+                </div>
+                {values.nitrox && (
+                  <Reveal>
+                    <PairInput
+                      id="field-oxygen"
+                      label="Oxygen"
+                      unit="%"
+                      inputMode="decimal"
+                      value={values.oxygen}
+                      onChange={(event) => set("oxygen")(event.target.value)}
+                      placeholder="—"
+                      {...error("oxygen")}
+                    />
+                    {errorLine("oxygen", true)}
+                  </Reveal>
+                )}
+              </div>
+            </Field>
             <div
               className="flex flex-col gap-2 px-4 py-3"
               role="group"

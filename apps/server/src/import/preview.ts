@@ -112,6 +112,8 @@ function entry(dive: ReadDive, day: string, reason: LeftOut | null): Entry {
     minTemperature: temperatures.min,
     maxTemperature: temperatures.max,
     profile: sparkline(dive.samples, dive.duration),
+    oxygen: dive.oxygen,
+    site: dive.site?.name ?? null,
     unsupportedGas: dive.unsupportedGas,
     reason,
   }

@@ -46,6 +46,9 @@ export default defineConfig({
           name: "core",
           root: "packages/core",
           environment: "node",
+          // Reading the real exports in water.test.ts takes about 6 s under
+          // --coverage's instrumentation, past the 5 s default.
+          testTimeout: 20_000,
         },
       },
       {
@@ -53,6 +56,10 @@ export default defineConfig({
           name: "server",
           root: "apps/server",
           environment: "node",
+          // The UDDF tests run xmllint and xsltproc alongside every other
+          // file, and under that load whichever database test is slowest at
+          // the time (replay, nightly) went past the 5 s default.
+          testTimeout: 20_000,
         },
       },
       {

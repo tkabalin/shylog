@@ -199,6 +199,18 @@
      answers at once rather than easing in. Written out, as an inline
      theme emits no var() to point at. */
   --default-transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  /* The import's "Reading your export" bar, which can't know how far along
+     the server is: a third of the track sweeping across. */
+  --animate-import-progress: import-progress 1.4s
+    cubic-bezier(0.77, 0, 0.175, 1) infinite;
+  @keyframes import-progress {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
 }
 
 :root {
@@ -231,6 +243,46 @@
   to {
     border-top-color: transparent;
   }
+}
+
+/* A sheet's drag rewrites these on its popup every frame. Inherited, they
+   restyled every row inside it per move (1,100 in the dive picker); only
+   the popup and backdrop read them, so nothing below needs them. */
+@property --drawer-swipe-movement-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --drawer-swipe-movement-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --drawer-swipe-progress {
+  syntax: "*";
+  inherits: false;
+}
+@property --translate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --translate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --stack-progress {
+  syntax: "*";
+  inherits: false;
+}
+@property --stack-peek-offset {
+  syntax: "*";
+  inherits: false;
+}
+@property --stack-scale {
+  syntax: "*";
+  inherits: false;
+}
+@property --stack-shrink {
+  syntax: "*";
+  inherits: false;
 }
 
 .dark {

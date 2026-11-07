@@ -28,6 +28,11 @@ export const computerDiveSchema = z.strictObject({
   maxTemperature: z.number().nullable(),
   // The Log's 24-point sparkline, for the review's profile.
   profile: z.array(z.number()).nullable(),
+  // Tenths of a per cent of a nitrox mix, null for air, for the review's
+  // comparison, and the site the file names, null for the Unknown site.
+  // Absent from previews stored before the review showed them.
+  oxygen: z.int().nullable().optional(),
+  site: z.string().nullable().optional(),
   // Helium or under 20.9 % oxygen: imported on air, which the review says.
   unsupportedGas: z.boolean(),
 })
@@ -75,6 +80,40 @@ export const importPreviewSchema = z.strictObject({
   alreadyImported: z.int().nonnegative(),
 })
 export type ImportPreview = z.output<typeof importPreviewSchema>
+
+// Every computer dive the file held, imported before or not.
+export const fileDives = (
+  preview: Pick<
+    ImportPreview,
+    "pairs" | "newDives" | "leftOut" | "alreadyImported"
+  >
+) =>
+  preview.pairs.length +
+  preview.newDives.length +
+  preview.leftOut.length +
+  preview.alreadyImported
+
+// What an applied file held, for the Import screen: its computer dives, the
+// days they span (null when every one was imported before), and its model.
+export function importFile(
+  preview: Pick<
+    ImportPreview,
+    | "pairs"
+    | "newDives"
+    | "leftOut"
+    | "alreadyImported"
+    | "days"
+    | "computerModel"
+  >
+) {
+  const days = preview.days.map((day) => day.date).sort()
+  return {
+    dives: fileDives(preview),
+    from: days[0] ?? null,
+    to: days.at(-1) ?? null,
+    computerModel: preview.computerModel,
+  }
+}
 
 // `PATCH /api/import/:id`: null resets the day to the estimate.
 export const importOffsetRequest = z.strictObject({

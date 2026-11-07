@@ -1,3 +1,4 @@
+import { memo } from "react"
 import { IconArrowBarToDown, IconEyeOff, IconClock } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
 
@@ -15,7 +16,14 @@ import { cardPlace } from "@/format/place"
 export const cardHeight = 84
 
 // LogHifi2's card: number, site, "Sat 10 · place", sparkline, depth and time.
-export function DiveCard({ dive, log }: { dive: Dive; log: LogView }) {
+// Memoised, so a filter change renders only the cards it brings in.
+export const DiveCard = memo(function DiveCard({
+  dive,
+  log,
+}: {
+  dive: Dive
+  log: LogView
+}) {
   const site = log.sites.get(dive.siteId)
   const region = site?.regionId ? log.regions.get(site.regionId) : undefined
   return (
@@ -89,4 +97,4 @@ export function DiveCard({ dive, log }: { dive: Dive; log: LogView }) {
       </span>
     </Item>
   )
-}
+})

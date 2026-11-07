@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { memo, useDeferredValue, useState } from "react"
 import { tags as allTags, type Tag } from "@shylog/core"
 import {
   IconCloudOff,
@@ -31,7 +31,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Skeleton } from "@/components/ui/skeleton"
-import { sync, useLog } from "@/data/log"
+import { sync, useLog, type LogView } from "@/data/log"
 import {
   depthScale,
   durationScale,
@@ -74,6 +74,14 @@ function decodeRange(
   return { min, max }
 }
 
+const filtersOf = (search: LogSearch): Filters => ({
+  year: search.year?.toString(),
+  tags: search.tags?.split(",") as Tag[] | undefined,
+  region: search.region,
+  depth: decodeRange(search.depth, depthScale),
+  duration: decodeRange(search.duration, durationScale),
+})
+
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): LogSearch => {
     // ?tag= is how a filtered Log read before several tags could be picked.
@@ -101,17 +109,16 @@ function LogPage() {
   usePreloadChart()
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
-  // The router commits search changes in a transition, so a field bound to
-  // the URL would lag a keystroke and jump the caret. The URL follows it.
+  // The router updates the search after navigate returns, not in the
+  // keystroke's own render, so a field bound to the URL would jump the caret.
   const [query, setQuery] = useState(search.q ?? "")
+  // The router reads the URL through useSyncExternalStore, which React
+  // renders at once, so the cards are deferred: the pills and count answer
+  // a tap in the next frame and the list follows in slices, between frames.
+  const listSearch = useDeferredValue(search)
+  const listQuery = useDeferredValue(query)
 
-  const filters: Filters = {
-    year: search.year?.toString(),
-    tags: search.tags?.split(",") as Tag[] | undefined,
-    region: search.region,
-    depth: decodeRange(search.depth, depthScale),
-    duration: decodeRange(search.duration, durationScale),
-  }
+  const filters = filtersOf(search)
   const setFilters = (next: Filters) =>
     void navigate({
       search: (prev) => ({
@@ -126,11 +133,8 @@ function LogPage() {
     })
 
   // The header follows the pills; the search narrows only the cards.
-  const filtered =
+  const figures = headerFigures(
     log?.dives.filter((dive) => matchesFilters(dive, filters, log)) ?? []
-  const figures = headerFigures(filtered)
-  const groups = monthGroups(
-    log ? filtered.filter((dive) => matchesSearch(dive, query, log)) : []
   )
 
   // Nothing to show until the mirror is read, or while a first sync fills
@@ -296,15 +300,7 @@ function LogPage() {
           {/* Room below the last card for the floating button. Wide screens
               keep the list to a readable column. */}
           <div className="flex flex-col gap-4 px-4 pt-3 pb-24 md:mx-auto md:w-full md:max-w-3xl desk:pb-8">
-            {groups.length ? (
-              groups.map((group) => (
-                <MonthGroup key={group.key} group={group} log={log} />
-              ))
-            ) : (
-              <p className="py-12 text-center text-sm text-muted-foreground">
-                No dives match.
-              </p>
-            )}
+            <DiveList log={log} search={listSearch} query={listQuery} />
           </div>
           {/* The board's floating button, clear of the tab bar; a desktop
               has the header's New dive instead. */}
@@ -321,6 +317,35 @@ function LogPage() {
     </div>
   )
 }
+
+// Memoised, so the urgent render after a filter change skips the cards
+// while their deferred props still hold the old values.
+const DiveList = memo(function DiveList({
+  log,
+  search,
+  query,
+}: {
+  log: LogView
+  search: LogSearch
+  query: string
+}) {
+  const filters = filtersOf(search)
+  const groups = monthGroups(
+    log.dives.filter(
+      (dive) =>
+        matchesFilters(dive, filters, log) && matchesSearch(dive, query, log)
+    )
+  )
+  return groups.length ? (
+    groups.map((group) => (
+      <MonthGroup key={group.key} group={group} log={log} />
+    ))
+  ) : (
+    <p className="py-12 text-center text-sm text-muted-foreground">
+      No dives match.
+    </p>
+  )
+})
 
 // The count, its line, the bar, a month and its first cards, each where
 // it'll be, so nothing moves when the log arrives. Blank at first, as the

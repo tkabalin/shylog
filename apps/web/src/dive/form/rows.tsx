@@ -115,7 +115,7 @@ export function Field({
 
 // A bar down the left of a row holding a marked value, in place of an icon
 // on each label, which made the form busy. The card clips it to its corners.
-const sourceBar = "has-data-source:shadow-[inset_3px_0_0_var(--primary)]"
+export const sourceBar = "has-data-source:shadow-[inset_3px_0_0_var(--primary)]"
 
 export function Row({
   children,
@@ -147,7 +147,7 @@ export const pressedRow =
 
 // Small inline buttons dim on touch-down and recover on release, as the
 // bar buttons do.
-const pressedButton =
+export const pressedButton =
   "transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
 
 // The board's borderless, right-aligned input. 16 px text, so iOS doesn't

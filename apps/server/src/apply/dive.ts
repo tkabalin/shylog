@@ -1,4 +1,6 @@
 import {
+  computerAir,
+  computerGas,
   diveFieldsSchema,
   type DiveFields,
   type EntityKind,
@@ -15,6 +17,8 @@ import {
   handEdit,
   metaOf,
   type Meta,
+  recordDiffering,
+  recordFilled,
   recordHand,
   sqlValue,
 } from "./field-meta.ts"
@@ -70,6 +74,7 @@ const booleans = new Set<string>(["nitrox", "ignored"])
 
 // A dive's fields as a draft would carry them, with absent meaning empty.
 export type Fields = Partial<Record<keyof DiveFields, unknown>>
+type GasFields = { nitrox?: boolean; oxygen?: number }
 
 export interface Stored {
   fields: Fields
@@ -282,7 +287,16 @@ export function editDiveFrom(
     else if (value !== undefined) next[field as keyof Fields] = value
   }
   for (const field of adopting) {
-    next[field] = computerValue(meta.get(field), ["adopt"])
+    const value = computerValue(meta.get(field), ["adopt"])
+    if (field !== "oxygen") next[field] = value
+    // The gas spans two columns: the computer's air turns Nitrox off.
+    else if (value === computerAir) {
+      next.nitrox = false
+      delete next.oxygen
+    } else {
+      next.nitrox = true
+      next.oxygen = value
+    }
   }
   const after = validDive(db, next)
 
@@ -295,8 +309,26 @@ export function editDiveFrom(
       !same(before.fields[field as keyof Fields], after[field as keyof Fields])
   )
   if (changed.length) saveDive(db, id, after)
+  const gasAdopted = adopting.includes("oxygen")
+  // A gas the computer filled, typed over by hand: its reading goes on the
+  // oxygen row as one value (210 for air), as an import keeps a differing
+  // one, since a filled air dive has no oxygen row to keep it on.
+  const gasRow = meta.get("oxygen") ?? meta.get("nitrox")
+  const gasTyped =
+    !gasAdopted &&
+    gasRow?.source === "computer" &&
+    changed.some((field) => field === "nitrox" || field === "oxygen")
+  if (gasTyped) {
+    recordDiffering(db, id, "oxygen", computerGas(before.fields as GasFields))
+    recordHand(db, id, "nitrox")
+  }
   for (const field of changed) {
     if (adopting.includes(field as never)) continue
+    if (gasAdopted && field === "nitrox") {
+      recordFilled(db, id, field, "computer")
+      continue
+    }
+    if (gasTyped && (field === "nitrox" || field === "oxygen")) continue
     const key = field as keyof Fields
     handEdit(db, id, field, before.fields[key], after[key], meta.get(field))
   }

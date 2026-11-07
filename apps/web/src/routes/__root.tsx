@@ -4,7 +4,12 @@ import { toast } from "sonner"
 
 import { cn } from "cn"
 
-import { AppSidebar, BottomNav, useOnForm } from "@/components/app-nav"
+import {
+  AppSidebar,
+  BottomNav,
+  useImportStep,
+  useOnForm,
+} from "@/components/app-nav"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { useLog } from "@/data/log"
@@ -15,6 +20,7 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const onForm = useOnForm()
+  const step = useImportStep()
   return (
     <SidebarProvider className="h-full">
       <AppSidebar />
@@ -28,9 +34,12 @@ function RootLayout() {
         id="main"
         className={cn(
           "overflow-y-auto overscroll-y-none pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)] *:shrink-0 desk:pb-0",
-          onForm
-            ? "pb-[env(safe-area-inset-bottom)]"
-            : "pb-[calc(--spacing(12.25)+1px+max(0.5rem,env(safe-area-inset-bottom)))]"
+          // An import step's own bottom bar pads for the home bar itself.
+          step
+            ? undefined
+            : onForm
+              ? "pb-[env(safe-area-inset-bottom)]"
+              : "pb-[calc(--spacing(12.25)+1px+max(0.5rem,env(safe-area-inset-bottom)))]"
         )}
       >
         <Outlet />
