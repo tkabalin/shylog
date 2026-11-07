@@ -106,7 +106,21 @@ function useLogTab() {
 // leave a form half filled in.
 export function useOnForm() {
   const match = useMatchRoute()
-  return !!(match({ to: "/dive/new" }) || match({ to: "/dive/$diveId/edit" }))
+  const step = useImportStep()
+  return (
+    step ||
+    !!(match({ to: "/dive/new" }) || match({ to: "/dive/$diveId/edit" }))
+  )
+}
+
+// The import's steps after the upload, which the boards draw with their
+// own button bar over the home bar and no tabs.
+export function useImportStep() {
+  const match = useMatchRoute()
+  return !!(
+    match({ to: "/import/review", fuzzy: true }) ||
+    match({ to: "/import/done" })
+  )
 }
 
 export function BottomNav() {
