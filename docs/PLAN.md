@@ -1003,11 +1003,36 @@ Deferred, or to watch:
 
 **Not in this milestone**: the Import screen's Offline state (milestone 18); this closes the Import step.
 
-- [ ] Import screen states
-- [ ] Review with sections, clock sheet, changed sheet
-- [ ] Paired and Change pairing
-- [ ] Done with differing dives
-- [ ] Tests and screenshots listed above
+- [x] Import screen states
+- [x] Review with sections, clock sheet, changed sheet
+- [x] Paired and Change pairing
+- [x] Done with differing dives
+- [x] Tests and screenshots listed above
+
+**Notes for the next session** (written 7 November 2026, branch `feat/import-screens`)
+
+Decisions taken while building:
+
+- The review's bar has Discard, which asks first; a hand-logged dive under Not paired opens the pairing screen turned round (D44, the owner's choices). Freedives and dives under five minutes share one Left out row, each saying which it is; the summary counts them together as left out.
+- The gas is a compared field (D45, issue #60, the owner's choices): a hand Nitrox no takes the computer's nitrox as a computer value; a hand mix keeps its oxygen and is flagged only when its whole per cent differs; a hand mix against the computer's air is kept and flagged. The computer's reading sits on `oxygen`'s `field_meta` row, 210 for air. Import chunks carry `gasCompared`, so a restore replays older entries without the rule, as they were applied.
+- `GET /api/import/pending` also returns the last completed import, with the file's dive count, its days and the computer model, which each chunk carries (`file`), so the Import screen and Done survive a reload.
+- The preview's computer dives carry `oxygen` and `site` (optional, as previews stored before lack them) for the Compare table and the Unknown site note.
+- The review's choices stay on the phone in sessionStorage, keyed by preview id and revision; a clock change or a `changed` reply drops the choices on the days proposed again and keeps the rest. A computer dive paired with a hand dive another had takes it, and that one is added as new (or left out when under five minutes).
+- Review, Paired, the pairing screens and Done cover the tab bar, as the boards draw them. Each import step replaces the last; Paired and the pairing screens are pushed.
+- The review flags differences as the dive form does (at the precision shown), so its counts and Done's list of differing dives match the dive's banner, though the server records any difference.
+- Screens name the computer from the preview's model ("your D4i"), as the spec and the plan's acceptance say; generic copy, such as the upload steps, says "your dive computer", as `.claude/rules/ui-copy.md` asks.
+- Issue #57: a screen bar's back label reads "Back" when the parent's name doesn't fit beside the title, as iOS does, and full-height sheet bars have more room above their actions.
+- A hand edit over a gas the computer filled keeps the computer's reading on the oxygen row, as an import keeps a differing one. Unlike import chunks, hand edits aren't versioned for this: no journalled edit could have met the case before the import screens existed. A gas v1 can't hold is never compared, as it is stored as air.
+- Done celebrates an import once, on arriving from the review's apply: the badge settles in and seven bubbles rise off it, as a new dive's save does.
+
+Deferred, or to watch:
+
+- **Clear filters on the Log** (found in an animation-performance pass): the router reads the URL through `useSyncExternalStore`, which React always renders as blocking, so the whole Log, every card included, re-renders inside the tap (127 ms with 42 dives and 193 ms with 126 at 4× CPU throttle, production build). A fix that defers the list and memoises the cards is in the scratchpad's `perf/fix.patch`; the owner chose to try it on the phone first, as the cards then arrive a moment after the count. The comment in `routes/index.tsx` saying the router commits search changes in a transition is wrong and goes with that fix.
+- Importing a second computer's file into the same log adds the dives both recorded again, as an import pairs only hand-logged dives; each instance imports one diver's computer, so it shouldn't arise.
+- To check on the phone: the native day picker in the clock sheet, the file picker with a `.uddf` from Files, the sticky review footer over the home bar, and the back label falling back to "Back" on the entity screens.
+- "Show dives from other days" offers the export's other hand-logged dives and any dive without a profile within two days; the log doesn't say which dives have a fingerprint, so a dive with a profile stands for one and the server refuses any it gets wrong.
+- The review lists every new dive flat, as the board does; a file of hundreds of new dives (a first import) is a long list. Day headings could come later.
+- Carried over from milestone 16: a dive with depth or duration 0 still refuses the whole file; a two-computer export gives a null model; each imported dive costs about 1.5 ms of export time for its fragment; the seed doesn't go through apply. From milestone 13 and earlier: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 22); the card gestures, photo picker and offline card to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers (the import test's deleted dives join them), Node and Tailscale bumps, `minimumReleaseAge` to seven days.
 
 ## Milestone 18: Offline, service worker, sync states, storage
 
