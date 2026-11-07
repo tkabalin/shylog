@@ -31,15 +31,18 @@ import type { Db } from "../db/open.ts"
 import { selectEvents, selectSamples } from "../profile.ts"
 // Air as the import reads it; a dive with Nitrox off breathes it.
 import { air as airTenths } from "./reader.ts"
-import { shylogNamespace } from "./shylog-namespace.ts"
+import {
+  generatorName,
+  shylogNamespace,
+  uddfNamespace,
+} from "./shylog-namespace.ts"
 import { element, leaf, link, personal, type Xml } from "./xml.ts"
+
+export { uddfNamespace }
 
 // The whole log as UDDF 3.2.1 (see UDDF export in the spec), read in one
 // transaction and built synchronously, so no write lands part-way through.
 // Nothing in it changes unless the log does, so two runs are byte-identical.
-
-export const uddfNamespace = "http://www.streit.cc/uddf/3.2/"
-export const generatorName = "Shylog"
 
 interface DiveRow {
   id: string

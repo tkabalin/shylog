@@ -402,6 +402,64 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
     ).toEqual([])
   })
 
+  it("is read back in full by Shylog's reader", () => {
+    const [a, b, c] = readUddf(xml)
+    expect(a.site).toEqual({
+      name: "Two Mile Reef",
+      countryCode: "ZA",
+      region: "Sodwana",
+      bodyOfWater: "oceanSea",
+    })
+    expect(a.people).toEqual([
+      { name: "Sam Naidoo", professional: false },
+      { name: "Lee", professional: true },
+    ])
+    expect(a.standard).toEqual({
+      cylinderMaterial: "aluminium",
+      entry: "smallBoat",
+      current: "mild",
+      diveType: "training",
+      workload: "light",
+      thermalComfort: "cold",
+      notableAnimals: "Potato bass",
+    })
+    expect(a.own).toEqual({
+      fields: {
+        trainingAgency: "SSI",
+        trainingCourse: "Deep",
+        tags: ["drift", "wreck"],
+        surge: "moderate",
+        surface: "calm",
+        weather: "cloudy",
+        maxTemperature: 24,
+        visibilityRating: "high",
+        gearDetails: "5 mm suit",
+      },
+      trip: "Sodwana & friends",
+      diveCentre: {
+        name: "Coral Divers",
+        region: { name: "Sodwana", countryCode: "ZA" },
+      },
+      waterType: null,
+    })
+    expect(b.standard).toEqual({
+      cylinderMaterial: "aluminium",
+      diveType: "recreation",
+      visibility: 15,
+    })
+    expect(b.own).toBeNull()
+    expect(c.site).toEqual({
+      name: "Miracle Waters",
+      countryCode: "ZA",
+      region: null,
+      bodyOfWater: null,
+    })
+    expect(c.own).toMatchObject({
+      fields: { ignored: true, surfaceInterval: 5400 },
+      waterType: "fresh",
+    })
+  })
+
   it("writes the standard fields in UDDF's units and strings", () => {
     const a = byId(root, "dive", "dive-a")
     expect(text(a, "platform")).toBe("small-boat")
