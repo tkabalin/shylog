@@ -37,7 +37,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 
 - Every picker is a bottom sheet. `SitePickerHifi` becomes a full-height bottom sheet with Cancel in place of "‹ Edit dive"; Country and Body of water open as lists inside it (body of water is a list, not a native select).
 - Buddies, dive professionals and the dive centre are rows in the form that open a sheet, not the board's suggestion list inside the card. The list is "Recent" (most recently used), not "Frequent"; Add keeps the name as typed rather than capitalising it; nobody is offered for both roles.
-- The ✓/✕ group sits on its own line under each field, right-aligned like the values, for all six compared fields, rather than squeezed into the row.
+- The ✓/✕ group sits on its own line under each field, right-aligned like the values, for all seven compared fields (the gas included), rather than squeezed into the row.
 - Surface interval is picked on hours and minutes wheels in a sheet, with Calculated and No previous dive as rows, not typed as free text.
 - Copy from last dive is one row like the form's own: the title with its icon, and the last dive's site on the right. The board's two-line card with the dive number and date is simplified away.
 - Tag chips and segmented controls are 40 to 44 px tall; the ✓/✕ buttons and chip remove buttons keep their size with a 44 px tap area.
@@ -74,6 +74,10 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 ## Import
 
 - Name the computer by the model the export gives, not a hard-coded "D4i".
+- The review's bar has Discard on the right, which the boards leave empty. A hand-logged dive under Not paired opens the pairing screen turned round, with that day's computer dives and Leave unpaired.
+- `ImportReviewHifi`'s Freedives row is a Left out row covering dives under five minutes too, each row saying "Freedive" or "Under 5 min". Its "From earlier imports" row reads Already imported, with no split, as the preview counts them together.
+- A dive the review will store on air, as v1 can't hold its gas, says so on its row and on its pairing screen.
+- The Compare table also shows the gas.
 
 ## Values from the computer
 
@@ -85,7 +89,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 These were settled while planning the build (see the decisions in `docs/PLAN.md`) and the boards have not been redrawn for them.
 
 - Entity detail saves with an explicit Save action that appears when a field changes, as the Certifications edit screen does; You's sections save as you go. A colliding rename shows the error under the Details card, with the merge as a row of its own below it. The boards have bare inputs.
-- Every field whose hand value differs from the computer's gets the ✓ "Use D4i value" / ✕ "Keep mine" group (start time, max depth, average depth, duration, temperatures). A field holding a computer or calculated value has a cyan bar down its row's left edge, keyed by a note under the card, rather than the board's icon beside each label; once edited, the bar gives way to "Reset to the D4i value". `EditDiveHifi` draws the group only for start time and duration.
+- Every field whose hand value differs from the computer's gets the ✓ "Use D4i value" / ✕ "Keep mine" group (start time, max depth, average depth, duration, temperatures, gas). A field holding a computer or calculated value has a cyan bar down its row's left edge, keyed by a note under the card, rather than the board's icon beside each label; once edited, the bar gives way to "Reset to the D4i value". `EditDiveHifi` draws the group only for start time and duration.
 - Computer and calculated values keep the normal text colour. The accent colour `EditDiveHifi` gives D4i and calculated values was tried in review and dropped.
 - A site's region is typed with the existing regions in that country offered as you type. `SitePickerHifi` has a plain free-text field.
 - The Log header is the board's "Hero count" variant. The Tiles, Split, Sentence and Stat strip variants were explorations. On scroll the large count and strip scroll away with the list and the compact line fades into the sticky bar; the board keeps the 52px count beside it.
