@@ -28,6 +28,11 @@ export const computerDiveSchema = z.strictObject({
   maxTemperature: z.number().nullable(),
   // The Log's 24-point sparkline, for the review's profile.
   profile: z.array(z.number()).nullable(),
+  // Tenths of a per cent of a nitrox mix, null for air, for the review's
+  // comparison, and the site the file names, null for the Unknown site.
+  // Absent from previews stored before the review showed them.
+  oxygen: z.int().nullable().optional(),
+  site: z.string().nullable().optional(),
   // Helium or under 20.9 % oxygen: imported on air, which the review says.
   unsupportedGas: z.boolean(),
 })

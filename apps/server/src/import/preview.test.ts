@@ -62,6 +62,15 @@ describe("storePreview", () => {
     )
   })
 
+  it("gives each computer dive its gas and the site the file names", () => {
+    const preview = storePreview(testDb(), d4iXml, now)
+    const dive = (n: number) =>
+      preview.newDives.find((found) => found.ref === fixture(n).ref)!
+    // EANx32 and air; a Subsurface export names no site.
+    expect(dive(63)).toMatchObject({ oxygen: 320, site: null })
+    expect(dive(62)).toMatchObject({ oxygen: null, site: null })
+  })
+
   it("expires after seven days, and is purged once expired", () => {
     const db = tripLog()
     const preview = storePreview(db, abroad, now)
