@@ -428,6 +428,13 @@ export function DiveForm({
     return water === "fresh" ? "fresh" : "salt"
   }
 
+  // The form fields a compared field is typed in.
+  const formKeys = (field: ComparedField): FieldName[] =>
+    field === "startTime"
+      ? ["date", "time"]
+      : field === "oxygen"
+        ? ["nitrox", "oxygen"]
+        : [field]
   // The form field a compared field is typed in: a start time's clock part.
   const textField = (field: ComparedField): FieldName =>
     field === "startTime" ? "time" : field
@@ -510,7 +517,17 @@ export function DiveForm({
             dismiss: values.dismiss.filter((f) => f !== field),
           })
         }}
-        onKeep={() => update({ dismiss: [...values.dismiss, field] })}
+        // Keeping yours is the saved value: anything typed over it goes,
+        // as a dismissed field sends no typed value.
+        onKeep={() =>
+          update({
+            ...(original &&
+              Object.fromEntries(
+                formKeys(field).map((key) => [key, original[key]])
+              )),
+            dismiss: [...values.dismiss, field],
+          })
+        }
       />
     )
   }
