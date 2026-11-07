@@ -76,6 +76,40 @@ export const importPreviewSchema = z.strictObject({
 })
 export type ImportPreview = z.output<typeof importPreviewSchema>
 
+// Every computer dive the file held, imported before or not.
+export const fileDives = (
+  preview: Pick<
+    ImportPreview,
+    "pairs" | "newDives" | "leftOut" | "alreadyImported"
+  >
+) =>
+  preview.pairs.length +
+  preview.newDives.length +
+  preview.leftOut.length +
+  preview.alreadyImported
+
+// What an applied file held, for the Import screen: its computer dives, the
+// days they span (null when every one was imported before), and its model.
+export function importFile(
+  preview: Pick<
+    ImportPreview,
+    | "pairs"
+    | "newDives"
+    | "leftOut"
+    | "alreadyImported"
+    | "days"
+    | "computerModel"
+  >
+) {
+  const days = preview.days.map((day) => day.date).sort()
+  return {
+    dives: fileDives(preview),
+    from: days[0] ?? null,
+    to: days.at(-1) ?? null,
+    computerModel: preview.computerModel,
+  }
+}
+
 // `PATCH /api/import/:id`: null resets the day to the estimate.
 export const importOffsetRequest = z.strictObject({
   date: day,

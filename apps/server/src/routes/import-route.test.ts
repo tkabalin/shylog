@@ -160,7 +160,7 @@ describe("the preview's other routes", () => {
   it("returns the preview waiting, adjusts a day, and discards it", async () => {
     const { app } = setup()
     const empty = await send(app, "GET", "/api/import/pending")
-    expect(await empty.json()).toEqual({ preview: null })
+    expect(await empty.json()).toEqual({ preview: null, lastImport: null })
 
     const { id } = importPreviewSchema.parse(
       await (await upload(app, abroad)).json()
@@ -198,7 +198,7 @@ describe("the preview's other routes", () => {
     expect((await send(app, "DELETE", `/api/import/${id}`)).status).toBe(204)
     expect(
       await (await send(app, "GET", "/api/import/pending")).json()
-    ).toEqual({ preview: null })
+    ).toEqual({ preview: null, lastImport: null })
   })
 })
 
@@ -228,6 +228,22 @@ describe("POST /api/import/:id/apply", () => {
       differing: ["dive-63"],
     })
     expect(db.prepare("SELECT count(*) FROM dives").pluck().get()).toBe(16)
+    // The Import screen then shows it as the last import, with the file's
+    // dive count and days.
+    const after = await (await send(app, "GET", "/api/import/pending")).json()
+    expect(after).toMatchObject({
+      preview: null,
+      lastImport: {
+        paired: 1,
+        added: 15,
+        file: {
+          dives: 16,
+          from: preview.days[0].date,
+          to: preview.days.at(-1)!.date,
+          computerModel: preview.computerModel,
+        },
+      },
+    })
     expect(
       (
         await send(app, "POST", "/api/import/import-gone/apply", {

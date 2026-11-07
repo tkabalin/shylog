@@ -4,6 +4,7 @@ import {
   computerGas,
   defaultWaterType,
   gasDiffers,
+  importFile,
   newId,
   normaliseName,
   type ComputerDive,
@@ -111,9 +112,20 @@ export interface Chunk {
   // The apply's last chunk, after which the summary is complete.
   last: boolean
   dives: ChunkDive[]
+  // What the file held, for the Import screen; absent from older entries.
+  file?: ImportFile
   // The gas is compared (see importGas); a replay of an older entry leaves
   // it alone, as it was applied, so a restore matches the log.
   gasCompared?: true
+}
+
+// How many computer dives the file held and the days they span (null when
+// every one was imported before), and the computer it names, if one.
+export interface ImportFile {
+  dives: number
+  from: string | null
+  to: string | null
+  computerModel: string | null
 }
 
 interface LastImport {
@@ -121,6 +133,7 @@ interface LastImport {
   at: string
   complete: boolean
   summary: ImportSummary
+  file?: ImportFile
 }
 
 export function lastImport(db: Db): LastImport | null {
@@ -381,6 +394,7 @@ export function applyChunk(db: Db, chunk: Chunk, at: Date) {
       at: at.toISOString(),
       complete: chunk.last,
       summary,
+      file: chunk.file ?? (last?.id === chunk.importId ? last.file : undefined),
     } satisfies LastImport)
   )
 }
@@ -620,6 +634,7 @@ export function applyImport(
     .pluck()
     .get(id)!
 
+  const file: ImportFile = importFile(preview)
   let current = preview
   for (const [i, chunkDives] of chunks.entries()) {
     const chunk: Chunk = {
@@ -627,6 +642,7 @@ export function applyImport(
       alreadyImported: preview.alreadyImported,
       last: i === chunks.length - 1,
       dives: chunkDives,
+      file,
       gasCompared: true,
     }
     try {
