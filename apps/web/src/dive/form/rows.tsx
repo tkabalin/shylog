@@ -147,7 +147,7 @@ export const pressedRow =
 
 // Small inline buttons dim on touch-down and recover on release, as the
 // bar buttons do.
-const pressedButton =
+export const pressedButton =
   "transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
 
 // The board's borderless, right-aligned input. 16 px text, so iOS doesn't
