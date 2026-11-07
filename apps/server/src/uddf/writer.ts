@@ -6,6 +6,7 @@ import {
   celsiusToKelvin,
   currents,
   cylinderMaterials,
+  defaultWaterType,
   diveTypes,
   entries,
   keysOf,
@@ -20,6 +21,7 @@ import {
   type DiveType,
   type Entry,
   type ThermalComfort,
+  type WaterType,
   type Workload,
 } from "@shylog/core"
 
@@ -64,6 +66,7 @@ interface DiveRow {
   thermalComfort: ThermalComfort | null
   averageDepth: number | null
   surfaceInterval: number | null
+  override: number
   weight: number | null
   cylinderMaterial: CylinderMaterial | null
   cylinderVolume: number | null
@@ -86,7 +89,8 @@ const diveColumns = `
   max_temperature AS maxTemperature, visibility,
   visibility_rating AS visibilityRating, workload,
   thermal_comfort AS thermalComfort, average_depth AS averageDepth,
-  surface_interval AS surfaceInterval, weight,
+  surface_interval AS surfaceInterval,
+  surface_interval_override AS override, weight,
   cylinder_material AS cylinderMaterial, cylinder_volume AS cylinderVolume,
   oxygen, start_pressure AS startPressure, end_pressure AS endPressure,
   notable_animals AS notableAnimals, gear_details AS gearDetails, notes,
@@ -130,7 +134,16 @@ function build(db: Db) {
   )
   const trips = names("trips")
   const diveCentres = names("dive_centres")
-  const regions = names("regions")
+  const regions = new Map(
+    all<{ id: string; name: string; countryCode: string }>(
+      "SELECT id, name, country_code AS countryCode FROM regions"
+    ).map((row) => [row.id, row])
+  )
+  const centreRegions = new Map(
+    all<{ id: string; regionId: string }>(
+      "SELECT id, region_id AS regionId FROM dive_centres WHERE region_id IS NOT NULL"
+    ).map((row) => [row.id, regions.get(row.regionId)!])
+  )
 
   const linked = (table: string) =>
     byDive(
@@ -205,20 +218,32 @@ function build(db: Db) {
   )
 
   // Every person, dive professionals too, as UDDF has no other kind; the
-  // role on each dive stays in the database.
+  // role on each dive is marked in its <shylog>.
   const people = all<{ id: string; name: string }>(
     "SELECT id, name FROM people ORDER BY id"
   ).map(({ id, name }) => element("buddy", [personal(name)], ` id="${id}"`))
 
-  const sites = all<{
+  const siteRows = all<{
     id: string
     name: string
     countryCode: string
     regionId: string | null
     bodyOfWater: BodyOfWater | null
+    waterType: WaterType
   }>(
-    "SELECT id, name, country_code AS countryCode, region_id AS regionId, body_of_water AS bodyOfWater FROM sites ORDER BY id"
-  ).map((site) =>
+    "SELECT id, name, country_code AS countryCode, region_id AS regionId, body_of_water AS bodyOfWater, water_type AS waterType FROM sites ORDER BY id"
+  )
+  // UDDF has no water type, so a dive's <shylog> carries its site's when it
+  // isn't the one the body of water implies, which a re-import assumes.
+  const waterTypes = new Map(
+    siteRows
+      .filter(
+        (site) =>
+          site.waterType !== defaultWaterType(site.bodyOfWater ?? undefined)
+      )
+      .map((site) => [site.id, site.waterType])
+  )
+  const sites = siteRows.map((site) =>
     element(
       "site",
       [
@@ -230,7 +255,10 @@ function build(db: Db) {
         // The schema requires a location, so a site with no region writes
         // an empty one, which a re-import reads as no region.
         element("geography", [
-          leaf("location", site.regionId ? regions.get(site.regionId)! : ""),
+          leaf(
+            "location",
+            site.regionId ? regions.get(site.regionId)!.name : ""
+          ),
           element("address", [leaf("country", site.countryCode)]),
         ]),
       ],
@@ -262,6 +290,9 @@ function build(db: Db) {
 
   function writeDive(dive: DiveRow): Xml {
     const tagKeys = tagsOf.get(dive.id)
+    const centreRegion = dive.diveCentreId
+      ? centreRegions.get(dive.diveCentreId)
+      : undefined
     const shylog = element(
       "shylog",
       [
@@ -270,6 +301,10 @@ function build(db: Db) {
         ...keysOf(tags)
           .filter((key) => tagKeys?.includes(key))
           .map((key) => leaf("tag", key)),
+        // UDDF knows only buddies, so the professionals among the links.
+        ...(professionals.get(dive.id) ?? []).map((id) =>
+          leaf("professional", id)
+        ),
         // UDDF's trips and dive bases need data Shylog doesn't keep (a
         // rating, trip parts, a link), so both are Shylog's own.
         leaf("tripId", dive.tripId),
@@ -279,6 +314,9 @@ function build(db: Db) {
           "diveCentreName",
           dive.diveCentreId && diveCentres.get(dive.diveCentreId)
         ),
+        leaf("diveCentreRegion", centreRegion?.name),
+        leaf("diveCentreRegionCountry", centreRegion?.countryCode),
+        leaf("siteWaterType", waterTypes.get(dive.siteId)),
         leaf("surge", dive.surge),
         leaf("surface", dive.surface),
         leaf("weather", dive.weather),
@@ -286,6 +324,8 @@ function build(db: Db) {
         leaf("visibilityRating", dive.visibilityRating),
         leaf("gearDetails", dive.gearDetails),
         dive.ignored ? leaf("ignored", "true") : null,
+        // Otherwise the interval is worked out again, as it was here.
+        dive.override ? leaf("surfaceIntervalOverride", "true") : null,
       ],
       ` xmlns="${shylogNamespace}"`
     )
