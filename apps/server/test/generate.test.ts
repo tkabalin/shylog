@@ -51,6 +51,24 @@ describe("the synthetic fixtures", () => {
     expect(dives.every((dive) => dive.oxygen === 320)).toBe(true)
   })
 
+  it("give dive 63 the standard elements Shylog doesn't model", () => {
+    const xml = generated["extras.uddf"]
+    const [dive] = readUddf(xml, { fragments: true })
+    expect(dive.events).toContainEqual({ type: "deco", start: 1200, end: null })
+    const waypoints = xml.match(/<waypoint>/g)!.length
+    expect(xml.match(/<cns>/g)).toHaveLength(waypoints)
+    expect(xml.match(/<heading>/g)).toHaveLength(waypoints)
+    for (const part of [
+      '<switchmix ref="mix(18/45)"/>',
+      "<he>0.45</he>",
+      "<decostop ",
+      "<airtemperature>",
+      "<noflighttime>",
+      "<highestpo2>",
+    ])
+      expect(dive.fragment).toContain(part)
+  })
+
   it("start a dive at 23:40 that ends the next day", () => {
     const [dive] = read("midnight.uddf")
     expect(dive.startTime).toBe("2026-07-22T23:40:00")
