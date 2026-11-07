@@ -3,7 +3,7 @@ import { bodyLimit } from "hono/body-limit"
 
 import { Rejected } from "../apply/rejected.ts"
 import { factory } from "../factory.ts"
-import { applyImport } from "../import/apply.ts"
+import { applyImport, lastImport } from "../import/apply.ts"
 import {
   discardPreview,
   pendingPreview,
@@ -71,9 +71,18 @@ export const imports = factory
       return c.json(storePreview(c.var.deps.db, xml))
     }
   )
-  .get("/import/pending", (c) =>
-    c.json({ preview: pendingPreview(c.var.deps.db) })
-  )
+  // The Import screen's two cards: a preview waiting for review, and the
+  // last import that finished (one a failed chunk left is still pending).
+  .get("/import/pending", (c) => {
+    const db = c.var.deps.db
+    const last = lastImport(db)
+    return c.json({
+      preview: pendingPreview(db),
+      lastImport: last?.complete
+        ? { at: last.at, file: last.file ?? null, ...last.summary }
+        : null,
+    })
+  })
   .patch("/import/:id", json(importOffsetRequest), (c) =>
     c.json(setDayOffset(c.var.deps.db, c.req.param("id"), c.req.valid("json")))
   )
