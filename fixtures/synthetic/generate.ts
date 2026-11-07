@@ -85,6 +85,39 @@ const daily = (group: string, from: string, count: number) =>
     ).replaceAll(/ id="(id\d+)"/g, ` id="$1-${n}"`)
   )
 
+// Standard elements Shylog doesn't model, for pass-through to keep: CNS and
+// a heading on every sample, a switch to trimix and back, a safety stop
+// with a deco alarm, the air temperature and two figures after the dive.
+function withExtras(group: string) {
+  const at = (time: number, add: string) =>
+    group.replace(
+      new RegExp(
+        `(<divetime>${time}</divetime>[\\s\\S]*?)(\\n\\s*</waypoint>)`
+      ),
+      `$1\n            ${add}$2`
+    )
+  group = at(600, '<switchmix ref="mix(18/45)"/>')
+  group = at(900, '<switchmix ref="mix(32/0)"/>')
+  group = at(
+    1200,
+    '<alarm>deco</alarm>\n            <decostop kind="safety" decodepth="5" duration="180"/>'
+  )
+  return group
+    .replace(
+      /(<divetime>(\d+)<\/divetime>)/g,
+      (tag, _, time: string) =>
+        `<cns>${Number(time) / 10_000}</cns>\n            ${tag}\n            <heading>90</heading>`
+    )
+    .replace(
+      /(<datetime>[^<]+<\/datetime>)/,
+      "$1\n          <airtemperature>301.15</airtemperature>"
+    )
+    .replace(
+      /(\n\s*)(<greatestdepth>)/,
+      "$1<noflighttime>43200</noflighttime>$1<highestpo2>130000</highestpo2>$1$2"
+    )
+}
+
 export function generate(): Record<string, string> {
   return {
     // The Sodwana week (dives 52 to 65) on a clock 5 hours behind the site,
@@ -119,6 +152,11 @@ export function generate(): Record<string, string> {
     "many.uddf": file(
       "Dive 63 on each of 120 days from 1 January 2027, with a sample every five minutes.",
       daily(thinned(dive(63)), "2027-01-01", 120)
+    ),
+    "extras.uddf": file(
+      "Dive 63 with standard elements Shylog doesn't model: CNS and heading on each sample, a switch to trimix 18/45 and back, a safety stop with a deco alarm, the air temperature, no-fly time and highest PO2.",
+      [withExtras(dive(63))],
+      `    <mix id="mix(18/45)">\n      <name>TX 18/45</name>\n      <o2>0.18</o2>\n      <he>0.45</he>\n    </mix>\n`
     ),
     // Dive 63 (32.66 m) on EANx36: about 1.54 bar at depth, over 1.4.
     "high-po2.uddf": file(

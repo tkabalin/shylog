@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto"
 
+import type { Element } from "@xmldom/xmldom"
+
 import {
   barToPascals,
   bodiesOfWater,
@@ -9,6 +11,7 @@ import {
   defaultWaterType,
   diveTypes,
   entries,
+  fractionToTenths,
   keysOf,
   millilitresToCubicMetres,
   tags,
@@ -29,6 +32,12 @@ import { readSettings } from "../apply/settings.ts"
 import { byDive } from "../db/by-dive.ts"
 import type { Db } from "../db/open.ts"
 import { selectEvents, selectSamples } from "../profile.ts"
+import {
+  passedMix,
+  passThrough,
+  schemaOrder,
+  type Passed,
+} from "./passthrough.ts"
 // Air as the import reads it; a dive with Nitrox off breathes it.
 import { air as airTenths } from "./reader.ts"
 import {
@@ -117,6 +126,17 @@ const tankId = (dive: DiveRow) =>
 const computerId = (model: string) =>
   `computer-${model.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${createHash("sha256").update(model).digest("hex").slice(0, 6)}`
 
+// Children in the schema's order, Shylog's own and those passed through
+// alike, each known by its tag; the sort is stable, so repeats keep theirs.
+function inPlace(order: readonly string[], children: (Xml | null)[]) {
+  return children
+    .filter((child) => child != null)
+    .map((xml) => ({ xml, at: order.indexOf(/^<(\w+)/.exec(xml[0])![1]) }))
+    .sort((a, b) => a.at - b.at)
+    .map((child) => child.xml)
+}
+const lines = (passed: Passed[] = []) => passed.map((item) => [item.xml])
+
 export function writeUddf(db: Db): { xml: string; dives: number } {
   return db.transaction(() => build(db))()
 }
@@ -166,6 +186,11 @@ function build(db: Db) {
 
   const samplesOf = selectSamples(db)
   const eventsOf = selectEvents(db)
+  const fragments = new Map(
+    all<{ diveId: string; fragment: string }>(
+      "SELECT dive_id AS diveId, fragment FROM import_raw"
+    ).map((row) => [row.diveId, row.fragment])
+  )
 
   const tanks = new Map<string, DiveRow>()
   const oxygens = new Set<number>()
@@ -269,6 +294,38 @@ function build(db: Db) {
     )
   )
 
+  // A mix a passed-through gas switch names: one of Shylog's own when it is
+  // oxygen alone, else the file's own under an id made from its make-up.
+  const passedMixes = new Map<string, string>()
+  function passedMixId(mix: Element) {
+    const amount = (name: string) => {
+      const value = mix
+        .getElementsByTagNameNS(uddfNamespace, name)[0]
+        ?.textContent?.trim()
+      return value ? Number(value) : null
+    }
+    const o2 = amount("o2")
+    const he = amount("he") ?? 0
+    const tenths = o2 == null ? airTenths : fractionToTenths(o2)
+    if (!he) {
+      oxygens.add(tenths)
+      return mixId(tenths)
+    }
+    const id = `${mixId(tenths)}-${fractionToTenths(he)}`
+    if (!passedMixes.has(id)) passedMixes.set(id, passedMix(mix, id))
+    return id
+  }
+
+  const groups = dives.map((dive) =>
+    element(
+      "repetitiongroup",
+      [writeDive(dive)],
+      // Each dive in its own group, named after it so the id is stable.
+      ` id="group-${dive.id}"`
+    )
+  )
+
+  // After the dives, which add the mixes their gas switches name.
   const mixes = [...oxygens]
     .sort((a, b) => a - b)
     .map((tenths) =>
@@ -281,15 +338,7 @@ function build(db: Db) {
         ` id="${mixId(tenths)}"`
       )
     )
-
-  const groups = dives.map((dive) =>
-    element(
-      "repetitiongroup",
-      [writeDive(dive)],
-      // Each dive in its own group, named after it so the id is stable.
-      ` id="group-${dive.id}"`
-    )
-  )
+    .concat([...passedMixes.keys()].sort().map((id) => [passedMixes.get(id)!]))
 
   function writeDive(dive: DiveRow): Xml {
     const tagKeys = tagsOf.get(dive.id)
@@ -333,26 +382,39 @@ function build(db: Db) {
       ` xmlns="${shylogNamespace}"`
     )
     const tank = tankId(dive)
+    const fragment = fragments.get(dive.id)
+    const extra = fragment
+      ? passThrough(fragment, mixId(dive.oxygen ?? airTenths), passedMixId)
+      : null
     return element(
       "dive",
       [
-        element("informationbeforedive", [
-          // Buddies before the site: Subsurface puts ", " between names by
-          // looking only at the next link.
-          ...(buddies.get(dive.id) ?? []).map(link),
-          ...(professionals.get(dive.id) ?? []).map(link),
-          link(dive.siteId),
-          leaf("divenumber", dive.number),
-          leaf("datetime", dive.startTime),
-          element("surfaceintervalbeforedive", [
-            dive.surfaceInterval == null
-              ? ["<infinity/>"]
-              : leaf("passedtime", dive.surfaceInterval),
-          ]),
-          leaf("platform", dive.entry && entries[dive.entry].uddf),
-        ]),
-        shylog.length > 1 ? element("applicationdata", [shylog]) : null,
-        writeSamples(dive.id),
+        element(
+          "informationbeforedive",
+          inPlace(schemaOrder.informationbeforedive, [
+            // Buddies before the site: Subsurface puts ", " between names by
+            // looking only at the next link.
+            ...(buddies.get(dive.id) ?? []).map(link),
+            ...(professionals.get(dive.id) ?? []).map(link),
+            link(dive.siteId),
+            leaf("divenumber", dive.number),
+            leaf("datetime", dive.startTime),
+            element("surfaceintervalbeforedive", [
+              dive.surfaceInterval == null
+                ? ["<infinity/>"]
+                : leaf("passedtime", dive.surfaceInterval),
+            ]),
+            leaf("platform", dive.entry && entries[dive.entry].uddf),
+            ...lines(extra?.informationbeforedive),
+          ])
+        ),
+        shylog.length > 1 || extra?.applicationdata.length
+          ? element("applicationdata", [
+              shylog.length > 1 ? shylog : null,
+              ...lines(extra?.applicationdata),
+            ])
+          : null,
+        writeSamples(dive.id, extra?.waypoints),
         // UDDF requires a start pressure here, but without one the dive
         // would lose its gas and cylinder, so tankdata stays (see Testing).
         // The mix first: Subsurface takes the gas from the first link.
@@ -371,7 +433,9 @@ function build(db: Db) {
             "tankpressureend",
             dive.endPressure == null ? null : barToPascals(dive.endPressure)
           ),
+          ...lines(extra?.tankdata),
         ]),
+        ...(extra?.moreTankdata ?? []).map((xml) => [xml]),
         element("informationafterdive", [
           leaf("greatestdepth", dive.maxDepth),
           leaf("averagedepth", dive.averageDepth),
@@ -400,6 +464,8 @@ function build(db: Db) {
             : null,
           // One paragraph with its newlines: Subsurface reads only the first.
           dive.notes ? element("notes", [leaf("para", dive.notes)]) : null,
+          // Any order is allowed here.
+          ...lines(extra?.informationafterdive),
         ]),
       ],
       ` id="${dive.id}"`
@@ -409,7 +475,7 @@ function build(db: Db) {
   // Events go back as the alarms they were read from: an ascent pair at
   // both ends, anything else at its time. Each was read off a waypoint, so
   // its time has a sample.
-  function writeSamples(diveId: string) {
+  function writeSamples(diveId: string, passed?: Map<number, Passed[]>) {
     const samples = samplesOf.all(diveId)
     if (!samples.length) return null
     const alarms = new Map<number, string[]>()
@@ -421,8 +487,8 @@ function build(db: Db) {
     }
     return element(
       "samples",
-      samples.map((sample) =>
-        element("waypoint", [
+      samples.map((sample) => {
+        const own = [
           ...(alarms.get(sample.time) ?? []).map((type) => leaf("alarm", type)),
           leaf("depth", sample.depth),
           leaf("divetime", sample.time),
@@ -431,8 +497,14 @@ function build(db: Db) {
             sample.pressure == null ? null : barToPascals(sample.pressure)
           ),
           leaf("temperature", kelvin(sample.temperature)),
-        ])
-      )
+        ]
+        // Shylog's own are in order already; only passed ones need placing.
+        const extra = passed?.get(sample.time)
+        return element(
+          "waypoint",
+          extra ? inPlace(schemaOrder.waypoint, [...own, ...lines(extra)]) : own
+        )
+      })
     )
   }
 
