@@ -174,6 +174,18 @@ describe("the detail's banner", () => {
 })
 
 describe("typing after answering a difference", () => {
+  it("puts the saved value back when Keep mine follows typing", async () => {
+    const onSave = show()
+    type(document.querySelector("#field-duration"), "50")
+    click(button("Keep mine", group("duration")!))
+    expect(
+      document.querySelector<HTMLInputElement>("#field-duration")!.value
+    ).toBe("45")
+    const values = await save(onSave)
+    expect(values.dismiss).toEqual(["duration"])
+    expect(changedFields(fromDive(dive, log), values)).toEqual({})
+  })
+
   it("saves a value typed after Keep mine", async () => {
     const onSave = show()
     click(button("Keep mine", group("duration")!))
