@@ -1,4 +1,10 @@
-import type { MouseEvent, ReactNode } from "react"
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from "react"
 import { IconChevronLeft } from "@tabler/icons-react"
 import { Link, useRouter, type LinkProps } from "@tanstack/react-router"
 
@@ -87,16 +93,11 @@ export function PageBar({
         </>
       ) : (
         <>
-          <Link
-            {...(to as LinkProps)}
-            replace
-            activeOptions={{ exact: true }}
+          <BackLink
+            to={to as LinkProps}
+            label={label}
             onClick={(event) => void goBack(event)}
-            className="inline-flex h-11 items-center gap-0.5 justify-self-start pr-2 pl-0.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
-          >
-            <IconChevronLeft aria-hidden className="size-5.5 stroke-[2.25]" />
-            {label}
-          </Link>
+          />
           {typeof title === "string" ? (
             <h1 className="max-w-50 truncate text-base font-semibold tracking-[-0.015em]">
               {title}
@@ -108,5 +109,67 @@ export function PageBar({
         </>
       )}
     </header>
+  )
+}
+
+// The phone bar's back button. As on iOS, a parent's name too long for the
+// space beside the title reads "Back" rather than wrapping onto two lines.
+function BackLink({
+  to,
+  label,
+  onClick,
+}: {
+  to: LinkProps
+  label: string
+  onClick: (event: MouseEvent) => void
+}) {
+  const cell = useRef<HTMLSpanElement>(null)
+  const link = useRef<HTMLAnchorElement>(null)
+  const shown = useRef<HTMLSpanElement>(null)
+  const full = useRef<HTMLSpanElement>(null)
+  const [fits, setFits] = useState(true)
+  useLayoutEffect(() => {
+    const check = () => {
+      // The chevron and padding, whichever label is showing, and clear
+      // space before the title, which iOS keeps too.
+      const chrome = link.current!.offsetWidth - shown.current!.offsetWidth
+      setFits(
+        full.current!.offsetWidth + chrome + 12 <= cell.current!.clientWidth
+      )
+    }
+    check()
+    // jsdom, which the unit tests run in, has none.
+    if (typeof ResizeObserver === "undefined") return
+    const observer = new ResizeObserver(check)
+    observer.observe(cell.current!)
+    return () => observer.disconnect()
+  }, [label])
+  return (
+    <span ref={cell} className="relative flex min-w-0 justify-self-stretch">
+      <span
+        ref={full}
+        aria-hidden
+        className="invisible absolute text-base font-medium whitespace-nowrap"
+      >
+        {label}
+      </span>
+      <Link
+        ref={link}
+        {...to}
+        replace
+        activeOptions={{ exact: true }}
+        aria-label={label}
+        onClick={onClick}
+        className="inline-flex h-11 max-w-full items-center gap-0.5 pr-2 pl-0.5 text-base font-medium whitespace-nowrap text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
+      >
+        <IconChevronLeft
+          aria-hidden
+          className="size-5.5 shrink-0 stroke-[2.25]"
+        />
+        <span ref={shown} className="truncate">
+          {fits ? label : "Back"}
+        </span>
+      </Link>
+    </span>
   )
 }
