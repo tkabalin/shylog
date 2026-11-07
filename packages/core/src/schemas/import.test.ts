@@ -25,6 +25,7 @@ describe("importPreviewSchema", () => {
     const preview = {
       id: "import-1",
       basedOnVersion: "v1",
+      revision: 2,
       createdAt: "2026-11-06T10:00:00.000Z",
       expiresAt: "2026-11-13T10:00:00.000Z",
       computerModel: "Suunto D4i",
@@ -70,6 +71,7 @@ describe("importOffsetRequest", () => {
 
 describe("importApplyRequest", () => {
   const request = {
+    revision: 0,
     pairs: [{ computerDive: "id119", diveId: "dive-1" }],
     add: ["id120"],
     include: ["id121"],

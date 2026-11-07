@@ -1,8 +1,9 @@
-import { importOffsetRequest } from "@shylog/core"
+import { importApplyRequest, importOffsetRequest } from "@shylog/core"
 import { bodyLimit } from "hono/body-limit"
 
 import { Rejected } from "../apply/rejected.ts"
 import { factory } from "../factory.ts"
+import { applyImport } from "../import/apply.ts"
 import {
   discardPreview,
   pendingPreview,
@@ -76,6 +77,15 @@ export const imports = factory
   .patch("/import/:id", json(importOffsetRequest), (c) =>
     c.json(setDayOffset(c.var.deps.db, c.req.param("id"), c.req.valid("json")))
   )
+  // A failed chunk is a 500 that still says what was applied before it.
+  .post("/import/:id/apply", json(importApplyRequest), (c) => {
+    const result = applyImport(
+      c.var.deps.db,
+      c.req.param("id"),
+      c.req.valid("json")
+    )
+    return c.json(result, result.status === "failed" ? 500 : 200)
+  })
   .delete("/import/:id", (c) => {
     discardPreview(c.var.deps.db, c.req.param("id"))
     return c.body(null, 204)

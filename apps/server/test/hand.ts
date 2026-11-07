@@ -3,10 +3,8 @@ import { opVersion, uploadDraftRequest, type DiveFields } from "@shylog/core"
 import { applyDraft } from "../src/apply/draft.ts"
 import type { Db } from "../src/db/open.ts"
 
-export type Logged = Pick<
-  DiveFields,
-  "startTime" | "duration" | "maxDepth" | "averageDepth"
-> & { id: `dive-${string}` }
+export type Logged = Pick<DiveFields, "startTime" | "duration" | "maxDepth"> &
+  Partial<Omit<DiveFields, "siteId">> & { id: `dive-${string}` }
 
 let count = 0
 

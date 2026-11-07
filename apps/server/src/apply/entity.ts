@@ -276,6 +276,26 @@ export function applyEntityOp(
   journal({ type: op.type, payload: op, opId: op.opId })
 }
 
+// An import's entity: one with the same key is used as it is, else it is
+// made under the id the import chose. Returns the id it ended up with.
+export function matchOrCreate(
+  db: Db,
+  kind: EntityKind,
+  id: string,
+  fields: Fields
+): string {
+  const match = matching(db, kind, fields)
+  if (match !== undefined) return match
+  save(db, kind, id, fields, keyOf(kind, fields), null)
+  return id
+}
+
+// The entity these fields would match, if one exists.
+export const matching = (db: Db, kind: EntityKind, fields: Fields) =>
+  prepared<[string], string>(db, `SELECT id FROM ${tables[kind]} WHERE key = ?`)
+    .pluck()
+    .get(keyOf(kind, fields))
+
 // `PUT /api/entities/:kind/:id`: a new id creates the entity from the full
 // fields, a known one takes the changed fields. True when it changed
 // anything, so a repeated save writes nothing.

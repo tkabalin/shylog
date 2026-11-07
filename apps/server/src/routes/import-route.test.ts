@@ -201,3 +201,42 @@ describe("the preview's other routes", () => {
     ).toEqual({ preview: null })
   })
 })
+
+describe("POST /api/import/:id/apply", () => {
+  it("applies the review's choices as JSON, and refuses a malformed body", async () => {
+    const { db, app } = setup()
+    const preview = importPreviewSchema.parse(
+      await (await upload(app, abroad)).json()
+    )
+    const path = `/api/import/${preview.id}/apply`
+    const bad = await send(app, "POST", path, { pairs: [], add: [] })
+    expect(bad.status).toBe(400)
+
+    const res = await send(app, "POST", path, {
+      revision: preview.revision,
+      pairs: [
+        { computerDive: preview.pairs[0].computerDive.ref, diveId: "dive-63" },
+      ],
+      add: preview.newDives.map((dive) => dive.ref),
+      include: [],
+    })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({
+      status: "applied",
+      paired: 1,
+      added: 15,
+      differing: ["dive-63"],
+    })
+    expect(db.prepare("SELECT count(*) FROM dives").pluck().get()).toBe(16)
+    expect(
+      (
+        await send(app, "POST", "/api/import/import-gone/apply", {
+          revision: 0,
+          pairs: [],
+          add: [],
+          include: [],
+        })
+      ).status
+    ).toBe(404)
+  })
+})
