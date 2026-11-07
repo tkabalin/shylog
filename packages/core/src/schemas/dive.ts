@@ -103,8 +103,31 @@ export const comparedFields = [
   "duration",
   "minTemperature",
   "maxTemperature",
+  // The gas, Nitrox and the oxygen percentage as one value (see gasDiffers).
+  "oxygen",
 ] as const
 export type ComparedField = (typeof comparedFields)[number]
+
+// The computer's gas as `oxygen`'s computer value: tenths of a per cent,
+// with air as 210, since an imported 21.0 % is air.
+export const computerAir = 210
+export const computerGas = (gas: { nitrox?: boolean; oxygen?: number }) =>
+  gas.nitrox && gas.oxygen != null ? gas.oxygen : computerAir
+
+// Whether a hand gas disagrees with the computer's. Computers record whole
+// per cent, so an analysed 32.4 % isn't flagged against the computer's 32 %,
+// and the hand decimals are never lost to it.
+export function gasDiffers(
+  hand: { nitrox?: boolean; oxygen?: number },
+  computer: number
+) {
+  if (computer === computerAir) return !!hand.nitrox
+  return (
+    !hand.nitrox ||
+    hand.oxygen == null ||
+    Math.round(hand.oxygen / 10) !== Math.round(computer / 10)
+  )
+}
 
 type Checked = {
   [

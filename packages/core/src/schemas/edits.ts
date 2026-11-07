@@ -33,8 +33,12 @@ export const patchDiveRequest = z
   )
   .refine(
     ({ fields = {}, adopt = [], dismiss = [] }) =>
-      [...adopt, ...dismiss].every((field) => fields[field] === undefined) &&
-      adopt.every((field) => !dismiss.includes(field)),
+      [...adopt, ...dismiss].every(
+        (field) =>
+          fields[field] === undefined &&
+          // The gas spans both columns, so a typed Nitrox is typing it too.
+          (field !== "oxygen" || fields.nitrox === undefined)
+      ) && adopt.every((field) => !dismiss.includes(field)),
     "A field is either typed, adopted or dismissed"
   )
 export type PatchDiveRequest = z.output<typeof patchDiveRequest>

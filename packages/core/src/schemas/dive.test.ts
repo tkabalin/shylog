@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-import { diveFieldsPatch, diveFieldsSchema } from "./dive.ts"
+import {
+  computerAir,
+  computerGas,
+  diveFieldsPatch,
+  diveFieldsSchema,
+  gasDiffers,
+} from "./dive.ts"
 
 // Fixture dive 63: EANx32 to 32.66 m on 22 July 2026.
 const dive = {
@@ -262,5 +268,27 @@ describe("diveFieldsPatch", () => {
       diveFieldsPatch.safeParse({ visibility: 8, visibilityRating: null })
         .success
     ).toBe(true)
+  })
+})
+
+describe("the gas as a compared value", () => {
+  it("stores the computer's air as 210 and nitrox as its oxygen", () => {
+    expect(computerGas({ nitrox: false })).toBe(computerAir)
+    expect(computerGas({})).toBe(computerAir)
+    expect(computerGas({ nitrox: true, oxygen: 320 })).toBe(320)
+  })
+
+  it("flags a hand nitrox against the computer's air", () => {
+    expect(gasDiffers({ nitrox: true, oxygen: 320 }, computerAir)).toBe(true)
+    expect(gasDiffers({ nitrox: false }, computerAir)).toBe(false)
+    expect(gasDiffers({}, computerAir)).toBe(false)
+  })
+
+  it("compares nitrox mixes at the computer's whole per cent", () => {
+    expect(gasDiffers({ nitrox: true, oxygen: 324 }, 320)).toBe(false)
+    expect(gasDiffers({ nitrox: true, oxygen: 325 }, 320)).toBe(true)
+    expect(gasDiffers({ nitrox: true, oxygen: 360 }, 320)).toBe(true)
+    expect(gasDiffers({ nitrox: false }, 320)).toBe(true)
+    expect(gasDiffers({ nitrox: true }, 320)).toBe(true)
   })
 })
