@@ -42,6 +42,15 @@ describe("the synthetic fixtures", () => {
     )
   })
 
+  it("hold 120 dives on 120 days, each its own", () => {
+    const dives = read("many.uddf")
+    expect(dives).toHaveLength(120)
+    expect(new Set(dives.map((dive) => dive.ref)).size).toBe(120)
+    expect(dives[0].startTime).toBe("2027-01-01T08:12:19")
+    expect(dives[119].startTime).toBe("2027-04-30T08:12:19")
+    expect(dives.every((dive) => dive.oxygen === 320)).toBe(true)
+  })
+
   it("start a dive at 23:40 that ends the next day", () => {
     const [dive] = read("midnight.uddf")
     expect(dive.startTime).toBe("2026-07-22T23:40:00")

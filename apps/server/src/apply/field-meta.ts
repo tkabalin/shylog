@@ -44,6 +44,24 @@ const upsert = (
 export const recordHand = (db: Db, diveId: string, field: string) =>
   upsert(db, diveId, field, "hand", null, 0)
 
+// An empty field an import filled, from the computer or, reading Shylog's
+// own export, from its <shylog> block, which holds hand values.
+export const recordFilled = (
+  db: Db,
+  diveId: string,
+  field: string,
+  source: Meta["source"]
+) => upsert(db, diveId, field, source, null, 0)
+
+// A computer value an import found differing from the hand value, kept to
+// adopt or dismiss; a new reading asks again even if the last was dismissed.
+export const recordDiffering = (
+  db: Db,
+  diveId: string,
+  field: string,
+  computerValue: unknown
+) => upsert(db, diveId, field, "hand", computerValue, 0)
+
 // A hand edit, `after` undefined when cleared. The computer's value and a
 // dismissal stay until adopted; a cleared computer value stays an empty hand
 // value no import refills, and any other cleared field forgets its source so

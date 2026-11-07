@@ -1,10 +1,15 @@
+import { createHash } from "node:crypto"
+
 import {
   newId,
   type ComputerDive,
+  type DiveId,
   type ImportOffsetRequest,
   type ImportPreview,
 } from "@shylog/core"
 
+import { storedDive } from "../apply/dive.ts"
+import { metaOf } from "../apply/field-meta.ts"
 import { Rejected } from "../apply/rejected.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
@@ -21,6 +26,20 @@ const week = 7 * 24 * 60 * 60 * 1000
 
 type Entry = ComputerDive & { reason: LeftOut | null }
 
+// Each hand dive a preview proposed against, by its day and a digest of all
+// it holds, so apply can tell which changed since (see For a matched dive in
+// the spec). Kept with the preview but not sent to the app.
+export type Hands = Record<string, { day: string; digest: string }>
+export type StoredPreview = ImportPreview & {
+  hands: Hands
+  // The hand dives the last re-proposal was for, said again to a request
+  // made before it.
+  asked: DiveId[]
+  // Computer dives a failed apply's earlier chunks applied, which a retry
+  // may still name.
+  applied: string[]
+}
+
 // Live dives no computer dive has been paired with, the only ones an
 // import pairs or lists.
 const handDives = (db: Db) =>
@@ -34,9 +53,54 @@ const handDives = (db: Db) =>
      ORDER BY start_time, seq`
   ).all()
 
+function digest(db: Db, id: string) {
+  const meta = metaOf(db, id)
+  return createHash("sha256")
+    .update(JSON.stringify([storedDive(db, id, meta)!.fields, [...meta]]))
+    .digest("hex")
+}
+
+// The hand dives on these days as they are now.
+function handsOn(db: Db, dates: readonly string[]): Hands {
+  return Object.fromEntries(
+    handDives(db)
+      .filter((hand) => dates.includes(dateOf(hand.startTime)))
+      .map((hand) => [
+        hand.id,
+        { day: dateOf(hand.startTime), digest: digest(db, hand.id) },
+      ])
+  )
+}
+
+// The hand dives that changed since the preview read them: edited, deleted,
+// given a computer dive, or newly logged on one of its days.
+export function changedHands(db: Db, preview: StoredPreview) {
+  const now = handsOn(
+    db,
+    preview.days.map((day) => day.date)
+  )
+  const ids = new Set([...Object.keys(now), ...Object.keys(preview.hands)])
+  return [...ids]
+    .filter((id) => now[id]?.digest !== preview.hands[id]?.digest)
+    .sort()
+    .map((id) => ({ id, days: [now[id]?.day, preview.hands[id]?.day] }))
+}
+
+// The computer's extremes are its samples' (see What the D4i export
+// contains in the spec), unless the file gives a minimum. Shylog's export
+// gives both where the log had them, so none is made up from its samples.
+export function computerTemperatures(dive: ReadDive) {
+  if (dive.fromShylog) return { min: dive.minTemperature, max: null }
+  const temperatures = sampleTemperatures(dive.samples)
+  return {
+    min: dive.minTemperature ?? temperatures.min,
+    max: temperatures.max,
+  }
+}
+
 // The start is shifted by the day's offset once the day is proposed.
 function entry(dive: ReadDive, day: string, reason: LeftOut | null): Entry {
-  const temperatures = sampleTemperatures(dive.samples)
+  const temperatures = computerTemperatures(dive)
   return {
     ref: dive.ref,
     day,
@@ -45,7 +109,7 @@ function entry(dive: ReadDive, day: string, reason: LeftOut | null): Entry {
     duration: dive.duration,
     maxDepth: dive.maxDepth,
     averageDepth: dive.averageDepth,
-    minTemperature: dive.minTemperature ?? temperatures.min,
+    minTemperature: temperatures.min,
     maxTemperature: temperatures.max,
     profile: sparkline(dive.samples, dive.duration),
     unsupportedGas: dive.unsupportedGas,
@@ -154,6 +218,7 @@ export function buildPreview(db: Db, xml: string, now: Date): ImportPreview {
   return {
     id: newId("import"),
     basedOnVersion: currentVersion(db)!,
+    revision: 0,
     createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + week).toISOString(),
     computerModel: models.size === 1 ? [...models][0] : null,
@@ -174,6 +239,15 @@ export function buildPreview(db: Db, xml: string, now: Date): ImportPreview {
 // and change no version. One waits at a time, so a new upload replaces it.
 export function storePreview(db: Db, xml: string, now = new Date()) {
   const preview = buildPreview(db, xml, now)
+  const stored: StoredPreview = {
+    ...preview,
+    hands: handsOn(
+      db,
+      preview.days.map((day) => day.date)
+    ),
+    asked: [],
+    applied: [],
+  }
   db.transaction(() => {
     prepared(db, "DELETE FROM import_previews").run()
     prepared(
@@ -186,7 +260,7 @@ export function storePreview(db: Db, xml: string, now = new Date()) {
       preview.basedOnVersion,
       preview.createdAt,
       preview.expiresAt,
-      JSON.stringify(preview),
+      JSON.stringify(stored),
       xml
     )
   })()
@@ -196,19 +270,58 @@ export function storePreview(db: Db, xml: string, now = new Date()) {
 // The preview awaiting review, once it hasn't expired. Reading writes
 // nothing, so it still works while saving is paused.
 export function pendingPreview(db: Db, now = new Date()) {
-  const stored = prepared<[string], string>(
+  const stored = waiting(db, now)
+  return stored ? forApp(stored.preview) : null
+}
+
+// What the app is sent: the preview without what only apply reads.
+function forApp(stored: StoredPreview): ImportPreview {
+  const preview: Partial<StoredPreview> = { ...stored }
+  delete preview.hands
+  delete preview.asked
+  delete preview.applied
+  return preview as ImportPreview
+}
+
+function waiting(db: Db, now: Date) {
+  const stored = prepared<[string], { preview: string; uddf: string }>(
     db,
-    "SELECT preview FROM import_previews WHERE expires_at > ? ORDER BY created_at DESC LIMIT 1"
-  )
-    .pluck()
-    .get(now.toISOString())
-  return stored ? (JSON.parse(stored) as ImportPreview) : null
+    "SELECT preview, uddf FROM import_previews WHERE expires_at > ? ORDER BY created_at DESC LIMIT 1"
+  ).get(now.toISOString())
+  // A preview stored before apply existed lacks what apply keeps; with no
+  // digests its first apply finds every hand dive new and asks again.
+  return stored
+    ? {
+        preview: {
+          revision: 0,
+          hands: {},
+          asked: [],
+          applied: [],
+          ...(JSON.parse(stored.preview) as Partial<StoredPreview>),
+        } as StoredPreview,
+        uddf: stored.uddf,
+      }
+    : null
+}
+
+// The preview by its id with the uploaded file, or null once it has been
+// applied, discarded or has expired.
+export function storedPreview(db: Db, id: string, now = new Date()) {
+  const stored = waiting(db, now)
+  return stored?.preview.id === id ? stored : null
 }
 
 function previewById(db: Db, id: string, now: Date) {
-  const preview = pendingPreview(db, now)
-  if (preview?.id !== id) throw new Rejected("No such import waiting", 404)
-  return preview
+  const stored = storedPreview(db, id, now)
+  if (!stored) throw new Rejected("No such import waiting", 404)
+  return stored.preview
+}
+
+export function savePreview(db: Db, preview: StoredPreview) {
+  prepared(db, "UPDATE import_previews SET preview = ? WHERE id = ?").run(
+    JSON.stringify(preview),
+    preview.id
+  )
 }
 
 // Stores a day's clock offset, or puts it back to the estimate, and proposes
@@ -223,9 +336,56 @@ export function setDayOffset(
   const preview = previewById(db, id, now)
   const day = preview.days.find((found) => found.date === request.date)
   if (!day) throw new Rejected("No dives on that day", 400, ["date"])
-  const offset = request.offset ?? day.estimatedOffset
+  const updated = propose(
+    db,
+    {
+      ...preview,
+      days: preview.days.map((found) =>
+        found === day
+          ? { ...found, offset: request.offset ?? day.estimatedOffset }
+          : found
+      ),
+    },
+    [day.date]
+  )
+  savePreview(db, { ...updated, asked: [] })
+  return forApp(updated)
+}
+
+// Proposes these days' pairs again under their offsets, against the log as
+// it is now, and reads their hand dives afresh.
+export function propose(
+  db: Db,
+  preview: StoredPreview,
+  dates: readonly string[]
+): StoredPreview {
+  const hands = handDives(db)
+  let updated = preview
+  for (const day of preview.days.filter((found) => dates.includes(found.date)))
+    updated = proposeAgain(updated, day.date, day.offset, hands)
+  // Choices sent for the earlier proposal are stale now.
+  return {
+    ...updated,
+    revision: preview.revision + 1,
+    hands: {
+      ...Object.fromEntries(
+        Object.entries(preview.hands).filter(
+          ([, hand]) => !dates.includes(hand.day)
+        )
+      ),
+      ...handsOn(db, dates),
+    },
+  }
+}
+
+function proposeAgain(
+  preview: StoredPreview,
+  date: string,
+  offset: number,
+  hands: readonly HandDive[]
+): StoredPreview {
   const others = <T extends { day: string }>(list: T[]) =>
-    list.filter((item) => item.day !== day.date)
+    list.filter((item) => item.day !== date)
   const entries: Entry[] = [
     // A paired dive is never a freedive, so a short one is a blip again
     // if the new offset unpairs it.
@@ -235,31 +395,21 @@ export function setDayOffset(
     })),
     ...preview.newDives.map((dive) => ({ ...dive, reason: null })),
     ...preview.leftOut,
-  ].filter((dive) => dive.day === day.date)
-  const proposal = proposeDay(day.date, offset, entries, handDives(db))
+  ].filter((dive) => dive.day === date)
+  const proposal = proposeDay(date, offset, entries, hands)
   // Each list stays in day order, as it was built.
   const byDay = <T extends { day: string }>(list: T[]) =>
     list.sort((a, b) => a.day.localeCompare(b.day))
-  const updated: ImportPreview = {
+  return {
     ...preview,
-    days: preview.days.map((found) =>
-      found === day ? { ...found, offset } : found
-    ),
     pairs: [
-      ...preview.pairs.filter(
-        ({ computerDive }) => computerDive.day !== day.date
-      ),
+      ...preview.pairs.filter(({ computerDive }) => computerDive.day !== date),
       ...proposal.pairs,
     ].sort((a, b) => a.computerDive.day.localeCompare(b.computerDive.day)),
     newDives: byDay([...others(preview.newDives), ...proposal.newDives]),
     unpaired: byDay([...others(preview.unpaired), ...proposal.unpaired]),
     leftOut: byDay([...others(preview.leftOut), ...proposal.leftOut]),
   }
-  prepared(db, "UPDATE import_previews SET preview = ? WHERE id = ?").run(
-    JSON.stringify(updated),
-    id
-  )
-  return updated
 }
 
 // Run nightly before the snapshot, so an expired upload of up to 25 MB isn't

@@ -67,6 +67,24 @@ function withPressure(group: string) {
     })
 }
 
+// Keeps a sample every five minutes, and those with an alarm or a gas
+// switch, so a file of many dives stays small.
+const thinned = (group: string) =>
+  group.replace(/\s*<waypoint>[\s\S]*?<\/waypoint>/g, (waypoint) =>
+    /<alarm>|<switchmix/.test(waypoint) ||
+    Number(/<divetime>(\d+)</.exec(waypoint)![1]) % 300 === 0
+      ? waypoint
+      : ""
+  )
+
+// One dive copied onto consecutive days from a date, each under its own id.
+const daily = (group: string, from: string, count: number) =>
+  range(1, count).map((n) =>
+    withStart(group, (old) =>
+      shift(`${from}${old.slice(10)}`, (n - 1) * 24 * 3600)
+    ).replaceAll(/ id="(id\d+)"/g, ` id="$1-${n}"`)
+  )
+
 export function generate(): Record<string, string> {
   return {
     // The Sodwana week (dives 52 to 65) on a clock 5 hours behind the site,
@@ -96,6 +114,11 @@ export function generate(): Record<string, string> {
     "pressure.uddf": file(
       "Dive 63 with tank pressure on every sample and on the tank.",
       [withPressure(dive(63))]
+    ),
+    // More than two chunks of 50 for the import to apply.
+    "many.uddf": file(
+      "Dive 63 on each of 120 days from 1 January 2027, with a sample every five minutes.",
+      daily(thinned(dive(63)), "2027-01-01", 120)
     ),
     // Dive 63 (32.66 m) on EANx36: about 1.54 bar at depth, over 1.4.
     "high-po2.uddf": file(

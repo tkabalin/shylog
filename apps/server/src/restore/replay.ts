@@ -31,6 +31,7 @@ import { migrations, schemaVersion } from "../db/migrate.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
 import { recalculate } from "../derived.ts"
+import { applyChunk, type Chunk } from "../import/apply.ts"
 import { setMeta } from "../journal.ts"
 
 export interface JournalRow {
@@ -117,6 +118,12 @@ const entries: Record<
         ...request
       }: { kind: DiveSetKind; id: string } & SetEntityDivesParsed
     ) => setEntityDives(db, kind, id, request),
+    derived: true,
+  },
+  // Each chunk carries the computer dives and the ids it made, so the
+  // uploaded file, which a preview held, isn't needed.
+  importChunk: {
+    apply: (db, chunk: Chunk, at) => applyChunk(db, chunk, at),
     derived: true,
   },
   putSettings: {

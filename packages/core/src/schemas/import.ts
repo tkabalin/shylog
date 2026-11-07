@@ -44,6 +44,9 @@ export type ImportDay = z.output<typeof importDaySchema>
 export const importPreviewSchema = z.strictObject({
   id: idSchema("import"),
   basedOnVersion: z.string(),
+  // Counts each time days are proposed again, so apply can tell choices made
+  // on an earlier proposal.
+  revision: z.int().nonnegative(),
   createdAt: z.iso.datetime(),
   expiresAt: z.iso.datetime(),
   // Null when the export names no computer, or more than one.
@@ -85,6 +88,8 @@ export type ImportOffsetRequest = z.output<typeof importOffsetRequest>
 // and dives under five minutes) as new dives. A dive is named once.
 export const importApplyRequest = z
   .strictObject({
+    // The preview's revision the choices were made on.
+    revision: z.int().nonnegative(),
     pairs: z.array(
       z.strictObject({
         computerDive: z.string().min(1),
@@ -131,7 +136,8 @@ export interface ImportSummary {
 export type ImportApplyResult =
   | ({ status: "applied" } & ImportSummary)
   // Nothing is committed; those days were proposed again, so the review
-  // asks about these dives once more.
+  // asks about these dives once more. None are named when the choices were
+  // made on an older proposal, such as before a day's clock was moved.
   | { status: "changed"; diveIds: DiveId[] }
   // A chunk failed: the ones before it stay, and a retry carries on.
   | { status: "failed"; error: string; applied: ImportSummary }

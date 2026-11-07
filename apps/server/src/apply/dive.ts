@@ -91,7 +91,11 @@ const writeDive = `INSERT INTO dives (id, ${names.join(", ")}, surface_interval,
     surface_interval = excluded.surface_interval,
     surface_interval_override = excluded.surface_interval_override`
 
-function stored(db: Db, id: string, meta: Map<string, Meta>): Stored | null {
+export function storedDive(
+  db: Db,
+  id: string,
+  meta: Map<string, Meta>
+): Stored | null {
   const row = prepared<[string], Record<string, unknown>>(db, selectDive).get(
     id
   )
@@ -128,7 +132,7 @@ function stored(db: Db, id: string, meta: Map<string, Meta>): Stored | null {
 // whole dive with core's schema, so rules spanning fields hold against stored
 // values too. Empty values are dropped and tags sorted, so a field compares
 // equal to its stored self.
-function valid(db: Db, fields: Fields): Fields {
+export function validDive(db: Db, fields: Fields): Fields {
   // Absent is empty: core's output has nulls for emptied text boxes.
   const resolved = Object.fromEntries(
     Object.entries(fields).filter(([, value]) => value != null)
@@ -184,7 +188,7 @@ function valid(db: Db, fields: Fields): Fields {
   return out
 }
 
-function save(db: Db, id: string, fields: Fields) {
+export function saveDive(db: Db, id: string, fields: Fields) {
   const override = fields.surfaceInterval !== undefined
   const values: Record<string, unknown> = {
     id,
@@ -225,8 +229,8 @@ export const diveExists = (db: Db, id: string) =>
 
 // A new dive from a draft: every field filled in is a hand value.
 export function createDive(db: Db, id: string, draft: DiveFields) {
-  const fields = valid(db, draft)
-  save(db, id, fields)
+  const fields = validDive(db, draft)
+  saveDive(db, id, fields)
   for (const field of Object.keys(fields)) recordHand(db, id, field)
 }
 
@@ -237,7 +241,7 @@ type Edit = {
   dismiss?: PatchDiveRequest["dismiss"]
 }
 
-const same = (a: unknown, b: unknown) =>
+export const same = (a: unknown, b: unknown) =>
   Array.isArray(a) && Array.isArray(b)
     ? a.length === b.length && a.every((value, i) => value === b[i])
     : a === b
@@ -258,7 +262,7 @@ export function editDiveFrom(
   changeOf: (dive: Stored) => Edit | null
 ): boolean {
   const meta = metaOf(db, id)
-  const before = stored(db, id, meta)
+  const before = storedDive(db, id, meta)
   if (!before) throw new Rejected("No such dive", 404)
   const change = changeOf(before)
   if (!change) return false
@@ -280,7 +284,7 @@ export function editDiveFrom(
   for (const field of adopting) {
     next[field] = computerValue(meta.get(field), ["adopt"])
   }
-  const after = valid(db, next)
+  const after = validDive(db, next)
 
   // Fields that changed, including those dropped with them, such as oxygen
   // when nitrox is turned off.
@@ -290,7 +294,7 @@ export function editDiveFrom(
     (field) =>
       !same(before.fields[field as keyof Fields], after[field as keyof Fields])
   )
-  if (changed.length) save(db, id, after)
+  if (changed.length) saveDive(db, id, after)
   for (const field of changed) {
     if (adopting.includes(field as never)) continue
     const key = field as keyof Fields

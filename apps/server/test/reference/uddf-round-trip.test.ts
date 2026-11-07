@@ -26,6 +26,10 @@ import fc from "fast-check"
 import { describe, expect, it } from "vitest"
 
 import type { Db } from "../../src/db/open.ts"
+import { recalculate } from "../../src/derived.ts"
+import { applyImport } from "../../src/import/apply.ts"
+import { fingerprint } from "../../src/import/fingerprint.ts"
+import { storePreview } from "../../src/import/preview.ts"
 import { storeProfile } from "../../src/profile.ts"
 import { readUddf, type ProfileEvent } from "../../src/uddf/reader.ts"
 import { writeUddf } from "../../src/uddf/writer.ts"
@@ -522,6 +526,65 @@ function stored(db: Db) {
   }))
 }
 
+// Every v1 field of each live dive, with entities by what they hold rather
+// than their ids, which an import makes anew. Temperatures and pressures
+// go through kelvin and pascals; a person's name through UDDF's first and
+// last name, which joins its words with one space.
+let imported: Db | null = null
+function v1Fields(db: Db) {
+  const dives = db
+    .prepare<[], Record<string, unknown> & { id: string }>(
+      `SELECT d.id, d.number, d.start_time AS startTime, d.duration,
+         d.max_depth AS maxDepth, d.dive_type AS diveType,
+         d.training_agency AS trainingAgency,
+         d.training_course AS trainingCourse, t.name AS trip,
+         c.name AS diveCentre, cr.name AS diveCentreRegion,
+         cr.country_code AS diveCentreRegionCountry, d.entry, d.current,
+         d.surge, d.surface, d.weather, d.min_temperature AS minTemperature,
+         d.max_temperature AS maxTemperature, d.visibility,
+         d.visibility_rating AS visibilityRating, d.workload,
+         d.thermal_comfort AS thermalComfort, d.average_depth AS averageDepth,
+         d.surface_interval AS surfaceInterval,
+         d.surface_interval_override AS override, d.weight,
+         d.cylinder_material AS cylinderMaterial,
+         d.cylinder_volume AS cylinderVolume, d.nitrox, d.oxygen,
+         d.start_pressure AS startPressure, d.end_pressure AS endPressure,
+         d.notable_animals AS notableAnimals, d.gear_details AS gearDetails,
+         d.notes, d.ignored, d.computer_model AS computerModel,
+         s.name AS site, s.country_code AS country, r.name AS region,
+         s.body_of_water AS bodyOfWater, s.water_type AS waterType
+       FROM dives d JOIN sites s ON s.id = d.site_id
+         LEFT JOIN regions r ON r.id = s.region_id
+         LEFT JOIN trips t ON t.id = d.trip_id
+         LEFT JOIN dive_centres c ON c.id = d.dive_centre_id
+         LEFT JOIN regions cr ON cr.id = c.region_id
+       WHERE d.deleted_at IS NULL ORDER BY d.start_time, d.seq`
+    )
+    .all()
+  const people = (table: string) =>
+    db
+      .prepare<[string], string>(
+        `SELECT name FROM ${table} JOIN people ON people.id = person_id WHERE dive_id = ? ORDER BY position`
+      )
+      .pluck()
+  const tags = db
+    .prepare<[string], string>(
+      "SELECT tag FROM dive_tags WHERE dive_id = ? ORDER BY tag"
+    )
+    .pluck()
+  const spaced = (name: string) => name.split(/\s+/).join(" ")
+  return dives.map(({ id, ...dive }) => ({
+    ...dive,
+    minTemperature: throughKelvin(dive.minTemperature as number | null),
+    maxTemperature: throughKelvin(dive.maxTemperature as number | null),
+    startPressure: throughPascals(dive.startPressure as number | null),
+    endPressure: throughPascals(dive.endPressure as number | null),
+    buddies: people("dive_buddies").all(id).map(spaced),
+    diveProfessionals: people("dive_professionals").all(id).map(spaced),
+    tags: tags.all(id),
+  })) as unknown as Parameters<typeof fingerprint>[0][]
+}
+
 // About 2 s a case covers a failure's shrinking, which reruns xsltproc.
 describe(
   "the UDDF export of a random log",
@@ -585,6 +648,43 @@ describe(
               })
             )
           )
+        }),
+        options
+      )
+    })
+
+    it("comes back whole through an import into an empty log", async () => {
+      await fc.assert(
+        fc.asyncProperty(log, async (l) => {
+          const db = await build(l)
+          // build() stores profiles directly; the server would then have
+          // filled the figures they give.
+          recalculate(db)
+          const live = v1Fields(db)
+          // Two dives alike are one computer dive to the import, and a file
+          // with none is refused.
+          const prints = live.map((dive) => fingerprint(dive))
+          fc.pre(prints.length > 0 && new Set(prints).size === prints.length)
+          imported?.close()
+          const fresh = (imported = testDb())
+          const at = new Date("2026-11-07T10:00:00Z")
+          const preview = storePreview(fresh, writeUddf(db).xml, at)
+          // Every dive is offered as new, a short one to include.
+          const result = applyImport(
+            fresh,
+            preview.id,
+            {
+              revision: preview.revision,
+              pairs: [],
+              add: preview.newDives.map((dive) => dive.ref),
+              include: preview.leftOut.map((dive) => dive.ref),
+            },
+            at
+          )
+          expect(
+            result.status === "applied" && result.added + result.included
+          ).toBe(live.length)
+          expect(v1Fields(fresh)).toEqual(live)
         }),
         options
       )
