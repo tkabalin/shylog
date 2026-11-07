@@ -53,6 +53,20 @@ describe("patchDiveRequest", () => {
       }).success
     ).toBe(false)
   })
+
+  it("counts a typed Nitrox as typing the gas", () => {
+    for (const answer of ["adopt", "dismiss"])
+      expect(
+        patchDiveRequest.safeParse({
+          fields: { nitrox: false },
+          [answer]: ["oxygen"],
+        }).success
+      ).toBe(false)
+    expect(
+      patchDiveRequest.safeParse({ fields: { notes: "x" }, adopt: ["oxygen"] })
+        .success
+    ).toBe(true)
+  })
 })
 
 describe("putEntityRequests", () => {

@@ -105,6 +105,48 @@ describe("PATCH /api/dives/:id", () => {
     })
   })
 
+  it("adopts the computer's gas into Nitrox and the oxygen together", async () => {
+    // The seed's EAN32 is the computer's: turning Nitrox off keeps it.
+    await patch({ fields: { nitrox: false } })
+    expect(meta("oxygen")).toEqual({
+      source: "hand",
+      computerValue: 320,
+      dismissed: 0,
+    })
+    await patch({ adopt: ["oxygen"] })
+    expect(await theDive()).toMatchObject({ nitrox: true, oxygen: 320 })
+    expect(meta("nitrox")).toMatchObject({ source: "computer" })
+    expect(meta("oxygen")).toMatchObject({ source: "computer" })
+
+    // The computer's air, as an import keeps it, turns Nitrox off.
+    db.prepare(
+      "UPDATE field_meta SET source = 'hand', computer_value = 210 WHERE dive_id = ? AND field = 'oxygen'"
+    ).run(id)
+    await patch({ adopt: ["oxygen"] })
+    expect(await theDive()).toMatchObject({ nitrox: false, oxygen: null })
+    expect(meta("nitrox")).toMatchObject({ source: "computer" })
+  })
+
+  it("keeps the computer's air on the oxygen row when Nitrox is turned on", async () => {
+    // The seed's dive 54 is on air from the computer, with no oxygen row.
+    const air = diveId(db, 54)
+    const res = await patch({ fields: { nitrox: true, oxygen: 320 } }, air)
+    expect(res.status, await res.clone().text()).toBe(200)
+    const row = (field: string) =>
+      db
+        .prepare(
+          "SELECT source, computer_value AS computerValue FROM field_meta WHERE dive_id = ? AND field = ?"
+        )
+        .get(air, field)
+    expect(row("oxygen")).toEqual({ source: "hand", computerValue: 210 })
+    expect(row("nitrox")).toEqual({ source: "hand", computerValue: null })
+    // Using it turns Nitrox off again.
+    await patch({ adopt: ["oxygen"] }, air)
+    expect(
+      (await getLog()).dives.find((dive) => dive.id === air)
+    ).toMatchObject({ nitrox: false, oxygen: null })
+  })
+
   it("refuses to adopt or dismiss without a computer value", async () => {
     db.prepare(
       "DELETE FROM field_meta WHERE dive_id = ? AND field = 'maxDepth'"

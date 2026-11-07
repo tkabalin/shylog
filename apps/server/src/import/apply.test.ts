@@ -286,6 +286,130 @@ describe("applyImport on the D4i export", { timeout: 20_000 }, () => {
   })
 })
 
+// The gas is compared as one value: fixture dives 61
+// (EAN33), 62 (air), 63 (EAN32) and 64 (air), each logged by hand.
+describe("applyImport comparing the gas", { timeout: 20_000 }, () => {
+  function gasLog() {
+    const db = testDb()
+    const at = (n: number, gas: { nitrox: boolean; oxygen?: number }) => {
+      const { startTime, duration, maxDepth } = fixture(n)
+      return { id: `dive-${n}` as const, startTime, duration, maxDepth, ...gas }
+    }
+    logByHand(db, [
+      at(61, { nitrox: true, oxygen: 320 }),
+      at(62, { nitrox: true, oxygen: 320 }),
+      // The new-dive default, left alone on the boat.
+      at(63, { nitrox: false }),
+      at(64, { nitrox: false }),
+    ])
+    const snapshot = copyOf(db)
+    const preview = storePreview(db, d4iXml, now)
+    const result = applyImport(db, preview.id, proposed(preview), now)
+    return { db, snapshot, result }
+  }
+  const gasOf = (db: Db, id: string) => {
+    const { nitrox, oxygen } = diveRow(db, id)
+    return { nitrox, oxygen }
+  }
+
+  it("gives a hand Nitrox no the computer's nitrox, as a computer value", () => {
+    const { db } = gasLog()
+    expect(gasOf(db, "dive-63")).toEqual({ nitrox: 1, oxygen: 320 })
+    expect(metaRows(db, "dive-63")).toMatchObject({
+      nitrox: { source: "computer", computerValue: null },
+      oxygen: { source: "computer", computerValue: null },
+    })
+  })
+
+  it("keeps a hand nitrox mix and flags a whole per cent apart", () => {
+    const { db, result } = gasLog()
+    expect(gasOf(db, "dive-61")).toEqual({ nitrox: 1, oxygen: 320 })
+    expect(metaRows(db, "dive-61").oxygen).toEqual({
+      source: "hand",
+      computerValue: 330,
+    })
+    expect(result).toMatchObject({ status: "applied" })
+    expect(result.status === "applied" && result.differing).toContain("dive-61")
+  })
+
+  it("keeps a hand nitrox mix against the computer's air, flagged", () => {
+    const { db } = gasLog()
+    expect(gasOf(db, "dive-62")).toEqual({ nitrox: 1, oxygen: 320 })
+    expect(metaRows(db, "dive-62").oxygen).toEqual({
+      source: "hand",
+      computerValue: 210,
+    })
+  })
+
+  it("leaves air against air alone", () => {
+    const { db } = gasLog()
+    expect(gasOf(db, "dive-64")).toEqual({ nitrox: 0, oxygen: null })
+    expect(metaRows(db, "dive-64").oxygen).toBeUndefined()
+  })
+
+  it("doesn't flag an analysed mix the computer rounds to the same per cent", () => {
+    const db = testDb()
+    const { startTime, duration, maxDepth } = fixture(63)
+    logByHand(db, [
+      {
+        id: "dive-63",
+        startTime,
+        duration,
+        maxDepth,
+        nitrox: true,
+        oxygen: 324,
+      },
+    ])
+    const preview = storePreview(db, d4iXml, now)
+    applyImport(db, preview.id, proposed(preview), now)
+    expect(gasOf(db, "dive-63")).toEqual({ nitrox: 1, oxygen: 324 })
+    expect(metaRows(db, "dive-63").oxygen).toEqual({
+      source: "hand",
+      computerValue: null,
+    })
+  })
+
+  it("leaves a gas v1 can't hold uncompared, as it is stored as air", () => {
+    // The export's EAN32 made a trimix, which a hand EAN32 isn't compared to.
+    const trimix = d4iXml.replace(
+      "<o2>0.32</o2>\n      <he>0.00</he>",
+      "<o2>0.18</o2>\n      <he>0.45</he>"
+    )
+    const db = testDb()
+    const { startTime, duration, maxDepth } = fixture(63)
+    logByHand(db, [
+      {
+        id: "dive-63",
+        startTime,
+        duration,
+        maxDepth,
+        nitrox: true,
+        oxygen: 320,
+      },
+    ])
+    const preview = storePreview(db, trimix, now)
+    applyImport(db, preview.id, proposed(preview), now)
+    expect(gasOf(db, "dive-63")).toEqual({ nitrox: 1, oxygen: 320 })
+    expect(metaRows(db, "dive-63").oxygen).toEqual({
+      source: "hand",
+      computerValue: null,
+    })
+  })
+
+  it("replays a chunk journalled before the gas was compared as it was", () => {
+    const { db, snapshot } = gasLog()
+    const restored = copyOf(snapshot)
+    replay(snapshot, db)
+    expect(compare(snapshot, db)).toEqual([])
+    // An older entry has no gasCompared, and its hand Nitrox no stood.
+    db.exec(
+      "UPDATE ops SET payload = json_remove(payload, '$.gasCompared') WHERE type = 'importChunk'"
+    )
+    replay(restored, db)
+    expect(gasOf(restored, "dive-63")).toEqual({ nitrox: 0, oxygen: null })
+  })
+})
+
 describe(
   "applyImport against a log changed since the preview",
   { timeout: 20_000 },
