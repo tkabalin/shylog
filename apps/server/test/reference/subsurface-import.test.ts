@@ -240,12 +240,13 @@ describe("Shylog's reader against Subsurface's on weight, notes and pressure", (
     )
     expect(mine.samples).toHaveLength(theirs.length)
     // Departure: Shylog keeps the export's pascals to the mbar, where
-    // Subsurface's stylesheet writes 0.1 bar (format-number '0.0').
+    // Subsurface's stylesheet writes 0.1 bar (format-number '0.0'). Compared
+    // in whole mbar, as a half-step gap can come out as 0.05000000000001 bar.
     mine.samples.forEach((sample, i) => {
       expect(sample.time).toBe(theirs[i].time)
       expect(
-        Math.abs(sample.pressure! - theirs[i].pressure!)
-      ).toBeLessThanOrEqual(0.05)
+        Math.round(Math.abs(sample.pressure! - theirs[i].pressure!) * 1000)
+      ).toBeLessThanOrEqual(50)
     })
   })
 })
