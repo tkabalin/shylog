@@ -1,19 +1,45 @@
 import {
   airOxygen,
+  bodiesOfWater,
+  countryCodes,
   cubicMetresToMillilitres,
+  currents,
+  cylinderMaterials,
   diveFieldsPatch,
+  diveTypes,
+  entityFields,
+  entries,
   fractionToTenths,
   kelvinToCelsius,
   mergeDuplicateSamples,
   pascalsToBar,
+  surfaces,
+  surges,
+  tags,
+  thermalComforts,
+  visibilityRatings,
+  waterTypes,
+  weathers,
+  workloads,
+  type BodyOfWater,
+  type CountryCode,
+  type DiveFieldsPatch,
   type Sample,
+  type WaterType,
 } from "@shylog/core"
-import { DOMParser, type Element } from "@xmldom/xmldom"
+import { DOMParser, XMLSerializer, type Element } from "@xmldom/xmldom"
+
+import {
+  generatorName,
+  shylogNamespace,
+  uddfNamespace,
+} from "./shylog-namespace.ts"
 
 // Reads a Subsurface export, or Shylog's own, into what the import and the
 // seed script store: each dive's computer figures, gas and tank, weight,
-// notes, samples and alarms. Subsurface's placeholders carry no data and
-// read as nothing, whatever the computer.
+// notes, samples and alarms, and from Shylog's own export everything else
+// it holds. Subsurface's placeholders carry no data and read as nothing,
+// whatever the computer.
 
 export interface ProfileEvent {
   type: string
@@ -52,9 +78,71 @@ export interface ReadDive {
   // Merged, one per time.
   samples: Sample[]
   events: ProfileEvent[]
+  // The other standard fields, in Shylog's keys: computer values, as any
+  // computer's would be, though only a logbook such as Shylog writes them.
+  standard: Pick<DiveFieldsPatch, StandardField>
+  site: ReadSite | null
+  people: ReadPerson[]
+  // Shylog's own block, from its own export only.
+  own: OwnFields | null
+  // Written by Shylog, so its figures are all the log held: none is
+  // missing for the import to fill from the samples.
+  fromShylog: boolean
+  // The dive's element and the mixes it links to, kept in import_raw;
+  // only read when asked for, as only apply keeps it.
+  fragment: string | null
 }
 
-const ns = "http://www.streit.cc/uddf/3.2/"
+type StandardField =
+  | "cylinderMaterial"
+  | "entry"
+  | "current"
+  | "diveType"
+  | "workload"
+  | "thermalComfort"
+  | "visibility"
+  | "notableAnimals"
+
+export interface ReadSite {
+  name: string
+  // Null where the file gives none, or one that isn't ISO 3166.
+  countryCode: CountryCode | null
+  region: string | null
+  bodyOfWater: BodyOfWater | null
+}
+
+export interface ReadPerson {
+  name: string
+  professional: boolean
+}
+
+type OwnField =
+  | "trainingAgency"
+  | "trainingCourse"
+  | "tags"
+  | "surge"
+  | "surface"
+  | "weather"
+  | "maxTemperature"
+  | "visibilityRating"
+  | "gearDetails"
+  | "ignored"
+  | "surfaceInterval"
+
+// What Shylog's <shylog> holds: what no computer records, so the import
+// takes these as the hand values they were.
+export interface OwnFields {
+  fields: Pick<DiveFieldsPatch, OwnField>
+  trip: string | null
+  diveCentre: {
+    name: string
+    region: { name: string; countryCode: CountryCode } | null
+  } | null
+  // Only where the site's body of water doesn't imply it.
+  waterType: WaterType | null
+}
+
+const ns = uddfNamespace
 const all = (parent: Element, name: string) =>
   Array.from(parent.getElementsByTagNameNS(ns, name))
 const text = (parent: Element, name: string) =>
@@ -65,6 +153,32 @@ const number = (parent: Element, name: string) => {
 }
 const children = (parent: Element, name: string) =>
   all(parent, name).filter((child) => child.parentNode === parent)
+// Paragraphs of text, as Shylog and Subsurface write notes.
+const paragraphs = (notes: Element[]) =>
+  notes
+    .flatMap((note) => children(note, "para"))
+    .map((para) => para.textContent?.trim())
+    .filter(Boolean)
+    .join("\n\n") || null
+// A choice by the string UDDF or <shylog> gives it; one Shylog doesn't know
+// is read as none rather than refusing the file.
+function choiceOf<O extends Record<string, { label: string; uddf?: string }>>(
+  options: O,
+  value: string | null | undefined,
+  by: "uddf" | "key" = "uddf"
+) {
+  if (value == null) return undefined
+  return (Object.keys(options) as (keyof O & string)[]).find((key) =>
+    by === "key" ? key === value : options[key].uddf === value
+  )
+}
+// An entity's name as the app would save it, or null for one it wouldn't.
+function entityName(value: string | null | undefined) {
+  const parsed = entityFields.trip.safeParse({ name: value ?? "" })
+  return parsed.success ? parsed.data.name : null
+}
+const country = (value: string | null) =>
+  countryCodes.find((code) => code === value) ?? null
 const celsius = (kelvin: number | null) =>
   kelvin == null ? null : kelvinToCelsius(kelvin)
 const bar = (pascals: number | null) =>
@@ -89,6 +203,14 @@ const labels: Record<string, string> = {
   startPressure: "start pressure",
   endPressure: "end pressure",
   notes: "notes",
+  visibility: "visibility",
+  visibilityRating: "visibility rating",
+  notableAnimals: "notable animals",
+  maxTemperature: "maximum temperature",
+  trainingAgency: "training agency",
+  trainingCourse: "training course",
+  gearDetails: "gear details",
+  surfaceInterval: "surface interval",
 }
 
 // Air is written as 0.21 and read as air, as Subsurface does; core
@@ -120,7 +242,7 @@ function events(waypoints: Element[], times: number[]): ProfileEvent[] {
 
 // Every dive in the file, freedives included: import/freedive.ts decides
 // which are left out.
-export function readUddf(xml: string): ReadDive[] {
+export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
   // xmldom throws on what it can't parse at all, and reports the rest,
   // which is read as it stands.
   let root: Element | null
@@ -153,12 +275,15 @@ export function readUddf(xml: string): ReadDive[] {
   const computerOf = (dive: Element) =>
     linked(dive) ??
     (!anyLinked && computers.size === 1 ? [...computers.values()][0] : null)
+  const mixElements = new Map(
+    all(root, "mix").map((mix) => [mix.getAttribute("id"), mix])
+  )
   const mixes = new Map(
-    all(root, "mix").map((mix) => {
+    [...mixElements].map(([id, mix]) => {
       // A mix that gives no oxygen is air, not a hypoxic mix to flag.
       const o2 = number(mix, "o2")
       return [
-        mix.getAttribute("id"),
+        id,
         {
           o2: o2 == null ? air : fractionToTenths(o2),
           he: fractionToTenths(number(mix, "he") ?? 0),
@@ -166,6 +291,50 @@ export function readUddf(xml: string): ReadDive[] {
       ]
     })
   )
+
+  const sites = new Map(
+    all(root, "site").map((site) => {
+      const geography = all(site, "geography")[0]
+      const name = entityName(text(site, "name"))
+      return [
+        site.getAttribute("id"),
+        name
+          ? {
+              name,
+              countryCode: geography
+                ? country(text(geography, "country"))
+                : null,
+              region: geography
+                ? entityName(text(geography, "location"))
+                : null,
+              bodyOfWater:
+                choiceOf(bodiesOfWater, text(site, "environment")) ?? null,
+            }
+          : null,
+      ]
+    })
+  )
+  // The owner's name is under <owner>, so <buddy> holds only the others.
+  const buddies = new Map(
+    all(root, "buddy").map((buddy) => [
+      buddy.getAttribute("id"),
+      entityName(
+        [text(buddy, "firstname"), text(buddy, "lastname")]
+          .filter(Boolean)
+          .join(" ")
+      ),
+    ])
+  )
+  // A cylinder type in the owner's equipment, linked from tank data.
+  const materials = new Map(
+    all(root, "tank").map((tank) => [
+      tank.getAttribute("id"),
+      choiceOf(cylinderMaterials, text(tank, "tankmaterial")),
+    ])
+  )
+  const serializer = new XMLSerializer()
+  const generator = all(root, "generator")[0]
+  const fromShylog = !!generator && text(generator, "name") === generatorName
 
   // The preview names dives by their ids, so two alike would be confused.
   const refs = new Set<string>()
@@ -226,14 +395,28 @@ export function readUddf(xml: string): ReadDive[] {
       ((before && number(before, "leadquantity")) || null)
     // The dive's own notes, not the notable animals under observations.
     // Subsurface writes an empty paragraph when there are none.
-    const notes =
-      (after &&
-        children(after, "notes")
-          .flatMap((note) => children(note, "para"))
-          .map((para) => para.textContent?.trim())
-          .filter(Boolean)
-          .join("\n\n")) ||
-      null
+    const notes = after ? paragraphs(children(after, "notes")) : null
+    const standard = {
+      cylinderMaterial: (tank ? all(tank, "link") : [])
+        .map((found) => materials.get(found.getAttribute("ref")))
+        .find(Boolean),
+      entry: choiceOf(entries, before && text(before, "platform")),
+      current: choiceOf(currents, after && text(after, "current")),
+      diveType: choiceOf(diveTypes, after && text(after, "program")),
+      workload: choiceOf(workloads, after && text(after, "workload")),
+      thermalComfort: choiceOf(
+        thermalComforts,
+        after && text(after, "thermalcomfort")
+      ),
+      visibility: (after && number(after, "visibility")) ?? undefined,
+      notableAnimals:
+        (after &&
+          paragraphs(
+            children(after, "observations").flatMap((o) => children(o, "notes"))
+          )) ??
+        undefined,
+    }
+    const own = readOwn(dive, before)
     // The figures must pass the rules a dive saved in the app does, so what
     // an import stores always fits the database. Start, duration and depth
     // must be there; the start is site time with no offset.
@@ -253,9 +436,44 @@ export function readUddf(xml: string): ReadDive[] {
     if (startTime == null) refuse(position, labels.startTime)
     if (duration == null) refuse(position, labels.duration)
     if (maxDepth == null) refuse(position, labels.maxDepth)
-    const checked = diveFieldsPatch.safeParse(figures)
+    const checked = diveFieldsPatch.safeParse({
+      ...figures,
+      ...standard,
+      ...own?.fields,
+    })
     if (!checked.success)
       refuse(position, labels[String(checked.error.issues[0].path[0])])
+    const kept = <K extends keyof DiveFieldsPatch>(keys: readonly K[]) =>
+      Object.fromEntries(
+        keys.flatMap((key) =>
+          checked.data[key] == null ? [] : [[key, checked.data[key]]]
+        )
+      ) as Pick<DiveFieldsPatch, K>
+    const professionals = new Set(own?.professionals)
+    const links = before
+      ? children(before, "link").map((found) => found.getAttribute("ref"))
+      : []
+    const site = links.map((id) => sites.get(id)).find(Boolean) ?? null
+    const people = [...new Set(links)].flatMap((id) => {
+      const name = buddies.get(id)
+      return name ? [{ name, professional: professionals.has(id!) }] : []
+    })
+    // The mixes it links to, by a tank or a gas switch, go with it.
+    const linkedMixes = new Set(
+      [...all(dive, "link"), ...all(dive, "switchmix")].map((found) =>
+        found.getAttribute("ref")
+      )
+    )
+    const fragment = fragments
+      ? [
+          `<fragment xmlns="${ns}">`,
+          ...[...mixElements]
+            .filter(([id]) => linkedMixes.has(id))
+            .map(([, mix]) => serializer.serializeToString(mix)),
+          serializer.serializeToString(dive),
+          "</fragment>",
+        ].join("")
+      : null
     return {
       ...figures,
       ref,
@@ -274,6 +492,101 @@ export function readUddf(xml: string): ReadDive[] {
         waypoints,
         written.map((sample) => sample.time)
       ),
+      standard: kept([
+        "cylinderMaterial",
+        "entry",
+        "current",
+        "diveType",
+        "workload",
+        "thermalComfort",
+        "visibility",
+        "notableAnimals",
+      ]),
+      site,
+      people,
+      own: own && {
+        fields: kept([
+          "trainingAgency",
+          "trainingCourse",
+          "tags",
+          "surge",
+          "surface",
+          "weather",
+          "maxTemperature",
+          "visibilityRating",
+          "gearDetails",
+          "ignored",
+          "surfaceInterval",
+        ]),
+        trip: own.trip,
+        diveCentre: own.diveCentre,
+        waterType: own.waterType,
+      },
+      fragment,
+      fromShylog,
     }
   })
+}
+
+// Shylog's <shylog> block, which only its own export writes.
+function readOwn(dive: Element, before: Element | undefined) {
+  const block = Array.from(
+    dive.getElementsByTagNameNS(shylogNamespace, "shylog")
+  )[0]
+  if (!block) return null
+  const every = (name: string) =>
+    Array.from(block.getElementsByTagNameNS(shylogNamespace, name)).map(
+      (found) => found.textContent?.trim() ?? ""
+    )
+  const one = (name: string) => every(name)[0] || null
+  // An override is the interval UDDF already holds; otherwise it was
+  // worked out, and is worked out again.
+  const interval = before && all(before, "surfaceintervalbeforedive")[0]
+  const passed = interval && number(interval, "passedtime")
+  const centre = entityName(one("diveCentreName"))
+  const regionName = entityName(one("diveCentreRegion"))
+  const regionCountry = country(one("diveCentreRegionCountry"))
+  const maxTemperature = one("maxTemperature")
+  return {
+    fields: {
+      trainingAgency: one("trainingAgency") ?? undefined,
+      trainingCourse: one("trainingCourse") ?? undefined,
+      tags: [
+        ...new Set(
+          every("tag").flatMap((tag) => choiceOf(tags, tag, "key") ?? [])
+        ),
+      ],
+      surge: choiceOf(surges, one("surge"), "key"),
+      surface: choiceOf(surfaces, one("surface"), "key"),
+      weather: choiceOf(weathers, one("weather"), "key"),
+      maxTemperature:
+        celsius(maxTemperature == null ? null : Number(maxTemperature)) ??
+        undefined,
+      visibilityRating: choiceOf(
+        visibilityRatings,
+        one("visibilityRating"),
+        "key"
+      ),
+      gearDetails: one("gearDetails") ?? undefined,
+      ignored: one("ignored") === "true" || undefined,
+      surfaceInterval:
+        one("surfaceIntervalOverride") === "true" && interval
+          ? all(interval, "infinity").length
+            ? ("none" as const)
+            : (passed ?? undefined)
+          : undefined,
+    },
+    professionals: every("professional"),
+    trip: entityName(one("tripName")),
+    diveCentre: centre
+      ? {
+          name: centre,
+          region:
+            regionName && regionCountry
+              ? { name: regionName, countryCode: regionCountry }
+              : null,
+        }
+      : null,
+    waterType: choiceOf(waterTypes, one("siteWaterType"), "key") ?? null,
+  }
 }

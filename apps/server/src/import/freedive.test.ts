@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import type { ReadDive } from "../uddf/reader.ts"
-import { leftOut } from "./freedive.ts"
+import { leftOut, type Signs } from "./freedive.ts"
 
-const dive = (over: Partial<ReadDive> & { every?: number }): ReadDive => {
+const dive = (
+  over: Partial<ReadDive> & { every?: number }
+): Signs & Partial<ReadDive> => {
   const { every = 2, ...rest } = over
   return {
     ref: "id1",

@@ -306,6 +306,28 @@ describe("readUddf", () => {
     )
   })
 
+  it("reads no fragments unless asked, as only apply keeps them", () => {
+    expect(readUddf(uddf(dive("air")))[0].fragment).toBeNull()
+  })
+
+  it("keeps each dive's element with only the mixes it links to", () => {
+    const switched = dive("air").replace(
+      "<divetime>0</divetime>",
+      '<divetime>0</divetime><switchmix ref="ean32"/>'
+    )
+    const [plain, switching] = readUddf(uddf(dive("air") + switched), {
+      fragments: true,
+    })
+    const mixesIn = (fragment: string) =>
+      Array.from(fragment.matchAll(/<mix id="([^"]+)"/g), ([, id]) => id)
+    expect(mixesIn(plain.fragment!)).toEqual(["air"])
+    expect(mixesIn(switching.fragment!)).toEqual(["air", "ean32"])
+    expect(switching.fragment).toMatch(/^<fragment xmlns="[^"]+"><mix/)
+    expect(switching.fragment).toContain(
+      "<datetime>2026-07-22T08:12:19</datetime>"
+    )
+  })
+
   it("refuses a file that isn't XML", () => {
     for (const file of ["", "garbage", "<uddf>"]) {
       expect(() => readUddf(file)).toThrow(UnreadableUddf)
@@ -415,6 +437,15 @@ describe("readUddf on the D4i export", () => {
     expect(dive.samples[0].temperature).not.toBeNull()
     expect(dive.samples.some((sample) => sample.temperature == null)).toBe(true)
     expect(sampleTemperatures(dive.samples)).toEqual({ min: 23, max: 24 })
+  })
+
+  it("finds no site, people, standard fields or Shylog block in it", () => {
+    for (const dive of dives) {
+      expect(dive.site).toBeNull()
+      expect(dive.people).toEqual([])
+      expect(dive.standard).toEqual({})
+      expect(dive.own).toBeNull()
+    }
   })
 
   it("reads none of Subsurface's placeholders as data", () => {
