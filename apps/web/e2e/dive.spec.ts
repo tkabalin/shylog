@@ -183,7 +183,7 @@ test("sets a dive's SAC rate against the five before it @writes", async ({
 
   await page.goto(`/dive/${ids[5]}`)
   await expect(figure(page, "SAC rate")).toContainText(
-    "lower than your last 5 dives"
+    "lower than the average of your last 5 dives"
   )
   await page.getByRole("button", { name: "About the SAC comparison" }).click()
   await expect(page.getByText("Against your recent dives")).toBeVisible()

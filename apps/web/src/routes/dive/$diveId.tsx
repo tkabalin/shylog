@@ -989,9 +989,11 @@ function SacFigure({ sac, rates }: { sac: number; rates: number[] | null }) {
           <span className="ml-auto self-center pl-3 text-[13px] font-medium tracking-normal text-muted-foreground">
             <span aria-hidden className="inline-flex items-center gap-0.5">
               {difference !== 0 && <Arrow className="size-3.5 stroke-[2.25]" />}
-              {Math.abs(difference).toFixed(1)} vs last 5
+              {Math.abs(difference).toFixed(1)} vs average of last 5
             </span>
-            <span className="sr-only">, {away} your last 5 dives</span>
+            <span className="sr-only">
+              , {away} the average of your last 5 dives
+            </span>
           </span>
         )}
       </dd>
