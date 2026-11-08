@@ -92,7 +92,7 @@ import { Toggle } from "@/components/ui/toggle"
 import type { Dive } from "@/data/db"
 import type { LogView } from "@/data/log"
 import { useDesk } from "@/hooks/use-desk"
-import { longDate } from "@/format/dates"
+import { cardDay, longDate, months } from "@/format/dates"
 import { bar, depth, interval } from "@/format/figures"
 import { Haptic } from "@/lib/haptic"
 
@@ -534,7 +534,15 @@ export function DiveForm({
   const computerText = (field: ComparedField, unit: string) => {
     const value = meta?.get(field)?.computerValue
     if (value == null) return ""
-    if (field === "startTime") return comparedText(field, value)
+    if (field === "startTime") {
+      const time = comparedText(field, value)
+      // Using it moves the date too, which sits two rows up, so a start
+      // on another day says which.
+      const day = String(value).slice(0, 10)
+      return day === values.date
+        ? time
+        : `${cardDay(day)} ${months[Number(day.slice(5, 7)) - 1]} ${time}`
+    }
     return `${comparedText(field, value)} ${unit}`
   }
 
@@ -762,13 +770,7 @@ export function DiveForm({
             title="Basics"
             note={<SourceNote computer={!!dive?.computerModel} />}
           >
-            <Field
-              under={difference(
-                "startTime",
-                "start time",
-                computerText("startTime", "")
-              )}
-            >
+            <Field>
               <Row
                 className={cn(pressedRow, "has-data-popup-open:bg-muted/60")}
               >
@@ -823,7 +825,18 @@ export function DiveForm({
                 />
               </div>
             </Field>
-            <Field under={errorLine("time")}>
+            <Field
+              under={
+                <>
+                  {difference(
+                    "startTime",
+                    "start time",
+                    computerText("startTime", "")
+                  )}
+                  {errorLine("time")}
+                </>
+              }
+            >
               <Row
                 className={cn(pressedRow, "has-data-popup-open:bg-muted/60")}
               >
