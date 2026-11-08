@@ -11,6 +11,7 @@ import {
   zoopXml,
 } from "../../test/uddf-fixtures.ts"
 import { editDive } from "../apply/dive.ts"
+import { putSettings } from "../apply/settings.ts"
 import type { Db } from "../db/open.ts"
 import { sampleTemperatures } from "../derived.ts"
 import { currentVersion } from "../journal.ts"
@@ -18,6 +19,7 @@ import { compare } from "../restore/compare.ts"
 import { replay } from "../restore/replay.ts"
 import { change } from "../routes/change.ts"
 import { readUddf } from "../uddf/reader.ts"
+import { writeUddf } from "../uddf/writer.ts"
 import { applyImport, lastImport } from "./apply.ts"
 import { fingerprint } from "./fingerprint.ts"
 import { pendingPreview, storePreview } from "./preview.ts"
@@ -788,6 +790,91 @@ describe(
 
     it("adopts the same again when the journal is replayed", () => {
       const { db, snapshot } = adopting(["maxDepth", "oxygen"])
+      replay(snapshot, db)
+      expect(compare(snapshot, db)).toEqual([])
+    })
+  }
+)
+
+describe(
+  "applyImport filling the new-dive defaults",
+  { timeout: 20_000 },
+  () => {
+    const defaults = {
+      cylinderMaterial: "aluminium",
+      cylinderVolume: 11100,
+      weight: 6,
+      diveType: "training",
+    } as const
+
+    function withDefaults() {
+      const db = handLog()
+      putSettings(db, { newDiveDefaults: defaults })
+      const snapshot = copyOf(db)
+      const preview = storePreview(db, d4iXml, now)
+      // Freedive 9 included, which takes them too.
+      applyImport(
+        db,
+        preview.id,
+        { ...proposed(preview), include: [refOf(9)] },
+        now
+      )
+      return { db, snapshot }
+    }
+
+    it("fills what an added dive's export leaves empty, as hand values", () => {
+      const { db } = withDefaults()
+      const id = printed(db, 58)!.diveId!
+      expect(diveRow(db, id)).toMatchObject({
+        cylinder_material: "aluminium",
+        cylinder_volume: 11100,
+        weight: 6,
+        dive_type: "training",
+      })
+      expect(metaRows(db, id)).toMatchObject({
+        cylinderMaterial: { source: "hand", computerValue: null },
+        weight: { source: "hand", computerValue: null },
+      })
+    })
+
+    it("fills an included left-out dive too", () => {
+      const { db } = withDefaults()
+      expect(diveRow(db, printed(db, 9)!.diveId!)).toMatchObject({
+        cylinder_material: "aluminium",
+        weight: 6,
+      })
+    })
+
+    it("leaves paired dives alone, as their defaults came when they were logged", () => {
+      const { db } = withDefaults()
+      expect(diveRow(db, "dive-62")).toMatchObject({
+        cylinder_material: null,
+        weight: null,
+      })
+    })
+
+    it("fills none into Shylog's own export, which restores the log as it was", () => {
+      const from = testDb()
+      const first = storePreview(from, d4iXml, now)
+      applyImport(from, first.id, proposed(first), now)
+      const db = testDb()
+      putSettings(db, { newDiveDefaults: defaults })
+      const preview = storePreview(db, writeUddf(from).xml, now)
+      applyImport(db, preview.id, proposed(preview), now)
+      expect(
+        count(
+          db,
+          "SELECT count(*) FROM dives WHERE cylinder_material IS NOT NULL OR weight IS NOT NULL"
+        )
+      ).toBe(0)
+      expect(count(db, "SELECT count(*) FROM dives")).toBe(42)
+    })
+
+    it("fills the same defaults when replayed after they change", () => {
+      const { db, snapshot } = withDefaults()
+      // Changed on both sides, as a later settings op would replay.
+      putSettings(db, { newDiveDefaults: {} })
+      putSettings(snapshot, { newDiveDefaults: {} })
       replay(snapshot, db)
       expect(compare(snapshot, db)).toEqual([])
     })

@@ -26,6 +26,7 @@ import {
   type Fields,
 } from "../apply/dive.ts"
 import { matching, matchOrCreate } from "../apply/entity.ts"
+import { readSettings } from "../apply/settings.ts"
 import {
   metaOf,
   recordDiffering,
@@ -88,6 +89,9 @@ export interface ImportedDive {
   // Helium or under 20.9 % oxygen, imported on air; absent from entries
   // journalled before the gas was compared.
   unsupportedGas?: boolean
+  // The new-dive defaults for an added dive, taken at apply so a replay
+  // doesn't read settings changed since; absent from older entries.
+  defaults?: Fields
   samples: Sample[]
   events: ProfileEvent[]
   fragment: string
@@ -278,6 +282,10 @@ function importDive(
     }
     offer("diveCentreId", id, "hand")
   }
+  // Last, so the computer's values come first and a default breaking a rule
+  // with one of them is the one left out.
+  for (const [field, value] of Object.entries(dive.defaults ?? {}))
+    offer(field as keyof Fields, value, "hand")
   // <shylog> first: its maximum temperature is the one the log held.
   for (const [field, value] of Object.entries(dive.hand))
     offer(field as keyof Fields, value, "hand")
@@ -433,7 +441,8 @@ export function applyChunk(db: Db, chunk: Chunk, at: Date) {
 function imported(
   read: ReadDive,
   startTime: string,
-  paired: boolean
+  paired: boolean,
+  defaults?: Fields
 ): ImportedDive {
   const temperatures = computerTemperatures(read)
   const own = read.own
@@ -494,6 +503,7 @@ function imported(
       : null,
     computerModel: read.computerModel,
     unsupportedGas: read.unsupportedGas,
+    ...(defaults && { defaults }),
     samples: read.samples,
     events: read.events,
     fragment: read.fragment!,
@@ -611,6 +621,12 @@ export function applyImport(
       )
   const add = new Set(request.add)
   const include = new Set(request.include)
+  // An added dive takes the new-dive defaults where its export is empty, as
+  // a dive logged by hand would. Shylog's own export brings the log back as
+  // it was, so takes none.
+  const { newDiveDefaults } = readSettings(db)
+  const defaultsFor = (read: ReadDive): Fields | undefined =>
+    read.fromShylog ? undefined : newDiveDefaults
 
   const actions: ChunkDive[] = []
   // Dives starting together keep the file's order, as a log's own export
@@ -639,7 +655,7 @@ export function applyImport(
         ref: dive.ref,
         fingerprint: print,
         diveId: newId("dive"),
-        dive: imported(read, dive.startTime, false),
+        dive: imported(read, dive.startTime, false, defaultsFor(read)),
       })
     } else if (reason) {
       actions.push({
