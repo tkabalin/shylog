@@ -334,6 +334,20 @@ describe("a new dive", () => {
     })
   })
 
+  it("copies no site from a last dive still at the Unknown site", () => {
+    const last = testDive({ id: "dive-last", siteId: "site-unknown" })
+    const log = testLog({ dives: [last] })
+    log.sites.set("site-unknown", {
+      id: "site-unknown",
+      name: "Unknown site",
+      countryCode: "ZA",
+      regionId: null,
+      bodyOfWater: null,
+      waterType: "salt",
+    })
+    expect(copyFromDive(emptyValues("2026-10-27"), last, log).siteId).toBeNull()
+  })
+
   it("shows the date as text and starts the time picker at 09:00", () => {
     const log = testLog()
     render(
@@ -377,6 +391,46 @@ describe("a new dive", () => {
     click(button(/Copy from last dive/))
     const ignored = document.querySelector<HTMLInputElement>("#field-ignored")!
     expect(ignored.checked).toBe(false)
+  })
+
+  it("names no Unknown site to copy, and starts a new site in the last real one's country", () => {
+    const log = testLog({
+      dives: [
+        testDive({
+          id: "dive-last",
+          startTime: "2026-10-26T09:00:00",
+          siteId: "site-unknown",
+        }),
+        testDive({
+          id: "dive-before",
+          startTime: "2026-10-20T09:00:00",
+          siteId: "site-vn-long-beach",
+        }),
+      ],
+    })
+    log.sites.set("site-unknown", {
+      id: "site-unknown",
+      name: "Unknown site",
+      countryCode: "ZA",
+      regionId: null,
+      bodyOfWater: null,
+      waterType: "salt",
+    })
+    render(
+      <DiveForm
+        title="New dive"
+        log={log}
+        initial={newDiveValues(log.settings, "2026-10-27")}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    )
+    expect(button(/Copy from last dive/)!.textContent).not.toContain(
+      "Unknown site"
+    )
+    click(button(/^Site/))
+    click(button("New site"))
+    expect(button(/^Country/)!.textContent).toContain("Vietnam")
   })
 
   it("says Copied for a moment after copying the last dive", () => {

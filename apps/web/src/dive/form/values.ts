@@ -24,6 +24,7 @@ import {
 
 import { gasDetail } from "@/format/figures"
 import type { Dive, FieldMeta, Settings } from "@/data/db"
+import { isUnknown } from "@/data/entities"
 import type { DraftFields, NewEntity } from "@/data/drafts"
 import type { LogView } from "@/data/log"
 
@@ -232,7 +233,8 @@ export function fromDive(dive: Dive, log: LogView): FormValues {
 
 // Copy from last dive: the setting and kit of the last dive, leaving the
 // number, date and time, depths, duration, pressures, temperatures, animals
-// and notes to fill (see Add or edit in the spec). Never Ignore.
+// and notes to fill (see Add or edit in the spec). Never Ignore, nor the
+// Unknown site, which is a place to move dives off, not one to choose.
 export function copyFromDive(
   values: FormValues,
   last: Dive,
@@ -241,7 +243,7 @@ export function copyFromDive(
   const from = fromDive(last, log)
   return {
     ...values,
-    siteId: from.siteId,
+    siteId: isUnknown(log, last.siteId) ? values.siteId : from.siteId,
     tripId: from.tripId,
     buddies: from.buddies,
     diveProfessionals: from.diveProfessionals,

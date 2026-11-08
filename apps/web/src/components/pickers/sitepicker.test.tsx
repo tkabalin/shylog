@@ -24,14 +24,24 @@ const regions: RegionRow[] = testRegions.map((region) => ({
   sites: 1,
 }))
 
-function show() {
+// An import's holding place for dives the file gave no site.
+const unknown: SiteRow = {
+  id: "site-unknown",
+  name: "Unknown site",
+  countryCode: "ZA",
+  region: null,
+  count: 4,
+  last: "2026-08-01T08:00:00",
+}
+
+function show(rows = sites, create = true) {
   const onCreate = vi.fn()
   const onChange = vi.fn()
   render(
     <SiteSheet
       open
       onOpenChange={vi.fn()}
-      sites={sites}
+      sites={rows}
       regions={regions}
       defaultCountry="ZA"
       value={null}
@@ -39,7 +49,7 @@ function show() {
       onCreate={onCreate}
     />
   )
-  click(button("New site"))
+  if (create) click(button("New site"))
   return { onCreate, onChange }
 }
 
@@ -124,5 +134,32 @@ describe("a new site", () => {
       "site",
     ])
     expect(entities[1].fields.regionId).toBe(entities[0].id)
+  })
+})
+
+describe("the Unknown site", () => {
+  it("is never offered, in the list or a search", () => {
+    show([...sites, unknown], false)
+    expect(document.body.textContent).toContain("Two Mile Reef")
+    expect(document.body.textContent).not.toContain("Unknown site")
+    type(
+      document.querySelector('input[aria-label="Search or add a site"]'),
+      "unknown"
+    )
+    expect(document.body.textContent).not.toContain("Unknown site")
+  })
+
+  it("can't be made, even before an import has, and isn't offered to use", () => {
+    for (const rows of [[...sites, unknown], sites]) {
+      const { onCreate } = show(rows)
+      type(field("site-name"), "unknown site")
+      expect(document.body.textContent).toContain(
+        "Unknown site is kept for imported dives. Give it another name."
+      )
+      expect(button("Use it")).toBeFalsy()
+      expect(button("Add")).toHaveProperty("disabled", true)
+      expect(onCreate).not.toHaveBeenCalled()
+      document.body.innerHTML = ""
+    }
   })
 })

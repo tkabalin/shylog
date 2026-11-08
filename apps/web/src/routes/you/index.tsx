@@ -19,7 +19,7 @@ import { useTheme } from "@/components/theme-provider"
 import { Card } from "@/components/ui/card"
 import { youCards } from "@/data/cards"
 import { commit } from "@/data/edits"
-import { entitiesOf } from "@/data/entities"
+import { listedOf } from "@/data/entities"
 import { exportNow } from "@/data/export"
 import { useHealth } from "@/data/health"
 import { useLastSync } from "@/data/last-sync"
@@ -245,7 +245,7 @@ function YouPage() {
                   <RowContent
                     icon={icon}
                     label={title}
-                    value={countText(entitiesOf(log, kind).length)}
+                    value={countText(listedOf(log, kind).length)}
                     chevron
                   />
                 </Link>

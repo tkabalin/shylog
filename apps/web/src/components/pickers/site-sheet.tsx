@@ -4,6 +4,7 @@ import {
   countryCodes,
   countryName,
   defaultWaterType,
+  isUnknownSite,
   keysOf,
   newId,
   normaliseName,
@@ -115,6 +116,9 @@ export function SiteSheet({
   }
 
   const typed = tidyName(query)
+  // The Unknown site holds imported dives until each gets its own, so it
+  // is never offered, though a new site can't take its name.
+  const offered = sites.filter((site) => !isUnknownSite(site))
   const country = draft.countryCode
   const name = tidyName(draft.name)
   const duplicate =
@@ -124,8 +128,11 @@ export function SiteSheet({
             placeKey(site.name, site.countryCode) === placeKey(name, country)
         )
       : undefined
+  // Even before an import has made it, as the site would become it.
+  const reserved =
+    !!name && !!country && isUnknownSite({ name, countryCode: country })
   const add = () => {
-    if (!name || !country || duplicate) return
+    if (!name || !country || duplicate || reserved) return
     const entities: NewEntity[] = []
     const regionName = tidyName(draft.region)
     let regionId: Id<"region"> | undefined
@@ -165,7 +172,7 @@ export function SiteSheet({
   const views: Record<View, ReactNode> = {
     list: (
       <SiteList
-        sites={sites}
+        sites={offered}
         query={query}
         onQuery={setQuery}
         value={value}
@@ -191,6 +198,7 @@ export function SiteSheet({
         onDraft={setDraft}
         regions={regions}
         duplicate={duplicate}
+        reserved={reserved}
         onUse={() => duplicate && pick(duplicate.id)}
         onCountry={() => go("country")}
         onBody={() => go("body")}
@@ -198,7 +206,7 @@ export function SiteSheet({
     ),
     country: (
       <CountryList
-        sites={sites}
+        sites={offered}
         value={country}
         onPick={(code) => {
           // A region belongs to one country, so a new country starts it
@@ -235,7 +243,7 @@ export function SiteSheet({
         end={
           <BarButton
             strong
-            disabled={!name || !country || !!duplicate}
+            disabled={!name || !country || !!duplicate || reserved}
             onClick={add}
           >
             Add
@@ -519,6 +527,7 @@ function NewSite({
   onDraft,
   regions,
   duplicate,
+  reserved,
   onUse,
   onCountry,
   onBody,
@@ -527,6 +536,7 @@ function NewSite({
   onDraft: (draft: SiteDraft) => void
   regions: RegionRow[]
   duplicate: SiteRow | undefined
+  reserved: boolean
   onUse: () => void
   onCountry: () => void
   onBody: () => void
@@ -594,17 +604,26 @@ function NewSite({
             className="h-11.5 min-w-0 flex-1 bg-transparent text-right text-base font-medium outline-none placeholder:font-normal placeholder:text-muted-foreground/60"
           />
         </div>
-        {duplicate && (
-          <div className="flex items-center gap-2.5 py-1.5 pr-1.5 pl-4 text-[13px] text-muted-foreground">
+        {reserved ? (
+          <div className="flex min-h-11 items-center gap-2.5 py-1.5 pr-4 pl-4 text-[13px] text-muted-foreground">
             <IconAlertTriangle aria-hidden className="size-4 shrink-0" />
-            <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-              {duplicate.name} already exists in{" "}
-              {countryName(duplicate.countryCode)}
+            <span className="min-w-0 flex-1">
+              Unknown site is kept for imported dives. Give it another name.
             </span>
-            <BarButton strong onClick={onUse} className="text-[13px]">
-              Use it
-            </BarButton>
           </div>
+        ) : (
+          duplicate && (
+            <div className="flex items-center gap-2.5 py-1.5 pr-1.5 pl-4 text-[13px] text-muted-foreground">
+              <IconAlertTriangle aria-hidden className="size-4 shrink-0" />
+              <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+                {duplicate.name} already exists in{" "}
+                {countryName(duplicate.countryCode)}
+              </span>
+              <BarButton strong onClick={onUse} className="text-[13px]">
+                Use it
+              </BarButton>
+            </div>
+          )
         )}
       </SheetSection>
 

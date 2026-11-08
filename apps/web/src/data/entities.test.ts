@@ -10,6 +10,7 @@ import {
   failureText,
   figuresOf,
   likelySameName,
+  listedOf,
   mergeCandidates,
   pickedOf,
   tripDates,
@@ -259,6 +260,30 @@ describe("merging", () => {
     )
   })
 
+  it("never offers or suggests the Unknown site, either way", () => {
+    const log = view([])
+    const unknown = {
+      id: "site-unknown",
+      name: "Unknown site",
+      countryCode: "ZA",
+      regionId: null,
+    }
+    const unknown2 = {
+      ...unknown,
+      id: "site-unknown-2",
+      name: "Unknown site 2",
+    }
+    log.sites.set(unknown.id, unknown as never)
+    log.sites.set(unknown2.id, unknown2 as never)
+    expect(
+      mergeCandidates(log, "site", "site-two-mile").map((site) => site.id)
+    ).not.toContain("site-unknown")
+    expect(mergeCandidates(log, "site", "site-unknown")).toEqual([])
+    // "Unknown site 2" starts with the whole of it, so would look alike.
+    const counts = new Map([["site-unknown", 9]])
+    expect(duplicates(log, "site", counts).has("site-unknown-2")).toBe(false)
+  })
+
   it("holds a trip back while a dive on the phone uses it", () => {
     const log = view([
       dive("dive-new", { tripId: "trip-july", draft: true } as Partial<Dive>),
@@ -344,5 +369,29 @@ describe("failureText", () => {
     expect(failureText(log, new Error("Can’t reach the server"))).toBe(
       "Can’t reach the server"
     )
+  })
+})
+
+describe("listedOf", () => {
+  it("lists the Unknown site only while a logged dive is at it", () => {
+    const at = (dives: Dive[]) => {
+      const log = view(dives)
+      log.sites.set("site-unknown", {
+        id: "site-unknown",
+        name: "Unknown site",
+        countryCode: "ZA",
+        regionId: null,
+      } as never)
+      return listedOf(log, "site").map((site) => site.id)
+    }
+    expect(at([])).not.toContain("site-unknown")
+    expect(
+      at([dive("dive-a", { siteId: "site-unknown", deletedAt: "2026-11-01" })])
+    ).not.toContain("site-unknown")
+    expect(
+      at([dive("dive-a", { siteId: "site-unknown", ignored: true })])
+    ).toContain("site-unknown")
+    // Any other site is listed with no dives.
+    expect(at([])).toContain("site-vn")
   })
 })

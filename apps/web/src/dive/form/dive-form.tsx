@@ -90,6 +90,7 @@ import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Toggle } from "@/components/ui/toggle"
 import type { Dive } from "@/data/db"
+import { isUnknown } from "@/data/entities"
 import type { LogView } from "@/data/log"
 import { useDesk } from "@/hooks/use-desk"
 import { cardDay, longDate, months } from "@/format/dates"
@@ -376,8 +377,11 @@ export function DiveForm({
     })),
   ]
   const latest = log.dives[0]
+  // The Unknown site's South Africa is a placeholder, not where the diver
+  // was, so a new site starts in the country of the last real one.
+  const placed = log.dives.find((one) => !isUnknown(log, one.siteId))
   const defaultCountry =
-    ((latest && log.sites.get(latest.siteId)?.countryCode) as
+    ((placed && log.sites.get(placed.siteId)?.countryCode) as
       CountryCode | undefined) ?? null
 
   const people: { id: string; name: string }[] = [
@@ -756,7 +760,9 @@ export function DiveForm({
                   </span>
                 </span>
                 <span className="min-w-0 flex-1 truncate text-right text-base text-muted-foreground">
-                  {log.sites.get(latest.siteId)?.name}
+                  {/* Not the Unknown site, which isn't copied. */}
+                  {!isUnknown(log, latest.siteId) &&
+                    log.sites.get(latest.siteId)?.name}
                 </span>
                 <IconChevronRight
                   aria-hidden
