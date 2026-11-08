@@ -79,6 +79,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - `ImportReviewHifi`'s Freedives row is a Left out row covering dives under five minutes too, called false starts, each row saying "Freedive" or "Under 5 min". Its "From earlier imports" row reads Already imported, with no split, as the preview counts them together.
 - A dive the review will store on air, as v1 can't hold its gas, says so on its row and on its pairing screen.
 - The Compare table also shows the gas.
+- `ImportReviewHifi` marks a Paired row that differs with a warning dot. It uses the arrows-diff icon in the warning colour instead, the mark the Done screen gives dives that differ, so the two screens read as one.
 - `PairedHifi` has no way to take the computer's values in bulk. Paired opens with a card of switches, one per value that differs on any pair, each with its dive count (D49).
 - `ImportReviewHifi`, `PairedHifi` and `ChangePairingHifi` list days and dives oldest first. They run newest first, as the Log does, so the order never flips between screens (issue #64).
 
