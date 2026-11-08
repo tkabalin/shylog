@@ -69,6 +69,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D50 | New-dive defaults on imported dives (added 8 November 2026) | A dive an import added took nothing from the You tab's defaults, so it had no cylinder material or dive type. Added and included dives now take them (cylinder material and volume, weight, dive type) in the fields their export leaves empty, as hand values, after the computer's, so the computer always wins. The defaults ride in the journalled chunk, so a replay doesn't read settings changed since. Shylog's own export takes none, as it restores the log as it was. The owner's choice. |
 | D51 | Downloading from the dive computer (added 8 November 2026) | The server downloads from the D4i or Zoop Novo on its USB cable at the home server, with libdivecomputer's `dctool` built into the image, since no Node binding is maintained. The app container opens the cable itself (a device cgroup rule for USB serial devices and a read-only view of the host's `/dev`), rather than a host service or a sidecar. Both instances get it, each turned on in its env, and each remembers its computer's serial on the first download and refuses another watch, with Forget on You. Progress is indeterminate, as a download that reads only new dives takes seconds, so the spec's streamed progress is dropped. A spike on the server with both computers comes first. The Import screen's prompt is how the owner imagines it, open to suggestions when it is built. The owner's choices. |
 | D52 | Dive-number milestones (added 8 November 2026) | The milestone numbers are 40, 50, 60, 75, 100, 250, 500, 750 and 1000: the doors on the way to Divemaster and instructor (PADI and SSI), then SSI's recognition levels, leaving out SSI's 12 and 24, which are specialty ratings rather than doors, and plain round numbers. A milestone save shows a line saying what the number means beside the burst, and Statistics' Records and averages card shows the next milestone. The wording and look are proposed when built. The owner's choices. |
+| D53 | Packing checklist (added 8 November 2026) | A packing checklist like the one in PADI's app, but editable. One flat list, rather than sections or several lists as PADI has. The list is stored on the server per instance, so every device shares it and editing needs a connection; ticks stay on the phone only, with a Reset. Where it opens from, its design, its editing and its default items are proposed when built. The owner's choices. |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -100,6 +101,7 @@ Where a board shows something the spec does not and no decision above covers it,
 | 22 | 11 | Logging: structured server log, request ids, the app's errors | 7 |
 | 23 | 12 | Direct download from the dive computer | 7, 17 |
 | 24 | 13 | Dive-number milestones | 10, 20 (the Records card) |
+| 25 | 14 | Packing checklist | 11 |
 
 ---
 
@@ -1247,6 +1249,32 @@ The figures below were worked out before the Import milestones. Milestone 14 gro
 - [ ] Wording and look agreed
 - [ ] Milestone numbers and their lines on the save
 - [ ] Next milestone on Statistics
+- [ ] Tests and screenshots listed above
+
+## Milestone 25: Packing checklist
+
+**Goal**: one flat checklist of things to pack, starting from a default list the diver can change (add, rename, delete, reorder), ticked off on the phone while packing and cleared with a Reset.
+
+**Implements**: Screens (Packing checklist), Edits to synced data, Build order step 14, decision D53.
+
+**Open when it is built**: where it opens from (a row on You is the obvious place), the screen's design, mocked up first as no board covers it, how adding, editing and reordering work, and the default items. A starting list from research: mask, snorkel, fins, wetsuit, hood, gloves, boots, BCD, regulator, dive computer, weights, SMB, torch, cutting tool, defog, save-a-dive kit, certification card, dive insurance details, sunscreen, towel, warm layer, seasickness tablets, water and snacks, dry bag. One way to store it, to weigh then: a table of ordered items with the defaults inserted by its migration, one request saving the whole ordered list (safe to repeat), and the list carried in the synced log so it shows offline.
+
+**Likely touches**: a migration, a schema in core, a route, the synced log, a screen under You, tests.
+
+**Acceptance**
+
+- The server saves the list in one transaction, journalled; saving the same list again changes nothing; the restore drill keeps it.
+- Ticks survive a reload, Reset clears them, and a deleted item's tick goes with it.
+- Offline, the list shows and ticks, and editing says it needs a connection.
+- Playwright: editing the list and Reset at 390 px, with screenshots in both themes.
+
+**Not in this milestone**: several lists, sections, sharing a list between instances.
+
+**Research notes** (8 November 2026): PADI's app has Checklists under Tools, with four lists, Dive Day, Dive Vacation, Save-a-Dive Kit and First Aid Kit ([PADI Pros blog](https://pros-blog.padi.com/?p=4587)); their items, and whether they can be edited, ticked or reset, weren't found. PADI's own packing list, sent by email, groups items as scuba gear, travel and dive documents, exposure protection, electronics, photo and video, and spares ([padi.com](https://www.padi.com/scuba-diving-packing-list)). The starting list above comes from those groups and PADI's blog ([1](https://blog.padi.com/10-things-padi-pro-never-leaves-shore-without/), [2](https://blog.padi.com/essentials-next-dive-holiday/)).
+
+- [ ] Screen mocked up and defaults agreed
+- [ ] Stored list and its route
+- [ ] Screen, ticks and Reset
 - [ ] Tests and screenshots listed above
 
 ---
