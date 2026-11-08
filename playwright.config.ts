@@ -24,10 +24,15 @@ export default defineConfig({
   testDir: "apps/web/e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
+  // Retries only sort a flaky test from a broken one: a test that passes on
+  // a retry still fails the run, so it can't merge unseen.
   retries: process.env.CI ? 2 : 0,
+  failOnFlakyTests: !!process.env.CI,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL: origin(stacks[0].web),
+    // Only on a retry: tracing every attempt made the suite about 40%
+    // slower. A flake is found by repeating it locally instead.
     trace: "on-first-retry",
   },
   projects: [
