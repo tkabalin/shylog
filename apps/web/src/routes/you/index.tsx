@@ -172,6 +172,30 @@ function YouPage() {
             log arrives. */}
         <DiverCard settings={log?.settings} cards={log?.cards} />
 
+        {log && (
+          <Section title="Sites, people and trips">
+            {entityKinds.map((kind) => {
+              const { title, icon } = kindLabels[kind]
+              return (
+                <Link
+                  key={kind}
+                  to="/you/entities"
+                  search={{ kind }}
+                  state={{ pushed: true }}
+                  className={cn(listRow, pressable)}
+                >
+                  <RowContent
+                    icon={icon}
+                    label={title}
+                    value={countText(listedOf(log, kind).length)}
+                    chevron
+                  />
+                </Link>
+              )
+            })}
+          </Section>
+        )}
+
         <Section title="Your log">
           <div className={listRow}>
             <RowContent
@@ -229,30 +253,6 @@ function YouPage() {
             />
           </Link>
         </Section>
-
-        {log && (
-          <Section title="Sites, people and trips">
-            {entityKinds.map((kind) => {
-              const { title, icon } = kindLabels[kind]
-              return (
-                <Link
-                  key={kind}
-                  to="/you/entities"
-                  search={{ kind }}
-                  state={{ pushed: true }}
-                  className={cn(listRow, pressable)}
-                >
-                  <RowContent
-                    icon={icon}
-                    label={title}
-                    value={countText(listedOf(log, kind).length)}
-                    chevron
-                  />
-                </Link>
-              )
-            })}
-          </Section>
-        )}
 
         <Downloads />
 
