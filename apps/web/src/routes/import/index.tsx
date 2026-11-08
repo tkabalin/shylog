@@ -249,7 +249,7 @@ function ImportPage() {
           rather than in the card at the top; with a mouse it stays in the
           card. While a file uploads, the card shows its progress. */}
       {!desk && !uploading && (
-        <div className="sticky bottom-0 z-10 flex flex-col gap-2.5 border-t bg-background px-4 py-3 md:px-[calc(max(0rem,(100%-36rem)/2)+1rem)]">
+        <div className="bottom-bar sticky bottom-0 z-10 flex flex-col gap-2.5 border-t bg-background px-4 py-3 md:px-[calc(max(0rem,(100%-36rem)/2)+1rem)]">
           {failed}
           {button}
         </div>
