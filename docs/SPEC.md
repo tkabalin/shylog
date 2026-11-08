@@ -15,6 +15,7 @@ A mobile-first PWA for logging dives, self-hosted on a home server and reachable
 - Add, edit, and delete dives. New dives can be logged offline and sync later; changing a synced dive needs a connection
 - Dive list, dive detail with a time series profile chart (depth, temperature, and computer events), and aggregate statistics
 - Attaching the dive computer's time series from a Subsurface UDDF export to hand-logged dives, for the Suunto D4i and the Suunto Zoop Novo
+- Downloading dives straight from the D4i or the Zoop Novo on its USB cable at the home server, into the same import review
 - Managing sites, people, dive centres, and trips, including putting many dives on a trip, a dive centre, or a person at once
 - Certification cards, viewable offline
 - A second instance for a second diver
@@ -24,7 +25,6 @@ A mobile-first PWA for logging dives, self-hosted on a home server and reachable
 
 - Bulk editing of other fields
 - MCP integration for logging dives with Claude
-- Downloading directly from the dive computer
 - Several divers in one instance, or public access (the second diver gets a separate instance; see Instance configuration)
 
 ## Stack and deployment
@@ -59,6 +59,7 @@ Nothing in the code or the Compose file assumes a single deployment, so the seco
 - **Diver details**: the owner written to the UDDF export's diver section comes from the You tab, not the code.
 - **Scripts**: the restore drill and backup scripts take the instance name as an argument.
 - **Dive computer**: the import's rules (clock offset, freedive detection, dives under five minutes, Subsurface's placeholders) apply whatever computer the export names. The placeholders are Subsurface's rather than the computer's, and neither the D4i nor the Zoop Novo needs a rule of its own. A rule for one model, if one is ever needed, is chosen by the model the export names.
+- **Dive computer cable**: an env var naming the cable's serial device (`SHYLOG_DC_DEVICE`, say) turns on downloading from the dive computer for that instance, and with none set Import offers only the upload. Each instance remembers its own computer (see Downloading from the dive computer), so one cable on the server serves both divers.
 - **Second instance**: the second diver's logbook is the same image run as its own Compose project (such as `shylog-<name>`) with its own data directory, database, UDDF export, and Tailscale sidecar. Its node is shared with the second diver's Tailscale account, and its allowed logins are theirs, optionally plus the owner's for support. The separate hostname gives it a separate origin, so the two apps' offline stores never mix. Serve sends `Tailscale-User-Login` for users on a shared node too ([Tailscale Serve](https://tailscale.com/kb/1312/serve)), so the identity check works for the second diver; the Deploy step smoke-tests it. A login with non-ASCII characters arrives Q-encoded (RFC 2047), so the check decodes it before comparing.
 
 ## Architecture
@@ -409,7 +410,7 @@ Hand-logged dives come first and always win; an import's main job is to attach t
 
 ### Workflow
 
-Log each dive in the app on the way home. Every so often, download a batch from the dive computer in Subsurface, export to UDDF, and upload it on the app's Import screen. Import needs a connection, since the server does the merge.
+Log each dive in the app on the way home. Every so often, download a batch from the dive computer in Subsurface, export to UDDF, and upload it on the app's Import screen, or plug the computer into the home server and download from the Import screen (see Downloading from the dive computer). Import needs a connection, since the server does the merge.
 
 ### Matching and review
 
@@ -482,6 +483,20 @@ An export of Shylog's own goes through the same import, so the log could come ba
 ### Summary
 
 After confirming, the app shows a short summary: dives paired, dives added, dives skipped as already imported, dives left out (freedives and dives under five minutes), and those included when any were, plus the dives that differ from the computer, listed on the summary with a link to each.
+
+### Downloading from the dive computer
+
+With the watch on its USB cable plugged into the home server, the server downloads the dives itself, and the import carries on exactly as for an uploaded export: preview, review, apply. This skips the Subsurface step. The UDDF upload stays, for the history, for other computers, and as a fallback.
+
+- **Computers**: the D4i and the Zoop Novo, both in libdivecomputer's Suunto D9 family (the library Subsurface downloads with). Both use the same Suunto USB cable (an FTDI chip, USB id 0403:f680), which Linux's own `ftdi_sio` driver shows as an ordinary serial port, so the server needs no driver. Other computers may work but are untested.
+- **The tool**: no maintained Node binding for libdivecomputer exists (`libdivecomputerjs` was archived in June 2026), so the image includes its command-line tool, `dctool`, built from a pinned upstream release with serial support only, and the server runs it. The server turns what it downloads into UDDF, so preview, pairing, apply, fingerprints and pass-through need no second path. Each raw download is kept in the data directory, so the nightly snapshots hold it and a better parser can read it again. libdivecomputer is LGPL-2.1, which a GPL-3.0 project may ship; the image carries its licence and names its source.
+- **Same dive, same fingerprint**: a downloaded dive must get the fingerprint its Subsurface-exported self got, or every dive already imported would come back as new. libdivecomputer's parser gives no average depth, temperature summary or tank, which Subsurface's export works out from the samples, so the conversion has to match Subsurface where the import reads those. Both are checked against the two Subsurface fixtures before anything else is built.
+- **Reaching the cable**: the app container opens the cable itself. A udev rule on the host gives the cable a fixed name, and Compose lets the app open USB serial devices only (a device cgroup rule for their major number, 188) through a read-only view of the host's `/dev`, so a cable plugged in after the container started still appears. Each instance turns this on in its env (see Instance configuration).
+- **One computer per instance**: an instance remembers its computer's serial number on the first download and refuses a different watch, naming it, so the owner's D4i can't land in the second diver's log or the other way round. Forget on You clears it, for a new computer.
+- **Only new dives**: libdivecomputer reads the watch newest first and stops at the dive it was told it already has, so a download reads only dives newer than the last confirmed one. That marker moves forward only when the review is applied, so a failed or abandoned download can simply be repeated. A way to read every dive again stays available, for a dive skipped in an earlier review; Shylog's fingerprints still skip what is already imported.
+- **Progress**: indeterminate, with steps such as connecting and reading the watch, as the upload's is. A download that reads only new dives takes seconds, and a first full read under a minute.
+- **On the Import screen**: this is how the owner imagines it working, open to suggestions when it is built. When the Import screen sees the computer connected, it prompts "Your D4i is connected" with Download dives, and the download goes on to the review. It is mocked up and discussed before it is built. The cable's presence is cheap to check; the watch itself is identified (opening it reads its model and serial) when the cable appears and when the screen opens, never on a tight loop, which would keep the watch awake.
+- **Not covered**: downloading on plug-in without a tap, writing to the watch (its clock or settings), Bluetooth computers, and running libdivecomputer in the browser over Web Serial, which would still need the Windows cable driver and is only worth it if plugging into the server proves a nuisance.
 
 ### SSI logbook history
 
@@ -677,7 +692,7 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - Saving with a required field empty or an impossible value (an average depth deeper than the maximum, a minimum temperature above the maximum) shows the problem under each field and scrolls to the first.
   - Saving a new dive celebrates it once on the detail that takes the form's place: seven small bubbles rise off the max depth figure to the top of the screen at once, offline too, and a milestone number adds a burst of twelve larger bubbles from the bottom of the screen once the server numbers the dive. Editing a dive, opening it again, or reloading it shows nothing, and nothing plays under reduced motion. No number is a milestone until they are chosen (see Later).
 - **Statistics**: headline figures and charts, filtered by year (see Statistics).
-- **Import**: upload a Subsurface UDDF export, review the pairings, then see the summary (see Subsurface import).
+- **Import**: upload a Subsurface UDDF export, or download from the dive computer when it is connected to the server, review the pairings, then see the summary (see Subsurface import).
   - The Import screen offers the upload, a preview still waiting for review (its dive count and when it expires), and the last completed import with its counts.
   - The review leads with the paired dives as one row (their count, and how many still differ once the values switched on are taken), then the new dives from the computer (each ticked to add), then the hand-logged dives no computer dive was paired with, then a card with the count already imported and the dives left out (freedives and dives under five minutes, under day headings, each saying which it is and with its own Include). A dive whose gas v1 can't hold says it will be stored as air. The headings say whether a list's dives come from the file or from the log. A bar at the foot counts what will be imported, and the hand-logged dives left unchanged. Discard, in the review's bar, asks first and throws the preview away.
   - Paired lists every pair by day, your values beside the computer's, the differing ones in the warning colour. Above them, "Use your D4i's values" has a row for each compared value that differs on any pair, with how many dives it changes and a switch; a value switched on reads as the computer's in the list below, and the choice is kept with the review's others until apply sends it.
@@ -816,6 +831,7 @@ Each step ends with something usable, and the core package comes first because e
 9. **Offline**: service worker, the draft queue waiting and retrying while offline (the IndexedDB copy exists from step 5 and drafts from step 6), sync indicators, storage warnings, and the update flow.
 10. **Statistics** screen.
 11. **Logging**: structured server logs, request ids, and the app's errors in the same log (see Logging under Server).
+12. **Direct download**: downloading from the dive computer at the home server into the import review (see Downloading from the dive computer under Subsurface import).
 
 ## Testing
 
@@ -843,20 +859,6 @@ The sync rules and the UDDF import and export carry most of the risk, so they ge
 - Consider Cloudflare Tunnel with Cloudflare Access on a subdomain of a personal domain, so the app works without the Tailscale app on the phone. This would need real app authentication, and a second origin would get its own offline queue and storage.
 - Bulk editing of other fields, including how mixed values show when selected dives disagree
 - MCP tools for logging with Claude. A tailnet-only server is reachable from Claude Desktop or Claude Code on a tailnet device, not from Claude on the web, unless the MCP endpoint is exposed through Tailscale Funnel with its own auth. Keep the MCP layer separate in the server.
-- Direct download from the D4i and the Zoop Novo, so the Subsurface step goes away. This is the intended approach once the MVP works: the D4i's USB cable is plugged into the server, and the server downloads the dives with libdivecomputer, the library Subsurface uses for its downloads, through its Node wrapper or its command-line tool. First check that the wrapper supports the serial connection the D4i cable needs, and fall back to the command-line tool if it does not. On Linux the cable should appear as an ordinary serial device, which avoids the Windows FTDI driver problem. The alternative is to run libdivecomputer as WebAssembly in the browser and talk to the cable over Web Serial from Chrome or Edge on the laptop; it needs HTTPS, still needs the Windows driver, and is a much larger build, so it is only worth it if plugging into the server proves a nuisance. The Subsurface UDDF import stays regardless, for the history and as a fallback.
-
-  **Flow**
-  1. Plug the D4i cable into the server and attach the watch, waking it or switching it to transfer mode if it needs that.
-  2. The Sync screen shows "Watch connected" or "No watch found", checked on the server.
-  3. Tap Sync from watch. The server downloads only the dives newer than the last confirmed sync (libdivecomputer's fingerprint feature, to confirm) and streams progress to the page.
-  4. The new computer dives appear as pending imports, paired with hand-logged dives by day and order as in the Subsurface import section, with the computer's differing values shown beside yours. Nothing is written to the log yet.
-  5. Confirm to merge. Hand-logged values win and the computer's profile is attached. The "already downloaded" marker only moves forward at this point, so a failed or abandoned sync can simply be repeated.
-  6. Unplug the watch.
-
-  **To settle when building it**
-  - A Sync button rather than automatic download on plug-in. A udev rule could detect the cable for the "Watch connected" indicator, but downloading should wait for you.
-  - Keep each raw download in the data directory, so it is included in the nightly snapshots and can be parsed again if the parser improves.
-  - Give the cable a fixed device name with a udev rule instead of relying on ttyUSB0, and give the server permission to open it. A device that appears after the container starts is awkward in Docker, so a small host-side service that owns the serial port, called by the container, may be simpler than mapping the device in.
 - Continuous replication with Litestream to its own unlocked bucket, if losing up to a day of changes ever stops being acceptable. It would need `wal_autocheckpoint=0`, explicit 30-day retention, a stop-and-reset restore swap, and replication lag in the health checks.
 - Dive-number milestones, such as 50 and 100 dives. The save's milestone burst (see Add or edit) plays for the numbers in `apps/web/src/dive/milestones.ts`, which is empty until these are chosen.
   - Make this more granular by standard diving milestones (40 means can start DM, 60 finish DM, 100 is important, other milestones that unlock certain doors).
