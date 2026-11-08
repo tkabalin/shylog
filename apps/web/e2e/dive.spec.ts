@@ -48,6 +48,40 @@ test("explains the OTU limit when its info is tapped", async ({
   await expect(note).toBeHidden()
 })
 
+test("keeps a scrolled dive where it is when its profile draws", async ({
+  page,
+  request,
+}) => {
+  // The samples are held until the dive is scrolled down to its figures, as
+  // on a slow connection. WebKit moved the page as the chart drew.
+  let release!: () => void
+  const held = new Promise<void>((resolve) => (release = resolve))
+  await page.route(
+    (url) => /^\/api\/(dives\/[^/]+\/)?samples$/.test(url.pathname),
+    async (route) => {
+      await held
+      await route.continue()
+    }
+  )
+  await page.goto(`/dive/${await diveId(request, 63)}`)
+  // Mid-page: scrolled to its very end, WebKit put it back.
+  await page.getByRole("button", { name: "About OTU" }).scrollIntoViewIfNeeded()
+  const main = page.locator("#main")
+  const scrolled = await main.evaluate((el) => el.scrollTop)
+  release()
+  await expect(
+    page.getByRole("table", { name: /Every point of the depth profile/ })
+  ).toBeAttached()
+  // A couple of frames on, as the jump came a frame after the chart.
+  const after = await main.evaluate(async (el) => {
+    for (let i = 0; i < 2; i++) await new Promise(requestAnimationFrame)
+    return el.scrollTop
+  })
+  expect(after).toBe(scrolled)
+  // The download after a sync may still be asking as the test ends.
+  await page.unrouteAll({ behavior: "ignoreErrors" })
+})
+
 test("sends the Log link to a fresh Log when the dive was opened directly", async ({
   page,
   request,

@@ -8,6 +8,7 @@ import { profileMaxDepth } from "@/dive/figures"
 
 import { Alarms } from "./alarms"
 import { profileGutter, profileModel, type Alarm } from "./model"
+import { ProfilePlaceholder } from "./placeholder"
 import { ProfileTable } from "./profile-table"
 import { useSize } from "./size"
 import { DepthView, LaneView, Readout, useCrosshair } from "./view"
@@ -57,21 +58,29 @@ export default function Profile({
       // scrubbing selects nothing and shows no callout.
       className="flex flex-col gap-3 select-none [-webkit-touch-callout:none] motion-safe:transition-opacity motion-safe:duration-150 motion-safe:ease-out motion-safe:starting:opacity-0"
     >
-      <Readout model={model} index={index} />
-      {model && (
-        <DepthView
-          model={model}
-          index={index}
-          width={width}
-          handlers={handlers}
-        />
-      )}
-      <LaneView model={model} index={index} width={width} handlers={handlers} />
-      {model && (
+      {model ? (
         <>
+          <Readout model={model} index={index} />
+          <DepthView
+            model={model}
+            index={index}
+            width={width}
+            handlers={handlers}
+          />
+          <LaneView
+            model={model}
+            index={index}
+            width={width}
+            handlers={handlers}
+          />
           <Alarms alarms={model.alarms} onShow={show} />
           <ProfileTable model={model} />
         </>
+      ) : (
+        // Every section's height while the width is measured: laid out
+        // without the chart, the dive got shorter for a moment and WebKit
+        // pulled a scrolled page up by as much.
+        <ProfilePlaceholder alarms={dive.ascentAlarmCount} bare />
       )}
     </div>
   )
