@@ -298,6 +298,8 @@ export function CardSheet({
                       />
                       <input
                         type="text"
+                        // A card's name: no identity autofill (see RowInput).
+                        data-bwignore
                         value={names[page.key] ?? ""}
                         onChange={(event) =>
                           setNames((was) => ({
@@ -323,6 +325,7 @@ export function CardSheet({
                 </span>
                 <input
                   type="text"
+                  data-bwignore
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="e.g. Rescue Diver"
