@@ -68,6 +68,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D49 | Taking the computer's values in the review (added 8 November 2026) | Adopting each differing value one dive at a time on the form is slow after a big import, when hand-logged depths, times and durations are mostly rough copies of the computer's. Paired gets a switch per compared value that differs on any pair, off by default so the hand-beats-computer rule still holds until the diver says otherwise. It is per value rather than one Use all, as the gas is the one value where the hand one is usually right (a computer left on air). Apply takes them in the import's own transaction and journals them with the chunk, so a replay adopts the same; a taken value that breaks a rule with a hand value goes back to the hand one, flagged. The owner chose the review over the Done screen and per-dive buttons. |
 | D50 | New-dive defaults on imported dives (added 8 November 2026) | A dive an import added took nothing from the You tab's defaults, so it had no cylinder material or dive type. Added and included dives now take them (cylinder material and volume, weight, dive type) in the fields their export leaves empty, as hand values, after the computer's, so the computer always wins. The defaults ride in the journalled chunk, so a replay doesn't read settings changed since. Shylog's own export takes none, as it restores the log as it was. The owner's choice. |
 | D51 | Downloading from the dive computer (added 8 November 2026) | The server downloads from the D4i or Zoop Novo on its USB cable at the home server, with libdivecomputer's `dctool` built into the image, since no Node binding is maintained. The app container opens the cable itself (a device cgroup rule for USB serial devices and a read-only view of the host's `/dev`), rather than a host service or a sidecar. Both instances get it, each turned on in its env, and each remembers its computer's serial on the first download and refuses another watch, with Forget on You. Progress is indeterminate, as a download that reads only new dives takes seconds, so the spec's streamed progress is dropped. A spike on the server with both computers comes first. The Import screen's prompt is how the owner imagines it, open to suggestions when it is built. The owner's choices. |
+| D52 | Dive-number milestones (added 8 November 2026) | The milestone numbers are 40, 50, 60, 75, 100, 250, 500, 750 and 1000: the doors on the way to Divemaster and instructor (PADI and SSI), then SSI's recognition levels, leaving out SSI's 12 and 24, which are specialty ratings rather than doors, and plain round numbers. A milestone save shows a line saying what the number means beside the burst, and Statistics' Records and averages card shows the next milestone. The wording and look are proposed when built. The owner's choices. |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -98,6 +99,7 @@ Where a board shows something the spec does not and no decision above covers it,
 | 21 | 10 | Statistics: patterns | 20 |
 | 22 | 11 | Logging: structured server log, request ids, the app's errors | 7 |
 | 23 | 12 | Direct download from the dive computer | 7, 17 |
+| 24 | 13 | Dive-number milestones | 10, 20 (the Records card) |
 
 ---
 
@@ -1215,6 +1217,37 @@ The figures below were worked out before the Import milestones. Milestone 14 gro
 - [ ] Import screen and Forget
 - [ ] README
 - [ ] Tests listed above
+
+## Milestone 24: Dive-number milestones
+
+**Goal**: saving dive 40, 50, 60, 75, 100, 250, 500, 750 or 1000 plays the milestone burst with a line saying what the number means, and Statistics shows the next milestone.
+
+**Implements**: Statistics (Records and milestones, Dive-number milestones), Screens (Add or edit, the save's celebration), Build order step 13, decision D52.
+
+**Open when it is built**: the lines' wording, how the save shows its line and how the Records and averages card shows the next milestone, and anything else the owner wants a milestone to do. Proposed in the real app on localhost, then discussed.
+
+**Likely touches**: `apps/web/src/dive/milestones.ts` (the numbers, now with their meanings), the save's celebration, the Records and averages card, tests.
+
+**Acceptance**
+
+- Saving a dive with a milestone number plays the burst with its line; any other number plays only the small bubbles; an offline draft celebrates once, when the server numbers it.
+- Ignored dives don't count, as they have no number.
+- Statistics shows the next milestone and how far off it is, and nothing once the last is passed.
+- Screenshots of the save and the card at 390 px, in both themes.
+
+**Not in this milestone**: milestones for anything but the dive count (hours underwater, depth, certifications).
+
+**Research notes** (8 November 2026), the counts behind the numbers:
+
+- PADI: Divemaster takes 40 dives to start and 60 to certify ([PADI blog](https://blog.padi.com/padi-divemaster-requirements/)); Master Scuba Diver 50 ([padi.com](https://www.padi.com/become-a-padi-master-scuba-diver)); the instructor course 60 to enrol and 100 for the exam ([PADI blog](https://blog.padi.com/how-to-become-a-scuba-instructor/)).
+- SSI: Dive Guide and Divemaster 40 dives (25 hours) to enrol and 60 (40 hours) to certify ([SSI standards](https://training.divessi.com/us/course/scuba-training-standards-and-procedures/professional-programs-1/divemaster-iso-24801-3)); Master Diver 50, Century 100, Elite 250, Gold 500, Platinum 750, Diamond 1000 and Platinum Pro 5000 ([SSI recognition](https://www.divessi.com/en/join-ssi/recognition/diver-recognition)). The instructor course is 75 dives (50 hours) on SSI's [ITC page](https://www.divessi.com/en/professional/scuba-diving/instructor-training-course) but 60 (40 hours) on a [standards page](https://training.divessi.com/course/scuba-training-standards-and-procedures-20241/professional-programs/open-water-instructor-iso-24802-2-assistant-instructor-iso-24802-1). Older sources give SSI's levels as Silver 300, Gold 500 and Platinum 1000.
+- Left out: SSI's Specialty Diver (12) and Advanced Specialty Diver (24); PADI Tec 40, 45 and 50 at 30, 50 and 100 dives and Self-Reliant Diver at 100, from dive-shop pages only.
+- The code: `apps/web/src/dive/celebration.ts` already plays the burst for `milestones.includes(dive.number)`, and `milestones.ts` is empty.
+
+- [ ] Wording and look agreed
+- [ ] Milestone numbers and their lines on the save
+- [ ] Next milestone on Statistics
+- [ ] Tests and screenshots listed above
 
 ---
 
