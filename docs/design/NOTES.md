@@ -48,7 +48,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - An entity detail's "All N dives" lists the rest of its dives in place rather than opening the Log.
 - Recently deleted's restore toast is shadcn's Sonner, styled as the board's.
 - The entity list's tabs are words only: five tabs with `EntitiesHifi`'s icons don't fit at 390 px once Regions is added.
-- A region's detail shows dives, sites and last dive, as a dive centre's does, and its list row counts sites. On a site or dive centre the region is picked from the existing ones, not typed.
+- A region's detail shows dives, sites and last dive, as a dive centre's does, and its list row counts dives, as every other kind's does. On a site or dive centre the region is picked from the existing ones, not typed.
 - Entity detail's Save sits in the bar where the board leaves the right slot empty; the You sections' Save and Cancel sit under their card, as they have no bar. Every new sheet keeps shadcn's centred 16 px title, as the dive form's do, rather than the boards' left-aligned 18 px.
 - Gear is marked with the scuba tank, as the scuba mask is the You tab's icon. The Icon key's Cylinder entry also names the tank, but no screen draws a cylinder icon.
 - Download has a third row the board doesn't draw, CSV export ("Opens in a spreadsheet"), between UDDF export and Database snapshot. The board's "Last UDDF export" row is "Last export", as the CSV copy is written with the UDDF.

@@ -119,7 +119,8 @@ test("merges a duplicate, moving its dives @writes", async ({
   await expect(page.getByText(`E2E 2 Mile ${tag}`)).toHaveCount(0)
 })
 
-test("lists regions with their sites count @writes", async ({
+// Two dives at one site, so a count of sites can't pass for it.
+test("lists regions with their dive count @writes", async ({
   page,
   restore,
 }) => {
@@ -130,13 +131,22 @@ test("lists regions with their sites count @writes", async ({
     countryCode: "ZA",
   })
   restore((request) => deleteEntity(request, "region", region))
-  await newSite(page, restore, `E2E Reef ${tag}`, { regionId: region })
+  const site = await newSite(page, restore, `E2E Reef ${tag}`, {
+    regionId: region,
+  })
+  const log = await getLog(page.request)
+  for (const n of [61, 63] as const) {
+    const dive = await diveId(page.request, n)
+    const before = log.dives.find((one) => one.id === dive)!.siteId
+    restore((request) => patchDive(request, dive, { siteId: before }))
+    await patchDive(page.request, dive, { siteId: site })
+  }
 
   await page.goto("/you")
   await page.getByRole("link", { name: /^Regions/ }).click()
   await expect(page).toHaveURL(/kind=region/)
   await expect(
-    page.getByRole("link", { name: `E2E Region ${tag}, 1 site` })
+    page.getByRole("link", { name: `E2E Region ${tag}, 2 dives` })
   ).toBeVisible()
 })
 

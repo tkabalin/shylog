@@ -711,7 +711,7 @@ Deferred, or to watch:
 
 - `delete.spec.ts`: deleting a synced dive shows the sheet, moves it to Recently deleted grouped by "Deleted today", the detail shows "Not in your log, stats or export" with Restore, restoring shows the toast with a link and the dive gets its number back; deleting a draft removes it for good with the draft wording.
 - `entities.test.ts`: duplicate suggestions flag "2 Mile Reef" for "Two Mile Reef" and "Sam N" for "Sam Naidoo" (rule: number words, initials and normalised prefixes); person figures are dives together, as buddy and buddy since (D20); site figures are dives, deepest, last dive; every entity figure leaves out ignored dives (D23); trip dates come from its dives; delete is disabled with the explanation when used, counting deleted dives.
-- `entities.spec.ts`: rename a site with Save; a colliding rename shows the error with "Merge instead"; merge moves the dives and the merged name disappears; the Regions tab lists regions with their sites count.
+- `entities.spec.ts`: rename a site with Save; a colliding rename shows the error with "Merge instead"; merge moves the dives and the merged name disappears; the Regions tab lists regions with their dive count.
 - `you.spec.ts`: diver name and max PO₂ save as their field is left, and a failed save puts the saved value back; new-dive defaults use the form's controls and fill a new dive; appearance override applies at once; About shows version and `TS_HOSTNAME`; the Your log dive count includes ignored dives.
 - Screenshots of You, each entities tab, an entity detail with the merge sheet, and Recently deleted at 390 px against the boards.
 
