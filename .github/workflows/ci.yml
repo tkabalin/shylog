@@ -209,8 +209,17 @@ jobs:
   # Publishes only from main and only once every check has passed. It
   # rebuilds from the image job's cache, so with the pinned base images and
   # frozen lockfile it is the same build as the one tested.
+  #
+  # The status checks are explicit because a bare if gets an implicit
+  # success(), which also fails when any job further up the chain was
+  # skipped. On a push e2e-changes and e2e-repeat always are, so that
+  # skipped publish on every run.
   publish:
-    if: github.event_name == 'push'
+    if: >-
+      ${{ !cancelled() && github.event_name == 'push'
+      && needs.check.result == 'success'
+      && needs.e2e.result == 'success'
+      && needs.image.result == 'success' }}
     needs: [check, e2e, image]
     runs-on: ubuntu-latest
     timeout-minutes: 15
