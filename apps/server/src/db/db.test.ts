@@ -142,13 +142,18 @@ describe("migrating a database with data", () => {
   })
 
   it("snapshots before each migration, then journals after the change", () => {
+    const version = (file: string) =>
+      Number(/^pre-migration-(\d+)-/.exec(file)![1])
     const third: Migration = {
       version: latest + 2,
       name: "add notes",
       up: (db) => db.exec("ALTER TABLE trips ADD COLUMN notes TEXT"),
     }
     migrate(db, dir, [...migrations, second, third])
-    const [snapshot, beforeThird] = readdirSync(join(dir, "snapshots")).sort()
+    // By version, as text puts 10 before 9.
+    const [snapshot, beforeThird] = readdirSync(join(dir, "snapshots")).sort(
+      (a, b) => version(a) - version(b)
+    )
     expect(snapshot).toMatch(`pre-migration-${latest + 1}-`)
     expect(beforeThird).toMatch(`pre-migration-${latest + 2}-`)
 
