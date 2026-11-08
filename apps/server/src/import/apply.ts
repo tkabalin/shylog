@@ -14,6 +14,7 @@ import {
   type ImportSummary,
   type Sample,
   type WaterType,
+  unknownSite,
 } from "@shylog/core"
 
 import {
@@ -53,9 +54,6 @@ import {
 // dives, so a large import neither holds the database for long nor makes
 // one huge WAL burst.
 export const chunkSize = 50
-
-// Where a dive the export gives no site goes, until the diver says.
-export const unknownSite = { name: "Unknown site", countryCode: "ZA" }
 
 // An entity the export names, under the id it is made with if nothing
 // matches it, chosen here so a replay of the journal makes the same one.

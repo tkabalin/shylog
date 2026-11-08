@@ -30,3 +30,11 @@ export function normaliseName(name: string): string {
 export function placeKey(name: string, countryCode: string): string {
   return `${countryCode}:${normaliseName(name)}`
 }
+
+// Where an import puts a dive the export gives no site, until the diver
+// says. Imports find it again by its key, so it is never renamed or moved.
+export const unknownSite = { name: "Unknown site", countryCode: "ZA" }
+
+export const isUnknownSite = (site: { name: string; countryCode: string }) =>
+  placeKey(site.name, site.countryCode) ===
+  placeKey(unknownSite.name, unknownSite.countryCode)
