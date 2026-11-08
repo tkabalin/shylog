@@ -9,6 +9,7 @@ import { dropVisibilityMode } from "./migrations/004-drop-visibility-mode.ts"
 import { dropUnwritableCharacters } from "./migrations/005-drop-unwritable-characters.ts"
 import { importPreviewFile } from "./migrations/006-import-preview-file.ts"
 import { dropUnreadDefaults } from "./migrations/007-drop-unread-defaults.ts"
+import { safetyStopColumns } from "./migrations/008-safety-stop.ts"
 import type { Db } from "./open.ts"
 
 export interface Migration {
@@ -25,6 +26,7 @@ export const migrations: Migration[] = [
   dropUnwritableCharacters,
   importPreviewFile,
   dropUnreadDefaults,
+  safetyStopColumns,
 ]
 
 export function schemaVersion(db: Db): number {

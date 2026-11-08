@@ -74,6 +74,7 @@ export function testDive(fields: Partial<Dive> & { id: string }): Dive {
     ascentAlarmCount: 0,
     sampleDuration: null,
     sampleAverageDepth: null,
+    safetyStop: null,
     deletedAt: null,
     ...fields,
   } as Dive
