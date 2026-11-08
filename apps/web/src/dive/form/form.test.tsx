@@ -2,6 +2,8 @@ import { act } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { defaultSettings, diveFieldsSchema, sacRate } from "@shylog/core"
 
+import type { Dive } from "@/data/db"
+
 import { formFigures } from "./calculated"
 import { DiveForm } from "./dive-form"
 import { button, click, render, testDive, testLog, type } from "./testing"
@@ -662,6 +664,70 @@ describe("the form on screen", () => {
     type(min, "21,5")
     await act(async () => button("Save")!.click())
     expect(toFields(onSave.mock.calls[0][0]).fields.minTemperature).toBe(21.5)
+  })
+})
+
+describe("the Night suggestion", () => {
+  // Johannesburg, standing in for South Africa, has sunrise at 06:53 and
+  // sunset at 17:37 on 22 July 2026.
+  const show = (fields: Partial<Dive>) => {
+    const dive = testDive({ id: "dive-n", ...fields })
+    const log = testLog({ dives: [dive] })
+    render(
+      <DiveForm
+        title="Edit dive"
+        log={log}
+        dive={dive}
+        original={fromDive(dive, log)}
+        initial={fromDive(dive, log)}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    )
+  }
+  const suggestion = () => document.querySelector("#night-suggestion")
+
+  it("suggests Night for a dive that ends after sunset, until Night is on", () => {
+    show({ startTime: "2026-07-22T17:20:00", duration: 2400 })
+    expect(suggestion()!.textContent).toBe("Ended after sunset (17:37)")
+    const night = button("Night")!
+    expect(night.getAttribute("aria-describedby")).toBe("night-suggestion")
+    click(night)
+    expect(suggestion()).toBeNull()
+  })
+
+  it("suggests Night for a dive that starts before sunrise", () => {
+    show({ startTime: "2026-07-22T06:30:00" })
+    expect(suggestion()!.textContent).toBe("Started before sunrise (06:53)")
+  })
+
+  it("suggests nothing for a daytime dive, or one already tagged Night", () => {
+    show({})
+    expect(suggestion()).toBeNull()
+    document.body.innerHTML = ""
+    const dive = testDive({ id: "dive-t", startTime: "2026-07-22T19:00:00" })
+    const log = testLog({
+      dives: [dive],
+      links: [{ diveId: "dive-t", type: "tag", target: "night" }],
+    })
+    render(
+      <DiveForm
+        title="Edit dive"
+        log={log}
+        dive={dive}
+        original={fromDive(dive, log)}
+        initial={fromDive(dive, log)}
+        onSave={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    )
+    expect(suggestion()).toBeNull()
+  })
+
+  it("follows the time as it is typed", () => {
+    show({})
+    type(document.querySelector("#field-time"), "18:00")
+    expect(suggestion()!.textContent).toMatch(/^Ended after sunset/)
   })
 })
 
