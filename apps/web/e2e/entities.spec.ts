@@ -1,6 +1,8 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test"
 
 import {
+  atUnknownSite,
+  deleteDive,
   deleteEntity,
   diveId,
   getLog,
@@ -51,6 +53,55 @@ test("renames a site with Save @writes", async ({ page, restore }) => {
   // Back returns to the list it was opened from.
   await page.getByRole("link", { name: "Sites", exact: true }).click()
   await expect(page).toHaveURL(/\/you\/entities\?/)
+})
+
+test("lists the Unknown site only with a dive at it, and never changes it @writes", async ({
+  page,
+  restore,
+}) => {
+  const { siteId: id } = await atUnknownSite(page.request, restore)
+  await page.goto("/you/entities?kind=site&q=Unknown")
+  await page.getByRole("link", { name: /^Unknown site,/ }).click()
+  await expect(page).toHaveURL(`/you/entities/site/${id}`)
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Unknown site"
+  )
+  await expect(
+    page.getByText("Imported dives with no site wait here.")
+  ).toBeVisible()
+  await expect(page.getByRole("button", { name: "Save" })).toHaveCount(0)
+  await expect(page.getByLabel("Name")).toHaveCount(0)
+  await expect(page.getByRole("button", { name: /^Merge/ })).toHaveCount(0)
+  await expect(page.getByRole("button", { name: /^Delete/ })).toHaveCount(0)
+  // Its dives are still there to move off it.
+  await expect(
+    page.getByRole("region", { name: "Dives" }).getByRole("link").first()
+  ).toBeVisible()
+  await page.goBack()
+  await expect(page).toHaveURL(/\/you\/entities\?/)
+})
+
+test("leaves the empty Unknown site out of You and the site picker @writes", async ({
+  page,
+  restore,
+}) => {
+  const { siteId: id, diveId } = await atUnknownSite(page.request, restore)
+  await deleteDive(page.request, diveId)
+  await page.goto("/you/entities?kind=site&q=Unknown")
+  await expect(page.getByText("No sites match.")).toBeVisible()
+  // Still there by its link, saying so.
+  await page.goto(`/you/entities/site/${id}`)
+  await expect(
+    page.getByText("No imported dives are waiting for a site.")
+  ).toBeVisible()
+
+  await page.goto("/dive/new")
+  await page.getByRole("button", { name: /^Site,/ }).click()
+  const sheet = page.getByRole("dialog")
+  await still(sheet)
+  await sheet.getByLabel("Search or add a site").fill("Unknown")
+  await expect(sheet.getByText("No sites match.")).toBeVisible()
+  await expect(sheet.getByText("Unknown site")).toHaveCount(0)
 })
 
 test("offers Merge instead for a rename that collides @writes", async ({

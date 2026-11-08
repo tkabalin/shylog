@@ -1,4 +1,5 @@
 import {
+  isUnknownSite,
   normaliseName,
   type DiveRole,
   type DiveSetKind,
@@ -33,6 +34,14 @@ export function entitiesOf(log: LogView, kind: EntityKind): Entity[] {
   }[kind]
   return [...map.values()]
 }
+
+// What You lists and counts: the Unknown site only while a dive is still
+// to be moved off it, as it stays after its last one.
+export const listedOf = (log: LogView, kind: EntityKind) =>
+  entitiesOf(log, kind).filter(
+    ({ id }) =>
+      !isUnknown(log, id) || log.dives.some((dive) => dive.siteId === id)
+  )
 
 // Whether a dive uses an entity: a region through its dive's site.
 function uses(log: LogView, kind: EntityKind, id: string, dive: Dive) {
@@ -279,11 +288,19 @@ function sameWords(wa: string[], wb: string[]) {
   return short.length >= 5 && long.startsWith(`${short} `)
 }
 
+// The site an import leaves dives at when the file names none. Its dives
+// are at many real places, so they are moved one by one, never merged.
+export function isUnknown(log: LogView, siteId: string) {
+  const site = log.sites.get(siteId)
+  return site != null && isUnknownSite(site)
+}
+
 // Whether two entities can be merged: regions only within a country (Rules
 // for edits), and neither one only a draft has, which the server can't
-// find yet.
+// find yet, nor the Unknown site.
 function mergeable(log: LogView, kind: EntityKind, a: string, b: string) {
   if (log.pending.has(a) || log.pending.has(b)) return false
+  if (isUnknown(log, a) || isUnknown(log, b)) return false
   if (kind === "region")
     return log.regions.get(a)?.countryCode === log.regions.get(b)?.countryCode
   return true

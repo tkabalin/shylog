@@ -55,6 +55,7 @@ import {
   entitiesOf,
   failureText,
   figuresOf,
+  isUnknown,
   likelySameName,
   mergeCandidates,
   mergeEntity,
@@ -245,6 +246,9 @@ export function EntityDetail({
       }
     }, [log, kind, id, saved.name])
   const pending = log.pending.has(id)
+  // Imports find it by its name and country, and its dives are at many
+  // places, so they are moved off one by one and it is never changed.
+  const locked = isUnknown(log, id)
   // Only one the server knows can be named in a request.
   const choosing = pickable(kind) && !pending ? kind : null
 
@@ -440,7 +444,7 @@ export function EntityDetail({
       <PageBar
         back={{ label: label.title, to: "/you/entities", search: { kind } }}
         crumb={saved.name}
-        end={saveButton}
+        end={!locked && saveButton}
       />
       <div className="flex flex-col gap-6 px-4 pt-3 pb-10 md:mx-auto md:w-full md:max-w-xl">
         <section className="flex flex-col gap-1 px-1">
@@ -482,125 +486,138 @@ export function EntityDetail({
           })}
         </dl>
 
-        <div>
-          <Section title="Details">
-            <div>
-              <Row>
-                <Label htmlFor="entity-name">Name</Label>
-                <RowInput
-                  id="entity-name"
-                  value={values.name}
-                  onChange={(event) => set("name", event.target.value)}
-                  maxLength={nameLimit}
-                  autoCapitalize="words"
-                  aria-invalid={!!nameError || undefined}
-                  aria-describedby={nameError ? "error-name" : undefined}
-                />
-              </Row>
-            </div>
-            {(kind === "site" || kind === "region") && (
-              <PickRow
-                label="Country"
-                value={values.countryCode && countryName(values.countryCode)}
-                onClick={() => setSheet("country")}
-              />
-            )}
-            {/* A desktop picks from a Select, as the dive form's choices
-                are, where touch opens a sheet. */}
-            {(kind === "site" || kind === "diveCentre") &&
-              (desk ? (
-                <SelectRow
-                  label="Region"
-                  value={values.regionId}
-                  options={regionsHere.map((region) => ({
-                    value: region.id,
-                    label: regionName(region.id)!,
-                  }))}
-                  empty="Not set"
-                  onChange={(region) => set("regionId", region)}
-                />
-              ) : (
+        {locked && (
+          <p className="px-1 text-[13px] leading-normal text-muted-foreground">
+            {dives.length
+              ? "Imported dives with no site wait here. Edit each one to choose its site."
+              : "No imported dives are waiting for a site."}
+          </p>
+        )}
+
+        {!locked && (
+          <div>
+            <Section title="Details">
+              <div>
+                <Row>
+                  <Label htmlFor="entity-name">Name</Label>
+                  <RowInput
+                    id="entity-name"
+                    value={values.name}
+                    onChange={(event) => set("name", event.target.value)}
+                    maxLength={nameLimit}
+                    autoCapitalize="words"
+                    aria-invalid={!!nameError || undefined}
+                    aria-describedby={nameError ? "error-name" : undefined}
+                  />
+                </Row>
+              </div>
+              {(kind === "site" || kind === "region") && (
                 <PickRow
-                  label="Region"
-                  value={regionName(values.regionId)}
-                  empty="Not set"
-                  onClick={() => setSheet("region")}
+                  label="Country"
+                  value={values.countryCode && countryName(values.countryCode)}
+                  onClick={() => setSheet("country")}
                 />
-              ))}
-            {kind === "site" && (
-              <>
-                {desk ? (
+              )}
+              {/* A desktop picks from a Select, as the dive form's choices
+                  are, where touch opens a sheet. */}
+              {(kind === "site" || kind === "diveCentre") &&
+                (desk ? (
                   <SelectRow
-                    label="Body of water"
-                    value={values.bodyOfWater}
-                    options={options(bodiesOfWater)}
+                    label="Region"
+                    value={values.regionId}
+                    options={regionsHere.map((region) => ({
+                      value: region.id,
+                      label: regionName(region.id)!,
+                    }))}
                     empty="Not set"
-                    onChange={(body) => {
-                      set("bodyOfWater", body)
-                      // As a new site's does, the water follows the body.
-                      if (body) set("waterType", defaultWaterType(body))
-                    }}
+                    onChange={(region) => set("regionId", region)}
                   />
                 ) : (
                   <PickRow
-                    label="Body of water"
-                    value={
-                      values.bodyOfWater &&
-                      bodiesOfWater[values.bodyOfWater].label
-                    }
+                    label="Region"
+                    value={regionName(values.regionId)}
                     empty="Not set"
-                    onClick={() => setSheet("body")}
+                    onClick={() => setSheet("region")}
                   />
-                )}
-                <Row className="py-1.5">
-                  <Label id="entity-water">Water</Label>
-                  <span className="flex-1" />
-                  <Segmented
-                    labelledBy="entity-water"
-                    className="w-auto"
-                    value={values.waterType}
-                    onChange={(water) => water && set("waterType", water)}
-                    options={[
-                      { value: "salt", label: "Salt", icon: IconSalt },
-                      { value: "fresh", label: "Fresh", icon: IconDroplet },
-                    ]}
-                  />
-                </Row>
-              </>
-            )}
-          </Section>
-          {/* Under the card, so the field's row keeps its shape, with the
-              way out as a row of its own. */}
-          {nameError && (
-            <p
-              id="error-name"
-              role="alert"
-              className="mt-2 px-1 text-[13px] [overflow-wrap:anywhere] text-destructive"
-            >
-              {nameError}
-            </p>
-          )}
-          {nameError && conflict && (
-            <Card className="mt-3 gap-0 py-0">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={mergeInstead}
-                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+                ))}
+              {kind === "site" && (
+                <>
+                  {desk ? (
+                    <SelectRow
+                      label="Body of water"
+                      value={values.bodyOfWater}
+                      options={options(bodiesOfWater)}
+                      empty="Not set"
+                      onChange={(body) => {
+                        set("bodyOfWater", body)
+                        // As a new site's does, the water follows the body.
+                        if (body) set("waterType", defaultWaterType(body))
+                      }}
+                    />
+                  ) : (
+                    <PickRow
+                      label="Body of water"
+                      value={
+                        values.bodyOfWater &&
+                        bodiesOfWater[values.bodyOfWater].label
+                      }
+                      empty="Not set"
+                      onClick={() => setSheet("body")}
+                    />
+                  )}
+                  <Row className="py-1.5">
+                    <Label id="entity-water">Water</Label>
+                    <span className="flex-1" />
+                    <Segmented
+                      labelledBy="entity-water"
+                      className="w-auto"
+                      value={values.waterType}
+                      onChange={(water) => water && set("waterType", water)}
+                      options={[
+                        { value: "salt", label: "Salt", icon: IconSalt },
+                        { value: "fresh", label: "Fresh", icon: IconDroplet },
+                      ]}
+                    />
+                  </Row>
+                </>
+              )}
+            </Section>
+            {/* Under the card, so the field's row keeps its shape, with the
+                way out as a row of its own. */}
+            {nameError && (
+              <p
+                id="error-name"
+                role="alert"
+                className="mt-2 px-1 text-[13px] [overflow-wrap:anywhere] text-destructive"
               >
-                <IconArrowMerge aria-hidden className="size-[1.15em]" />
-                <span className="[overflow-wrap:anywhere]">
-                  Merge into {conflict.name}
-                </span>
-              </button>
-            </Card>
-          )}
-          {error && (
-            <p role="alert" className="mt-2 px-1 text-[13px] text-destructive">
-              {error}
-            </p>
-          )}
-        </div>
+                {nameError}
+              </p>
+            )}
+            {nameError && conflict && (
+              <Card className="mt-3 gap-0 py-0">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={mergeInstead}
+                  className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+                >
+                  <IconArrowMerge aria-hidden className="size-[1.15em]" />
+                  <span className="[overflow-wrap:anywhere]">
+                    Merge into {conflict.name}
+                  </span>
+                </button>
+              </Card>
+            )}
+            {error && (
+              <p
+                role="alert"
+                className="mt-2 px-1 text-[13px] text-destructive"
+              >
+                {error}
+              </p>
+            )}
+          </div>
+        )}
 
         {(dives.length > 0 || choosing) && (
           <section aria-labelledby="entity-dives">
@@ -621,36 +638,38 @@ export function EntityDetail({
           </section>
         )}
 
-        <section aria-label="Actions">
-          <Card className="gap-0 divide-y py-0">
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => setSheet("merge")}
-              className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
-            >
-              <IconArrowMerge aria-hidden className="size-[1.15em]" />
-              Merge a duplicate into this
-            </button>
-            <button
-              type="button"
-              disabled={!!used || pending}
-              onClick={() => setSheet("delete")}
-              className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-destructive transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
-            >
-              <IconTrash aria-hidden className="size-[1.15em]" />
-              Delete {label.one}
-            </button>
-          </Card>
-          {/* Only where Delete is disabled, to say why. */}
-          {(pending || used) && (
-            <Note>
-              {pending
-                ? `This ${label.one} is on this phone only until its dive uploads, so it can’t be changed yet.`
-                : `Used by ${used}, so it can’t be deleted. Merge it into the one to keep instead.`}
-            </Note>
-          )}
-        </section>
+        {!locked && (
+          <section aria-label="Actions">
+            <Card className="gap-0 divide-y py-0">
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => setSheet("merge")}
+                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+              >
+                <IconArrowMerge aria-hidden className="size-[1.15em]" />
+                Merge a duplicate into this
+              </button>
+              <button
+                type="button"
+                disabled={!!used || pending}
+                onClick={() => setSheet("delete")}
+                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-destructive transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+              >
+                <IconTrash aria-hidden className="size-[1.15em]" />
+                Delete {label.one}
+              </button>
+            </Card>
+            {/* Only where Delete is disabled, to say why. */}
+            {(pending || used) && (
+              <Note>
+                {pending
+                  ? `This ${label.one} is on this phone only until its dive uploads, so it can’t be changed yet.`
+                  : `Used by ${used}, so it can’t be deleted. Merge it into the one to keep instead.`}
+              </Note>
+            )}
+          </section>
+        )}
       </div>
 
       {choosing && (

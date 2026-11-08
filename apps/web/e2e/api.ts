@@ -1,5 +1,5 @@
 import { test as base, type APIRequestContext } from "@playwright/test"
-import { opVersion } from "@shylog/core"
+import { isUnknownSite, opVersion, unknownSite } from "@shylog/core"
 
 import type { Log } from "../src/api/client"
 
@@ -132,6 +132,58 @@ export async function putEntity(
     data: fields,
   })
   if (!res.ok()) throw new Error(`PUT: ${res.status()} ${await res.text()}`)
+}
+
+// A dive logged at the Unknown site an import makes, deleted when the test
+// ends. Its draft makes the site if no import has yet, as an edit can't take
+// its name. The site can't be deleted, so it stays, left out of You and the
+// site picker once empty.
+export async function atUnknownSite(
+  request: APIRequestContext,
+  restore: (undo: (request: APIRequestContext) => Promise<void>) => void
+) {
+  const found = (await getLog(request)).sites.find(isUnknownSite)
+  const siteId = found?.id ?? `site-${crypto.randomUUID()}`
+  const diveId = `dive-${crypto.randomUUID()}`
+  restore((later) => deleteDive(later, diveId))
+  const op = () => ({
+    opId: `op-${crypto.randomUUID()}`,
+    opVersion,
+    deviceId: "device-e2e",
+    at: new Date().toISOString(),
+  })
+  const res = await request.post("/api/ops", {
+    headers: headers(),
+    data: {
+      ops: [
+        ...(found
+          ? []
+          : [
+              {
+                ...op(),
+                type: "upsertEntity",
+                kind: "site",
+                id: siteId,
+                fields: { ...unknownSite, waterType: "salt" },
+              },
+            ]),
+        {
+          ...op(),
+          type: "upsertDive",
+          diveId,
+          fields: {
+            startTime: "2026-10-12T09:30:00",
+            siteId,
+            duration: 2400,
+            maxDepth: 14,
+          },
+        },
+      ],
+    },
+  })
+  if (!res.ok())
+    throw new Error(`POST /api/ops: ${res.status()} ${await res.text()}`)
+  return { siteId, diveId }
 }
 
 // Puts dives on a trip, dive centre or person, or takes them off.

@@ -22,7 +22,7 @@ import { Card } from "@/components/ui/card"
 import {
   diveCounts,
   duplicates,
-  entitiesOf,
+  listedOf,
   tripDates,
   type Entity,
 } from "@/data/entities"
@@ -70,7 +70,7 @@ function rowsOf(log: LogView, kind: EntityKind): Row[] {
           ...(tripDives.get(dive.tripId) ?? []),
           dive,
         ])
-  return entitiesOf(log, kind).map(({ id, name }) => {
+  return listedOf(log, kind).map(({ id, name }) => {
     const region = (regionId: string | null | undefined) =>
       regionId ? log.regions.get(regionId)?.name : undefined
     let parts: (Row["parts"][number] | null)[] = []

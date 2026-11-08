@@ -1,6 +1,12 @@
 import { expect, test, type Locator } from "@playwright/test"
 
-import { deleteCard, getLog, putCard, test as withData } from "./api"
+import {
+  atUnknownSite,
+  deleteCard,
+  getLog,
+  putCard,
+  test as withData,
+} from "./api"
 import { png } from "./png"
 import { still } from "./ui"
 
@@ -486,6 +492,25 @@ test.describe("screenshots", () => {
       })
     }
   }
+})
+
+withData.describe("the Unknown site at desktop width", () => {
+  withData.use({ viewport: { width: 1024, height: 768 } })
+
+  withData(
+    "shows no Save, details or actions @writes",
+    async ({ page, restore }) => {
+      const { siteId: id } = await atUnknownSite(page.request, restore)
+      await page.goto(`/you/entities/site/${id}`)
+      await expect(
+        page.getByText("Imported dives with no site wait here.")
+      ).toBeVisible()
+      await expect(page.getByRole("button", { name: "Save" })).toHaveCount(0)
+      await expect(page.getByRole("combobox")).toHaveCount(0)
+      await expect(page.getByRole("button", { name: /^Merge/ })).toHaveCount(0)
+      await expect(page.getByRole("button", { name: /^Delete/ })).toHaveCount(0)
+    }
+  )
 })
 
 withData.describe("certification cards at desktop width", () => {
