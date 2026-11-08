@@ -8,7 +8,7 @@
   },
   "sideEffects": false,
   "scripts": {
-    "typecheck": "tsc --noEmit && tsc --noEmit -p test/reference",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p test/reference && tsc --noEmit -p scripts",
     "test": "cd ../.. && vitest run packages/core"
   },
   "dependencies": {
