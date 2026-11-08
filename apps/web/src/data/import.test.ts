@@ -106,6 +106,7 @@ describe("loadPending", () => {
       preview: preview(),
       lastImport: last,
       overrides: {},
+      adopt: [],
     })
   })
 

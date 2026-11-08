@@ -1,5 +1,6 @@
 import {
   comparedFields,
+  type ComparedField,
   computerAir,
   computerGas,
   defaultWaterType,
@@ -115,6 +116,8 @@ export interface Chunk {
   // The gas is compared (see importGas); a replay of an older entry leaves
   // it alone, as it was applied, so a restore matches the log.
   gasCompared?: true
+  // Values the review took from the computer on every paired dive.
+  adopt?: ComparedField[]
 }
 
 // How many computer dives the file held and the days they span (null when
@@ -161,21 +164,26 @@ const partners: Record<string, string> = {
 }
 
 // Writes one computer dive onto a hand dive it was paired with, or as a new
-// dive. Hand values always stay; empty fields are filled and marked with
-// their source, and a computer value that differs from a compared hand
-// value is kept beside it. True when one does.
+// dive. Hand values stay unless the review adopted the computer's for that
+// value; empty fields are filled and marked with their source, and a
+// computer value that differs from a compared hand value is kept beside it.
+// True when one does.
 function importDive(
   db: Db,
   diveId: string,
   dive: ImportedDive,
   paired: boolean,
-  gasCompared: boolean
+  gasCompared: boolean,
+  adopt: ReadonlySet<string>
 ): boolean {
   const meta = metaOf(db, diveId)
   const before: Fields = paired ? storedDive(db, diveId, meta)!.fields : {}
   const next: Fields = { ...before }
   const filled = new Map<string, Meta["source"] | null>()
   const differing = new Map<string, unknown>()
+  // Hand values replaced by the computer's, which differ again if a rule
+  // with another hand value sends them back.
+  const adopting = new Map<string, unknown>()
   const taken = (field: string) => meta.get(field)?.source === "hand"
 
   const offer = (
@@ -191,7 +199,11 @@ function importDive(
         field !== "oxygen" &&
         !same(before[field], value)
       ) {
-        differing.set(field, value)
+        if (adopt.has(field)) {
+          next[field] = value
+          filled.set(field, "computer")
+          adopting.set(field, value)
+        } else differing.set(field, value)
       }
       return
     }
@@ -290,7 +302,15 @@ function importDive(
     } else if (
       gasDiffers(before as { nitrox?: boolean; oxygen?: number }, gas)
     ) {
-      differing.set("oxygen", gas)
+      if (adopt.has("oxygen")) {
+        // The computer's air turns Nitrox off, as adopting on the form does.
+        next.nitrox = gas !== computerAir
+        if (gas === computerAir) delete next.oxygen
+        else next.oxygen = gas
+        filled.set("nitrox", "computer")
+        filled.set("oxygen", "computer")
+        adopting.set("oxygen", gas)
+      } else differing.set("oxygen", gas)
     }
   }
   for (const [field, value] of Object.entries(computer))
@@ -312,17 +332,27 @@ function importDive(
         [field, partners[field]].find((found) => filled.has(found)) ??
         [...filled.keys()].at(-1)
       if (!drop) throw error
-      // A filled gas replaced a hand Nitrox no, which comes back.
+      // A filled gas replaced a hand Nitrox no, which comes back, and an
+      // adopted value goes back to the hand one it replaced.
       if (taken(drop)) next[drop as keyof Fields] = before[drop as keyof Fields]
       else delete next[drop as keyof Fields]
+      if (adopting.has(drop)) {
+        differing.set(drop, adopting.get(drop))
+        adopting.delete(drop)
+      }
       if (next[drop as keyof Fields] === undefined)
         delete next[drop as keyof Fields]
       filled.delete(drop)
     }
   }
   saveDive(db, diveId, after)
+  // An adopted air gas has no oxygen, but its row says the computer's
+  // reading was taken, as adopting on the form records it.
   for (const [field, source] of filled)
-    if (source && after[field as keyof Fields] !== undefined)
+    if (
+      source &&
+      (after[field as keyof Fields] !== undefined || adopting.has(field))
+    )
       recordFilled(db, diveId, field, source)
   for (const [field, value] of differing)
     recordDiffering(db, diveId, field, value)
@@ -376,7 +406,8 @@ export function applyChunk(db: Db, chunk: Chunk, at: Date) {
       entry.diveId,
       entry.dive,
       paired,
-      !!chunk.gasCompared
+      !!chunk.gasCompared,
+      new Set(chunk.adopt)
     )
     print.run(entry.fingerprint, entry.diveId, paired ? "paired" : "added")
     if (paired) summary.paired++
@@ -491,7 +522,7 @@ function computerDives(preview: StoredPreview) {
 // Dives an earlier attempt applied are left out of the preview, so a retry
 // of the same request names them without being refused.
 function check(
-  request: ImportApplyRequest,
+  request: Pick<ImportApplyRequest, "pairs" | "add" | "include">,
   dives: ReturnType<typeof computerDives>,
   applied: ReadonlySet<string>
 ) {
@@ -517,7 +548,8 @@ function check(
 export function applyImport(
   db: Db,
   id: string,
-  request: ImportApplyRequest,
+  // What the route parsed; callers that adopt nothing may leave it out.
+  request: Omit<ImportApplyRequest, "adopt"> & { adopt?: ComparedField[] },
   now = new Date()
 ): ImportApplyResult {
   const stored = storedPreview(db, id, now)
@@ -642,6 +674,7 @@ export function applyImport(
       dives: chunkDives,
       file,
       gasCompared: true,
+      ...(request.adopt?.length && { adopt: request.adopt }),
     }
     try {
       write(db, (journal, at) => {

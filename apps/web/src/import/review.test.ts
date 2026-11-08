@@ -137,7 +137,14 @@ describe("the review as proposed", () => {
       ],
       add: ["c3", "c4"],
       include: [],
+      adopt: [],
     })
+  })
+
+  it("sends the values to take from the computer, water as both ends", () => {
+    expect(
+      applyRequest(preview, {}, ["maxDepth", "water", "gas"]).adopt
+    ).toEqual(["maxDepth", "minTemperature", "maxTemperature", "oxygen"])
   })
 })
 

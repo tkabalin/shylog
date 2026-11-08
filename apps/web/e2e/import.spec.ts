@@ -220,6 +220,68 @@ test("imports an export against hand-logged dives, end to end @writes", async ({
   await expect(footer).toHaveText("1 paired · 0 new")
 })
 
+test("takes the values the review switched on from the computer @writes", async ({
+  page,
+  restore,
+}, testInfo) => {
+  test.slow()
+  // Its own years, so it never meets the other tests' fingerprints.
+  const years = 200 + testInfo.retry + 3 * testInfo.repeatEachIndex
+  const year = 2026 + years
+  restore((request) => undo(request, fileYears(years)))
+
+  // Two of the moved 20 July's dives logged a metre deeper than the
+  // computer recorded, the second five minutes short too.
+  const site = (await getLog(page.request)).sites[0].id
+  const day = `${year}-07-20`
+  for (const [n, time, duration, maxDepth] of [
+    [1, "08:05:00", 2160, 33.6],
+    [2, "09:57:00", 3360, 17.2],
+  ] as const)
+    await uploadDive(page.request, `dive-adopt-${year}-${n}`, {
+      startTime: `${day}T${time}`,
+      duration,
+      maxDepth,
+      siteId: site,
+    })
+
+  await page.goto("/")
+  await page.goto("/import")
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "d4i.uddf",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from(moved(years)),
+  })
+  await expect(page).toHaveURL(/\/import\/review$/)
+  const paired = page.getByRole("link", { name: /^Paired/ })
+  await expect(paired).toContainText("2 differ from the D4i")
+
+  // Max depth taken from the computer on both; the duration stays.
+  await paired.click()
+  await expect(page.getByText("Use your D4i’s values")).toBeVisible()
+  const depthSwitch = page.getByLabel("Max depth")
+  await expect(page.locator("label", { hasText: "Max depth" })).toContainText(
+    "2 dives"
+  )
+  await expect(page.locator("label", { hasText: "Duration" })).toContainText(
+    "1 dive"
+  )
+  await depthSwitch.check()
+  await page.goBack()
+  await expect(page).toHaveURL(/\/import\/review$/)
+  await expect(paired).toContainText("1 differs from the D4i")
+
+  await page.getByRole("button", { name: /^Import \d+ dives$/ }).click()
+  await expect(page).toHaveURL(/\/import\/done$/)
+  await expect(page.getByText("1 dive differs from the D4i")).toBeVisible()
+  const log = await getLog(page.request)
+  const dive = (n: number) =>
+    log.dives.find((found) => found.id === `dive-adopt-${year}-${n}`)!
+  expect(dive(1).maxDepth).toBeLessThan(33)
+  expect(dive(2).maxDepth).toBeLessThan(17)
+  expect(dive(2).duration).toBe(3360)
+})
+
 test.describe("at desktop width", () => {
   test.use({ viewport: { width: 1024, height: 768 } })
 

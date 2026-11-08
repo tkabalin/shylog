@@ -8,11 +8,18 @@ import {
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
-import { loadPending, useImport } from "@/data/import"
+import { diveCount } from "@/components/pickers/match"
+import { Switch } from "@/components/ui/switch"
+import { loadPending, setAdopt, useImport } from "@/data/import"
 import { useLog } from "@/data/log"
 import { computerName } from "@/dive/form/values"
 import { longDate } from "@/format/dates"
-import { compareRows } from "@/import/compare"
+import {
+  compareRows,
+  withAdopted,
+  type CompareKey,
+  type CompareRow,
+} from "@/import/compare"
 import { useToReview } from "@/import/pairing"
 import { ImportSection, ListCard } from "@/import/parts"
 import { capital, offsetText, review } from "@/import/review"
@@ -24,9 +31,10 @@ export const Route = createFileRoute("/import/review_/paired")({
 })
 
 // PairedHifi: every pair by day, your start beside the computer's, and the
-// values that differ, each opening its pairing.
+// values that differ, each opening its pairing. Above them, a switch per
+// value that differs anywhere takes the computer's on every pair at once.
 function PairedPage() {
-  const { loaded, preview, overrides } = useImport()
+  const { loaded, preview, overrides, adopt } = useImport()
   const { log } = useLog()
   const toReview = useToReview()
 
@@ -40,6 +48,10 @@ function PairedPage() {
   if (!preview || !log) return null
   const name = computerName(preview.computerModel)
   const { paired } = review(preview, overrides, log.dive)
+  // Before any value is taken, so a switch never hides its own row.
+  const differing = paired.map(({ entry, diveId }) =>
+    compareRows(entry.dive, log.dive.get(diveId))
+  )
   const days = new Map<string, typeof paired>()
   for (const pair of paired) {
     const list = days.get(pair.entry.dive.day) ?? []
@@ -55,10 +67,13 @@ function PairedPage() {
       />
       <div className="flex flex-col gap-5 px-4 pt-2 pb-[max(2rem,env(safe-area-inset-bottom))] md:mx-auto md:w-full md:max-w-xl">
         <p className="px-1 text-sm leading-normal text-muted-foreground">
-          {paired.length
-            ? `Your values stay. Your ${name} adds its profile.`
-            : "No dives are paired."}
+          {!paired.length
+            ? "No dives are paired."
+            : differing.some((rows) => rows.some((row) => row.differs))
+              ? `Your values stay unless switched on below. Your ${name} adds its profile.`
+              : `Your values stay. Your ${name} adds its profile.`}
         </p>
+        <UseComputer name={name} rows={differing} adopt={adopt} />
         {[...days].map(([date, pairs]) => {
           const offset = preview.days.find((day) => day.date === date)?.offset
           return (
@@ -77,7 +92,7 @@ function PairedPage() {
               <ListCard>
                 {pairs.map(({ entry, diveId }) => {
                   const hand = log.dive.get(diveId)
-                  const rows = compareRows(entry.dive, hand)
+                  const rows = withAdopted(compareRows(entry.dive, hand), adopt)
                   const start = rows.find((row) => row.key === "start")!
                   const differ = rows.filter(
                     (row) => row.differs && row.key !== "start"
@@ -131,6 +146,65 @@ function PairedPage() {
         })}
       </div>
     </div>
+  )
+}
+
+const valueLabels: Record<CompareKey, string> = {
+  start: "Start time",
+  maxDepth: "Max depth",
+  averageDepth: "Average depth",
+  duration: "Duration",
+  water: "Water temperature",
+  gas: "Gas",
+}
+
+// One switch per value that differs on any pair, with how many it changes.
+function UseComputer({
+  name,
+  rows,
+  adopt,
+}: {
+  name: string
+  rows: CompareRow[][]
+  adopt: CompareKey[]
+}) {
+  const counts = new Map<CompareKey, number>()
+  for (const pair of rows)
+    for (const row of pair)
+      if (row.differs) counts.set(row.key, (counts.get(row.key) ?? 0) + 1)
+  if (!counts.size) return null
+  const keys = (Object.keys(valueLabels) as CompareKey[]).filter((key) =>
+    counts.has(key)
+  )
+  return (
+    <ImportSection title={`Use your ${name}’s values`}>
+      <ListCard>
+        {keys.map((key) => {
+          const id = `use-computer-${key}`
+          return (
+            <div key={key} className="flex items-center gap-4 px-4 py-3">
+              <label htmlFor={id} className="flex flex-1 flex-col gap-0.5">
+                <span className="text-[15px]">{valueLabels[key]}</span>
+                <span className="text-[13px] text-muted-foreground tabular-nums">
+                  {diveCount(counts.get(key)!)}
+                </span>
+              </label>
+              <Switch
+                id={id}
+                checked={adopt.includes(key)}
+                onCheckedChange={(on) =>
+                  setAdopt(
+                    on
+                      ? [...adopt, key]
+                      : adopt.filter((taken) => taken !== key)
+                  )
+                }
+              />
+            </div>
+          )
+        })}
+      </ListCard>
+    </ImportSection>
   )
 }
 

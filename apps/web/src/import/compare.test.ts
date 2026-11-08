@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 
 import type { Dive } from "@/data/db"
 
-import { compareRows } from "./compare"
+import { compareRows, withAdopted } from "./compare"
 
 const computer = (oxygen: number | null | undefined): ComputerDive => ({
   ref: "c1",
@@ -68,5 +68,25 @@ describe("the Compare table's gas", () => {
     expect(
       gas(computer(undefined), hand({ nitrox: true, oxygen: 320 }))
     ).toMatchObject({ theirs: "—", differs: false })
+  })
+})
+
+describe("the review's values taken from the computer", () => {
+  it("reads a taken value as the computer's, no longer differing", () => {
+    const rows = compareRows(computer(null), {
+      ...hand({ nitrox: false, oxygen: null }),
+      maxDepth: 17,
+      duration: 2400,
+    })
+    const taken = withAdopted(rows, ["maxDepth"])
+    expect(taken.find((row) => row.key === "maxDepth")).toMatchObject({
+      mine: "18.0 m",
+      differs: false,
+    })
+    // The rest are as they were.
+    expect(taken.find((row) => row.key === "duration")).toMatchObject({
+      mine: "40 min",
+      differs: true,
+    })
   })
 })
