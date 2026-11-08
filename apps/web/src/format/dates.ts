@@ -55,7 +55,7 @@ export function deletedGroup(deletedAt: string, now = new Date()) {
     : `Deleted in ${month} ${date.getFullYear()}`
 }
 
-const pad = (n: number) => String(n).padStart(2, "0")
+export const pad = (n: number) => String(n).padStart(2, "0")
 
 // A server instant on the You tab, in the phone's zone: "Today 02:00",
 // "Yesterday 02:00", then "2 Aug", with the year once it isn't this one.

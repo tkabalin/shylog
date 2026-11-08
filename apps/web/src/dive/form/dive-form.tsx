@@ -8,9 +8,11 @@ import {
 } from "react"
 import {
   currents,
+  diveDark,
   diveTypes,
   entries,
   newId,
+  parseWhole,
   surges,
   tags,
   thermalComforts,
@@ -38,6 +40,7 @@ import {
   IconCopy,
   IconFish,
   IconClockPlay,
+  IconMoon,
   IconMapPin,
   IconNotes,
   IconPool,
@@ -93,7 +96,7 @@ import type { Dive } from "@/data/db"
 import { isUnknown } from "@/data/entities"
 import type { LogView } from "@/data/log"
 import { useDesk } from "@/hooks/use-desk"
-import { cardDay, longDate, months } from "@/format/dates"
+import { cardDay, longDate, months, pad } from "@/format/dates"
 import { bar, depth, interval } from "@/format/figures"
 import { Haptic } from "@/lib/haptic"
 
@@ -148,6 +151,13 @@ const openPicker = (event: MouseEvent<HTMLInputElement>) => {
 // script's smooth scroll otherwise ignores.
 const scrolling = (): ScrollBehavior =>
   matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+
+// Minutes after midnight as a 24-hour clock; a sunset just past midnight
+// reads 00:04, not 24:04.
+const clock = (minutes: number) => {
+  const m = Math.round(minutes) % 1440
+  return `${pad(Math.floor(m / 60))}:${pad(m % 60)}`
+}
 
 type Sheet =
   | "site"
@@ -445,6 +455,23 @@ export function DiveForm({
   const hand = (field: ComparedField) =>
     meta?.get(field)?.source === "hand" ||
     (!!original && values[textField(field)] !== original[textField(field)])
+  // Night is suggested when any of the dive was in the dark at the site's
+  // country. The Unknown site's country is a placeholder, so it suggests
+  // nothing. Memoised, as the form renders on every keystroke and a
+  // country with many clocks costs a couple of milliseconds.
+  const nightOn = values.tags.includes("night")
+  const country = site && !isUnknown(log, site.id) ? site.countryCode : null
+  const dark = useMemo(
+    () =>
+      !nightOn && country && values.date && values.time
+        ? diveDark(
+            `${values.date}T${values.time}`,
+            parseWhole(values.duration),
+            country as CountryCode
+          )
+        : null,
+    [nightOn, country, values.date, values.time, values.duration]
+  )
   const figures = formFigures(values, {
     water: { waterType: siteWater() },
     settings: log.settings,
@@ -1011,6 +1038,9 @@ export function DiveForm({
                   <Toggle
                     key={tag}
                     pressed={values.tags.includes(tag)}
+                    aria-describedby={
+                      tag === "night" && dark ? "night-suggestion" : undefined
+                    }
                     onPressedChange={(pressed) =>
                       set("tags")(
                         pressed
@@ -1018,13 +1048,37 @@ export function DiveForm({
                           : values.tags.filter((t) => t !== tag)
                       )
                     }
-                    className="relative h-10 cursor-pointer rounded-full bg-muted px-3.5 text-sm font-medium text-foreground transition-[color,background-color,opacity] duration-150 hover:bg-muted hover:text-foreground hover:opacity-80 aria-pressed:bg-primary/10 aria-pressed:text-primary data-pressed:bg-primary/10 data-pressed:text-primary"
+                    className={cn(
+                      "relative h-10 cursor-pointer rounded-full bg-muted px-3.5 text-sm font-medium text-foreground transition-[color,background-color,opacity] duration-150 hover:bg-muted hover:text-foreground hover:opacity-80 aria-pressed:bg-primary/10 aria-pressed:text-primary data-pressed:bg-primary/10 data-pressed:text-primary",
+                      tag === "night" &&
+                        dark &&
+                        "outline-1 -outline-offset-1 outline-primary outline-dashed dark:outline-primary/60"
+                    )}
                   >
                     {tags[tag].label}
                     <Haptic />
                   </Toggle>
                 ))}
               </div>
+              {/* The block's gap moves inside the fold, so it opens from
+                  nothing rather than jumping 8 px first. */}
+              {dark && (
+                <div className="-mt-2">
+                  <Reveal>
+                    <p
+                      id="night-suggestion"
+                      className="flex items-center gap-1.5 pt-2 text-[13px] text-muted-foreground tabular-nums"
+                    >
+                      <IconMoon aria-hidden className="size-3.5 shrink-0" />
+                      {dark.kind === "noSunrise"
+                        ? "The sun didn't rise"
+                        : dark.kind === "afterSunset"
+                          ? `Ended after sunset (${clock(dark.at)})`
+                          : `Started before sunrise (${clock(dark.at)})`}
+                    </p>
+                  </Reveal>
+                </div>
+              )}
             </Block>
           </Section>
 
