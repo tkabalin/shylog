@@ -57,7 +57,7 @@ interface Row {
 }
 
 // What each row says under its name, and what it counts: dives, leaving
-// out ignored ones, or a region's sites.
+// out ignored ones.
 function rowsOf(log: LogView, kind: EntityKind): Row[] {
   // One pass over the log for every row's count, and a trip's dives for
   // its dates, rather than one per row.
@@ -70,19 +70,10 @@ function rowsOf(log: LogView, kind: EntityKind): Row[] {
           ...(tripDives.get(dive.tripId) ?? []),
           dive,
         ])
-  const regionSites = new Map<string, number>()
-  if (kind === "region")
-    for (const site of log.sites.values())
-      if (site.regionId)
-        regionSites.set(
-          site.regionId,
-          (regionSites.get(site.regionId) ?? 0) + 1
-        )
   return entitiesOf(log, kind).map(({ id, name }) => {
     const region = (regionId: string | null | undefined) =>
       regionId ? log.regions.get(regionId)?.name : undefined
     let parts: (Row["parts"][number] | null)[] = []
-    let count = counts.get(id) ?? 0
     if (kind === "site") {
       const site = log.sites.get(id)!
       const regionName = region(site.regionId)
@@ -94,7 +85,6 @@ function rowsOf(log: LogView, kind: EntityKind): Row[] {
       parts = [
         { icon: IconFlag, text: countryName(log.regions.get(id)!.countryCode) },
       ]
-      count = regionSites.get(id) ?? 0
     } else if (kind === "diveCentre") {
       const regionName = region(log.diveCentres.get(id)!.regionId)
       parts = [regionName ? { icon: IconMap, text: regionName } : null]
@@ -105,7 +95,7 @@ function rowsOf(log: LogView, kind: EntityKind): Row[] {
     return {
       id,
       name,
-      count,
+      count: counts.get(id) ?? 0,
       parts: parts.filter((part) => part != null),
     }
   })
@@ -166,14 +156,7 @@ function EntitiesPage() {
             <Card className="gap-0 divide-y py-0">
               {shown.map((row) => {
                 const dupe = dupes.get(row.id)
-                const unit =
-                  kind === "region"
-                    ? row.count === 1
-                      ? "site"
-                      : "sites"
-                    : row.count === 1
-                      ? "dive"
-                      : "dives"
+                const unit = row.count === 1 ? "dive" : "dives"
                 return (
                   <Link
                     key={row.id}
