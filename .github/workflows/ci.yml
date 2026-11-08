@@ -93,9 +93,9 @@ jobs:
 
   # The ruleset requires a check named e2e, and a matrix reports one per
   # shard. A skipped job counts as passed, so this runs whatever the shards
-  # did and passes only if all of them did.
+  # did, in a cancelled run too, and passes only if all of them did.
   e2e:
-    if: ${{ !cancelled() }}
+    if: ${{ always() }}
     needs: e2e-shard
     runs-on: ubuntu-latest
     timeout-minutes: 2
