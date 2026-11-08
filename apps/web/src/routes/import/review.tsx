@@ -472,7 +472,7 @@ function ReviewPage() {
         onOpenChange={setClockOpen}
         // A day from the start, so the sheet mounts closed and its first
         // open slides in rather than appearing.
-        date={clockDate ?? preview.days[0]?.date ?? null}
+        date={clockDate ?? preview.days.at(-1)?.date ?? null}
         onDateChange={setClockDate}
         computer={name}
       />

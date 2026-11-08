@@ -31,7 +31,8 @@ export interface Entry {
 // as the server treats it.
 const shortDive = 5 * 60
 
-// Every computer dive the review offers, by its ref, in time order.
+// Every computer dive the review offers, by its ref, newest first, as the
+// Log lists dives.
 export function entries(preview: ImportPreview) {
   const all: Entry[] = [
     ...preview.pairs.map(({ computerDive }) => ({
@@ -40,7 +41,7 @@ export function entries(preview: ImportPreview) {
     })),
     ...preview.newDives.map((dive) => ({ dive, reason: null })),
     ...preview.leftOut.map(({ reason, ...dive }) => ({ dive, reason })),
-  ].sort((a, b) => a.dive.startTime.localeCompare(b.dive.startTime))
+  ].sort((a, b) => b.dive.startTime.localeCompare(a.dive.startTime))
   return new Map(all.map((entry) => [entry.dive.ref, entry]))
 }
 
@@ -223,9 +224,9 @@ export function review(
   }
   result.notPaired.sort(
     (a, b) =>
-      a.day.localeCompare(b.day) ||
-      (hands.get(a.diveId)?.startTime ?? "").localeCompare(
-        hands.get(b.diveId)?.startTime ?? ""
+      b.day.localeCompare(a.day) ||
+      (hands.get(b.diveId)?.startTime ?? "").localeCompare(
+        hands.get(a.diveId)?.startTime ?? ""
       )
   )
   return result
@@ -334,13 +335,13 @@ export function clockDay(
   }
 }
 
-// The day the review's clock link opens: the first whose logged dives
-// didn't all pair, else the first with logged dives, as the clock only
-// matters for pairing, else the first.
+// The day the review's clock link opens: the newest whose logged dives
+// didn't all pair, else the newest with logged dives, as the clock only
+// matters for pairing, else the newest. Newest is the top of every list.
 export function firstDayToCheck(preview: ImportPreview, current: Review) {
   const unpaired = current.notPaired.map((hand) => hand.day).sort()
   const logged = [...handDays(preview).values()].sort()
-  return unpaired[0] ?? logged[0] ?? preview.days[0]?.date ?? null
+  return unpaired.at(-1) ?? logged.at(-1) ?? preview.days.at(-1)?.date ?? null
 }
 
 // After the server proposes some days again (a clock change, or dives

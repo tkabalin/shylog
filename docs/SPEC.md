@@ -650,6 +650,7 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
 - Headings use sentence case, never all caps.
 - One accent colour, used sparingly.
 - Colours come from Tailwind's palette, as shadcn's do. A colour outside it is used only where something specific needs one Tailwind doesn't have.
+- Every list of dives or days runs newest first, within a day too, as the Log does. That includes Import's review, its pairing screens, the clock sheet's days and the summary's differing dives. Charts still run left to right in time, and exports stay oldest first.
 
 ### Screens
 

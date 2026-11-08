@@ -121,7 +121,7 @@ function ComputerPairing() {
       (hand.startTime.slice(0, 10) === dive.day ? sameDay : otherDays).push(
         hand
       )
-  const byStart = (a: Dive, b: Dive) => a.startTime.localeCompare(b.startTime)
+  const byStart = (a: Dive, b: Dive) => b.startTime.localeCompare(a.startTime)
   sameDay.sort(byStart)
   otherDays.sort(byStart)
   // A pick from another day stays in view.
