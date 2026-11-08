@@ -9,7 +9,13 @@ import {
 import { validator } from "hono/validator"
 import { z } from "zod"
 
-import { deleteEntity, feedsDiveFigures, putEntity } from "../apply/entity.ts"
+import {
+  deleteEntity,
+  feedsDiveFigures,
+  keepUnknownSite,
+  putEntity,
+  refuseUnknownSite,
+} from "../apply/entity.ts"
 import { setEntityDives } from "../apply/entity-dives.ts"
 import { mergeEntity } from "../apply/merge.ts"
 import { Rejected } from "../apply/rejected.ts"
@@ -40,7 +46,10 @@ export const entities = factory
     return c.json(
       change(
         db,
-        () => putEntity(db, kind, id, fields),
+        () => {
+          refuseUnknownSite(db, kind, [id])
+          return putEntity(db, kind, id, fields, keepUnknownSite(db, kind, id))
+        },
         { type: "putEntity", payload: { kind, id, fields } },
         feedsDiveFigures(kind)
       )
@@ -53,7 +62,10 @@ export const entities = factory
     return c.json(
       change(
         db,
-        () => mergeEntity(db, kind, id, into),
+        () => {
+          refuseUnknownSite(db, kind, [id, into])
+          return mergeEntity(db, kind, id, into)
+        },
         { type: "mergeEntity", payload: { kind, id, into } },
         feedsDiveFigures(kind)
       )
@@ -83,7 +95,10 @@ export const entities = factory
     return c.json(
       change(
         db,
-        () => deleteEntity(db, kind, id),
+        () => {
+          refuseUnknownSite(db, kind, [id])
+          return deleteEntity(db, kind, id)
+        },
         { type: "deleteEntity", payload: { kind, id } },
         feedsDiveFigures(kind)
       )

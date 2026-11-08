@@ -1,8 +1,9 @@
-import { opVersion } from "@shylog/core"
+import { opVersion, unknownSite } from "@shylog/core"
 import { beforeEach, describe, expect, it } from "vitest"
 
 import { apiHeaders, send, testApp } from "../../test/app.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
+import { matchOrCreate } from "../apply/entity.ts"
 import type { Db } from "../db/open.ts"
 import type { Log } from "./log.ts"
 
@@ -45,6 +46,9 @@ const aliases = () =>
 
 const body = async (res: Response) =>
   (await res.json()) as Record<string, unknown>
+
+const reserved =
+  "Unknown site is kept for imported dives. Give it another name."
 
 // 20 July 2026 at Sodwana, one 12-hour CNS chain: fixture dive 58 on
 // EANx32, then an air dive whose CNS carries over from it.
@@ -171,6 +175,25 @@ describe("PUT /api/entities/:kind/:id", () => {
       countryCode: "ZA",
     })
     expect(created.status).toBe(409)
+  })
+
+  it("refuses a new site or a rename taking the Unknown site's name and country", async () => {
+    // Before any import has made it, it would become the Unknown site.
+    for (const res of [
+      await put("site", "site-new", {
+        name: "Unknown Site",
+        countryCode: "ZA",
+      }),
+      await put("site", unnamed, { name: "unknown site" }),
+    ]) {
+      expect(res.status).toBe(409)
+      expect(await res.json()).toEqual({ error: reserved, path: ["name"] })
+    }
+    // A site called that in another country can't move to South Africa.
+    await put("site", "site-mz", { name: "Unknown site", countryCode: "MZ" })
+    expect((await put("site", "site-mz", { countryCode: "ZA" })).status).toBe(
+      409
+    )
   })
 
   it("allows the same name in another country", async () => {
@@ -707,5 +730,87 @@ describe("DELETE /api/entities/:kind/:id", () => {
     })
     expect(res.status).toBe(422)
     expect((await body(res)).error).toBe("A person on this dive was deleted")
+  })
+})
+
+describe("the Unknown site", () => {
+  const unknown = "site-unknown"
+  const refused = {
+    error:
+      "Unknown site holds dives your dive computer gave no site, so it can’t be changed",
+  }
+  const stored = () =>
+    db.prepare("SELECT * FROM sites WHERE id = ?").get(unknown)
+  // Made as an import makes it, since the route refuses its name.
+  beforeEach(async () => {
+    matchOrCreate(db, "site", unknown, { ...unknownSite, waterType: "salt" })
+    await patchDive(first(), { siteId: unknown })
+  })
+
+  it("refuses an edit, keeping it as it was", async () => {
+    const before = stored()
+    for (const fields of [
+      { name: "Aliwal Shoal" },
+      { countryCode: "MZ" },
+      { bodyOfWater: "lakeQuarry" },
+      { waterType: "fresh" },
+    ]) {
+      const res = await put("site", unknown, fields)
+      expect(res.status).toBe(409)
+      expect(await res.json()).toEqual(refused)
+    }
+    expect(stored()).toEqual(before)
+  })
+
+  it("refuses a merge either way and a delete, even once nothing uses it", async () => {
+    for (const res of [
+      await merge("site", unknown, sodwana),
+      await merge("site", unnamed, unknown),
+    ]) {
+      expect(res.status).toBe(409)
+      expect(await res.json()).toEqual(refused)
+    }
+    expect(aliases()).toEqual([])
+    await patchDive(first(), { siteId: sodwana })
+    expect((await remove("site", unknown)).status).toBe(409)
+    expect(stored()).toBeDefined()
+  })
+
+  it("is found under an id merged into it before", async () => {
+    // An alias can only come from a journal written before the lock.
+    db.prepare(
+      "INSERT INTO aliases (id, kind, target_id) VALUES ('site-old', 'site', ?)"
+    ).run(unknown)
+    const res = await merge("site", unnamed, "site-old")
+    expect(await res.json()).toEqual(refused)
+  })
+
+  it("keeps its name from a rename, offering no merge into it", async () => {
+    const res = await put("site", unnamed, { name: "unknown site" })
+    expect(res.status).toBe(409)
+    expect(await res.json()).toEqual({ error: reserved, path: ["name"] })
+  })
+
+  it("keeps a region it is in, from before the lock, in South Africa", async () => {
+    await put("region", "region-kzn", { name: "KZN", countryCode: "ZA" })
+    db.prepare("UPDATE sites SET region_id = 'region-kzn' WHERE id = ?").run(
+      unknown
+    )
+    const res = await put("region", "region-kzn", { countryCode: "MZ" })
+    expect(res.status).toBe(409)
+    expect((await body(res)).error).toBe(
+      "Unknown site is in this region, so it stays in South Africa"
+    )
+    expect(stored()).toMatchObject({ country_code: "ZA" })
+    // Another region still changes country.
+    await put("region", "region-cape", { name: "Cape", countryCode: "ZA" })
+    expect(
+      (await put("region", "region-cape", { countryCode: "MZ" })).status
+    ).toBe(200)
+  })
+
+  it("leaves another country's Unknown site alone", async () => {
+    await put("site", "site-mz", { name: "Unknown site", countryCode: "MZ" })
+    expect((await put("site", "site-mz", { name: "Tofo" })).status).toBe(200)
   })
 })
