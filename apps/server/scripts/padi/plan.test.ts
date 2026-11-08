@@ -5,16 +5,24 @@ import { testDb } from "../../test/db.ts"
 import { logByHand } from "../../test/hand.ts"
 import { zoopXml } from "../../test/uddf-fixtures.ts"
 import type { Db } from "../../src/db/open.ts"
+import { applyImport } from "../../src/import/apply.ts"
+import { storePreview } from "../../src/import/preview.ts"
 import type { Log } from "../../src/routes/log.ts"
-import { seed } from "../../src/seed.ts"
 import { convertPadi, type Extras } from "./convert.ts"
 import { april, december, extras, january, padiExport } from "./fixture.ts"
 import { applyPlan, planPadi, type Api } from "./plan.ts"
 
-// The Zoop's dives imported first, as computer values, then PADI on top.
+// The Zoop's dives imported first as the diver would, taking what the
+// review proposes, then PADI on top.
 function setup(before?: (db: Db) => void) {
   const db = testDb()
-  seed(db, zoopXml, "test")
+  const preview = storePreview(db, zoopXml)
+  applyImport(db, preview.id, {
+    revision: preview.revision,
+    pairs: [],
+    add: preview.newDives.map((dive) => dive.ref),
+    include: [],
+  })
   before?.(db)
   const app = testApp({ db })
   const api: Api = async (method, path, body) => {
