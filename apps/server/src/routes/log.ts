@@ -33,6 +33,12 @@ const sampleFigures = (schema: number) =>
     ? "sample_duration AS sampleDuration, sample_average_depth AS sampleAverageDepth"
     : "NULL AS sampleDuration, NULL AS sampleAverageDepth"
 
+// Added by migration 8, likewise.
+const stopColumns = (schema: number) =>
+  schema >= 8
+    ? "safety_stop_start AS stopStart, safety_stop_end AS stopEnd, safety_stop_held AS stopHeld, safety_stop_depth AS stopDepth"
+    : "NULL AS stopStart, NULL AS stopEnd, NULL AS stopHeld, NULL AS stopDepth"
+
 interface DiveRow {
   id: string
   number: number | null
@@ -77,10 +83,20 @@ interface DiveRow {
   ascentAlarmCount: number
   sampleDuration: number | null
   sampleAverageDepth: number | null
+  stopStart: number | null
+  stopEnd: number | null
+  stopHeld: number | null
+  stopDepth: number | null
   deletedAt: string | null
 }
 
-const dive = (row: DiveRow) => ({
+const dive = ({
+  stopStart,
+  stopEnd,
+  stopHeld,
+  stopDepth,
+  ...row
+}: DiveRow) => ({
   ...row,
   // "none" is no previous dive, as core's schemas write it.
   surfaceInterval: row.surfaceInterval ?? ("none" as const),
@@ -88,6 +104,11 @@ const dive = (row: DiveRow) => ({
   nitrox: row.nitrox === 1,
   ignored: row.ignored === 1,
   sparkline: row.sparkline ? (JSON.parse(row.sparkline) as number[]) : null,
+  // Seconds into the dive and mm, as core's safetyStop finds it.
+  safetyStop:
+    stopStart == null
+      ? null
+      : { start: stopStart, end: stopEnd!, held: stopHeld!, depth: stopDepth! },
 })
 
 const all = <T>(db: Db, sql: string) => prepared<[], T>(db, sql).all()
@@ -106,7 +127,7 @@ function readLog(db: Db) {
       // Deleted dives too, with deletedAt, for Recently deleted.
       dives: all<DiveRow>(
         db,
-        `SELECT ${diveColumns}, ${sampleFigures(schema)} FROM dives ORDER BY start_time, seq`
+        `SELECT ${diveColumns}, ${sampleFigures(schema)}, ${stopColumns(schema)} FROM dives ORDER BY start_time, seq`
       ).map(dive),
       sites: all<{
         id: string

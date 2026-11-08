@@ -85,6 +85,21 @@ describe("GET /api/log", () => {
     })
   })
 
+  it("carries the safety stop found in the samples", async () => {
+    const log = (await (await get()).json()) as Log
+    const dive63 = log.dives.find((dive) => dive.id === diveId(db, 63))!
+    expect(dive63.safetyStop).toEqual({
+      start: 2061,
+      end: 2352,
+      held: 285,
+      depth: 5016,
+    })
+    // Dive 3 held under a minute in 3 to 6 m.
+    expect(
+      log.dives.find((dive) => dive.id === diveId(db, 3))!.safetyStop
+    ).toBeNull()
+  })
+
   it("includes deleted dives with deletedAt, under a new version", async () => {
     const before = (await (await get()).json()) as Log
     const id = diveId(db, 63)
@@ -127,6 +142,7 @@ describe("GET /api/log", () => {
       id: "dive-a",
       sampleDuration: null,
       sampleAverageDepth: null,
+      safetyStop: null,
     })
   })
 })

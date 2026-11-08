@@ -134,6 +134,7 @@ function draftDive(draft: Draft): Dive {
     ascentAlarmCount: 0,
     sampleDuration: null,
     sampleAverageDepth: null,
+    safetyStop: null,
     deletedAt: null,
     draft: true,
     rejected: draft.rejected,
