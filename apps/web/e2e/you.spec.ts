@@ -178,7 +178,7 @@ test("never marks the back link as the current page", async ({ page }) => {
   await expect(back).not.toHaveAttribute("aria-current", "page")
 })
 
-test("counts ignored dives in Your log @writes", async ({ page, restore }) => {
+test("counts ignored dives in Backups @writes", async ({ page, restore }) => {
   const id = await diveId(page.request, 63)
   restore((request) => patchDive(request, id, { ignored: false }))
   await patchDive(page.request, id, { ignored: true })

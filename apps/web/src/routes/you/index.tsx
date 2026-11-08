@@ -81,7 +81,7 @@ function YouPage() {
   // useHealth): an alert already in it is drawn in place, and only one
   // that arrives afterwards unfolds.
   const [shownWith] = useState(health)
-  // An Export now shows in Your log at once, rather than once the alert
+  // An Export now shows in Backups at once, rather than once the alert
   // has folded and /api/health has answered again.
   const [exportedAt, setExportedAt] = useState<string>()
   const lastExportAt = [health?.lastExportAt, exportedAt]
@@ -173,7 +173,7 @@ function YouPage() {
         <DiverCard settings={log?.settings} cards={log?.cards} />
 
         {log && (
-          <Section title="Sites, people and trips">
+          <Section title="Places, people and trips">
             {entityKinds.map((kind) => {
               const { title, icon } = kindLabels[kind]
               return (
@@ -196,7 +196,7 @@ function YouPage() {
           </Section>
         )}
 
-        <Section title="Your log">
+        <Section title="Backups">
           <div className={listRow}>
             <RowContent
               label="Dives"
@@ -261,7 +261,7 @@ function YouPage() {
         {log && <DefaultsSection settings={log.settings} />}
 
         <PlainLabels.Provider value>
-          <Section title="This phone">
+          <Section title="This device">
             <Appearance />
             <SmoothTemperature />
           </Section>
@@ -541,7 +541,7 @@ function Preferences({ settings }: { settings: Settings }) {
   return (
     <div>
       <PlainLabels.Provider value>
-        <Section title="Preferences">
+        <Section title="Dive computer">
           <div>
             <Row>
               <Label htmlFor="you-maxPo2">Maximum PO₂</Label>

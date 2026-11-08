@@ -51,7 +51,7 @@ describe("the Defaults section", () => {
   })
 })
 
-describe("the Preferences section", () => {
+describe("the Dive computer section", () => {
   it("takes a comma decimal and refuses what no dive could use", () => {
     expect(parseMaxPo2("1,6")).toEqual({ value: 1.6 })
     expect(parseMaxPo2("2.5").error).toBe(

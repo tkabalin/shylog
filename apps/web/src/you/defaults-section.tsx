@@ -99,7 +99,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
   return (
     <PlainLabels.Provider value>
       <div>
-        <Section title="New dive defaults">
+        <Section title="Defaults">
           <div className="flex flex-col gap-2 px-4 py-3">
             <Label id="you-cylinder">Cylinder</Label>
             <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-end max-[374px]:grid-cols-1 max-[374px]:gap-2">
