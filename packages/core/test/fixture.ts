@@ -91,9 +91,12 @@ export function fixtureDive(number: number): FixtureDive {
   return dive
 }
 
-// The 46 scuba dives: every dive with a gas, as freedives have none.
-export function fixtureScubaDives(): FixtureDive[] {
-  return [...divesOf("d4i").values()].filter((dive) => dive.mix != null)
+// An export's scuba dives, the D4i's 46 by default: every dive with a gas,
+// as freedives have none.
+export function fixtureScubaDives(
+  from: keyof typeof exports = "d4i"
+): FixtureDive[] {
+  return [...divesOf(from).values()].filter((dive) => dive.mix != null)
 }
 
 // The dive starting at a time, such as "2026-04-04T16:22", in either export.
