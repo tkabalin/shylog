@@ -11,6 +11,8 @@ export const fixtureStart = {
   54: "2026-07-18T08:39:26",
   61: "2026-07-21T07:47:42",
   63: "2026-07-22T08:12:19",
+  // Never below 8 m, so no safety stop.
+  66: "2026-08-08T10:04:04",
 } as const
 
 // What the app sends, plus the Origin a browser adds to a write. Requests go

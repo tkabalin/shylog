@@ -32,8 +32,8 @@ export const laneHeaderHeight = 16
 export const laneHeight = 40
 export const laneTop = 6
 export const laneBottom = 6
-export const alarmsHeaderHeight = 33
-export const alarmRowHeight = 56
+export const eventsHeaderHeight = 33
+export const eventRowHeight = 56
 
 // The depth axis for a deepest point in mm: zoomed to the dive on the
 // detail chart, from 30 m on the Log's sparklines. Ticks are spaced for the

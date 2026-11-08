@@ -1,11 +1,12 @@
 import { cn } from "cn"
 
 import { Skeleton } from "@/components/ui/skeleton"
+import type { Dive } from "@/data/db"
 
 import {
-  alarmRowHeight,
-  alarmsHeaderHeight,
   chartHeight,
+  eventRowHeight,
+  eventsHeaderHeight,
   laneBottom,
   laneHeaderHeight,
   laneHeight,
@@ -16,16 +17,21 @@ import {
   readoutHeight,
 } from "./layout"
 
+// The Events section's rows, known from the dive before its samples arrive:
+// each ascent alarm, and the safety stop.
+export const eventCount = (dive: Dive) =>
+  dive.ascentAlarmCount + (dive.safetyStop ? 1 : 0)
+
 // The chart's sections at their final heights (see profile.tsx), each
 // sketched where its content will land: the readout, the chart with its
-// gutter and time labels, the temperature lane and one row per alarm. Bare
+// gutter and time labels, the temperature lane and one row per event. Bare
 // keeps the space but hides the sketch, for the failed state and a load's
 // first 150 ms.
 export function ProfilePlaceholder({
-  alarms,
+  events,
   bare,
 }: {
-  alarms: number
+  events: number
   bare?: boolean
 }) {
   return (
@@ -86,20 +92,20 @@ export function ProfilePlaceholder({
           />
         </div>
       </div>
-      {alarms > 0 && (
+      {events > 0 && (
         <div className="-mx-4 mt-1 -mb-4 flex flex-col border-t pb-1.5">
           <div
             className="flex items-center justify-between px-4 pt-3 pb-1"
-            style={{ height: alarmsHeaderHeight }}
+            style={{ height: eventsHeaderHeight }}
           >
             <Skeleton className="h-3 w-12" />
             <Skeleton className="h-3 w-3" />
           </div>
-          {Array.from({ length: alarms }, (_, i) => (
+          {Array.from({ length: events }, (_, i) => (
             <div
               key={i}
               className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2"
-              style={{ height: alarmRowHeight }}
+              style={{ height: eventRowHeight }}
             >
               <div className="flex flex-col gap-1.5">
                 <Skeleton className="h-4 w-28" />

@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { mod } from "@shylog/core"
+import { mod, safetyStop } from "@shylog/core"
 import { createFileRoute, notFound } from "@tanstack/react-router"
 
 import type { Profile } from "@/api/client"
@@ -140,6 +140,7 @@ function DevProfilePage() {
             : base.computerModel,
       ascentAlarmCount: profile.events.filter((e) => e.type === "ascent")
         .length,
+      safetyStop: safetyStop(profile.samples),
     }
     primeProfile(
       fake,

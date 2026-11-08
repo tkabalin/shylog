@@ -12,7 +12,14 @@ import {
 import { depth, temperature } from "@/format/figures"
 
 import { clock, rateLabel } from "./format"
-import { eventLabel, eventsAt, rate, type ProfileModel } from "./model"
+import {
+  eventLabel,
+  eventsAt,
+  inStop,
+  rate,
+  stopLabel,
+  type ProfileModel,
+} from "./model"
 
 // The chart's table alternative for screen readers: every point it plots,
 // with what the crosshair would show there. Memoised, as its thousands of
@@ -50,9 +57,14 @@ export const ProfileTable = memo(function ProfileTable({
               </TableCell>
               <TableCell>{rateLabel(rate(model.speeds[i].speed))}</TableCell>
               <TableCell>
-                {eventsAt(model.events, point.time, model.eventEnd)
-                  .map((event) => `${eventLabel(event.type)} alarm`)
-                  .join(", ")}
+                {[
+                  ...eventsAt(model.events, point.time, model.eventEnd).map(
+                    (event) => `${eventLabel(event.type)} alarm`
+                  ),
+                  ...(inStop(model, point.time)
+                    ? [stopLabel(model.safetyStop!)]
+                    : []),
+                ].join(", ")}
               </TableCell>
             </TableRow>
           ))}
