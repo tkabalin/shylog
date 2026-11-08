@@ -230,6 +230,14 @@ describe("typing after answering a difference", () => {
         onCancel={vi.fn()}
       />
     )
+    // Under the time it differs in, not the date above it.
+    expect(
+      group("start time")!.parentElement!.contains(
+        document.querySelector("#field-time")
+      )
+    ).toBe(true)
+    // The same day, so the time alone.
+    expect(group("start time")!.textContent).toContain("D4i: 08:12")
     click(button("Use D4i value", group("start time")!))
     type(document.querySelector("#field-time"), "10:15")
     const values = await save(onSave)
@@ -237,6 +245,43 @@ describe("typing after answering a difference", () => {
     expect(changedFields(fromDive(timed, timedLog), values)).toEqual({
       startTime: "2026-07-22T10:15:00",
     })
+  })
+
+  it("names the day when the computer's start is on another", async () => {
+    const late = testDive({
+      id: "dive-m",
+      startTime: "2026-03-02T00:10:00",
+      computerModel: "Suunto D4i",
+    })
+    const lateLog = testLog({
+      dives: [late],
+      meta: [
+        {
+          diveId: "dive-m",
+          field: "startTime",
+          source: "hand",
+          computerValue: "2026-03-01T23:55:00",
+          dismissed: false,
+        },
+      ],
+    })
+    const onSave = vi.fn(() => Promise.resolve())
+    render(
+      <DiveForm
+        title="Edit dive"
+        log={lateLog}
+        dive={late}
+        original={fromDive(late, lateLog)}
+        initial={fromDive(late, lateLog)}
+        onSave={onSave}
+        onCancel={vi.fn()}
+      />
+    )
+    expect(group("start time")!.textContent).toContain("D4i: Sun 1 Mar 23:55")
+    click(button("Use D4i value", group("start time")!))
+    expect(document.querySelector<HTMLInputElement>("#field-date")!.value).toBe(
+      "2026-03-01"
+    )
   })
 })
 
