@@ -184,6 +184,8 @@ export function NamesSheet({
             <input
               ref={mountField}
               type="text"
+              // A buddy's name, not the diver's: no identity autofill.
+              data-bwignore
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {

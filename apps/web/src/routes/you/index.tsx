@@ -452,7 +452,6 @@ function DiverCard({
             onChange={(event) => setName(event.target.value)}
             onBlur={() => void save()}
             placeholder="Your name"
-            autoComplete="name"
             autoCapitalize="words"
             maxLength={120}
             disabled={!settings}

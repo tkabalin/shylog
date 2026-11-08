@@ -157,6 +157,9 @@ export function RowInput({ className, ...props }: ComponentProps<"input">) {
   return (
     <input
       autoComplete="off"
+      // Bitwarden offers its identity autofill on any field labelled "name"
+      // and ignores autocomplete="off"; nothing here is a credential.
+      data-bwignore
       // The form has no submit button, so Return would do nothing: it
       // closes the keyboard instead.
       enterKeyHint="done"

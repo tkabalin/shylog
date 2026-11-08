@@ -569,6 +569,8 @@ function NewSite({
           </label>
           <input
             id="site-name"
+            // No identity autofill, as on the form's rows (see RowInput).
+            data-bwignore
             // With a keyboard at hand, typing starts in an empty name at once;
             // a phone waits for a tap, so its keyboard doesn't jump up.
             autoFocus={desk && !draft.name}
@@ -624,6 +626,7 @@ function NewSite({
             <input
               ref={regionInput}
               id="site-region"
+              data-bwignore
               value={draft.region}
               onChange={(event) =>
                 onDraft({ ...draft, region: event.target.value })
