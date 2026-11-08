@@ -37,9 +37,9 @@ const rows = [
 type Kind = (typeof rows)[number]["kind"]
 const title = (kind: Kind) => rows.find((row) => row.kind === kind)!.title
 
-// You's Download section: each row builds its file on the server when
+// You's Export section: each row builds its file on the server when
 // tapped and hands it to the share sheet (a download on a desktop). None
-// touches the server's backup copies, so Your log's times stay as they are.
+// touches the server's backup copies, so Backups' times stay as they are.
 export function Downloads() {
   const desk = useDesk()
   const [busy, setBusy] = useState<Partial<Record<Kind, boolean>>>({})
@@ -61,7 +61,7 @@ export function Downloads() {
   }
 
   return (
-    <Section title="Download" note={<SaveFailure error={error} />}>
+    <Section title="Export" note={<SaveFailure error={error} />}>
       {rows.map(({ kind, icon: Icon, title, sub }) => (
         <button
           key={kind}

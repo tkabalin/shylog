@@ -75,8 +75,7 @@ export function parseDefaults(values: DefaultsValues): {
   return { errors, request: { newDiveDefaults: parsed.data } }
 }
 
-// The Preferences section's maximum PO₂ as a number, or the problem under
-// it.
+// The Dive computer section's maximum PO₂ as a number, or the problem under it.
 export function parseMaxPo2(text: string): { error?: string; value?: number } {
   if (!text.trim()) return { error: "Required" }
   const value = parseDecimal(text.trim())

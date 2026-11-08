@@ -44,22 +44,22 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 
 ## You (Settings on the boards) and people
 
-- `SettingsHifi` is the You tab: titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. Sites, people and trips comes before Your log and Download, as merging duplicates and choosing dives are routine while the log's upkeep and the downloads are rarely looked at. The rest keeps the board's order.
+- `SettingsHifi` is the You tab: titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. Places, people and trips comes before Backups and Export, as merging duplicates and choosing dives are routine while the backup times and the downloads are rarely looked at. The rest keeps the board's order. The headings are the board's renamed: "Your log" is Backups, as its rows are about keeping the log safe; "Download" is Export, a noun like the others; "Preferences" is Dive computer, as maximum PO₂ should match the computer's own setting; and "This phone" is This device, as it shows on a desktop too.
 - An entity detail's "All N dives" lists the rest of its dives in place rather than opening the Log.
 - Recently deleted's restore toast is shadcn's Sonner, styled as the board's.
 - The entity list's tabs are words only: five tabs with `EntitiesHifi`'s icons don't fit at 390 px once Regions is added.
 - A region's detail shows dives, sites and last dive, as a dive centre's does, and its list row counts dives, as every other kind's does. On a site or dive centre the region is picked from the existing ones, not typed.
 - Entity detail's Save sits in the bar where the board leaves the right slot empty; the You sections' Save and Cancel sit under their card, as they have no bar. Every new sheet keeps shadcn's centred 16 px title, as the dive form's do, rather than the boards' left-aligned 18 px.
 - Gear is marked with the scuba tank, as the scuba mask is the You tab's icon. The Icon key's Cylinder entry also names the tank, but no screen draws a cylinder icon.
-- Download has a third row the board doesn't draw, CSV export ("Opens in a spreadsheet"), between UDDF export and Database snapshot. The board's "Last UDDF export" row is "Last export", as the CSV copy is written with the UDDF.
-- The Download rows' subtitles are "Opens in Subsurface" and "The SQLite file", shorter than the board's so they stay on one line beside the download arrow down to 320 px, and show a spinner in place of the download arrow while the server builds the file. A failed download says which file and why under the card, and a failed Export now says why under its action. After a failed night, "Last export" reads "Failed today" without the time, as the board has it. The Offline storage row comes with the offline work.
+- Export has a third row the board doesn't draw, CSV export ("Opens in a spreadsheet"), between UDDF export and Database snapshot. The board's "Last UDDF export" row is "Last export", as the CSV copy is written with the UDDF.
+- The Export rows' subtitles are "Opens in Subsurface" and "The SQLite file", shorter than the board's so they stay on one line beside the download arrow down to 320 px, and show a spinner in place of the download arrow while the server builds the file. A failed download says which file and why under the card, and a failed Export now says why under its action. After a failed night, "Last export" reads "Failed today" without the time, as the board has it. The Offline storage row comes with the offline work.
 - New-dive defaults use the dive form's controls (material and volume in litres), not the board's preset lists, and a new dive is filled from them. The board's gas and start pressure defaults are left out: a new dive starts on air with its start pressure empty, as both are read dive by dive, and a default would record a reading nobody took. `EditDiveHifi` leaves them blank.
 - Dive professionals are labelled "Dive professionals", with no instructor or divemaster role, and the people list shows names only, without the boards' role subtitles.
 
 ## Sites and regions
 
 - A site's country is picked from the ISO list (`EntityDetailHifi` types it), and body of water uses the spec's options, not a named sea such as "Indian Ocean".
-- Regions get their own tab on Sites, people and trips. The boards don't have one.
+- Regions get their own tab on Places, people and trips. The boards don't have one.
 
 ## Statistics, Recently deleted and Certifications
 
@@ -105,7 +105,7 @@ These were settled while planning the build (see the decisions in `docs/PLAN.md`
 - Entities are created from the dive form's pickers, and trips, dive centres and people also from their list's add button with their dives; the entity screens list, rename, merge, delete, and tick dives onto a trip, dive centre or person. No board draws the add button, the New screen or the dive picker.
 - A list that picks several things puts a round check before each row (the dive picker); a list that picks one thing ticks it on the right (option sheets), or uses a radio before it when a confirm button follows (merge). Buddies and dive professionals stay as chips.
 - The entity list has no kind tabs: each kind opens from its row on You, which already lists all five, so `EntitiesHifi`'s tabs repeated it (and five no longer fit).
-- The boards' explanatory notes on You, the entity list and entity detail are cut where the screen or the next step already says it. An entity's note shows only when Delete is disabled, Recently deleted keeps only the re-import note, and Defaults is titled New dive defaults instead of carrying a note. Restore is a words-only pill.
+- The boards' explanatory notes on You, the entity list and entity detail are cut where the screen or the next step already says it. An entity's note shows only when Delete is disabled, Recently deleted keeps only the re-import note, and Defaults keeps the board's title without its note, as its rows show they are for new dives. Restore is a words-only pill.
 - The Unknown site an import makes shows only its figures, its dives and a line saying they wait there for their sites: `EntityDetailHifi`'s Details card, Save, merge and delete are left out, as it is never changed (D47).
 - The Icon key is a reference, not a screen. Each board's Essential icon set is what gets built; the key's Essential column is a vocabulary, not a per-screen rule.
 - The tank-pressure lane is not built; neither computer records pressure.
