@@ -34,6 +34,14 @@ describe("GET /api/settings", () => {
     )
     expect((await getSettings()).newDiveDefaults).toEqual({ weight: 4 })
   })
+
+  // And before migration 7 removed the gas and start pressure.
+  it("reads a row that still has the dropped gas and start pressure defaults", async () => {
+    db.prepare("UPDATE settings SET new_dive_defaults = ?").run(
+      '{"weight":4,"nitrox":true,"oxygen":320,"startPressure":200}'
+    )
+    expect((await getSettings()).newDiveDefaults).toEqual({ weight: 4 })
+  })
 })
 
 describe("PUT /api/settings", () => {
@@ -56,8 +64,6 @@ describe("PUT /api/settings", () => {
     const defaults = {
       cylinderMaterial: "aluminium",
       cylinderVolume: 11100,
-      nitrox: true,
-      oxygen: 320,
     }
     expect((await put({ newDiveDefaults: defaults })).status).toBe(200)
     expect((await getSettings()).newDiveDefaults).toEqual(defaults)

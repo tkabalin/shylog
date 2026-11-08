@@ -1,7 +1,6 @@
 import {
   litresToMillilitres,
   parseDecimal,
-  percentToTenths,
   settingsFields,
   type CylinderMaterial,
   type DiveType,
@@ -13,9 +12,6 @@ import {
 export interface DefaultsValues {
   cylinderMaterial: CylinderMaterial | null
   cylinderVolume: string
-  startPressure: string
-  nitrox: boolean
-  oxygen: string
   weight: string
   diveType: DiveType | null
 }
@@ -34,9 +30,6 @@ export function defaultsValues(settings: Settings): DefaultsValues {
     cylinderVolume: exact(
       defaults.cylinderVolume != null ? defaults.cylinderVolume / 1000 : null
     ),
-    startPressure: exact(defaults.startPressure),
-    nitrox: defaults.nitrox ?? false,
-    oxygen: exact(defaults.oxygen != null ? defaults.oxygen / 10 : null),
     weight: exact(defaults.weight),
     diveType: (defaults.diveType as DiveType | undefined) ?? null,
   }
@@ -59,16 +52,10 @@ export function parseDefaults(values: DefaultsValues): {
   }
 
   const volume = number("cylinderVolume")
-  const oxygen = values.nitrox ? number("oxygen") : undefined
-  if (values.nitrox && oxygen === undefined && !errors.oxygen)
-    errors.oxygen = "Required for nitrox"
   const defaults = {
     cylinderMaterial: values.cylinderMaterial ?? undefined,
     cylinderVolume:
       volume !== undefined ? litresToMillilitres(volume) : undefined,
-    startPressure: number("startPressure"),
-    nitrox: values.nitrox,
-    oxygen: oxygen !== undefined ? percentToTenths(oxygen) : undefined,
     weight: number("weight"),
     diveType: values.diveType ?? undefined,
   }
@@ -76,8 +63,7 @@ export function parseDefaults(values: DefaultsValues): {
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
       const field = issue.path[0] as keyof DefaultsValues
-      if (field === "oxygen") errors.oxygen ??= "Between 21.1 and 100"
-      else if (field === "cylinderVolume")
+      if (field === "cylinderVolume")
         errors.cylinderVolume ??=
           volume !== undefined && volume > 0 ? issue.message : "Must be above 0"
       else if (field in values)

@@ -8,9 +8,6 @@ const settings = settingsSchema.parse({
   newDiveDefaults: {
     cylinderMaterial: "aluminium",
     cylinderVolume: 11_100,
-    startPressure: 200,
-    nitrox: true,
-    oxygen: 320,
     weight: 6,
     diveType: "recreation",
   },
@@ -22,9 +19,6 @@ describe("the Defaults section", () => {
     expect(values).toEqual({
       cylinderMaterial: "aluminium",
       cylinderVolume: "11.1",
-      startPressure: "200",
-      nitrox: true,
-      oxygen: "32",
       weight: "6",
       diveType: "recreation",
     })
@@ -39,10 +33,7 @@ describe("the Defaults section", () => {
       cylinderVolume: "12,2",
     })
     expect(request).toEqual({
-      newDiveDefaults: {
-        cylinderVolume: 12_200,
-        nitrox: false,
-      },
+      newDiveDefaults: { cylinderVolume: 12_200 },
     })
   })
 
@@ -50,17 +41,12 @@ describe("the Defaults section", () => {
     const { errors, request } = parseDefaults({
       ...defaultsValues(defaultSettings),
       cylinderVolume: "25",
-      startPressure: "-1",
       weight: "lots",
-      nitrox: true,
-      oxygen: "",
     })
     expect(request).toBeUndefined()
     expect(errors).toEqual({
       cylinderVolume: "Up to 20 L",
-      startPressure: "Can't be negative",
       weight: "Not a number",
-      oxygen: "Required for nitrox",
     })
   })
 })

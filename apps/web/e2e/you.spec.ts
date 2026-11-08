@@ -104,10 +104,6 @@ test("sets new-dive defaults in the form's controls, which fill a new dive @writ
     .poll(async () => (await settings(page)).newDiveDefaults.cylinderMaterial)
     .toBe("steel")
   await page.getByLabel("Volume").fill("12")
-  // Nitrox waits for its oxygen rather than calling it missing.
-  await page.getByLabel("Nitrox").check()
-  await expect(page.getByText("Required for nitrox")).toHaveCount(0)
-  await page.getByLabel("Oxygen").fill("32")
   await page.getByLabel("Weight").fill("6")
   await page.getByLabel("Weight").blur()
   await expect
@@ -115,8 +111,6 @@ test("sets new-dive defaults in the form's controls, which fill a new dive @writ
     .toMatchObject({
       cylinderMaterial: "steel",
       cylinderVolume: 12_000,
-      nitrox: true,
-      oxygen: 320,
       weight: 6,
     })
   // Leaving sooner cuts that sync off, and the form opens on the old ones.
@@ -130,8 +124,7 @@ test("sets new-dive defaults in the form's controls, which fill a new dive @writ
     "true"
   )
   await expect(page.getByLabel("Volume")).toHaveValue("12")
-  await expect(page.getByLabel("Nitrox")).toBeChecked()
-  await expect(page.getByLabel("Oxygen")).toHaveValue("32")
+  await expect(page.getByLabel("Nitrox")).not.toBeChecked()
   await expect(page.getByLabel("Weight")).toHaveValue("6")
 })
 

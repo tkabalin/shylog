@@ -222,9 +222,6 @@ describe("a new dive", () => {
     newDiveDefaults: {
       cylinderMaterial: "aluminium",
       cylinderVolume: 11100,
-      startPressure: 200,
-      nitrox: true,
-      oxygen: 320,
       weight: 6,
       diveType: "training",
     },
@@ -237,9 +234,10 @@ describe("a new dive", () => {
       time: "",
       cylinderMaterial: "aluminium",
       cylinderVolume: "11.1",
-      startPressure: "200",
-      nitrox: true,
-      oxygen: "32",
+      // A new dive starts on air, with its start pressure to read.
+      startPressure: "",
+      nitrox: false,
+      oxygen: "",
       weight: "6",
       diveType: "training",
       visibility: "metres",
@@ -255,8 +253,6 @@ describe("a new dive", () => {
     })
     expect(fields).toMatchObject({
       cylinderVolume: 11100,
-      startPressure: 200,
-      oxygen: 320,
       weight: 6,
     })
   })

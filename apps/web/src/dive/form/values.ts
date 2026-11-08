@@ -167,9 +167,6 @@ export function newDiveValues(settings: Settings, date = today()): FormValues {
     cylinderVolume: shown(
       defaults.cylinderVolume != null ? defaults.cylinderVolume / 1000 : null
     ),
-    startPressure: shown(defaults.startPressure),
-    nitrox: defaults.nitrox ?? false,
-    oxygen: shown(defaults.oxygen != null ? defaults.oxygen / 10 : null),
     weight: shown(defaults.weight),
     // Metres to start with, a rating one tap away.
     visibility: "metres",

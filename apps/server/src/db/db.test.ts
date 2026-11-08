@@ -278,3 +278,16 @@ describe("migration 5", () => {
     )
   })
 })
+
+describe("migration 7", () => {
+  it("drops the gas and start pressure defaults and keeps the others", () => {
+    migrate(db, dir, migrations.slice(0, 6))
+    db.prepare("UPDATE settings SET new_dive_defaults = ?").run(
+      '{"weight":4,"nitrox":true,"oxygen":320,"startPressure":200}'
+    )
+    migrate(db, dir)
+    expect(
+      db.prepare("SELECT new_dive_defaults FROM settings").pluck().get()
+    ).toBe('{"weight":4}')
+  })
+})
