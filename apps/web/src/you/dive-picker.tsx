@@ -27,7 +27,7 @@ import {
 import type { Dive } from "@/data/db"
 import type { Picked } from "@/data/entities"
 import type { LogView } from "@/data/log"
-import { Row, Segmented, type Icon } from "@/dive/form/rows"
+import { headingButton, Row, Segmented, type Icon } from "@/dive/form/rows"
 import {
   cardDay,
   clockTime,
@@ -295,7 +295,7 @@ export function DivePicker({
                             type="button"
                             aria-label={`${all ? "Deselect" : "Select"} all on ${label}`}
                             onClick={() => tick(ids, !all)}
-                            className="relative inline-flex h-8 items-center text-[13px] font-semibold text-primary transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1.5 hover:opacity-70 active:opacity-50 active:duration-0"
+                            className={headingButton}
                           >
                             {all ? "Deselect all" : "Select all"}
                           </button>
