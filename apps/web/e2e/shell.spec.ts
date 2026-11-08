@@ -108,6 +108,30 @@ test.describe("at phone width", () => {
     await expect.poll(line).toMatch(none)
   })
 
+  // Import's Choose file bar sits on the nav, so content never runs under
+  // the nav there: the bar takes the line, or the two drew a double line.
+  test("gives Import's bottom bar the line instead of the nav", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 520 })
+    await page.goto("/import")
+    await expect(
+      page.getByRole("button", { name: "Choose file" })
+    ).toBeVisible()
+    const nav = page.getByRole("navigation", { name: "Main" })
+    const bar = page.locator(".bottom-bar")
+    const main = page.locator("main")
+    const line = (el: Element) => getComputedStyle(el).borderTopColor
+    const none = /[/,] 0\)$/
+
+    await expect.poll(() => bar.evaluate(line)).not.toMatch(none)
+    expect(await nav.evaluate(line)).toMatch(none)
+
+    await main.evaluate((el) => (el.scrollTop = el.scrollHeight))
+    await expect.poll(() => bar.evaluate(line)).toMatch(none)
+    expect(await nav.evaluate(line)).toMatch(none)
+  })
+
   test("switches tabs in place, so back never steps through them", async ({
     page,
   }) => {
