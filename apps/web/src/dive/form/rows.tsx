@@ -150,6 +150,9 @@ export const pressedRow =
 export const pressedButton =
   "transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
 
+// Select all beside a list's heading; its hit area reaches 44 px.
+export const headingButton = `relative inline-flex h-8 items-center text-[13px] font-semibold text-primary select-none after:absolute after:inset-x-0 after:-inset-y-1.5 ${pressedButton}`
+
 // The board's borderless, right-aligned input. 16 px text, so iOS doesn't
 // zoom in on focus. A dash only marks an empty box, so it goes once the
 // caret is in it, where it would read as a typed minus.

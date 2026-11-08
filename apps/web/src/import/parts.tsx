@@ -36,10 +36,12 @@ export function ImportSection({
 }) {
   return (
     <section className="flex flex-col">
-      <h2 className="mb-2 flex items-center gap-2 px-1 text-[13px] font-semibold text-muted-foreground tabular-nums">
-        <span className="flex-1">{title}</span>
+      {/* The aside beside the heading, not in it, so a control there isn't
+          read as part of the heading's name. */}
+      <div className="mb-2 flex items-center gap-2 px-1 text-[13px] font-semibold text-muted-foreground tabular-nums">
+        <h2 className="flex-1">{title}</h2>
         {aside}
-      </h2>
+      </div>
       {children}
     </section>
   )

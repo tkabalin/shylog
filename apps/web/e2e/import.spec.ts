@@ -103,6 +103,14 @@ test("imports an export against hand-logged dives, end to end @writes", async ({
   // 26 freedives and 4 dives under five minutes.
   await expect(leftOut).toContainText("30")
 
+  // The new dives all unticked at once, and ticked again.
+  const added = page.getByRole("checkbox", { name: /^Add the D4i dive/ })
+  await page.getByRole("button", { name: "Deselect all" }).click()
+  await expect(footer).toHaveText(/^3 paired · 0 new/)
+  await expect(added.and(page.locator("[aria-checked=true]"))).toHaveCount(0)
+  await page.getByRole("button", { name: "Select all" }).click()
+  await expect(footer).toHaveText("3 paired · 39 new")
+
   // Shifting the day's clock by an hour unpairs its dives; its reset pairs
   // them again.
   await page.getByRole("button", { name: "Adjust the D4i clock" }).click()

@@ -24,7 +24,7 @@ import {
   useImport,
 } from "@/data/import"
 import { useLog } from "@/data/log"
-import { pressedButton, Reveal } from "@/dive/form/rows"
+import { headingButton, pressedButton, Reveal } from "@/dive/form/rows"
 import { computerName } from "@/dive/form/values"
 import { clockTime, longDate } from "@/format/dates"
 import { depth } from "@/format/figures"
@@ -101,6 +101,7 @@ function ReviewPage() {
     compareRows(entry.dive, hands.get(diveId)).some((row) => row.differs)
   ).length
   const moved = preview.days.filter((day) => day.offset !== 0)
+  const allAdded = current.newDives.every(({ added }) => added)
 
   const apply = async () => {
     setBusy(true)
@@ -246,6 +247,31 @@ function ReviewPage() {
         {current.newDives.length > 0 && (
           <ImportSection
             title={<Origin icon={IconDeviceWatch}>New from your {name}</Origin>}
+            aside={
+              // As the dive picker's day links; one dive's own check does
+              // the same.
+              current.newDives.length > 1 && (
+                <button
+                  type="button"
+                  // Adding or skipping touches no other dive's choice, so
+                  // there's nothing for choose() to settle.
+                  onClick={() =>
+                    setOverrides({
+                      ...overrides,
+                      ...Object.fromEntries(
+                        current.newDives.map(({ entry }) => [
+                          entry.dive.ref,
+                          { kind: allAdded ? "skip" : "add" } as const,
+                        ])
+                      ),
+                    })
+                  }
+                  className={cn(headingButton, "-my-1.5")}
+                >
+                  {allAdded ? "Deselect all" : "Select all"}
+                </button>
+              )
+            }
           >
             <ListCard>
               {current.newDives.map(({ entry, added }) => (
