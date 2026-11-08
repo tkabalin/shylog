@@ -44,7 +44,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 
 ## You (Settings on the boards) and people
 
-- `SettingsHifi` is the You tab: titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. Sites, people and trips comes before Download, as merging duplicates is routine and the downloads are a rare manual backup. The rest keeps the board's order.
+- `SettingsHifi` is the You tab: titled You, with a scuba mask icon in the tab bar, the diver name card (and certifications) first without a heading, and alerts above everything. Sites, people and trips comes before Your log and Download, as merging duplicates and choosing dives are routine while the log's upkeep and the downloads are rarely looked at. The rest keeps the board's order.
 - An entity detail's "All N dives" lists the rest of its dives in place rather than opening the Log.
 - Recently deleted's restore toast is shadcn's Sonner, styled as the board's.
 - The entity list's tabs are words only: five tabs with `EntitiesHifi`'s icons don't fit at 390 px once Regions is added.

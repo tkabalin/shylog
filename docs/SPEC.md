@@ -685,8 +685,8 @@ The app is designed for a phone first, used on a boat with wet hands, and stretc
   - Alerts for a failed export or paused saving, above everything
   - Sync status, with save waiting dives to a file when there are drafts
   - Diver name and certifications, under the sync status with no heading of their own: the first three cards in the owner's order as tiles, each opening its card, and an All certifications row to the list
-  - Your log: dive count, times of the last snapshot and export, and Recently deleted
   - Sites, people and trips
+  - Your log: dive count, times of the last snapshot and export, and Recently deleted
   - Download: a fresh UDDF export, CSV export or database snapshot, handed to the share sheet on a phone so Save to Files can choose the folder (a download on a desktop, or where the browser can't share the file)
   - Preferences: maximum PO₂
   - New dive defaults
