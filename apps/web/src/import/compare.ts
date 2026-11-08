@@ -130,3 +130,28 @@ const rangeText = (min?: number | null, max?: number | null) => {
 // says so rather than "your values are kept".
 export const takesComputerGas = (computer: ComputerDive, hand: Dive) =>
   !hand.nitrox && computer.oxygen != null
+
+export type CompareKey = CompareRow["key"]
+
+// The fields a row takes from the computer when the review says to use its
+// values. The two water temperatures go together, as they share a line.
+export const keyFields: Record<CompareKey, ComparedField[]> = {
+  start: ["startTime"],
+  maxDepth: ["maxDepth"],
+  averageDepth: ["averageDepth"],
+  duration: ["duration"],
+  water: ["minTemperature", "maxTemperature"],
+  gas: ["oxygen"],
+}
+
+// The rows as the import will leave them: a value taken from the computer
+// reads as the computer's and no longer differs.
+export const withAdopted = (
+  rows: CompareRow[],
+  adopt: readonly CompareKey[]
+): CompareRow[] =>
+  rows.map((row) =>
+    row.differs && adopt.includes(row.key)
+      ? { ...row, mine: row.theirs, differs: false }
+      : row
+  )

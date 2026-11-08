@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import { idSchema, type DiveId } from "../ids.ts"
 import { localDateTime } from "./common.ts"
+import { comparedFields } from "./dive.ts"
 
 // A computer dive is referred to by the export's own id, which is
 // meaningful only within its preview.
@@ -137,8 +138,18 @@ export const importApplyRequest = z
     ),
     add: z.array(z.string().min(1)),
     include: z.array(z.string().min(1)),
+    // Values to take from the computer on every paired dive where they
+    // differ. An app from before the review offered this sends none.
+    adopt: z.array(z.enum(comparedFields)).default([]),
   })
   .superRefine((request, ctx) => {
+    if (new Set(request.adopt).size !== request.adopt.length) {
+      ctx.addIssue({
+        code: "custom",
+        message: "A value to adopt is named more than once",
+        path: ["adopt"],
+      })
+    }
     const refs = [
       ...request.pairs.map((pair) => pair.computerDive),
       ...request.add,

@@ -31,7 +31,7 @@ import { depth } from "@/format/figures"
 import { useDesk } from "@/hooks/use-desk"
 import { celebrateImport } from "@/import/celebrate"
 import { ClockSheet } from "@/import/clock-sheet"
-import { compareRows } from "@/import/compare"
+import { compareRows, withAdopted } from "@/import/compare"
 import {
   bigButton,
   dayAndTime,
@@ -63,7 +63,7 @@ export const Route = createFileRoute("/import/review")({
 // dives to add, then the paired, already imported and left-out dives, and
 // the button that applies it all.
 function ReviewPage() {
-  const { loaded, preview, overrides } = useImport()
+  const { loaded, preview, overrides, adopt } = useImport()
   const { log } = useLog()
   const navigate = useNavigate()
   const desk = useDesk()
@@ -97,8 +97,11 @@ function ReviewPage() {
   }
   const current = review(preview, overrides, hands)
   const { counts } = current
+  // As the import will leave them, once the values to take are taken.
   const differing = current.paired.filter(({ entry, diveId }) =>
-    compareRows(entry.dive, hands.get(diveId)).some((row) => row.differs)
+    withAdopted(compareRows(entry.dive, hands.get(diveId)), adopt).some(
+      (row) => row.differs
+    )
   ).length
   const moved = preview.days.filter((day) => day.offset !== 0)
   const allAdded = current.newDives.every(({ added }) => added)

@@ -9,6 +9,8 @@ import {
 import type { Dive } from "@/data/db"
 import { computerName } from "@/dive/form/values"
 
+import { keyFields, type CompareKey } from "./compare"
+
 // The review of a preview (ImportReviewHifi): the choices the diver makes
 // on the phone, sent with apply, over what the server proposed.
 
@@ -235,13 +237,15 @@ export function review(
 // `POST /api/import/:id/apply`'s body for the review as it stands.
 export function applyRequest(
   preview: ImportPreview,
-  overrides: Overrides
+  overrides: Overrides,
+  adopt: readonly CompareKey[] = []
 ): ImportApplyRequest {
   const request: ImportApplyRequest = {
     revision: preview.revision,
     pairs: [],
     add: [],
     include: [],
+    adopt: adopt.flatMap((key) => keyFields[key]),
   }
   const all = entries(preview)
   for (const [ref, choice] of choicesOf(preview, overrides)) {

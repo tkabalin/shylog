@@ -35,6 +35,7 @@ const proposed = (preview: ImportPreview): ImportApplyRequest => ({
   })),
   add: preview.newDives.map((dive) => dive.ref),
   include: [],
+  adopt: [],
 })
 
 const refOf = (n: number) => fixture(n).ref
@@ -683,3 +684,112 @@ describe("applyImport on another program's file", () => {
     ])
   })
 })
+
+// The review's switches: dive 63 logged with every compared figure a little
+// off the computer's, as handLog has it.
+describe(
+  "applyImport adopting what the review took",
+  { timeout: 20_000 },
+  () => {
+    function adopting(adopt: ImportApplyRequest["adopt"], db = handLog()) {
+      const snapshot = copyOf(db)
+      const preview = storePreview(db, d4iXml, now)
+      const result = applyImport(
+        db,
+        preview.id,
+        { ...proposed(preview), adopt },
+        now
+      )
+      return { db, snapshot, result }
+    }
+
+    it("takes the computer's values for the adopted fields only", () => {
+      const { db, result } = adopting(["maxDepth", "duration"])
+      expect(diveRow(db, "dive-63")).toMatchObject({
+        start_time: "2026-07-22T08:10:00",
+        duration: 2500,
+        max_depth: 32.66,
+        average_depth: 21,
+      })
+      expect(metaRows(db, "dive-63")).toMatchObject({
+        startTime: { source: "hand", computerValue: "2026-07-22T08:12:19" },
+        duration: { source: "computer", computerValue: null },
+        maxDepth: { source: "computer", computerValue: null },
+        averageDepth: { source: "hand", computerValue: 21.005 },
+      })
+      expect(result).toMatchObject({ differing: ["dive-63"] })
+    })
+
+    it("leaves a dive with every difference adopted out of differing", () => {
+      const { db, result } = adopting([
+        "startTime",
+        "maxDepth",
+        "averageDepth",
+        "duration",
+        "minTemperature",
+        "maxTemperature",
+        "oxygen",
+      ])
+      expect(result).toMatchObject({ differing: [] })
+      expect(diveRow(db, "dive-63")).toMatchObject({
+        start_time: "2026-07-22T08:12:19",
+        average_depth: 21.005,
+        // Hand values the computer doesn't compare stay.
+        weight: 4,
+        ignored: 1,
+      })
+    })
+
+    it("gives an adopted value that breaks a rule back to the hand one, flagged", () => {
+      const db = testDb()
+      const { startTime, duration, maxDepth, samples } = fixture(63)
+      const min = sampleTemperatures(samples).min!
+      // The computer's minimum is warmer than this hand maximum.
+      logByHand(db, [
+        {
+          id: "dive-63",
+          startTime,
+          duration,
+          maxDepth,
+          minTemperature: min - 3,
+          maxTemperature: min - 1,
+        },
+      ])
+      const { result } = adopting(["minTemperature"], db)
+      expect(diveRow(db, "dive-63")).toMatchObject({ min_temperature: min - 3 })
+      expect(metaRows(db, "dive-63").minTemperature).toEqual({
+        source: "hand",
+        computerValue: min,
+      })
+      expect(result).toMatchObject({ differing: ["dive-63"] })
+    })
+
+    it("adopts the computer's gas, its air turning Nitrox off", () => {
+      const db = testDb()
+      const at = (n: number) => {
+        const { startTime, duration, maxDepth } = fixture(n)
+        return { id: `dive-${n}` as const, startTime, duration, maxDepth }
+      }
+      // 61 is EAN33 and 62 air on the computer.
+      logByHand(db, [
+        { ...at(61), nitrox: true, oxygen: 320 },
+        { ...at(62), nitrox: true, oxygen: 320 },
+      ])
+      const { result } = adopting(["oxygen"], db)
+      expect(diveRow(db, "dive-61")).toMatchObject({ nitrox: 1, oxygen: 330 })
+      expect(diveRow(db, "dive-62")).toMatchObject({ nitrox: 0, oxygen: null })
+      for (const id of ["dive-61", "dive-62"])
+        expect(metaRows(db, id), id).toMatchObject({
+          nitrox: { source: "computer", computerValue: null },
+          oxygen: { source: "computer", computerValue: null },
+        })
+      expect(result).toMatchObject({ differing: [] })
+    })
+
+    it("adopts the same again when the journal is replayed", () => {
+      const { db, snapshot } = adopting(["maxDepth", "oxygen"])
+      replay(snapshot, db)
+      expect(compare(snapshot, db)).toEqual([])
+    })
+  }
+)

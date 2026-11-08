@@ -8,6 +8,7 @@ import {
 import type { InferResponseType } from "hono/client"
 
 import { apiClient } from "@/api/client"
+import type { CompareKey } from "@/import/compare"
 import { applyRequest, carryOver, type Overrides } from "@/import/review"
 
 import { unreachable } from "./edits"
@@ -28,6 +29,8 @@ interface ImportState {
   preview: ImportPreview | null
   lastImport: LastImport | null
   overrides: Overrides
+  // The values to take from the computer on every paired dive.
+  adopt: CompareKey[]
 }
 
 let state: ImportState = {
@@ -35,6 +38,7 @@ let state: ImportState = {
   preview: null,
   lastImport: null,
   overrides: {},
+  adopt: [],
 }
 const listeners = new Set<() => void>()
 
@@ -43,8 +47,12 @@ function set(next: ImportState) {
   state = next
   // Only a change is saved: a failed load before the first answer has no
   // preview yet, and must not wipe the choices a reload is meant to keep.
-  if (next.preview !== was.preview || next.overrides !== was.overrides)
-    saveOverrides()
+  if (
+    next.preview !== was.preview ||
+    next.overrides !== was.overrides ||
+    next.adopt !== was.adopt
+  )
+    saveChoices()
   for (const listener of listeners) listener()
 }
 
@@ -60,7 +68,7 @@ export const currentImport = () => state
 // on; another phone's change to the preview starts them afresh.
 const storageKey = "shylog-import-review"
 
-function saveOverrides() {
+function saveChoices() {
   try {
     if (!state.preview) sessionStorage.removeItem(storageKey)
     else
@@ -70,6 +78,7 @@ function saveOverrides() {
           id: state.preview.id,
           revision: state.preview.revision,
           overrides: state.overrides,
+          adopt: state.adopt,
         })
       )
   } catch {
@@ -77,24 +86,30 @@ function saveOverrides() {
   }
 }
 
-function storedOverrides(preview: ImportPreview | null): Overrides {
-  if (!preview) return {}
+function storedChoices(
+  preview: ImportPreview | null
+): Pick<ImportState, "overrides" | "adopt"> {
+  const none = { overrides: {}, adopt: [] }
+  if (!preview) return none
   try {
     const stored = JSON.parse(sessionStorage.getItem(storageKey) ?? "null") as {
       id: string
       revision: number
       overrides: Overrides
+      adopt?: CompareKey[]
     } | null
     return stored?.id === preview.id && stored.revision === preview.revision
-      ? stored.overrides
-      : {}
+      ? { overrides: stored.overrides, adopt: stored.adopt ?? [] }
+      : none
   } catch {
-    return {}
+    return none
   }
 }
 
 export const setOverrides = (overrides: Overrides) =>
   set({ ...state, overrides })
+
+export const setAdopt = (adopt: CompareKey[]) => set({ ...state, adopt })
 
 // A dive a pairing can still take: live, with no computer dive of its own.
 // The log doesn't say which dives have a fingerprint, so a dive with a
@@ -139,13 +154,15 @@ export async function loadPending(
     return
   }
   const was = state.preview
-  const overrides =
+  // The values to take hold for the whole import, so a day proposed again
+  // keeps them.
+  const choices =
     preview && was && was.id === preview.id && was.revision === preview.revision
-      ? state.overrides
+      ? { overrides: state.overrides, adopt: state.adopt }
       : preview && carry
-        ? carry(preview)
-        : storedOverrides(preview)
-  set({ loaded: true, preview, lastImport, overrides })
+        ? { overrides: carry(preview), adopt: state.adopt }
+        : storedChoices(preview)
+  set({ loaded: true, preview, lastImport, ...choices })
 }
 
 // `POST /api/import` with the chosen file. iOS gives a .uddf file no type,
@@ -167,7 +184,7 @@ export async function uploadExport(file: File, fetch = globalThis.fetch) {
   )
   if (!res?.ok) throw await failure(res)
   const preview = (await res.json()) as ImportPreview
-  set({ ...state, loaded: true, preview, overrides: {} })
+  set({ ...state, loaded: true, preview, overrides: {}, adopt: [] })
   return preview
 }
 
@@ -220,7 +237,7 @@ export async function discardPreview(fetch?: typeof globalThis.fetch) {
     apiClient(fetch).api.import[":id"].$delete({ param: { id } })
   )
   if (!res?.ok) throw await failure(res)
-  set({ ...state, preview: null, overrides: {} })
+  set({ ...state, preview: null, overrides: {}, adopt: [] })
 }
 
 export type ApplyOutcome =
@@ -259,7 +276,7 @@ export async function applyReview(
   await offsets
   const preview = state.preview
   if (!preview) throw new Error("This import is no longer waiting")
-  const request = applyRequest(preview, state.overrides)
+  const request = applyRequest(preview, state.overrides, state.adopt)
   const res = await send(() =>
     apiClient(fetch).api.import[":id"].apply.$post({
       param: { id: preview.id },
@@ -301,7 +318,7 @@ export async function applyReview(
       file: importFile(preview),
       ...summary,
     }
-    set({ ...state, preview: null, lastImport, overrides: {} })
+    set({ ...state, preview: null, lastImport, overrides: {}, adopt: [] })
     void loadPending(fetch).catch(() => {})
     return { status: "applied", summary }
   }

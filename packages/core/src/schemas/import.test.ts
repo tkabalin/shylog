@@ -80,7 +80,17 @@ describe("importApplyRequest", () => {
   }
 
   it("takes pairs, dives to add and left-out dives to include", () => {
-    expect(importApplyRequest.parse(request)).toEqual(request)
+    expect(importApplyRequest.parse(request)).toEqual({ ...request, adopt: [] })
+  })
+
+  it("takes compared values to adopt, each once", () => {
+    const adopt = ["maxDepth", "oxygen"]
+    expect(importApplyRequest.parse({ ...request, adopt }).adopt).toEqual(adopt)
+    for (const wrong of [["maxDepth", "maxDepth"], ["weight"]])
+      expect(
+        importApplyRequest.safeParse({ ...request, adopt: wrong }).success,
+        wrong.join()
+      ).toBe(false)
   })
 
   it("refuses a computer dive named twice", () => {
