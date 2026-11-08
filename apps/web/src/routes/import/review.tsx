@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react"
 import {
+  IconArrowsDiff,
   IconChevronDown,
   IconChevronRight,
   IconDeviceWatch,
@@ -161,10 +162,12 @@ function ReviewPage() {
       label="Paired"
       sub={
         <span className="flex items-center gap-1.5 truncate tabular-nums">
+          {/* The Done screen's mark for dives that differ, so the two read
+              as the same thing. */}
           {differing > 0 && (
-            <span
+            <IconArrowsDiff
               aria-hidden
-              className="size-1.5 shrink-0 rounded-full bg-warn"
+              className="size-[1.15em] shrink-0 text-warn"
             />
           )}
           {differing
