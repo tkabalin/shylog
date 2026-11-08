@@ -7,6 +7,7 @@ import {
   type BodyOfWater,
   type EntityKind,
   type Op,
+  unknownSite,
 } from "@shylog/core"
 
 import type { Db } from "../db/open.ts"
@@ -296,14 +297,58 @@ export const matching = (db: Db, kind: EntityKind, fields: Fields) =>
     .pluck()
     .get(keyOf(kind, fields))
 
+// Imports find the Unknown site again by its key, and its dives are at many
+// real sites, so the diver moves each dive rather than renaming, merging or
+// deleting it. Checked by the routes, so a replay keeps what was journalled.
+export function refuseUnknownSite(db: Db, kind: EntityKind, ids: string[]) {
+  if (kind !== "site") return
+  const unknownId = matching(db, "site", unknownSite)
+  if (unknownId === undefined) return
+  if (ids.some((id) => resolve(db, "site", id) === unknownId)) {
+    throw new Rejected(
+      "Unknown site holds dives your dive computer gave no site, so it can’t be changed",
+      409
+    )
+  }
+}
+
+// Nor can another site take its key, which would make it the Unknown site,
+// nor its region change country, which would move it out of South Africa.
+// The PUT route hands this to putEntity, as replay must not check it.
+export const keepUnknownSite =
+  (db: Db, kind: EntityKind, id: string) =>
+  (fields: Fields, before: Fields | null) => {
+    if (kind === "site" && keyOf(kind, fields) === keyOf(kind, unknownSite)) {
+      throw new Rejected(
+        "Unknown site is kept for imported dives. Give it another name.",
+        409,
+        ["name"]
+      )
+    }
+    if (kind !== "region" || before?.countryCode === fields.countryCode) return
+    const unknownId = matching(db, "site", unknownSite)
+    if (
+      unknownId !== undefined &&
+      stored(db, "site", unknownId).regionId === id
+    ) {
+      throw new Rejected(
+        "Unknown site is in this region, so it stays in South Africa",
+        409,
+        ["countryCode"]
+      )
+    }
+  }
+
 // `PUT /api/entities/:kind/:id`: a new id creates the entity from the full
 // fields, a known one takes the changed fields. True when it changed
-// anything, so a repeated save writes nothing.
+// anything, so a repeated save writes nothing. `check` sees the fields it
+// would save.
 export function putEntity(
   db: Db,
   kind: EntityKind,
   id: string,
-  body: unknown
+  body: unknown,
+  check?: (fields: Fields, before: Fields | null) => void
 ): boolean {
   const known = has(db, kind, id)
   const refused = known ? null : retired(db, kind, id)
@@ -340,6 +385,7 @@ export function putEntity(
   } else {
     fields = parse(entityFields[kind], body) as Fields
   }
+  check?.(fields, before)
   const key = keyOf(kind, fields)
   const other = clashing(db, kind, key, id)
   // Naming the entity holding the key, so the form can offer to merge into

@@ -2,16 +2,18 @@ import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { opSchema, opVersion } from "@shylog/core"
+import { opSchema, opVersion, unknownSite } from "@shylog/core"
 import Database from "better-sqlite3"
 import { describe, expect, it, onTestFinished } from "vitest"
 
 import { apiHeaders, origin, send, testApp } from "../../test/app.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
 import { applyDraft } from "../apply/draft.ts"
+import { putEntity } from "../apply/entity.ts"
 import { initial } from "../db/migrations/001-initial.ts"
 import { migrate, migrations } from "../db/migrate.ts"
 import { openDatabase, type Db } from "../db/open.ts"
+import { change } from "../routes/change.ts"
 import { compare } from "./compare.ts"
 import { replay } from "./replay.ts"
 
@@ -196,6 +198,25 @@ describe("replay", () => {
       ])
     )
     // Including the dive's deleted_at, from the time first applied.
+    expect(compare(snapshot, db)).toEqual([])
+  })
+
+  it("replays an edit of the Unknown site journalled before it was locked", async () => {
+    const { db } = liveApp()
+    const site = { kind: "site", id: "site-unknown" } as const
+    // As an import makes it; the route refuses its name.
+    change(db, () => putEntity(db, site.kind, site.id, unknownSite), {
+      type: "putEntity",
+      payload: { ...site, fields: unknownSite },
+    })
+    const snapshot = copyOf(db)
+    // As the server wrote it then, with no route in the way.
+    const fields = { name: "Aliwal Shoal" }
+    change(db, () => putEntity(db, site.kind, site.id, fields), {
+      type: "putEntity",
+      payload: { ...site, fields },
+    })
+    expect(replay(snapshot, db).failure).toBeUndefined()
     expect(compare(snapshot, db)).toEqual([])
   })
 
