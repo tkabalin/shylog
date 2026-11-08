@@ -92,7 +92,8 @@ export function ClockSheet({
     void send()
   }
 
-  const days = preview.days.map((found) => ({
+  // Newest first, as every list of days and dives runs.
+  const days = preview.days.toReversed().map((found) => ({
     value: found.date,
     label: `${longDate(found.date)}${found.offset ? ` · ${offsetText(found.offset)}` : ""}`,
   }))

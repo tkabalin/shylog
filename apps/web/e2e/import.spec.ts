@@ -111,6 +111,16 @@ test("imports an export against hand-logged dives, end to end @writes", async ({
   await page.getByRole("button", { name: "Select all" }).click()
   await expect(footer).toHaveText("3 paired · 39 new")
 
+  // New dives run newest first, as the Log does; they span seven years.
+  const labels = await added.evaluateAll((rows) =>
+    rows.map((row) => row.getAttribute("aria-label")!)
+  )
+  const addedYears = labels.map((label) =>
+    Number(/ (\d{4}) · /.exec(label)![1])
+  )
+  expect(addedYears).toEqual(addedYears.toSorted((a, b) => b - a))
+  expect(addedYears[0]).toBeGreaterThan(addedYears.at(-1)!)
+
   // Shifting the day's clock by an hour unpairs its dives; its reset pairs
   // them again.
   await page.getByRole("button", { name: "Adjust the D4i clock" }).click()

@@ -42,15 +42,14 @@ function DonePage() {
   const profiled = lastImport.paired + lastImport.added + lastImport.included
   // As the dive's banner counts them: the server flags any difference, but
   // a hand 16.2 m against the computer's 16.15 reads the same. Dives deleted
-  // since, or not synced yet, are left out.
-  const differing = lastImport.differing
-    .map((id) => log?.dive.get(id))
-    .filter(
-      (dive) =>
-        dive &&
-        !dive.deletedAt &&
-        differences(dive, log?.fieldMeta.get(dive.id)).length > 0
-    )
+  // since, or not synced yet, are left out. Taken from the Log's list so
+  // they run newest first like it, not in the order they were applied.
+  const differingIds = new Set<string>(lastImport.differing)
+  const differing = (log?.dives ?? []).filter(
+    (dive) =>
+      differingIds.has(dive.id) &&
+      differences(dive, log?.fieldMeta.get(dive.id)).length > 0
+  )
 
   return (
     <div className="flex min-h-full flex-col md:mx-auto md:w-full md:max-w-xl">
@@ -100,18 +99,18 @@ function DonePage() {
             </div>
             {differing.map((dive) => (
               <Link
-                key={dive!.id}
+                key={dive.id}
                 to="/dive/$diveId"
-                params={{ diveId: dive!.id }}
+                params={{ diveId: dive.id }}
                 state={{ pushed: true }}
                 className={cn(listRow, pressable)}
               >
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="truncate">
-                    {log?.sites.get(dive!.siteId)?.name ?? "Unknown site"}
+                    {log?.sites.get(dive.siteId)?.name ?? "Unknown site"}
                   </span>
                   <span className="text-[13px] text-muted-foreground tabular-nums">
-                    {longDate(dive!.startTime)}
+                    {longDate(dive.startTime)}
                   </span>
                 </span>
                 <IconChevronRight

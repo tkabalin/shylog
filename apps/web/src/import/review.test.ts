@@ -95,22 +95,22 @@ describe("the review as proposed", () => {
     expect(yourComputer({ computerModel: null })).toBe("your dive computer")
   })
 
-  it("sorts every computer dive into its section", () => {
+  it("sorts every computer dive into its section, newest first", () => {
     const current = review(preview, {}, hands)
     expect(current.paired.map((pair) => pair.diveId)).toEqual([
-      "dive-1",
       "dive-2",
+      "dive-1",
     ])
     expect(current.newDives.map(({ entry }) => entry.dive.ref)).toEqual([
-      "c3",
       "c4",
+      "c3",
     ])
     // Freedives and dives under five minutes share one list, left out.
     expect(
       current.leftOut.map(({ entry, included }) => [entry.reason, included])
     ).toEqual([
-      ["freedive", false],
       ["short", false],
+      ["freedive", false],
     ])
     expect(current.notPaired).toEqual([
       // 08:50 against the day's nearest computer dive, the 10:02 freedive.
@@ -168,8 +168,8 @@ describe("changing the review", () => {
     })
     const current = review(preview, overrides, hands)
     expect(current.paired.map(({ entry }) => entry.dive.ref)).toEqual([
-      "c1",
       "c3",
+      "c1",
     ])
     expect(current.newDives).toContainEqual({
       entry: entries(preview).get("c2"),
@@ -183,7 +183,7 @@ describe("changing the review", () => {
     const unpaired = chooseFor(preview, {}, "dive-1", null)
     expect(
       review(preview, unpaired, hands).notPaired.map((h) => h.diveId)
-    ).toEqual(["dive-1", "dive-3"])
+    ).toEqual(["dive-3", "dive-1"])
     expect(applyRequest(preview, unpaired).add).toContain("c1")
     // Nothing to undo for a dive that isn't paired.
     expect(chooseFor(preview, {}, "dive-3", null)).toEqual({})
@@ -280,13 +280,19 @@ describe("the clock sheet", () => {
     expect(clockDay(moved, {}, "2026-07-25").reset).toBe("Reset")
   })
 
-  it("opens on the first day whose logged dives didn't all pair", () => {
+  it("opens on the newest day whose logged dives didn't all pair", () => {
     expect(firstDayToCheck(preview, review(preview, {}, hands))).toBe(
       "2026-07-26"
     )
+    // The 25th is the only day left with an unpaired dive.
     const settled = chooseFor(preview, {}, "dive-3", "c4")
-    expect(firstDayToCheck(preview, review(preview, settled, hands))).toBe(
+    const older = chooseFor(preview, settled, "dive-1", null)
+    expect(firstDayToCheck(preview, review(preview, older, hands))).toBe(
       "2026-07-25"
+    )
+    // Every logged dive pairs: the newest day with any.
+    expect(firstDayToCheck(preview, review(preview, settled, hands))).toBe(
+      "2026-07-26"
     )
   })
 })
