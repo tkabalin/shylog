@@ -53,7 +53,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Gear is marked with the scuba tank, as the scuba mask is the You tab's icon. The Icon key's Cylinder entry also names the tank, but no screen draws a cylinder icon.
 - Download has a third row the board doesn't draw, CSV export ("Opens in a spreadsheet"), between UDDF export and Database snapshot. The board's "Last UDDF export" row is "Last export", as the CSV copy is written with the UDDF.
 - The Download rows' subtitles are "Opens in Subsurface" and "The SQLite file", shorter than the board's so they stay on one line beside the download arrow down to 320 px, and show a spinner in place of the download arrow while the server builds the file. A failed download says which file and why under the card, and a failed Export now says why under its action. After a failed night, "Last export" reads "Failed today" without the time, as the board has it. The Offline storage row comes with the offline work.
-- New-dive defaults use the dive form's controls (material, volume in litres, Nitrox and oxygen percentage), not the board's preset lists, and a new dive is filled from them. `EditDiveHifi` leaves them blank.
+- New-dive defaults use the dive form's controls (material and volume in litres), not the board's preset lists, and a new dive is filled from them. The board's gas and start pressure defaults are left out: a new dive starts on air with its start pressure empty, as both are read dive by dive, and a default would record a reading nobody took. `EditDiveHifi` leaves them blank.
 - Dive professionals are labelled "Dive professionals", with no instructor or divemaster role, and the people list shows names only, without the boards' role subtitles.
 
 ## Sites and regions

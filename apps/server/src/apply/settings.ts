@@ -8,13 +8,16 @@ export function readSettings(db: Db): Settings {
     db,
     "SELECT diver_name AS diverName, max_po2 AS maxPo2, new_dive_defaults AS newDiveDefaults FROM settings"
   ).get() as { diverName: string; maxPo2: number; newDiveDefaults: string }
-  // A restore replays settings journalled before migration 4 removed this
-  // key, onto a row that still has it.
+  // A restore replays settings journalled before migrations 4 and 7 removed
+  // these keys, onto a row that still has them.
   const newDiveDefaults = JSON.parse(row.newDiveDefaults) as Record<
     string,
     unknown
   >
   delete newDiveDefaults.visibilityMode
+  delete newDiveDefaults.nitrox
+  delete newDiveDefaults.oxygen
+  delete newDiveDefaults.startPressure
   return settingsSchema.parse({ ...row, newDiveDefaults })
 }
 

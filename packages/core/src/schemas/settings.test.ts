@@ -31,17 +31,11 @@ describe("settingsSchema", () => {
       newDiveDefaults: {
         cylinderMaterial: "aluminium",
         cylinderVolume: 11100,
-        startPressure: 200,
-        nitrox: true,
-        oxygen: 320,
         weight: 4,
         diveType: "recreation",
       },
     })
-    expect(settings.newDiveDefaults).toMatchObject({
-      cylinderVolume: 11100,
-      oxygen: 320,
-    })
+    expect(settings.newDiveDefaults).toMatchObject({ cylinderVolume: 11100 })
     expect(
       settingsSchema.safeParse({
         newDiveDefaults: { cylinderVolume: 11.1 },
@@ -49,19 +43,14 @@ describe("settingsSchema", () => {
     ).toBe(false)
   })
 
-  it("saves a default oxygen only with nitrox", () => {
-    const settings = settingsSchema.parse({
-      newDiveDefaults: { oxygen: 320 },
-    })
-    expect(settings.newDiveDefaults).not.toHaveProperty("oxygen")
-  })
-
-  it("needs a default oxygen with nitrox", () => {
-    expect(
-      settingsSchema.safeParse({
-        newDiveDefaults: { nitrox: true },
-      }).success
-    ).toBe(false)
+  it("has no gas or start pressure default", () => {
+    for (const newDiveDefaults of [
+      { nitrox: true, oxygen: 320 },
+      { oxygen: 320 },
+      { startPressure: 200 },
+    ]) {
+      expect(settingsSchema.safeParse({ newDiveDefaults }).success).toBe(false)
+    }
   })
 
   it("rejects dive types the spec doesn't list", () => {

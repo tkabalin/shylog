@@ -1,25 +1,17 @@
 import { z } from "zod"
 
 import { dropUnwritable } from "./common.ts"
-import {
-  defaultedDiveFields,
-  nitroxOxygen,
-  optionalDiveFields,
-} from "./dive.ts"
+import { defaultedDiveFields, optionalDiveFields } from "./dive.ts"
 
 // Filled into every new dive as hand values, in the dive form's own shapes.
-// As on a dive, oxygen is saved only with nitrox, which must have it.
-const newDiveDefaults = nitroxOxygen(
-  z.strictObject({
-    cylinderMaterial: optionalDiveFields.cylinderMaterial.optional(),
-    cylinderVolume: optionalDiveFields.cylinderVolume.optional(),
-    startPressure: optionalDiveFields.startPressure.optional(),
-    nitrox: defaultedDiveFields.nitrox.optional(),
-    oxygen: optionalDiveFields.oxygen.optional(),
-    weight: optionalDiveFields.weight.optional(),
-    diveType: defaultedDiveFields.diveType.optional(),
-  })
-)
+// Kit only: a gas or start pressure would record a reading nobody took, so
+// a new dive starts on air with its start pressure empty.
+const newDiveDefaults = z.strictObject({
+  cylinderMaterial: optionalDiveFields.cylinderMaterial.optional(),
+  cylinderVolume: optionalDiveFields.cylinderVolume.optional(),
+  weight: optionalDiveFields.weight.optional(),
+  diveType: defaultedDiveFields.diveType.optional(),
+})
 
 export const settingsFields = {
   diverName: z.string().overwrite(dropUnwritable).trim().max(120),
