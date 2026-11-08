@@ -61,6 +61,7 @@
   --color-foreground: var(--foreground);
   --color-background: var(--background);
   --color-warn: var(--warn);
+  --color-ok: var(--ok);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -104,7 +105,8 @@
   --sidebar-border: oklch(0.925 0.005 214.3);
   --sidebar-ring: oklch(0.723 0.014 214.4);
   /* The profile's vertical speed bands, the nearest Tailwind shades to
-     Subsurface's, and the board's orange for computer alarms. */
+     Subsurface's, the board's orange for computer alarms, and green for
+     a safety stop held in full, a good thing rather than a warning. */
   --speed-stable: var(--color-green-800);
   --speed-slow: var(--color-lime-500);
   --speed-moderate: var(--color-yellow-500);
@@ -112,6 +114,8 @@
   --speed-crazy: var(--color-red-600);
   --warn: var(--color-orange-700);
   --warn-band: color-mix(in oklab, var(--color-orange-500) 16%, transparent);
+  --ok: var(--color-emerald-700);
+  --ok-band: color-mix(in oklab, var(--color-emerald-700) 12%, transparent);
 }
 
 .dark {
@@ -155,6 +159,8 @@
   --speed-crazy: var(--color-red-500);
   --warn: var(--color-orange-400);
   --warn-band: color-mix(in oklab, var(--color-orange-500) 22%, transparent);
+  --ok: var(--color-emerald-400);
+  --ok-band: color-mix(in oklab, var(--color-emerald-400) 12%, transparent);
 }
 
 @layer base {

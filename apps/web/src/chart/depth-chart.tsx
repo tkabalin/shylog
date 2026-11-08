@@ -21,7 +21,7 @@ import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 
 import { halo } from "./format"
 import { plotTop, timeAxisHeight } from "./layout"
-import type { ProfileModel } from "./model"
+import { stopTone, type ProfileModel } from "./model"
 
 const config = {
   depth: { label: "Depth", color: "var(--primary)" },
@@ -33,6 +33,10 @@ const bandColour = (band: SpeedBand) => `var(--speed-${band})`
 const warnPath =
   "M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"
 const iconSize = 14
+// Centre to centre, so two icons side by side keep 2 px between them.
+const iconGap = iconSize + 2
+// Tabler's stairs-up, for the safety stop.
+const stairsPath = "M22 6h-5v5h-5v5h-5v5h-5 M6 10v-7 M3 6l3 -3l3 3"
 
 let canvas: CanvasRenderingContext2D | null | undefined
 // A time label's width from the font itself, to keep it inside the chart.
@@ -119,6 +123,23 @@ export const DepthChart = memo(function DepthChart({
             zIndex={DefaultZIndexes.barBackground}
           />
         ))}
+        {/* Faint, behind the line like the alarms' bands, and green so
+            it never reads as a warning; grey when the stop was short. */}
+        {model.safetyStop && (
+          <ReferenceArea
+            className="stop-band"
+            x1={model.safetyStop.start}
+            x2={model.safetyStop.end}
+            fill={
+              model.safetyStop.full
+                ? "var(--ok-band)"
+                : "color-mix(in oklab, var(--muted-foreground) 12%, transparent)"
+            }
+            fillOpacity={1}
+            ifOverflow="hidden"
+            zIndex={DefaultZIndexes.barBackground}
+          />
+        )}
         {model.mod != null && (
           <ReferenceLine
             y={model.mod * 1000}
@@ -270,7 +291,8 @@ function Annotations({ model }: { model: ProfileModel }) {
           </text>
         )
       })}
-      {/* An icon over each event's band; the alarms list and the readout
+      {model.safetyStop && <StopMarker model={model} />}
+      {/* An icon over each event's band; the events list and the readout
           name them. */}
       {model.events.map((event) => {
         // Kept whole inside the plot when the band is at its edge.
@@ -295,6 +317,53 @@ function Annotations({ model }: { model: ProfileModel }) {
           </g>
         )
       })}
+    </g>
+  )
+}
+
+// The safety stop's stairs icon over its band, moved clear of the alarms'
+// icons so their filled triangles never hide it. Green when held in full.
+function StopMarker({ model }: { model: ProfileModel }) {
+  const x = useXAxisScale()
+  const plot = usePlotArea()
+  const stop = model.safetyStop
+  if (!x || !plot || !stop) return null
+  const left = plot.x + 7
+  const right = plot.x + plot.width - 7
+  const clamp = (centre: number) => Math.min(Math.max(centre, left), right)
+  const from = x(stop.start)!
+  const to = x(stop.end)!
+  const alarms = model.events.map((event) =>
+    clamp(x((event.start + model.eventEnd(event)) / 2)!)
+  )
+  // Stepped past each icon it would touch, later first, then earlier if
+  // that runs off the plot.
+  const clear = (step: number) => {
+    let centre = clamp((from + to) / 2)
+    for (let moved = true; moved;) {
+      moved = false
+      for (const alarm of alarms) {
+        if (Math.abs(centre - alarm) < iconGap) {
+          centre = alarm + step
+          moved = true
+        }
+      }
+      if (centre < left || centre > right) return null
+    }
+    return centre
+  }
+  const centre = clear(iconGap) ?? clear(-iconGap) ?? clamp((from + to) / 2)
+  return (
+    <g className={stopTone(stop)}>
+      <path
+        d={stairsPath}
+        transform={`translate(${centre - iconSize / 2} ${plot.y - iconSize - 3}) scale(${iconSize / 24})`}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </g>
   )
 }

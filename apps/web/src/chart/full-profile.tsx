@@ -41,12 +41,17 @@ export function FullProfile({
       width && height
         ? profileModel(
             profile,
-            { maxDepth: depth, mod, smooth },
+            {
+              maxDepth: depth,
+              mod,
+              smooth,
+              safetyStop: dive.safetyStop,
+            },
             width - profileGutter(profile, depth),
             plotHeight
           )
         : null,
-    [profile, depth, mod, smooth, width, height, plotHeight]
+    [profile, depth, mod, smooth, dive.safetyStop, width, height, plotHeight]
   )
   const { index, handlers } = useCrosshair(model, { free: true, turned })
 

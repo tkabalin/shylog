@@ -3,7 +3,7 @@ import { IconArrowsMaximize, IconDeviceWatch } from "@tabler/icons-react"
 
 import { useAfter, useChartLoads } from "@/chart/load"
 import { chartHeight, readoutHeight } from "@/chart/layout"
-import { ProfilePlaceholder } from "@/chart/placeholder"
+import { eventCount, ProfilePlaceholder } from "@/chart/placeholder"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import type { Dive } from "@/data/db"
@@ -25,7 +25,7 @@ export function ProfileCard({
     <section aria-labelledby="profile-h">
       <Card className="gap-3 px-4">
         {/* The computer sits in the top-right corner, the one the chart
-            leaves free (its axis and alarms take the bottom), so the
+            leaves free (its axis and events take the bottom), so the
             heading reads as just "Profile". */}
         <div className="flex items-baseline justify-between gap-2">
           <h2
@@ -71,9 +71,7 @@ export function ProfileCard({
           // would fail again, so it offers no retry.
           <CatchBoundary
             getResetKey={() => profileKey(dive)}
-            errorComponent={() => (
-              <ProfileFailed alarms={dive.ascentAlarmCount} />
-            )}
+            errorComponent={() => <ProfileFailed events={eventCount(dive)} />}
           >
             <ProfileBody key={profileKey(dive)} dive={dive} mod={mod} />
           </CatchBoundary>
@@ -94,28 +92,28 @@ function ProfileBody({ dive, mod }: { dive: Dive; mod: number | null }) {
   const { profile, chart, retry } = useChartLoads(dive)
   const late = useAfter(150)
   if (profile.status === "rejected" || chart.status === "rejected") {
-    return <ProfileFailed alarms={dive.ascentAlarmCount} retry={retry} />
+    return <ProfileFailed events={eventCount(dive)} retry={retry} />
   }
   if (profile.status === "fulfilled" && chart.status === "fulfilled") {
     const Chart = chart.value.default
     return <Chart dive={dive} mod={mod} profile={profile.value} />
   }
-  return <ProfilePlaceholder alarms={dive.ascentAlarmCount} bare={!late} />
+  return <ProfilePlaceholder events={eventCount(dive)} bare={!late} />
 }
 
 // Offline before the profile was ever fetched, the server unreachable, or
 // a profile that fails to draw (no retry then). The card keeps its height,
 // so nothing below moves, and the message sits where the chart would be.
 function ProfileFailed({
-  alarms,
+  events,
   retry,
 }: {
-  alarms: number
+  events: number
   retry?: () => void
 }) {
   return (
     <div className="relative">
-      <ProfilePlaceholder alarms={alarms} bare />
+      <ProfilePlaceholder events={events} bare />
       <div
         role="status"
         className="absolute inset-x-0 flex flex-col items-center justify-center gap-3 text-center"

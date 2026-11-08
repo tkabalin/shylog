@@ -1,6 +1,6 @@
 import { useRef, useState, type PointerEvent } from "react"
 import { speedBand, speedBands } from "@shylog/core"
-import { IconAlertTriangle } from "@tabler/icons-react"
+import { IconAlertTriangle, IconStairsUp } from "@tabler/icons-react"
 import { cn } from "cn"
 
 import { depth, temperature } from "@/format/figures"
@@ -9,7 +9,16 @@ import { Crosshair } from "./crosshair"
 import { DepthChart } from "./depth-chart"
 import { clock, rateLabel } from "./format"
 import { laneHeaderHeight, laneHeight, readoutHeight } from "./layout"
-import { eventLabel, eventsAt, pointAt, rate, type ProfileModel } from "./model"
+import {
+  eventLabel,
+  eventsAt,
+  inStop,
+  pointAt,
+  rate,
+  stopLabel,
+  stopTone,
+  type ProfileModel,
+} from "./model"
 import { LineMenu } from "./line-menu"
 import { TemperatureLane } from "./temperature-lane"
 
@@ -73,7 +82,8 @@ export function useCrosshair(
   return { index, setChosen, handlers }
 }
 
-// The crosshair's point: depth and time, any alarm it sits in, the rate.
+// The crosshair's point: depth and time, any alarm or safety stop it sits
+// in, the rate.
 export function Readout({
   model,
   index,
@@ -88,8 +98,17 @@ export function Readout({
   const band = speedBand(speed)
   const strong = speedBands.indexOf(band) >= speedBands.indexOf("moderate")
   // One line at most, so the readout keeps its height.
+  // An alarm wins the line, as the one to notice, but not where only its
+  // widened band reaches into the stop.
+  const stop =
+    model &&
+    point &&
+    inStop(model, point.time) &&
+    !eventsAt(model.events, point.time).length
+      ? model.safetyStop
+      : null
   const now =
-    model && point
+    model && point && !stop
       ? eventsAt(model.events, point.time, model.eventEnd)[0]
       : null
   return (
@@ -117,6 +136,17 @@ export function Readout({
               <span className="inline-flex items-center gap-1 font-semibold text-warn">
                 <IconAlertTriangle className="size-3.25 stroke-[2.25]" />
                 {eventLabel(now.type)} alarm
+              </span>
+            )}
+            {stop && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 font-semibold",
+                  stopTone(stop)
+                )}
+              >
+                <IconStairsUp className="size-3.25 stroke-[2.25]" />
+                {stopLabel(stop)}
               </span>
             )}
             {/* From Moderate up, the band's colour marks the rate; the

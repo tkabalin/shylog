@@ -3,6 +3,7 @@ import { expect, test, type Locator } from "@playwright/test"
 import {
   atUnknownSite,
   deleteCard,
+  diveId,
   getLog,
   putCard,
   test as withData,
@@ -191,6 +192,17 @@ test.describe("at desktop width", () => {
     const current = nav.locator("[data-active]")
     await expect(current).toHaveText("Import")
     await expect(current).toHaveAttribute("aria-current", "page")
+  })
+
+  test("moves the crosshair to the safety stop with a click", async ({
+    page,
+  }) => {
+    await page.goto(`/dive/${await diveId(page.request, 54)}`)
+    const events = page.getByRole("region", { name: "Events" })
+    await events.getByRole("button", { name: /^Safety stop/ }).click()
+    const readout = page.locator("[data-slot=readout]").first()
+    await expect(readout).toContainText("at 19:40")
+    await expect(readout).toContainText("Safety stop")
   })
 
   test("opens a sheet as a dialog over the content", async ({ page }) => {

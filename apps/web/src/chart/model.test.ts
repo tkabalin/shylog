@@ -1,4 +1,4 @@
-import { mergeDuplicateSamples } from "@shylog/core"
+import { mergeDuplicateSamples, safetyStop } from "@shylog/core"
 import { describe, expect, it } from "vitest"
 
 import type { Profile } from "@/api/client"
@@ -13,6 +13,7 @@ import { clock, rateLabel } from "./format"
 import {
   eventLabel,
   eventsAt,
+  inStop,
   pointAt,
   profileModel,
   rate,
@@ -20,7 +21,8 @@ import {
 } from "./model"
 
 // Fixture dive 54 as the server sends it: merged samples, its five ascent
-// alarms as spans, and the surface events at its start and end.
+// alarms as spans, and the surface events at its start and end, with the
+// safety stop the server keeps on the dive.
 function dive54(width = 326) {
   const dive = fixtureDive(54)
   const ascents = [
@@ -38,7 +40,15 @@ function dive54(width = 326) {
       { type: "surface", start: 1837, end: null },
     ],
   }
-  return profileModel(profile, { maxDepth: dive.maxDepth, mod: 56.2 }, width)
+  return profileModel(
+    profile,
+    {
+      maxDepth: dive.maxDepth,
+      mod: 56.2,
+      safetyStop: safetyStop(profile.samples),
+    },
+    width
+  )
 }
 
 describe("profileModel", () => {
@@ -68,6 +78,36 @@ describe("profileModel", () => {
     expect(model.points[first.peakIndex].time).toBe(257)
     expect(first.from.time).toBe(257)
     expect(first.to.time).toBe(258)
+  })
+
+  it("keeps the safety stop apart from the events, adding no points", () => {
+    const { safetyStop: stop } = model
+    expect(stop).toMatchObject({
+      start: 1176,
+      end: 1397,
+      held: 195,
+      depth: 5496,
+      full: true,
+    })
+    // The first point in the band, as Subsurface's points have none at 1176 s.
+    expect(model.points[stop!.index - 1].time).toBeLessThan(1176)
+    expect(model.points[stop!.index].time).toBeGreaterThanOrEqual(1176)
+    expect(model.points.some((point) => point.time === 1176)).toBe(false)
+    expect(model.events.every((event) => event.start !== 1176)).toBe(true)
+    expect(inStop(model, 1176)).toBe(true)
+    expect(inStop(model, 1397)).toBe(true)
+    expect(inStop(model, 1398)).toBe(false)
+  })
+
+  it("has no safety stop unless the dive has one", () => {
+    const { samples } = fixtureDive(54)
+    const none = profileModel(
+      { samples: mergeDuplicateSamples(samples), events: [] },
+      { maxDepth: 42.28, mod: null },
+      326
+    )
+    expect(none.safetyStop).toBeNull()
+    expect(inStop(none, 1200)).toBe(false)
   })
 
   it("leaves off an air MOD past the depth axis", () => {

@@ -3,6 +3,7 @@ import {
   chartPoints,
   deepestPoint,
   depthLabels,
+  isFullStop,
   labelInterval,
   modInView,
   pointsInView,
@@ -11,6 +12,7 @@ import {
   timeAxis,
   verticalSpeeds,
   type ChartPoint,
+  type SafetyStop,
 } from "@shylog/core"
 
 import type { Profile } from "@/api/client"
@@ -37,6 +39,14 @@ export interface Alarm {
   peakIndex: number
 }
 
+// The safety stop as the chart shows it: apart from the events, as it is no
+// warning, and moving the crosshair to the first point in the band. Its ends
+// add no chart points, which would change Subsurface's vertical rates.
+export interface StopMark extends SafetyStop {
+  full: boolean
+  index: number
+}
+
 // The depth labels' gutter for a dive, from its deepest point recorded or
 // sampled, which the axis is drawn to; the model gives the same.
 export const profileGutter = ({ samples }: Profile, maxDepth: number) =>
@@ -44,15 +54,22 @@ export const profileGutter = ({ samples }: Profile, maxDepth: number) =>
 
 // Everything the chart draws for one dive at one plot size, from core's rules
 // (see Profile chart in the spec): points in view with their speeds, the
-// axes, labelled depths, events, alarms and the MOD line. Smoothed, the
-// points carry the water's temperature rather than the readings.
+// axes, labelled depths, events, alarms, the safety stop the server found
+// and the MOD line. Smoothed, the points carry the water's temperature
+// rather than the readings.
 export function profileModel(
   { samples, events: sent }: Profile,
   {
     maxDepth,
     mod,
     smooth = false,
-  }: { maxDepth: number; mod: number | null; smooth?: boolean },
+    safetyStop = null,
+  }: {
+    maxDepth: number
+    mod: number | null
+    smooth?: boolean
+    safetyStop?: SafetyStop | null
+  },
   width: number,
   plotHeight = cardPlotHeight
 ) {
@@ -124,6 +141,12 @@ export function profileModel(
     if (points[i].depth > points[deepest].depth) deepest = i
   }
 
+  const stop: StopMark | null = safetyStop && {
+    ...safetyStop,
+    full: isFullStop(safetyStop),
+    index: at(safetyStop.start),
+  }
+
   const temperature = temperatureAxis(points)
   // An event drawn at least 6 px wide, so a one-second alarm still shows;
   // the readout names it for as long as the crosshair is on that band.
@@ -149,12 +172,25 @@ export function profileModel(
     depthLabels: depthLabels(all, inView, interval),
     events: shown,
     alarms,
+    safetyStop: stop,
     mod: modInView(mod, depth) ? mod : null,
     deepest,
   }
 }
 
 export type ProfileModel = ReturnType<typeof profileModel>
+
+// A stop's name and colour, green only when held in full.
+export const stopLabel = (stop: StopMark) =>
+  stop.full ? "Safety stop" : "Short safety stop"
+export const stopTone = (stop: StopMark) =>
+  stop.full ? "text-ok" : "text-muted-foreground"
+
+// Whether a time is inside the safety stop.
+export const inStop = (model: ProfileModel, seconds: number) =>
+  !!model.safetyStop &&
+  model.safetyStop.start <= seconds &&
+  seconds <= model.safetyStop.end
 
 // The crosshair's point: the first at or after a time (as Subsurface's
 // tooltip picks it), or the last.

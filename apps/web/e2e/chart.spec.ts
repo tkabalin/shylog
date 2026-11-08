@@ -14,14 +14,18 @@ test("draws dive 54's ascent alarms and moves the crosshair to one", async ({
   await page.goto(`/dive/${await diveId(request, 54)}`)
   const card = profile(page)
 
-  // Five bands, each with its icon and no text: the list names them.
-  await expect(card.locator(".recharts-reference-area")).toHaveCount(5)
+  // The alarms' five bands, each with its icon and no text: the list
+  // names them.
+  await expect(
+    card.locator(".recharts-reference-area:not(.stop-band)")
+  ).toHaveCount(5)
   await expect(card.locator("svg g.text-warn")).toHaveCount(5)
   await expect(card.locator("svg text", { hasText: "Ascent" })).toHaveCount(0)
 
-  const alarms = card.getByRole("region", { name: "Alarms" })
-  const rows = alarms.getByRole("button")
-  await expect(rows).toHaveCount(5)
+  // The five alarms, then the safety stop.
+  const events = card.getByRole("region", { name: "Events" })
+  const rows = events.getByRole("button")
+  await expect(rows).toHaveCount(6)
   await expect(rows.first()).toContainText("10.9 m/min")
   await expect(rows.nth(2)).toContainText("16.2 m/min")
 
@@ -35,6 +39,47 @@ test("draws dive 54's ascent alarms and moves the crosshair to one", async ({
 
   // No MOD line: air's 56.2 m is past the 50 m axis.
   await expect(card.getByText(/^MOD /)).toHaveCount(0)
+})
+
+test("lists dive 54's safety stop, marks it and moves the crosshair to it", async ({
+  page,
+  request,
+}) => {
+  await page.goto(`/dive/${await diveId(request, 54)}`)
+  const card = profile(page)
+  const events = card.getByRole("region", { name: "Events" })
+  await expect(events.getByText("6", { exact: true })).toBeVisible()
+  const stop = events.getByRole("button", { name: /^Safety stop/ })
+  await expect(stop).toHaveAccessibleName(
+    "Safety stop from 19:36, held 3 minutes 15 seconds at an average of 5.5 metres. Show on profile."
+  )
+  await expect(stop).toContainText("at an average of 5.5 m from 19:36")
+  await expect(stop).toContainText("3:15")
+  // Marked by its icon and a band of its own beside the alarms' five.
+  await expect(card.locator("svg g.text-ok")).toHaveCount(1)
+  await expect(card.locator(".stop-band")).toHaveCount(1)
+  await expect(card.locator(".recharts-reference-area")).toHaveCount(6)
+
+  // On the first chart point in the band, 4 s after the stop's start.
+  await stop.click()
+  await expect(readout(page)).toContainText("at 19:40")
+  await expect(readout(page)).toContainText("Safety stop")
+  await expect(
+    page.getByRole("row").filter({ hasText: "Safety stop" }).first()
+  ).toContainText("19:40")
+})
+
+test("has no Events section on a dive with no alarm or stop", async ({
+  page,
+  request,
+}) => {
+  await page.goto(`/dive/${await diveId(request, 66)}`)
+  const card = profile(page)
+  // Drawn first, so the checks below can't pass before the chart is in.
+  await expect(card.locator(".recharts-wrapper").first()).toBeVisible()
+  await expect(card.getByRole("region", { name: "Events" })).toHaveCount(0)
+  await expect(card.locator("svg g.text-ok")).toHaveCount(0)
+  await expect(card.locator(".stop-band")).toHaveCount(0)
 })
 
 test("shows time, depth, temperature and rate where the chart is tapped", async ({

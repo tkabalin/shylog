@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from "react"
+import { useMemo, useRef } from "react"
 
 import type { Profile as ProfileData } from "@/api/client"
 import type { Dive } from "@/data/db"
@@ -6,9 +6,9 @@ import { useLog } from "@/data/log"
 import { useSmoothTemperature } from "@/data/smooth-temperature"
 import { profileMaxDepth } from "@/dive/figures"
 
-import { Alarms } from "./alarms"
-import { profileGutter, profileModel, type Alarm } from "./model"
-import { ProfilePlaceholder } from "./placeholder"
+import { Events } from "./events"
+import { profileGutter, profileModel } from "./model"
+import { eventCount, ProfilePlaceholder } from "./placeholder"
 import { ProfileTable } from "./profile-table"
 import { useSize } from "./size"
 import { DepthView, LaneView, Readout, useCrosshair } from "./view"
@@ -16,7 +16,7 @@ import { DepthView, LaneView, Readout, useCrosshair } from "./view"
 export { FullProfile } from "./full-profile"
 
 // The Profile card's body, the chart's lazy chunk: the crosshair readout,
-// the depth chart, the temperature lane, the alarms and the table
+// the depth chart, the temperature lane, the events and the table
 // alternative, drawn once the card has the dive's samples.
 export default function Profile({
   dive,
@@ -38,17 +38,18 @@ export default function Profile({
       width
         ? profileModel(
             profile,
-            { maxDepth: depth, mod, smooth },
+            {
+              maxDepth: depth,
+              mod,
+              smooth,
+              safetyStop: dive.safetyStop,
+            },
             width - profileGutter(profile, depth)
           )
         : null,
-    [profile, depth, mod, smooth, width]
+    [profile, depth, mod, smooth, dive.safetyStop, width]
   )
   const { index, setChosen, handlers } = useCrosshair(model)
-  const show = useCallback(
-    (alarm: Alarm) => setChosen(alarm.peakIndex),
-    [setChosen]
-  )
 
   return (
     <div
@@ -73,14 +74,18 @@ export default function Profile({
             width={width}
             handlers={handlers}
           />
-          <Alarms alarms={model.alarms} onShow={show} />
+          <Events
+            alarms={model.alarms}
+            stop={model.safetyStop}
+            onShow={setChosen}
+          />
           <ProfileTable model={model} />
         </>
       ) : (
         // Every section's height while the width is measured: laid out
         // without the chart, the dive got shorter for a moment and WebKit
         // pulled a scrolled page up by as much.
-        <ProfilePlaceholder alarms={dive.ascentAlarmCount} bare />
+        <ProfilePlaceholder events={eventCount(dive)} bare />
       )}
     </div>
   )
