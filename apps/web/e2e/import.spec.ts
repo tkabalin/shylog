@@ -320,7 +320,10 @@ test.describe("at desktop width", () => {
     )
 
     // The clock sheet is a dialog with the day as a Select.
-    await page.getByRole("button", { name: "Adjust the D4i clock" }).click()
+    // Text buttons show the hand with a mouse, as links do.
+    const adjust = page.getByRole("button", { name: "Adjust the D4i clock" })
+    await expect(adjust).toHaveCSS("cursor", "pointer")
+    await adjust.click()
     const clock = page.getByRole("dialog", { name: "D4i clock" })
     await expect(clock).toBeVisible()
     await expect(clock.getByRole("combobox", { name: /^Day/ })).toBeVisible()

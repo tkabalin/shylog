@@ -310,4 +310,10 @@
     user-select: none;
     -webkit-user-select: none;
   }
+  /* Tailwind 4 gives buttons the arrow, so with a mouse a text button such
+     as Select all looked like plain text. Links already show the hand. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
 }
