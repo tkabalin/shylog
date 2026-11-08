@@ -172,29 +172,29 @@ function YouPage() {
             log arrives. */}
         <DiverCard settings={log?.settings} cards={log?.cards} />
 
-        {log && (
-          <Section title="Places, people and trips">
-            {entityKinds.map((kind) => {
-              const { title, icon } = kindLabels[kind]
-              return (
-                <Link
-                  key={kind}
-                  to="/you/entities"
-                  search={{ kind }}
-                  state={{ pushed: true }}
-                  className={cn(listRow, pressable)}
-                >
-                  <RowContent
-                    icon={icon}
-                    label={title}
-                    value={countText(listedOf(log, kind).length)}
-                    chevron
-                  />
-                </Link>
-              )
-            })}
-          </Section>
-        )}
+        {/* Drawn before the first sync as well, or its arrival pushed
+            Export down under a finger already on a row. */}
+        <Section title="Places, people and trips">
+          {entityKinds.map((kind) => {
+            const { title, icon } = kindLabels[kind]
+            return (
+              <Link
+                key={kind}
+                to="/you/entities"
+                search={{ kind }}
+                state={{ pushed: true }}
+                className={cn(listRow, pressable)}
+              >
+                <RowContent
+                  icon={icon}
+                  label={title}
+                  value={log ? countText(listedOf(log, kind).length) : none}
+                  chevron
+                />
+              </Link>
+            )
+          })}
+        </Section>
 
         <Section title="Backups">
           <div className={listRow}>

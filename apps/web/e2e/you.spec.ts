@@ -230,6 +230,28 @@ test("says when the server can't be reached before the first sync", async ({
   await page.unrouteAll({ behavior: "ignoreErrors" })
 })
 
+test("keeps Export where it is when the first sync arrives", async ({
+  page,
+}) => {
+  // Held, so the screen is drawn before the phone has the log. A section
+  // that arrived with it moved the rows under a finger already on one.
+  let release!: () => void
+  const held = new Promise<void>((resolve) => (release = resolve))
+  await page.route("**/api/log", async (route) => {
+    await held
+    await route.continue()
+  })
+  await page.goto("/you")
+  await expect(page.getByText("Fetching your log")).toBeVisible()
+  const snapshot = page.getByRole("button", { name: /Database snapshot/ })
+  const before = (await snapshot.boundingBox())!.y
+  release()
+  await expect(page.getByRole("status")).toHaveText("All synced")
+  expect((await snapshot.boundingBox())!.y).toBe(before)
+  // A later sync may still be asking as the test ends.
+  await page.unrouteAll({ behavior: "ignoreErrors" })
+})
+
 test("warns that saving is paused after a failed database check", async ({
   page,
 }) => {
