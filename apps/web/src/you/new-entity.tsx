@@ -32,6 +32,8 @@ import { useDesk } from "@/hooks/use-desk"
 import { PageBar } from "./bar"
 import { DivePicker } from "./dive-picker"
 import { ChooseDivesRow, DivesCard } from "./dives-card"
+import { OfflineMark } from "@/components/offline-mark"
+import { useConnected } from "@/data/sync-status"
 import { kindLabels } from "./kinds"
 
 // A new trip, dive centre or person, made from You with its dives, so it
@@ -52,7 +54,9 @@ export function NewEntity({ log, kind }: { log: LogView; kind: DiveSetKind }) {
   // Set once saved, so LeaveGuard lets the screen go.
   const leaving = useRef(false)
   const [leave, setLeave] = useState<Leave | null>(null)
-  const ready = !!tidyName(name) && ticked.size > 0 && !busy
+  // It is saved with its dives in one request, so it waits for the server.
+  const connected = useConnected()
+  const ready = !!tidyName(name) && ticked.size > 0 && !busy && connected
   const dives = log.dives.filter((dive) => ticked.has(dive.id))
 
   // The saved one takes this screen's place, as a finished step does.
@@ -113,15 +117,18 @@ export function NewEntity({ log, kind }: { log: LogView; kind: DiveSetKind }) {
         back={{ label: label.title, to: "/you/entities", search: { kind } }}
         title={`New ${label.one}`}
         end={
-          desk ? (
-            <Button disabled={!ready} onClick={save}>
-              Save
-            </Button>
-          ) : (
-            <BarButton strong disabled={!ready} onClick={save}>
-              Save
-            </BarButton>
-          )
+          <>
+            <OfflineMark show={!connected} className="mx-1" />
+            {desk ? (
+              <Button disabled={!ready} onClick={save}>
+                Save
+              </Button>
+            ) : (
+              <BarButton strong disabled={!ready} onClick={save}>
+                Save
+              </BarButton>
+            )}
+          </>
         }
       />
       <div className="flex flex-col gap-6 px-4 pt-3 pb-10 md:mx-auto md:w-full md:max-w-xl">

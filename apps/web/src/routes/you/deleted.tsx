@@ -3,10 +3,12 @@ import { IconArrowBarToDown, IconClock, IconTrash } from "@tabler/icons-react"
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { OfflineMark } from "@/components/offline-mark"
 import { countText } from "@/components/pickers/match"
 import { Sparkline } from "@/components/sparkline"
 import type { Dive } from "@/data/db"
 import { useLog, type LogView } from "@/data/log"
+import { useConnected } from "@/data/sync-status"
 import { profileMaxDepth } from "@/dive/figures"
 import { restore } from "@/dive/restore"
 import { deletedGroup, longDate } from "@/format/dates"
@@ -25,6 +27,8 @@ function DeletedPage() {
   const [leaving, setLeaving] = useState<Dive[]>([])
   // 50 at a time, so a long list never renders every card and sparkline.
   const [shown, setShown] = useState(50)
+  // Restoring is an edit to synced data, so it needs the server.
+  const connected = useConnected()
   if (!loaded) return null
   const deleted = log
     ? [
@@ -39,7 +43,11 @@ function DeletedPage() {
   }
   return (
     <div className="flex min-h-full flex-col">
-      <PageBar back={{ label: "You", to: "/you" }} title="Recently deleted" />
+      <PageBar
+        back={{ label: "You", to: "/you" }}
+        title="Recently deleted"
+        end={<OfflineMark show={!connected && deleted.length > 0} />}
+      />
       {/* Nothing until the first sync has filled the log, so a fresh
           phone doesn't say nothing was deleted. */}
       {!log ? null : deleted.length ? (
@@ -66,6 +74,7 @@ function DeletedPage() {
                   dive={dive}
                   log={log}
                   gone={!log.dive.get(dive.id)?.deletedAt}
+                  offline={!connected}
                   onRestore={(restoring) =>
                     setLeaving((was) =>
                       restoring
@@ -112,12 +121,14 @@ function DeletedCard({
   log,
   gone,
   onRestore,
+  offline,
 }: {
   dive: Dive
   log: LogView
   // Restored, and folding away.
   gone: boolean
   onRestore: (restoring: boolean) => void
+  offline: boolean
 }) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
@@ -190,7 +201,7 @@ function DeletedCard({
           </Link>
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || offline}
             aria-label={`Restore ${site}, ${day}`}
             onClick={async () => {
               setBusy(true)
@@ -203,7 +214,13 @@ function DeletedCard({
               setBusy(false)
               if (!back) onRestore(false)
             }}
-            className="relative inline-flex h-9 shrink-0 items-center rounded-full bg-primary/12 px-3.5 text-sm font-medium text-primary transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50"
+            // Grey offline, as RecentlyDeletedHifi draws it, not a faded tint.
+            className={cn(
+              "relative inline-flex h-9 shrink-0 items-center rounded-full px-3.5 text-sm font-medium transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50",
+              offline
+                ? "bg-muted text-muted-foreground disabled:opacity-100"
+                : "bg-primary/12 text-primary"
+            )}
           >
             Restore
           </button>

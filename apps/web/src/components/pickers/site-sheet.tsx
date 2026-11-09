@@ -28,6 +28,7 @@ import { cn } from "cn"
 
 import { Drawer } from "@/components/ui/drawer"
 import { Segmented } from "@/dive/form/rows"
+import { useConnected, useOnline } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import type { NewEntity } from "@/dive/form/values"
 
@@ -563,6 +564,8 @@ function NewSite({
   )
   const water =
     draft.waterType ?? defaultWaterType(draft.bodyOfWater ?? undefined)
+  const connected = useConnected()
+  const online = useOnline()
 
   return (
     <form
@@ -738,6 +741,15 @@ function NewSite({
           />
         </div>
       </SheetSection>
+      {/* Offline it can't be checked against the sites another phone has
+          added, so it says how that is settled. */}
+      {!connected && (
+        <p className="-mt-2 px-1 text-[13px] leading-[1.45] text-muted-foreground">
+          {online ? "Can’t reach the server." : "You’re offline."} The site is
+          saved on this phone and matched with your existing sites when it
+          syncs.
+        </p>
+      )}
     </form>
   )
 }

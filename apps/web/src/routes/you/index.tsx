@@ -23,6 +23,7 @@ import { listedOf } from "@/data/entities"
 import { exportNow } from "@/data/export"
 import { useHealth } from "@/data/health"
 import { useLastSync } from "@/data/last-sync"
+import { useConnected } from "@/data/sync-status"
 import type { Card as CertCard } from "@/data/db"
 import { useLog, type LogView } from "@/data/log"
 import {
@@ -346,6 +347,7 @@ function ExportFailed({
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string>()
   const [gone, setGone] = useState(false)
+  const connected = useConnected()
   const run = async () => {
     // Not disabled while it runs, which would fade the label to near
     // nothing; a second tap waits instead.
@@ -374,8 +376,9 @@ function ExportFailed({
             <button
               type="button"
               aria-disabled={running}
+              disabled={!connected}
               onClick={() => void run()}
-              className="-ml-2 h-11 self-start rounded-md px-2 text-sm font-semibold text-primary transition-opacity duration-150 active:opacity-60 active:duration-0 desk:mt-1.5 desk:h-8"
+              className="-ml-2 h-11 self-start rounded-md px-2 text-sm font-semibold text-primary transition-opacity duration-150 active:opacity-60 active:duration-0 disabled:opacity-50 desk:mt-1.5 desk:h-8"
             >
               {running ? "Exporting…" : "Export now"}
             </button>
@@ -403,6 +406,8 @@ function DiverCard({
   cards?: CertCard[]
 }) {
   const stored = settings?.diverName ?? ""
+  // Settings are saved on the server, so they wait for a connection.
+  const connected = useConnected()
   const [name, setName] = useState(stored)
   const [base, setBase] = useState(stored)
   const [failure, setFailure] = useState<string>()
@@ -454,7 +459,7 @@ function DiverCard({
             placeholder="Your name"
             autoCapitalize="words"
             maxLength={120}
-            disabled={!settings}
+            disabled={!settings || !connected}
             className="text-ellipsis"
           />
         </Row>
@@ -507,6 +512,7 @@ function DiverCard({
 // puts back what another phone changed in the other.
 function Preferences({ settings }: { settings: Settings }) {
   const stored = settings.maxPo2.toFixed(1)
+  const connected = useConnected()
   const [maxPo2, setMaxPo2] = useState(stored)
   const [base, setBase] = useState(stored)
   const [error, setError] = useState<string>()
@@ -554,6 +560,7 @@ function Preferences({ settings }: { settings: Settings }) {
                   setError(undefined)
                 }}
                 onBlur={() => void save()}
+                disabled={!connected}
                 placeholder="1.4"
                 aria-invalid={!!error || undefined}
                 aria-describedby={error ? "error-maxPo2" : undefined}

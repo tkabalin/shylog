@@ -89,7 +89,11 @@ export function PageBar({
           {/* The breadcrumb names the screen, so its heading is left for
               screen readers. */}
           {typeof title === "string" && <h1 className="sr-only">{title}</h1>}
-          {end && <div className="mr-4 flex gap-2 justify-self-end">{end}</div>}
+          {end && (
+            <div className="mr-4 flex items-center gap-2 justify-self-end">
+              {end}
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -105,7 +109,7 @@ export function PageBar({
           ) : (
             (title ?? <span />)
           )}
-          <span className="justify-self-end">{end}</span>
+          <span className="flex items-center justify-self-end">{end}</span>
         </>
       )}
     </header>

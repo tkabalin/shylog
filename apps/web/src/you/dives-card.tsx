@@ -100,12 +100,19 @@ export function DivesCard({
 
 // The last row of the Dives card on a trip, dive centre or person, new or
 // saved, opening the dive picker.
-export function ChooseDivesRow({ onClick }: { onClick: () => void }) {
+export function ChooseDivesRow({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void
+  disabled?: boolean
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none hover:bg-muted/60 active:bg-muted active:duration-0"
+      disabled={disabled}
+      className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
     >
       <IconListCheck aria-hidden className="size-[1.15em]" />
       Choose dives

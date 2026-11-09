@@ -17,6 +17,7 @@ import {
   SelectRow,
   Unit,
 } from "@/dive/form/rows"
+import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 
 import {
@@ -31,6 +32,7 @@ import { SaveFailure } from "./parts"
 // board's preset lists (NOTES), saved together as each one changes.
 export function DefaultsSection({ settings }: { settings: Settings }) {
   const desk = useDesk()
+  const connected = useConnected()
   const saved = defaultsValues(settings)
   const [values, setValues] = useState(saved)
   const [errors, setErrors] = useState<DefaultsErrors>({})
@@ -98,9 +100,11 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
 
   return (
     <PlainLabels.Provider value>
-      <div>
+      {/* Settings are saved on the server, so every control waits for a
+          connection. */}
+      <fieldset disabled={!connected} className="m-0 min-w-0 border-0 p-0">
         <Section title="Defaults">
-          <div className="flex flex-col gap-2 px-4 py-3">
+          <div className="flex flex-col gap-2 px-4 py-3 has-disabled:opacity-50">
             <Label id="you-cylinder">Cylinder</Label>
             <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] items-end max-[374px]:grid-cols-1 max-[374px]:gap-2">
               <div
@@ -187,7 +191,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
           value={values.diveType}
           onChange={(value) => pick("diveType", value)}
         />
-      </div>
+      </fieldset>
     </PlainLabels.Provider>
   )
 }

@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button"
 import { orderCards, readPicks, type Picks } from "@/data/card-edits"
 import type { Card } from "@/data/db"
 import { useLog } from "@/data/log"
+import { OfflineMark } from "@/components/offline-mark"
+import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import { PageBar } from "@/you/bar"
 import { CardImage } from "@/you/cards/card-image"
@@ -38,6 +40,8 @@ function CertificationsPage() {
   const [adding, setAdding] = useState<{ id: number; picked: Picks }>()
   const [open, setOpen] = useState(false)
   const desk = useDesk()
+  // Cards open offline, but adding, editing and moving one need the server.
+  const connected = useConnected()
   // The order a drag has made, shown until the log has it.
   const [order, setOrder] = useState<Card[]>()
   // Read when the card is put down, as that render may not have the last
@@ -88,30 +92,40 @@ function CertificationsPage() {
     }
   }
   const pick = () => picker.current?.click()
+  // The empty screen's own button adds the first, as the board has it.
+  const addButton =
+    !log || cards.length === 0 ? null : desk ? (
+      // A shadcn button with a mouse, as the Log's New dive is.
+      <Button
+        disabled={!connected}
+        onPointerDown={() => void loadCardSheet()}
+        onClick={pick}
+      >
+        <IconPlus data-icon="inline-start" />
+        Add card
+      </Button>
+    ) : (
+      <button
+        type="button"
+        aria-label="Add a card"
+        disabled={!connected}
+        onPointerDown={() => void loadCardSheet()}
+        onClick={pick}
+        className="inline-flex size-11 items-center justify-center text-primary transition-opacity duration-150 enabled:hover:opacity-70 enabled:active:opacity-50 enabled:active:duration-0 disabled:text-muted-foreground/60"
+      >
+        <IconPlus aria-hidden className="size-5.5 stroke-[2.25]" />
+      </button>
+    )
   return (
     <div className="flex min-h-full flex-col">
       <PageBar
         back={{ label: "You", to: "/you" }}
         title="Certifications"
-        // The empty screen's own button adds the first, as the board has it.
         end={
-          !log || cards.length === 0 ? null : desk ? (
-            // A shadcn button with a mouse, as the Log's New dive is.
-            <Button onPointerDown={() => void loadCardSheet()} onClick={pick}>
-              <IconPlus data-icon="inline-start" />
-              Add card
-            </Button>
-          ) : (
-            <button
-              type="button"
-              aria-label="Add a card"
-              onPointerDown={() => void loadCardSheet()}
-              onClick={pick}
-              className="inline-flex size-11 items-center justify-center text-primary transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
-            >
-              <IconPlus aria-hidden className="size-5.5 stroke-[2.25]" />
-            </button>
-          )
+          <>
+            <OfflineMark show={!connected} className="mx-1" />
+            {addButton}
+          </>
         }
       />
       <input
@@ -157,6 +171,7 @@ function CertificationsPage() {
                   card={card}
                   onLift={lift}
                   onDrop={drop}
+                  locked={!connected}
                 />
               ))}
             </Reorder.Group>
@@ -168,8 +183,10 @@ function CertificationsPage() {
               className="mt-[0.1em] size-[1.15em] shrink-0"
             />
             <span>
+              {/* Moving a card is locked offline, so it isn't offered. */}
               Stored offline.
-              {cards.length > 1 &&
+              {connected &&
+                cards.length > 1 &&
                 ` ${desk ? "Drag" : "Hold and drag"} to reorder.`}
             </span>
           </p>
@@ -192,9 +209,11 @@ function CertificationsPage() {
             </span>
           </span>
           <Button
+            disabled={!connected}
             onPointerDown={() => void loadCardSheet()}
             onClick={pick}
-            className="mt-2 h-12 w-full gap-3.5 rounded-[14px] text-base font-semibold"
+            // Greyed offline: a faded fill still reads as a button to tap.
+            className="mt-2 h-12 w-full gap-3.5 rounded-[14px] text-base font-semibold disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
           >
             <IconPhotoPlus aria-hidden className="size-[1.15em]" />
             Choose screenshots
@@ -212,10 +231,13 @@ function CardRow({
   card,
   onLift,
   onDrop,
+  locked,
 }: {
   card: Card
   onLift: () => void
   onDrop: () => void
+  // Offline the order can't be saved, so a press never lifts it.
+  locked: boolean
 }) {
   const { item, ref, lifted } = useLift()
   return (
@@ -223,7 +245,7 @@ function CardRow({
       as="li"
       ref={ref}
       value={card}
-      {...item}
+      {...(locked ? { drag: false } : item)}
       onDragStart={onLift}
       onDragEnd={() => {
         item.onDragEnd()
