@@ -11,6 +11,13 @@ describe("the web app", () => {
     expect(await res.text()).toContain("<title>Dad's &lt;log&gt;</title>")
   })
 
+  it("names the Home Screen icon after the instance", async () => {
+    const quoted = testApp({ env: { SHYLOG_APP_NAME: 'The "big" $& log' } })
+    expect(await (await quoted.request("/")).text()).toContain(
+      '<meta name="apple-mobile-web-app-title" content="The &quot;big&quot; $&amp; log" />'
+    )
+  })
+
   it("keeps a $ in the name as written", async () => {
     const named = testApp({ env: { SHYLOG_APP_NAME: "Log $' $&" } })
     expect(await (await named.request("/")).text()).toContain(
