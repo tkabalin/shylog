@@ -20,12 +20,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme}
       // Sonner's own CSS isn't in a layer, so it beats Tailwind's: the
       // board's type and size need !important.
-      className="toaster group !font-sans"
+      // On a desktop, centred on the content beside the sidebar, as the
+      // dialogs are.
+      className="toaster group !font-sans desk:!left-[calc(50%+var(--sidebar-width)/2)]"
       position="bottom-center"
-      offset={{ bottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+      // Sonner switches to its mobile offset below 600px, not at desk:,
+      // so both read index.css's --toast-bottom, which does.
+      offset={{ bottom: "var(--toast-bottom)" }}
       mobileOffset={{
-        bottom:
-          "calc(3.0625rem + max(0.5rem, env(safe-area-inset-bottom)) + 1rem)",
+        bottom: "var(--toast-bottom)",
         left: "1rem",
         right: "1rem",
       }}
@@ -54,8 +57,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
           // Sonner's grey is drawn for its own background, not the board's
           // inverted one, and all but disappears on it.
           description: "!text-background/75 !font-normal",
+          // Reaches 44px tall for a finger, past its 36px pill.
           actionButton:
-            "!h-9 !bg-transparent !px-2.5 !text-sm !font-semibold !text-background opacity-85 transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0",
+            "relative after:absolute after:inset-x-0 after:-inset-y-1 !h-9 !bg-transparent !px-2.5 !text-sm !font-semibold !text-background opacity-85 transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0",
         },
       }}
       {...props}
