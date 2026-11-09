@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # The browser tests' API: a fresh folder per port seeded from the D4i fixture,
-# with the dev login standing in for Tailscale, behind Vite's proxy. SIGTERM
-# runs the trap; a run killed outright leaves at most one folder behind.
+# with the dev login standing in for Tailscale, behind Vite's proxy (with
+# E2E_BUILD, serving a production build itself). SIGTERM runs the trap; a run
+# killed outright leaves at most one folder behind.
 set -euo pipefail
 dir=${TMPDIR:-/tmp}/shylog-e2e-${E2E_API_PORT:?}
 # Another run on this port would have its live folder removed under it.
@@ -17,6 +18,14 @@ export SHYLOG_DEV_LOGIN=diver@example.com
 export SHYLOG_ALLOWED_LOGINS=diver@example.com
 export SHYLOG_ORIGIN=${E2E_ORIGIN:?}
 export PORT=$E2E_API_PORT
+
+# The built-app stack serves a production build of its own, in this run's
+# folder, so it never rewrites apps/web/dist under another run.
+if [[ -n ${E2E_BUILD:-} ]]; then
+  (cd "$(dirname "$0")/.." &&
+    NODE_ENV=production pnpm exec vite build --logLevel warn --outDir "$dir/web" --emptyOutDir)
+  export SHYLOG_WEB_ROOT=$dir/web
+fi
 
 cd "$(dirname "$0")/../../server"
 pnpm exec tsx scripts/seed.ts >/dev/null

@@ -6,7 +6,7 @@ import { nightly, startNightly } from "./jobs/nightly.ts"
 import { boot } from "./server.ts"
 
 const env = parseEnv(process.env)
-const { app, db, state } = boot(env)
+const { app, db, state } = boot(env, env.SHYLOG_WEB_ROOT)
 
 // Daily as well as at startup. Once failed, writes stay paused until a
 // restore, even if a later check passes.

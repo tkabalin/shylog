@@ -6,6 +6,7 @@ import "./index.css"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { loadLog, startSync } from "@/data/log"
 import { protectOnFirstLaunch } from "@/data/storage"
+import { startWorker } from "@/pwa"
 import { routeTree } from "./routeTree.gen.ts"
 
 // Content scrolls in <main>, not the window, so reset that on navigation.
@@ -31,6 +32,7 @@ await loadLog()
 startSync()
 // Asks the browser to keep the drafts and the log's copy (see storage.ts).
 void protectOnFirstLaunch()
+startWorker()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

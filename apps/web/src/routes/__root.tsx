@@ -10,6 +10,7 @@ import {
   useImportStep,
   useOnForm,
 } from "@/components/app-nav"
+import { reloadApp } from "@/pwa"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { useLog } from "@/data/log"
@@ -70,7 +71,7 @@ function UpdateToast() {
       id: "update",
       description: "Syncing is paused until you reload.",
       duration: Infinity,
-      action: { label: "Reload", onClick: () => location.reload() },
+      action: { label: "Reload", onClick: reloadApp },
     })
     return () => void toast.dismiss("update")
   }, [show])

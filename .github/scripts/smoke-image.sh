@@ -42,6 +42,8 @@ page=$(get /)
 grep -q '<title>Shylog CI</title>' <<<"$page"
 asset=$(grep -o '/assets/[^"]*\.js' <<<"$page" | head -n 1)
 get "$asset" >/dev/null
+# The service worker precaches the app, so it opens with no signal.
+get /sw.js | grep -q 'assets/'
 # The build argument reached the bundle, so About doesn't say "dev".
 if [[ -n $revision ]]; then
   docker exec "$container" grep -rqF "${revision:0:7}" apps/web/dist/assets

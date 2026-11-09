@@ -10,6 +10,7 @@ import {
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { reloadApp } from "@/pwa"
 import shyshark from "@/assets/shyshark.svg"
 
 import { useAfter, usePreloadChart } from "@/chart/load"
@@ -161,7 +162,7 @@ function LogPage() {
                 size="lg"
                 // The board's primary action: 48 px, rounder, semibold.
                 className="h-12 w-full rounded-[14px] text-base font-semibold"
-                onClick={() => location.reload()}
+                onClick={reloadApp}
               >
                 Reload
               </Button>
