@@ -47,6 +47,7 @@ import { Fold, foldMs } from "@/components/fold"
 import { StorageRow } from "@/you/storage-sheet"
 import { SyncCard } from "@/you/sync-card"
 import { kindLabels } from "@/you/kinds"
+import { useHoldUpdate } from "@/update"
 import { listRow, pressable, RowContent, SaveFailure } from "@/you/parts"
 
 export const Route = createFileRoute("/you/")({
@@ -370,6 +371,7 @@ function DiverCard({
   const [base, setBase] = useState(stored)
   const [failure, setFailure] = useState<string>()
   const changed = name !== base
+  useHoldUpdate(changed)
   // A sync that brings a new name shows it unless one is being typed.
   if (!changed && stored !== base) {
     setBase(stored)
@@ -476,6 +478,7 @@ function Preferences({ settings }: { settings: Settings }) {
   const [error, setError] = useState<string>()
   const [failure, setFailure] = useState<string>()
   const changed = maxPo2 !== base
+  useHoldUpdate(changed)
   // A sync that brings a new value shows it unless one is being typed.
   if (!changed && stored !== base) {
     setBase(stored)

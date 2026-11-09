@@ -1,4 +1,6 @@
 import { latestSchemaVersion, opVersion, type Op } from "@shylog/core"
+import { act, createElement } from "react"
+import { createRoot } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { Log } from "@/api/client"
@@ -14,6 +16,7 @@ import {
   rejectDraft,
   saveDraft,
   type DraftFields,
+  useQueueCounts,
   type NewEntity,
 } from "./drafts"
 import { readLog } from "./log"
@@ -532,5 +535,31 @@ describe("drafts in the log", () => {
       draft: true,
       notes: "Edited offline",
     })
+  })
+})
+
+describe("useQueueCounts", () => {
+  it("counts the drafts and those still to upload as the queue changes", async () => {
+    let counts: ReturnType<typeof useQueueCounts>
+    const Probe = () => {
+      counts = useQueueCounts(queue)
+      return null
+    }
+    const root = createRoot(document.createElement("div"))
+    await act(async () => root.render(createElement(Probe)))
+    await vi.waitFor(() => expect(counts).toEqual({ drafts: 0, waiting: 0 }))
+
+    await saveDraft("dive-a", fields(), [site], queue)
+    await saveDraft("dive-b", fields({ siteId: "site-a" }), [], queue)
+    await vi.waitFor(() => expect(counts).toEqual({ drafts: 2, waiting: 2 }))
+    // A refused one is still on the phone, but not waiting.
+    await rejectDraft(
+      "dive-b",
+      "Its site was deleted",
+      await queue.ops.where("diveId").equals("dive-b").primaryKeys(),
+      queue
+    )
+    await vi.waitFor(() => expect(counts).toEqual({ drafts: 2, waiting: 1 }))
+    await act(async () => root.unmount())
   })
 })

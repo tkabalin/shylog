@@ -81,6 +81,7 @@ import {
 import { months } from "@/format/dates"
 import { depth } from "@/format/figures"
 import { useDesk } from "@/hooks/use-desk"
+import { useHoldUpdate } from "@/update"
 
 import { PageBar, useBack } from "./bar"
 import { DivePicker } from "./dive-picker"
@@ -177,6 +178,7 @@ export function EntityDetail({
   // them go; a move elsewhere it held waits on Discard changes?.
   const leaving = useRef(false)
   const [leave, setLeave] = useState<Leave | null>(null)
+  useHoldUpdate(changed)
   // A sync that changes it shows the change unless something is typed.
   if (!changed && JSON.stringify(saved) !== JSON.stringify(base)) {
     setBase(saved)

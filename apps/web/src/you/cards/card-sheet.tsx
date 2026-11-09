@@ -24,6 +24,7 @@ import type { Card } from "@/data/db"
 import { Segmented } from "@/dive/form/rows"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
+import { useHoldUpdate } from "@/update"
 import { CardImage } from "@/you/cards/card-image"
 import { accept } from "@/you/cards/load-sheet"
 import { useLift } from "@/you/cards/use-lift"
@@ -117,6 +118,7 @@ export function CardSheet({
   // Cards are saved on the server, so Save and Delete wait for it.
   const connected = useConnected()
   const ready = changed && named && pages.length > 0 && !tooMany && connected
+  useHoldUpdate(open && changed)
 
   const save = async () => {
     setBusy(true)

@@ -336,6 +336,7 @@ describe("You's sync card", () => {
   it("asks for a reload when the server is newer", () => {
     expect(card("paused", [])).toMatchObject({
       title: "Syncing paused",
+      reload: true,
       sub: "Reload Shylog to update",
       warn: true,
     })

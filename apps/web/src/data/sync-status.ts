@@ -142,6 +142,8 @@ export function syncCard(
   sub: string
   warn: boolean
   retry: boolean
+  // Reload in Try again's place, which a swiped-away offer leaves here.
+  reload?: true
 } {
   const last = syncedAt ? `Last sync ${agoText(syncedAt, now)}` : "No sync yet"
   const waiting = queued.length
@@ -161,6 +163,7 @@ export function syncCard(
       sub: `Reload Shylog to update${waiting ? ` · ${diveCount(waiting)} waiting` : ""}`,
       warn: true,
       retry: false,
+      reload: true,
     }
   if (state === "syncing")
     return {

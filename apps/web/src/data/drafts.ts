@@ -9,7 +9,8 @@ import {
   type Id,
   type opSchema,
 } from "@shylog/core"
-import { Dexie, type EntityTable } from "dexie"
+import { useCallback, useSyncExternalStore } from "react"
+import { Dexie, liveQuery, type EntityTable } from "dexie"
 
 // z.input without zod as a dependency. Drafts keep what the form gave, not
 // the parsed output, which doesn't parse again: an emptied text field
@@ -199,4 +200,57 @@ export const readDraft = (diveId: string, db: QueueDb = queue) =>
 export async function draftOps(diveId: string, db: QueueDb = queue) {
   const rows = await db.ops.where("diveId").equals(diveId).toArray()
   return rows.map((row) => row.op)
+}
+
+// The drafts on this phone, and those still to upload (refused ones left
+// out), read from the queue itself and kept current, other tabs' saves
+// included, which reach this tab's log only when it next loads. Unknown
+// until first read. One live query per queue, however many screens ask.
+type Counts = { drafts: number; waiting: number }
+const counting = new Map<
+  QueueDb,
+  { counts?: Counts; listeners: Set<() => void>; stop?: () => void }
+>()
+
+function countsOf(db: QueueDb) {
+  let entry = counting.get(db)
+  if (!entry) counting.set(db, (entry = { listeners: new Set() }))
+  return entry
+}
+
+function subscribeCounts(db: QueueDb, listener: () => void) {
+  const entry = countsOf(db)
+  entry.listeners.add(listener)
+  if (!entry.stop) {
+    const set = (counts: Counts) => {
+      entry.counts = counts
+      for (const each of entry.listeners) each()
+    }
+    const live = liveQuery(async () => {
+      const drafts = await db.drafts.toArray()
+      return {
+        drafts: drafts.length,
+        waiting: drafts.filter((draft) => !draft.rejected).length,
+      }
+    }).subscribe({
+      next: set,
+      // A browser that refuses IndexedDB can't have queued anything.
+      error: () => set({ drafts: 0, waiting: 0 }),
+    })
+    entry.stop = () => live.unsubscribe()
+  }
+  return () => {
+    entry.listeners.delete(listener)
+    if (entry.listeners.size) return
+    entry.stop?.()
+    counting.delete(db)
+  }
+}
+
+export function useQueueCounts(db: QueueDb = queue) {
+  const subscribe = useCallback(
+    (listener: () => void) => subscribeCounts(db, listener),
+    [db]
+  )
+  return useSyncExternalStore(subscribe, () => counting.get(db)?.counts)
 }

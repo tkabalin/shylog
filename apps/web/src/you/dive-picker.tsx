@@ -37,6 +37,7 @@ import {
 } from "@/format/dates"
 import { depth, minutes } from "@/format/figures"
 import { useDesk } from "@/hooks/use-desk"
+import { useHoldUpdate } from "@/update"
 
 import { kindLabels } from "./kinds"
 
@@ -130,6 +131,7 @@ export function DivePicker({
     }
   }
   const changed = !sameTicks(opened, ticked)
+  useHoldUpdate(open && changed)
 
   // Drafts aren't on the server yet, so no request can name them.
   const dives = useMemo(() => log.dives.filter((dive) => !dive.draft), [log])
