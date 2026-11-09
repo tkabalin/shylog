@@ -17,6 +17,7 @@ import {
   type LastImport,
 } from "@/data/import"
 import { months } from "@/format/dates"
+import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import { bigButton, ImportSection, ListCard, SummaryRows } from "@/import/parts"
 
@@ -80,11 +81,13 @@ function ImportPage() {
   const shown = uploading ? before : preview
   const [error, setError] = useState<string>()
   const desk = useDesk()
+  // ImportHifi's Offline state: the server reads the file, so no upload.
+  const connected = useConnected()
 
   useEffect(() => {
-    // Offline, the upload says so when tried.
-    loadPending().catch(() => {})
-  }, [])
+    // Offline, the screen says so; asked again once back.
+    if (connected) loadPending().catch(() => {})
+  }, [connected])
 
   const choose = async (file: File | undefined) => {
     if (!file) return
@@ -106,12 +109,15 @@ function ImportPage() {
     <label
       className={cn(
         "inline-flex w-full cursor-pointer items-center justify-center gap-2 bg-primary text-primary-foreground transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-90 active:opacity-80 active:duration-0 has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
+        // Offline it stays where it is, greyed, as ImportHifi draws it.
+        "has-disabled:cursor-default has-disabled:bg-muted has-disabled:text-muted-foreground/60 has-disabled:hover:opacity-100 has-disabled:active:opacity-100",
         bigButton
       )}
     >
       <input
         ref={input}
         type="file"
+        disabled={!connected}
         accept=".uddf,.xml"
         className="sr-only"
         onChange={(event) => void choose(event.target.files?.[0])}
@@ -170,7 +176,12 @@ function ImportPage() {
         <Card className="items-center gap-3.5 px-5 pt-7 pb-5.5 text-center">
           <span
             aria-hidden
-            className="inline-flex size-13 items-center justify-center rounded-full bg-primary/12 text-primary"
+            className={cn(
+              "inline-flex size-13 items-center justify-center rounded-full",
+              connected || uploading
+                ? "bg-primary/12 text-primary"
+                : "bg-muted text-muted-foreground/60"
+            )}
           >
             <IconFileUpload className="size-6 stroke-[1.75]" />
           </span>
@@ -181,7 +192,9 @@ function ImportPage() {
             <span className="text-sm leading-[1.45] text-pretty text-muted-foreground">
               {uploading
                 ? "Matching its dives with your log"
-                : "Choose a UDDF export to attach your dive computer’s profiles to the dives you’ve logged."}
+                : connected
+                  ? "Choose a UDDF export to attach your dive computer’s profiles to the dives you’ve logged."
+                  : "Import needs a connection to the server."}
             </span>
           </span>
           {uploading ? (
