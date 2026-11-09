@@ -193,6 +193,54 @@ test("a draft the server refuses is marked on its card and says why on its detai
   )
 })
 
+// Playwright's browsers can't share files, so the row saves a download.
+test("You saves the dives only on this phone to a file", async ({ page }) => {
+  await page.route("**/api/ops", (route) =>
+    route.fulfill({ status: 422, json: { error: "Its site was deleted" } })
+  )
+  await page.goto("/")
+  await page.getByRole("link", { name: "Log a dive" }).click()
+  const site = `E2E Saved ${Date.now()}`
+  const id = await logDive(page, site)
+  await expect(page.getByText("The server refused this dive")).toBeVisible()
+  await page
+    .getByRole("navigation", { name: "Main" })
+    .getByRole("link", { name: "You", exact: true })
+    .click()
+
+  const saved = page.waitForEvent("download")
+  await page
+    .getByRole("button", { name: /Save waiting dives to a file/ })
+    .click()
+  const file = await saved
+  expect(file.suggestedFilename()).toMatch(
+    /^shylog-waiting-dives-\d{4}-\d\d-\d\d\.json$/
+  )
+  const text = await (
+    await file.createReadStream()
+  )
+    .setEncoding("utf8")
+    .toArray()
+    .then((parts) => parts.join(""))
+  const { drafts } = JSON.parse(text) as {
+    drafts: {
+      diveId: string
+      rejected?: string
+      request: { ops: { type: string; fields: { name?: string } }[] }
+    }[]
+  }
+  const draft = drafts.find((one) => one.diveId === id)
+  expect(draft?.rejected).toBe("Its site was deleted")
+  // The dive and the site it made, ready to send to /api/ops again.
+  expect(draft?.request.ops.map((op) => op.type).sort()).toEqual([
+    "upsertDive",
+    "upsertEntity",
+  ])
+  expect(
+    draft?.request.ops.find((op) => op.type === "upsertEntity")?.fields.name
+  ).toBe(site)
+})
+
 test("the Import screen shows its Offline state and doesn't upload", async ({
   page,
   context,
