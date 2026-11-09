@@ -1,12 +1,20 @@
 import { act } from "react"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { defaultSettings, diveFieldsSchema, sacRate } from "@shylog/core"
 
 import type { Dive } from "@/data/db"
 
 import { formFigures } from "./calculated"
 import { DiveForm } from "./dive-form"
-import { button, click, render, testDive, testLog, type } from "./testing"
+import {
+  button,
+  cleanup,
+  click,
+  render,
+  testDive,
+  testLog,
+  type,
+} from "./testing"
 import {
   changedFields,
   copyFromDive,
@@ -26,10 +34,6 @@ const filled = (values: Partial<FormValues> = {}): FormValues => ({
   duration: "42",
   maxDepth: "32.7",
   ...values,
-})
-
-afterEach(() => {
-  document.body.innerHTML = ""
 })
 
 describe("the form's fields", () => {
@@ -704,7 +708,7 @@ describe("the Night suggestion", () => {
   it("suggests nothing for a daytime dive, or one already tagged Night", () => {
     show({})
     expect(suggestion()).toBeNull()
-    document.body.innerHTML = ""
+    cleanup()
     const dive = testDive({ id: "dive-t", startTime: "2026-07-22T19:00:00" })
     const log = testLog({
       dives: [dive],

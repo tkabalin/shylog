@@ -1,5 +1,6 @@
 import { act, type ReactNode } from "react"
 import { createRoot } from "react-dom/client"
+import { afterEach } from "vitest"
 import { defaultSettings } from "@shylog/core"
 
 import type { Dive, FieldMeta, Region, Site } from "@/data/db"
@@ -172,18 +173,31 @@ export function testLog({
   }
 }
 
+// Clearing the body alone leaves a root mounted, and its scheduled work can
+// run after the file's jsdom is gone ("window is not defined" in CI), so
+// cleanup unmounts every root first. It runs after each test.
+const mounted = new Set<() => void>()
+export function cleanup() {
+  for (const unmount of mounted) unmount()
+  document.body.innerHTML = ""
+}
+afterEach(cleanup)
+
 export function render(ui: ReactNode) {
   const container = document.createElement("div")
   document.body.append(container)
   const root = createRoot(container)
   act(() => root.render(ui))
+  const unmount = () => {
+    mounted.delete(unmount)
+    act(() => root.unmount())
+    container.remove()
+  }
+  mounted.add(unmount)
   return {
     container,
     rerender: (next: ReactNode) => act(() => root.render(next)),
-    unmount: () => {
-      act(() => root.unmount())
-      container.remove()
-    },
+    unmount,
   }
 }
 
