@@ -297,33 +297,45 @@ describe("migration 7", () => {
   })
 })
 
-describe("migration 8", () => {
-  it("fills the safety stop for dives that already have samples", () => {
-    migrate(db, dir, migrations.slice(0, 7))
-    db.exec(`
-      INSERT INTO sites (id, name, key, country_code, water_type)
-        VALUES ('site-a', 'A', 'ZA:a', 'ZA', 'salt');
-      INSERT INTO dives (id, start_time, site_id, duration, max_depth)
-        VALUES ('dive-a', '2026-07-22T08:00:00', 'site-a', 900, 20),
-               ('dive-b', '2026-07-22T12:00:00', 'site-a', 900, 10),
-               ('dive-c', '2026-07-22T16:00:00', 'site-a', 900, 10);
-      INSERT INTO samples (dive_id, time, depth) VALUES
-        ('dive-a', 0, 0), ('dive-a', 60, 20), ('dive-a', 600, 20),
-        ('dive-a', 690, 5), ('dive-a', 870, 5), ('dive-a', 880, 0),
-        ('dive-b', 0, 0), ('dive-b', 60, 10), ('dive-b', 600, 5),
-        ('dive-b', 900, 0);
-    `)
-    migrate(db, dir)
-    const stops = db
+describe("migration 9", () => {
+  const stops = () =>
+    db
       .prepare(
         "SELECT id, safety_stop_start AS start, safety_stop_end AS end, safety_stop_held AS held, safety_stop_depth AS depth FROM dives ORDER BY id"
       )
       .all()
-    expect(stops).toEqual([
-      { id: "dive-a", start: 684, end: 874, held: 190, depth: 4995 },
-      // No deeper than 10 m, and no samples.
+
+  it("finds every dive's stop again from its samples, deeper than 6 m allowed", () => {
+    migrate(db, dir, migrations.slice(0, 8))
+    db.exec(`
+      INSERT INTO sites (id, name, key, country_code, water_type)
+        VALUES ('site-a', 'A', 'ZA:a', 'ZA', 'salt');
+      INSERT INTO dives (id, start_time, site_id, duration, max_depth,
+          safety_stop_start, safety_stop_end, safety_stop_held, safety_stop_depth)
+        VALUES ('dive-a', '2026-07-22T08:00:00', 'site-a', 900, 20, 684, 874, 190, 4995),
+               ('dive-b', '2026-07-22T12:00:00', 'site-a', 900, 20, 684, 954, 100, 5000),
+               ('dive-c', '2026-07-22T16:00:00', 'site-a', 900, 20, null, null, null, null),
+               ('dive-d', '2026-07-23T08:00:00', 'site-a', 900, 20, null, null, null, null);
+      INSERT INTO samples (dive_id, time, depth) VALUES
+        ('dive-a', 0, 0), ('dive-a', 60, 20), ('dive-a', 600, 20),
+        ('dive-a', 690, 5), ('dive-a', 870, 5), ('dive-a', 880, 0),
+        -- 50 s at 5 m, 3 minutes at 8 m, 50 s at 5 m: two stretches too
+        -- short to be a stop, where the old count added them up.
+        ('dive-b', 0, 0), ('dive-b', 60, 20), ('dive-b', 600, 20),
+        ('dive-b', 690, 5), ('dive-b', 730, 5), ('dive-b', 740, 8),
+        ('dive-b', 920, 8), ('dive-b', 930, 5), ('dive-b', 970, 5),
+        ('dive-b', 980, 0),
+        -- 3 minutes at 6.3 m, which 6 m kept out.
+        ('dive-c', 0, 0), ('dive-c', 60, 20), ('dive-c', 600, 20),
+        ('dive-c', 690, 6.3), ('dive-c', 870, 6.3), ('dive-c', 880, 0);
+    `)
+    migrate(db, dir)
+    expect(stops()).toEqual([
+      { id: "dive-a", start: 682, end: 874, held: 192, depth: 5010 },
       { id: "dive-b", start: null, end: null, held: null, depth: null },
-      { id: "dive-c", start: null, end: null, held: null, depth: null },
+      { id: "dive-c", start: 689, end: 875, held: 186, depth: 6254 },
+      // No samples.
+      { id: "dive-d", start: null, end: null, held: null, depth: null },
     ])
   })
 })

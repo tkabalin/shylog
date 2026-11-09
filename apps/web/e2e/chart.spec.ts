@@ -51,16 +51,16 @@ test("lists dive 54's safety stop, marks it and moves the crosshair to it", asyn
   await expect(events.getByText("6", { exact: true })).toBeVisible()
   const stop = events.getByRole("button", { name: /^Safety stop/ })
   await expect(stop).toHaveAccessibleName(
-    "Safety stop from 19:36, held 3 minutes 15 seconds at an average of 5.5 metres. Show on profile."
+    "Safety stop from 19:32, held 9 minutes 39 seconds at an average of 5.5 metres. Show on profile."
   )
-  await expect(stop).toContainText("at an average of 5.5 m from 19:36")
-  await expect(stop).toContainText("3:15")
+  await expect(stop).toContainText("at an average of 5.5 m from 19:32")
+  await expect(stop).toContainText("9:39")
   // Marked by its icon and a band of its own beside the alarms' five.
   await expect(card.locator("svg g.text-ok")).toHaveCount(1)
   await expect(card.locator(".stop-band")).toHaveCount(1)
   await expect(card.locator(".recharts-reference-area")).toHaveCount(6)
 
-  // On the first chart point in the band, 4 s after the stop's start.
+  // On the first chart point in the band, 8 s after the stop's start.
   await stop.click()
   await expect(readout(page)).toContainText("at 19:40")
   await expect(readout(page)).toContainText("Safety stop")

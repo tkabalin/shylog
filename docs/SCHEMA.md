@@ -107,6 +107,10 @@ erDiagram
     TEXT deleted_at "soft delete"
     INTEGER sample_duration "s under water, from samples"
     REAL sample_average_depth "m, from samples"
+    INTEGER safety_stop_start "s into the dive, from samples"
+    INTEGER safety_stop_end "s, at least the start"
+    INTEGER safety_stop_held "s in the band, at least 60"
+    INTEGER safety_stop_depth "mm, mean in the band, 0 to 10000"
   }
   dive_buddies {
     TEXT dive_id PK, FK
