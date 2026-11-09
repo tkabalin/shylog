@@ -367,6 +367,22 @@ describe("POST /api/ops", () => {
     expect(res.status).toBe(400)
   })
 
+  it("ignores a null on a new dive, which has nothing to clear", async () => {
+    const res = await upload([
+      site("site-two-mile"),
+      dive("dive-a", { notes: null, averageDepth: null, buddies: null }),
+    ])
+    expect(res.status).toBe(200)
+    expect((await getLog()).dives[0]).toMatchObject({ notes: null })
+    // Not recorded as hand values, as fields never given aren't.
+    expect(
+      db
+        .prepare("SELECT field FROM field_meta WHERE dive_id = 'dive-a'")
+        .pluck()
+        .all()
+    ).not.toContain("notes")
+  })
+
   describe("for a dive the server already has", () => {
     beforeEach(async () => {
       await upload([
@@ -382,6 +398,33 @@ describe("POST /api/ops", () => {
         notes: "Edited offline",
         weight: 4,
       })
+    })
+
+    it("clears the fields the draft sends as null", async () => {
+      await upload([
+        person("person-sam", "Sam Naidoo"),
+        dive("dive-b", {
+          startTime: "2026-07-23T08:00:00",
+          averageDepth: 9,
+          buddies: ["person-sam"],
+          notes: "Turtle",
+        }),
+      ])
+      const res = await upload([
+        dive("dive-b", {
+          startTime: "2026-07-23T08:00:00",
+          averageDepth: null,
+          buddies: null,
+          notes: null,
+        }),
+      ])
+      expect(res.status).toBe(200)
+      const log = await getLog()
+      expect(log.dives.find((d) => d.id === "dive-b")).toMatchObject({
+        averageDepth: null,
+        notes: null,
+      })
+      expect(log.links.filter((link) => link.diveId === "dive-b")).toEqual([])
     })
 
     it("rejects it once the dive is in Recently deleted", async () => {

@@ -28,12 +28,12 @@ const site = (deviceId: string, id: string) => ({
   fields: { name: "Two Mile Reef", countryCode: "ZA" },
 })
 
-const person = (deviceId: string, id: string) => ({
+const person = (deviceId: string, id: string, name = "Sam Naidoo") => ({
   ...op(deviceId),
   type: "upsertEntity",
   kind: "person",
   id,
-  fields: { name: "Sam Naidoo" },
+  fields: { name },
 })
 
 const dive = (
@@ -90,34 +90,60 @@ describe("uploads that reach the server more than once", () => {
   })
 
   it("a draft edited after a lost reply ends as one upload of the edit", async () => {
-    const fields = {
-      maxDepth: 21.2,
-      // Emptied on the phone, so the first upload's notes must go.
-      notes: "",
-      buddies: ["person-sam"],
-    }
+    // As the phone sends it: the fields the draft held and has lost since
+    // go as null (see editDraft).
     const edited = () => [
       site("device-phone", "site-reef"),
-      person("device-phone", "person-sam"),
-      dive("device-phone", "dive-a", fields),
+      person("device-phone", "person-pat", "Pat Mokoena"),
+      dive("device-phone", "dive-a", {
+        maxDepth: 21.2,
+        notes: null,
+        averageDepth: null,
+        buddies: ["person-pat"],
+        tags: null,
+      }),
     ]
+    // A change made on the laptop once the first upload had landed, to a
+    // field the draft never held.
+    const laptop = (app: App) =>
+      send(app, "PATCH", "/api/dives/dive-a", { fields: { weight: 6 } })
+
     const clean = testApp()
     await upload(clean, edited())
+    expect((await laptop(clean)).status).toBe(200)
 
     const messy = testApp()
     await upload(messy, [
       site("device-phone", "site-reef"),
-      dive("device-phone", "dive-a", { notes: "Logged on the boat" }),
+      person("device-phone", "person-sam"),
+      dive("device-phone", "dive-a", {
+        notes: "Logged on the boat",
+        averageDepth: 12,
+        buddies: ["person-sam"],
+        tags: ["night"],
+      }),
     ])
+    expect((await laptop(messy)).status).toBe(200)
     // The phone never heard back, and the draft was edited offline, so its
     // ops are new.
     expect(await upload(messy, edited())).toBe("applied")
 
     const log = await finalLog(messy)
-    expect(log).toEqual(await finalLog(clean))
-    expect(log.dives[0]).toMatchObject({ maxDepth: 21.2, notes: null })
+    // The first upload's person stays, as entities are never removed by a
+    // dive's edit; the clean upload never made them.
+    const without = (people: Log["people"]) =>
+      people.filter((one) => one.id !== "person-sam")
+    expect({ ...log, people: without(log.people) }).toEqual(
+      await finalLog(clean)
+    )
+    expect(log.dives[0]).toMatchObject({
+      maxDepth: 21.2,
+      notes: null,
+      averageDepth: null,
+      weight: 6,
+    })
     expect(log.links).toEqual([
-      expect.objectContaining({ diveId: "dive-a", target: "person-sam" }),
+      expect.objectContaining({ diveId: "dive-a", target: "person-pat" }),
     ])
   })
 })

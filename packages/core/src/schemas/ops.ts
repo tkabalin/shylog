@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 import { idSchema } from "../ids.ts"
-import { diveFieldsSchema } from "./dive.ts"
+import { draftDiveFieldsSchema } from "./dive.ts"
 import { entityFields, type EntityKind } from "./entities.ts"
 
 // Ops only carry offline drafts to the server. The server accepts this
@@ -21,7 +21,7 @@ const upsertDive = z.strictObject({
   ...base,
   type: z.literal("upsertDive"),
   diveId: idSchema("dive"),
-  fields: diveFieldsSchema,
+  fields: draftDiveFieldsSchema,
 })
 
 const upsertEntity = <K extends EntityKind>(kind: K) =>

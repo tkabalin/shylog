@@ -95,6 +95,48 @@ afterEach(async () => {
 })
 
 describe("drafts", () => {
+  it("sends a field an edit cleared as null, and none it never held", async () => {
+    await saveDraft("dive-a", fields({ averageDepth: 9 }), [site], queue)
+    const [first] = await draftOps("dive-a", queue).then((ops) =>
+      ops.filter((op) => op.type === "upsertDive")
+    )
+    // A new draft has lost nothing.
+    expect(Object.values(first!.fields)).not.toContain(null)
+
+    const { notes, averageDepth, buddies, ...rest } = fields({
+      averageDepth: 9,
+    })
+    void [notes, averageDepth, buddies]
+    await editDraft("dive-a", rest, [site], queue)
+    // Then one held again: cleared once, it is no longer lost.
+    await editDraft("dive-a", { ...rest, notes: "Back" }, [site], queue)
+    const [dive] = (await draftOps("dive-a", queue)).filter(
+      (op) => op.type === "upsertDive"
+    )
+    expect(dive!.fields).toMatchObject({
+      notes: "Back",
+      averageDepth: null,
+      buddies: null,
+    })
+    // Fields it never held aren't sent, so edits elsewhere are kept.
+    expect(dive!.fields).not.toHaveProperty("weight")
+    expect((await readDraft("dive-a", queue))?.fields).not.toHaveProperty(
+      "averageDepth"
+    )
+  })
+
+  it("treats a draft saved before it remembered its fields as holding its own", async () => {
+    await saveDraft("dive-a", fields(), [site], queue)
+    await queue.drafts.update("dive-a", { held: undefined })
+    const { notes, ...rest } = fields()
+    void notes
+    await editDraft("dive-a", rest, [site], queue)
+    const [dive] = (await draftOps("dive-a", queue)).filter(
+      (op) => op.type === "upsertDive"
+    )
+    expect(dive!.fields).toMatchObject({ notes: null })
+  })
+
   it("saves the dive, its upsertDive op and an upsertEntity op for a new site in one transaction", async () => {
     const transaction = vi.spyOn(queue, "transaction")
     await saveDraft("dive-new", fields(), [site], queue)
@@ -106,6 +148,7 @@ describe("drafts", () => {
       updatedAt: expect.any(String),
       fields: fields(),
       entities: [site],
+      held: ["buddies", "tags", "notes"],
     })
     const ops = await draftOps("dive-new", queue)
     const deviceId = (await queue.meta.get("device"))!.id
@@ -169,6 +212,7 @@ describe("drafts", () => {
       updatedAt: expect.any(String),
       fields: edited,
       entities: [],
+      held: ["buddies", "tags", "notes"],
     })
   })
 
