@@ -19,11 +19,18 @@ const escapeHtml = (text: string) =>
 export function web(root: string, appName: string) {
   let page: string | undefined
   const index = () =>
-    (page ??= readFileSync(join(root, "index.html"), "utf8").replace(
-      /<title>[^<]*<\/title>/,
-      // A function, so a `$` in the name is never read as a pattern.
-      () => `<title>${escapeHtml(appName)}</title>`
-    ))
+    (page ??= readFileSync(join(root, "index.html"), "utf8")
+      .replace(
+        /<title>[^<]*<\/title>/,
+        // A function, so a `$` in the name is never read as a pattern.
+        () => `<title>${escapeHtml(appName)}</title>`
+      )
+      // iOS names a Home Screen icon from this, not the manifest.
+      .replace(
+        /(<meta name="apple-mobile-web-app-title" content=")[^"]*"/,
+        (_, start: string) =>
+          `${start}${escapeHtml(appName).replace(/"/g, "&quot;")}"`
+      ))
 
   return (
     new Hono()

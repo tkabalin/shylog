@@ -18,8 +18,10 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!-- iOS ignores SVG icons; scripts/apple-touch-icon.ts renders this one. -->
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <!-- Served by the server with the instance's SHYLOG_APP_NAME. -->
+    <!-- Served by the server with the instance's SHYLOG_APP_NAME, which it
+         also writes into the title and the Home Screen name below. -->
     <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="Shylog" />
     <title>Shylog</title>
     <script>
       // Set the theme before first paint so a dark phone does not flash white
