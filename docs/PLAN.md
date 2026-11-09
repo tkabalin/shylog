@@ -71,6 +71,7 @@ These resolve the inconsistencies found between the spec, the boards and the fix
 | D52 | Dive-number milestones (added 8 November 2026) | The milestone numbers are 40, 50, 60, 75, 100, 250, 500, 750 and 1000: the doors on the way to Divemaster and instructor (PADI and SSI), then SSI's recognition levels, leaving out SSI's 12 and 24, which are specialty ratings rather than doors, and plain round numbers. A milestone save shows a line saying what the number means beside the burst, and Statistics' Records and averages card shows the next milestone. The wording and look are proposed when built. The owner's choices. |
 | D53 | Packing checklist (added 8 November 2026) | A packing checklist like the one in PADI's app, but editable. One flat list, rather than sections or several lists as PADI has. The list is stored on the server per instance, so every device shares it and editing needs a connection; ticks stay on the phone only, with a Reset. Where it opens from, its design, its editing and its default items are proposed when built. The owner's choices. |
 | D54 | Safety stops (added 8 November 2026, issue #44) | The D4i and Zoop Novo log their safety stop, but Subsurface drops it and its UDDF export has no element for it, so Shylog finds the stop in the depth samples by its own rule (see the spec's Safety stop), with no Subsurface differential test and no `dctool` calibration (the owner's choice). It follows the Suunto manuals: dives deeper than 10 m, a 3-minute count in the 3 to 6 m band on the final ascent. The manuals don't say whether the count pauses or resets outside the band; the owner confirmed their D4i pauses, as Suunto's newer computers and Divesoft do, which also gives the fuzziness the issue asked for. A complete stop ends at the next exit from the band, so time spent in the shallows after it isn't counted (the owner's choice over counting to the last exit, which gave a 10 m dive a 21-minute stop). Stops of 1 to 3 minutes are listed as short. Dive detail's Alarms section becomes Events, listing the stop among the alarms in time order, in green when full and grey when short. The chart marks it with a faint green band for its span and a stairs icon beside the alarms' (the owner's pick of the mockups, over the icon alone, a rule along the time axis alone, and the icon with that rule), kept apart from the events and green so it never reads as a warning. The stop is stored on the dive like the sparkline, so the card reserves its row before the samples arrive. Neither export writes it, as it is derived. |
+| D55 | Offline (added 9 November 2026) | The sync pill is grey and takes the warning colour only for Can’t reach the server and a draft the server refused, the states the diver must act on (the owner’s choice from mockups of the board’s grey pill, cyan while syncing, and both combined). The spec’s banner of waiting dives is You’s sync card, as `SettingsHifi` draws it, not a strip on the Log. Server unreachable disables the online-only controls as offline does, as `SettingsHifi` treats it. On the owner's review of the PR the pill became a badge on the Log's shyshark, in the accent colour where it was grey, a refused draft's card kept its place line with a warning icon, and every “needs a connection” note gave way to the disabled controls and a small offline icon in the screen's bar. Until milestone 19’s reload offer, a new version waits until every Shylog window has closed and takes over on the next launch, as browsers do by default, so nothing reloads under an open form or sheet (the owner’s choice over reloading on return to the app when no form is open). |
 
 Where a board shows something the spec does not and no decision above covers it, the board's wording and layout are used (for example the Settings section order, "Last backup" as the label for the last snapshot, the "Avg depth" headline figure, the "Summary + list" conditions layout, the five-state sync card, the storage sheet copy).
 
@@ -757,7 +758,7 @@ Decisions taken while building:
 
 Deferred, or to watch:
 
-- Milestone 18: offline guards on the synced-data controls (Delete, Restore, Save, merge) with the "needs a connection" notes; meanwhile a request offline fails with "Couldn’t reach Shylog". The sync card's other states and the drafts row.
+- Milestone 18: offline guards on the synced-data controls (Delete, Restore, Save, merge) with the offline icon in each screen's bar; meanwhile a request offline fails with "Couldn’t reach Shylog". The sync card's other states and the drafts row.
 - Milestone 12: the Certifications row in the diver card. Milestone 13: the Download rows and the export alert. Milestone 18: the Offline storage row.
 - The Log count's width snaps when a place is added or dropped (iOS eases it); a group heading in Recently deleted snaps away after its last card folds.
 - `log.spec.ts`'s "scrolls the count away" failed once in WebKit under the parallel run and passed three times alone.
@@ -1050,16 +1051,16 @@ Deferred, or to watch:
 
 **Goal**: the app opens with no signal, drafts wait and retry, every sync state is visible, and the phone's storage is protected where it can be.
 
-**Implements**: Operations and offline sync (Flow steps 2 and 7, retry), Client data (service worker), Mobile rules (sync pill, provisional numbers, disabled controls offline), Offline safety and accessibility, Screens (Settings sync card states). Screens: `LogHifi2` sync pill and draft cards, `DiveDetailHifi` offline note and unsynced banner, `SettingsHifi` sync card and storage sheet, `CertsHifi` offline note, `RecentlyDeletedHifi` offline, `SitePickerHifi` offline note, `ImportHifi` Offline state.
+**Implements**: Operations and offline sync (Flow steps 2 and 7, retry), Client data (service worker), Mobile rules (sync badge, provisional numbers, disabled controls offline), Offline safety and accessibility, Screens (Settings sync card states). Screens: `LogHifi2` sync pill and draft cards, `DiveDetailHifi` offline note and unsynced banner, `SettingsHifi` sync card and storage sheet, `CertsHifi` offline note, `RecentlyDeletedHifi` offline, `SitePickerHifi` offline note, `ImportHifi` Offline state.
 
-**Touches**: `apps/web/vite.config.ts` (vite-plugin-pwa precaching the shell and lazy chunks, manifest served by the server), `apps/web/src/data/sync.ts` (states offline, unreachable, syncing, synced; retry on reconnect and app focus), `apps/web/src/components/SyncPill.tsx`, `UnsyncedBanner.tsx`, `apps/web/src/data/storage.ts` (`navigator.storage.persist()`), `apps/web/src/routes/settings/storage-sheet.tsx`, guards that disable Edit, Delete, Restore, rename, merge, card actions and Import offline, tests.
+**Touches**: `apps/web/vite.config.ts` (vite-plugin-pwa precaching the shell and lazy chunks, manifest served by the server), `apps/web/src/data/sync.ts` (states offline, unreachable, syncing, synced; retry on reconnect and app focus), `apps/web/src/components/sync-shark.tsx`, `UnsyncedBanner.tsx`, `apps/web/src/data/storage.ts` (`navigator.storage.persist()`), `apps/web/src/routes/settings/storage-sheet.tsx`, guards that disable Edit, Delete, Restore, rename, merge, card actions and Import offline, tests.
 
 **Acceptance**
 
-- `sync-states.test.ts`: `navigator.onLine` false gives offline; a failed fetch while online gives server unreachable; an upload in flight gives syncing; an empty queue gives synced and hides the pill; the banner shows the count and the age of the oldest draft.
+- `sync-states.test.ts`: `navigator.onLine` false gives offline; a failed fetch while online gives server unreachable; an upload in flight gives syncing; an empty queue gives synced and hides the badge; the banner shows the count and the age of the oldest draft.
 - `offline.spec.ts` (Playwright with `context.setOffline`): the app loads from the cache with the Log and a dive detail with cached samples; a new dive saved offline shows the outline, cloud-off icon, screen-reader text and a provisional number; back online it uploads and gets its number; a synced dive's Edit and Delete are disabled with the note; a rejected draft shows its reason on the card; the Import screen shows its Offline state and doesn't upload.
 - `storage.test.ts`: persist is requested on first launch; the You tab's row shows Protected or the help sheet; the sheet's copy matches the board.
-- Screenshots of the pill states, the draft card, the storage sheet and the Import screen's Offline state at 390 px.
+- Screenshots of the badge states, the draft card, the storage sheet and the Import screen's Offline state at 390 px.
 
 **Not in this milestone**: the update flow and queue export (milestone 19).
 
@@ -1266,7 +1267,7 @@ The figures below were worked out before the Import milestones. Milestone 14 gro
 
 - The server saves the list in one transaction, journalled; saving the same list again changes nothing; the restore drill keeps it.
 - Ticks survive a reload, Reset clears them, and a deleted item's tick goes with it.
-- Offline, the list shows and ticks, and editing says it needs a connection.
+- Offline, the list shows and ticks, and editing is disabled, with the offline icon in the bar.
 - Playwright: editing the list and Reset at 390 px, with screenshots in both themes.
 
 **Not in this milestone**: several lists, sections, sharing a list between instances.
@@ -1349,9 +1350,9 @@ Vitest and Playwright only find their config in the working directory, so the pa
 
 ## Still open
 
-Everything else that was under-specified has been decided and written into the spec. Two items remain, and two are now closed:
+Everything else that was under-specified has been decided and written into the spec. One item remains, and three are now closed:
 
 1. **UDDF elements for site data**: settled against the vendored XSD on 2 November 2026 and written into the spec (UDDF export, Sites); no longer open.
 2. **Subsurface comparison figures**: recorded on 19 October 2026 and checked in `cns-otu.test.ts` (milestone 3); no longer open.
-3. **Sync pill colours**: the wireframe review thread on the Log's sync pill is still open. Milestone 18 builds the pill as drawn until a choice is made.
+3. **Sync pill colours**: settled on 9 November 2026 (D55); no longer open.
 4. **Landscape on phones** (26 October 2026): the app is close to unusable sideways. Safari's 750 × 340 leaves room for one card under the tab bar and sticky search, and the installed app's 844 × 390 crossed the `md:` width, so the desktop sidebar took 256 px. The sidebar and compact sizes now need a fine pointer (`desk:`, 28 October 2026), so a sideways phone keeps the tab bar and touch sizes. Still deferred: a compact-height layout (a slim rail or short tab bar, search and filters on one row). The full-screen chart (D28) covers the profile meanwhile.

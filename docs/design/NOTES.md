@@ -115,9 +115,11 @@ These were settled while planning the build (see the decisions in `docs/PLAN.md`
 
 ## Sync
 
-- The header pill also has a "server unreachable" state, separate from offline.
-- A banner shows how many dives are waiting to sync and the age of the oldest.
-- A rejected draft shows the reason on its card, and an unsynced dive's number is shown as provisional.
+- The Log's sync status is a badge on the shyshark rather than `LogHifi2`'s header pill: the state's icon and the count, its name for screen readers. It also has a "server unreachable" state ("Can’t reach"), separate from offline, and a "Not synced" state when only refused drafts are left. Those two take the warning colour, and the other states the accent colour; `LogHifi2` draws every state grey.
+- The banner of how many dives are waiting to sync and the age of the oldest is You's sync card, as `SettingsHifi` draws it; the Log has only the badge.
+- A rejected draft is outlined in the warning colour with a warning icon on its card, and gives its reason on its detail (on the card it was cut short), and an unsynced dive's number is shown as provisional.
+- Offline, no screen says so in a sentence (the boards' "Offline · editing and deleting need a connection" and the like): what needs the server is disabled, and a small wifi-off icon sits in the screen's bar, server-off when the server can't be reached. Recently deleted greys its words-only Restore rather than giving it the board's icon.
+- You's sync card puts Try again under its words, not beside them as `SettingsHifi` does, as beside them the title and line wrapped into a third of the card on a phone.
 
 ## Desktop
 
