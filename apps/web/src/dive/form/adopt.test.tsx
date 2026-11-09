@@ -1,5 +1,5 @@
 import { act } from "react"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import type { FieldMeta } from "@/data/db"
 
@@ -74,10 +74,6 @@ const save = async (onSave: ReturnType<typeof show>) => {
   await act(async () => button("Save")!.click())
   return onSave.mock.calls.at(-1)![0]
 }
-
-afterEach(() => {
-  document.body.innerHTML = ""
-})
 
 describe("values that differ from the computer", () => {
   it("shows the ✓/✕ group for each difference", () => {

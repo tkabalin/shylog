@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import {
   button,
+  cleanup,
   click,
   render,
   testRegions,
@@ -54,10 +55,6 @@ function show(rows = sites, create = true) {
 }
 
 const field = (id: string) => document.querySelector<HTMLInputElement>(`#${id}`)
-
-afterEach(() => {
-  document.body.innerHTML = ""
-})
 
 describe("a new site", () => {
   it("flags Long Beach in South Africa, not the one in Vietnam, with Use it", () => {
@@ -159,7 +156,7 @@ describe("the Unknown site", () => {
       expect(button("Use it")).toBeFalsy()
       expect(button("Add")).toHaveProperty("disabled", true)
       expect(onCreate).not.toHaveBeenCalled()
-      document.body.innerHTML = ""
+      cleanup()
     }
   })
 })
