@@ -3,11 +3,7 @@ import { entityKinds, type Settings } from "@shylog/core"
 import {
   IconAlertTriangle,
   IconCertificate,
-  IconCloudCheck,
-  IconCloudPause,
   IconServer,
-  IconRefresh,
-  IconServerOff,
   IconUser,
   IconVersions,
 } from "@tabler/icons-react"
@@ -40,7 +36,7 @@ import {
   Segmented,
   Unit,
 } from "@/dive/form/rows"
-import { ago, instant } from "@/format/dates"
+import { instant } from "@/format/dates"
 import { countText } from "@/components/pickers/match"
 import { parseMaxPo2 } from "@/you/defaults"
 import { Switch } from "@/components/ui/switch"
@@ -48,6 +44,8 @@ import { DefaultsSection } from "@/you/defaults-section"
 import { CardImage } from "@/you/cards/card-image"
 import { Downloads } from "@/you/downloads"
 import { Fold, foldMs } from "@/you/fold"
+import { StorageRow } from "@/you/storage-sheet"
+import { SyncCard } from "@/you/sync-card"
 import { kindLabels } from "@/you/kinds"
 import { listRow, pressable, RowContent, SaveFailure } from "@/you/parts"
 
@@ -67,7 +65,7 @@ const deletedCount = (log: LogView) =>
 // SettingsHifi as the You tab: sync status first, then the diver's
 // own things, then the log's upkeep, then preferences.
 function YouPage() {
-  const { log, loaded, failed, blocked } = useLog()
+  const { log, loaded } = useLog()
   const syncedAt = useLastSync()
   // Rendered again each minute, so "2 min ago" doesn't sit at "just now"
   // until the next five-minute sync.
@@ -124,50 +122,9 @@ function YouPage() {
           />
         )}
 
-        <Card className="flex-row items-center gap-3 px-4 py-3.5">
-          <span
-            aria-hidden
-            className={cn(
-              "inline-flex size-9 shrink-0 items-center justify-center rounded-full",
-              failed || blocked
-                ? "bg-muted text-muted-foreground"
-                : "bg-primary/12 text-primary"
-            )}
-          >
-            {/* A newer server answers, so the sync "succeeds" while taking
-                nothing: it says paused, not All synced. */}
-            {blocked ? (
-              <IconCloudPause className="size-[19px] stroke-[1.9]" />
-            ) : failed ? (
-              <IconServerOff className="size-[19px] stroke-[1.9]" />
-            ) : syncedAt ? (
-              <IconCloudCheck className="size-[19px] stroke-[1.9]" />
-            ) : (
-              <IconRefresh className="size-[19px] stroke-[1.9]" />
-            )}
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col gap-px">
-            <span
-              role="status"
-              className="text-base font-semibold tracking-[-0.01em]"
-            >
-              {blocked
-                ? "Syncing paused"
-                : failed
-                  ? "Can’t reach the server"
-                  : syncedAt
-                    ? "All synced"
-                    : "Syncing"}
-            </span>
-            <span className="text-[13px] text-muted-foreground tabular-nums">
-              {syncedAt
-                ? `Last sync ${ago(syncedAt)}`
-                : failed
-                  ? "No sync yet"
-                  : "Fetching your log"}
-            </span>
-          </span>
-        </Card>
+        {/* Says Offline over the name, maximum PO₂ and defaults below,
+            which are disabled until the server can be reached. */}
+        <SyncCard />
 
         {/* Drawn before the first sync too, so nothing moves down when the
             log arrives. */}
@@ -264,6 +221,7 @@ function YouPage() {
         <PlainLabels.Provider value>
           <Section title="This device">
             <Appearance />
+            <StorageRow />
             <SmoothTemperature />
           </Section>
         </PlainLabels.Provider>

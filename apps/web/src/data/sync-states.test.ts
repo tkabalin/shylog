@@ -263,3 +263,128 @@ describe("the sync status", () => {
   })
 })
 
+describe("You's sync card", () => {
+  const now = new Date("2026-11-09T12:00:00.000Z")
+  const place = (dive: { id: string }) => `Long Beach (${dive.id})`
+  const draft = (id: string, savedAt: string, rejected?: string) =>
+    ({ id, draft: true, savedAt, rejected }) as unknown as import("./db").Dive
+  const card = (
+    state: import("./sync-status").SyncState,
+    unsynced: import("./db").Dive[],
+    sending?: import("./db").Dive
+  ) =>
+    status.syncCard(
+      {
+        state,
+        unsynced,
+        waiting: unsynced.filter((dive) => !dive.rejected),
+        oldest: unsynced
+          .filter((dive) => !dive.rejected)
+          .map((dive) => dive.savedAt!)
+          .sort()[0],
+        sending,
+      },
+      { syncedAt: "2026-11-09T09:00:00.000Z", place, now }
+    )
+
+  it("is the banner while dives wait: how many, and how long the oldest has", () => {
+    const waiting = [
+      draft("dive-b", "2026-11-09T08:00:00.000Z"),
+      draft("dive-a", "2026-11-07T10:00:00.000Z"),
+    ]
+    expect(card("offline", waiting)).toEqual({
+      look: "waiting",
+      title: "2 dives waiting to upload",
+      sub: "The oldest was saved 2 days ago · they upload when you’re back online",
+      warn: false,
+      retry: false,
+    })
+    expect(card("unreachable", waiting)).toMatchObject({
+      title: "2 dives waiting to upload",
+      sub: "The oldest was saved 2 days ago · can’t reach the server",
+      warn: true,
+      retry: true,
+    })
+    expect(
+      card("offline", [draft("dive-c", "2026-11-09T11:15:00.000Z")])
+    ).toMatchObject({
+      title: "1 dive waiting to upload",
+      sub: "Saved on this phone 45 min ago · it uploads when you’re back online",
+    })
+  })
+
+  it("says when the server couldn't save a dive, with Try again", () => {
+    expect(
+      card("stuck", [draft("dive-a", "2026-11-09T11:00:00.000Z")])
+    ).toMatchObject({
+      look: "stuck",
+      title: "Couldn’t upload 1 dive",
+      sub: "The server couldn’t save it. It’s safe on this phone.",
+      warn: true,
+      retry: true,
+    }) // A refused one besides, which the badge counts under Not synced.
+    expect(
+      card("stuck", [
+        draft("dive-a", "2026-11-09T11:00:00.000Z"),
+        draft("dive-b", "2026-11-09T10:00:00.000Z", "Missing its site"),
+      ]).sub
+    ).toBe(
+      "The server couldn’t save it. It’s safe on this phone. 1 more was refused."
+    )
+  })
+
+  it("asks for a reload when the server is newer", () => {
+    expect(card("paused", [])).toMatchObject({
+      title: "Syncing paused",
+      sub: "Reload Shylog to update",
+      warn: true,
+    })
+    expect(
+      card("paused", [draft("dive-a", "2026-11-09T11:00:00.000Z")]).sub
+    ).toBe("Reload Shylog to update · 1 dive waiting")
+  })
+
+  it("names the dive being uploaded", () => {
+    const one = draft("dive-a", "2026-11-09T11:00:00.000Z")
+    expect(card("syncing", [one], one)).toMatchObject({
+      look: "syncing",
+      title: "Syncing 1 dive",
+      sub: "Uploading Long Beach (dive-a)",
+    })
+  })
+
+  it("gives the last sync otherwise", () => {
+    expect(card("synced", [])).toMatchObject({
+      title: "All synced",
+      sub: "Last sync 3 h ago",
+    })
+    expect(card("offline", [])).toMatchObject({
+      title: "Offline",
+      sub: "Last sync 3 h ago · new dives save on this phone",
+      warn: false,
+    })
+    expect(card("unreachable", [])).toMatchObject({
+      title: "Can’t reach the server",
+      sub: "Is Tailscale on? Last sync 3 h ago",
+      warn: true,
+      retry: true,
+    })
+    // Refused drafts aren't waiting: they need the diver.
+    expect(
+      card("refused", [draft("dive-a", "2026-11-09T11:00:00.000Z", "Gone")])
+    ).toMatchObject({
+      title: "1 dive not synced",
+      sub: "The server refused it. Open it to see why",
+      warn: true,
+    })
+    expect(
+      card("refused", [
+        draft("dive-a", "2026-11-09T11:00:00.000Z", "Gone"),
+        draft("dive-b", "2026-11-09T11:00:00.000Z", "Gone"),
+      ])
+    ).toMatchObject({
+      title: "2 dives not synced",
+      sub: "The server refused them. Open each to see why",
+    })
+  })
+})

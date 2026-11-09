@@ -5,6 +5,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router"
 import "./index.css"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { loadLog, startSync } from "@/data/log"
+import { protectOnFirstLaunch } from "@/data/storage"
 import { routeTree } from "./routeTree.gen.ts"
 
 // Content scrolls in <main>, not the window, so reset that on navigation.
@@ -28,6 +29,8 @@ declare module "@tanstack/react-router" {
 // A browser that refuses IndexedDB (a private window) still opens the app.
 await loadLog()
 startSync()
+// Asks the browser to keep the drafts and the log's copy (see storage.ts).
+void protectOnFirstLaunch()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
