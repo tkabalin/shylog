@@ -11,6 +11,10 @@ trustPolicyExclude:
   # npm's official 6.x backport of the CVE-2022-25883 fix, published after
   # 7.5.4 without provenance, so the date-based check reads it as a downgrade.
   - semver@6.3.1
+  # workbox-build 7.4.1 (vite-plugin-pwa's) asks for this prerelease, which
+  # its maintainer published without the attestation 2.5.0 had. Its runtime
+  # files match 2.5.0 byte for byte bar line endings; only dev deps changed.
+  - "@trickfilm400/rollup-plugin-off-main-thread@3.0.0-pre1"
 
 allowBuilds:
   esbuild: true
@@ -20,3 +24,7 @@ overrides:
   # only in 11. ESLint, typescript-eslint and ts-morph still ask for 10 but
   # use only Minimatch and minimatch(), which 11 keeps. Drop it once they move.
   "minimatch@10": ^11.0.1
+  # glob 11 reads minimatch 10's internals, so with minimatch 11 forced above
+  # it matches nothing and workbox-build precaches no files. glob 14 is the
+  # same globSync API built on minimatch 11. Drop it once workbox moves.
+  "workbox-build>glob": ^14.0.4

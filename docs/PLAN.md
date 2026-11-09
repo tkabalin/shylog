@@ -560,7 +560,7 @@ Decisions taken while building:
 - The range filter is shadcn's Drawer (Base UI's swipeable drawer) rather than Sheet. It is lazy-loaded once the Log is idle, mounts closed for a frame so its first opening slides in, fades in place under reduced motion, and shows one joined label when the handles are close.
 - `#main` no longer pads the top safe area; each page owns it, so its sticky bar covers the status bar. Later screens must do the same.
 - Hono's compress gzips API responses over 1 KB (a small middleware sets Content-Length on API JSON so the threshold works) and the log's ETag is always weak. Vite's dev server proxies `/api` and `/manifest.webmanifest` to the Hono server (`SHYLOG_API_ORIGIN`).
-- Browser tests run on two seeded stacks: read-only tests on one, `@writes` tests one at a time on the other, undoing their change in a `restore` fixture. `console.spec.ts` fails on any console warning or error, uncaught exception or failed request. Ports move with `E2E_WEB_PORT` and `E2E_API_PORT`.
+- Browser tests run on seeded stacks: read-only tests on one, `@writes` tests one at a time on one per browser, undoing their change in a `restore` fixture, and `@built` tests on a production build served by its own API, the only stack with the service worker (added with the offline work). `console.spec.ts` fails on any console warning or error, uncaught exception or failed request. Ports move with `E2E_WEB_PORT` and `E2E_API_PORT`.
 - A draft or edit naming an entity the server never had is now told it "isn't on the server"; "was deleted" is kept for real deletions.
 
 Deferred, or to watch:

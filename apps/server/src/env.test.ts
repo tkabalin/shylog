@@ -68,6 +68,19 @@ describe("parseEnv", () => {
     ).toThrow(/SHYLOG_DEV_LOGIN must not be set in production/)
   })
 
+  it("takes a web root only outside production", () => {
+    expect(
+      parseEnv({
+        ...base,
+        NODE_ENV: "development",
+        SHYLOG_WEB_ROOT: "/tmp/web",
+      }).SHYLOG_WEB_ROOT
+    ).toBe("/tmp/web")
+    expect(() => parseEnv({ ...base, SHYLOG_WEB_ROOT: "/tmp/web" })).toThrow(
+      /SHYLOG_WEB_ROOT must not be set in production/
+    )
+  })
+
   it("refuses the dev login in production", () => {
     expect(() =>
       parseEnv({

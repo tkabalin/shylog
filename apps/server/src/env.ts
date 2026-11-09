@@ -28,12 +28,19 @@ const schema = z
     SHYLOG_DATA_DIR: z.string().min(1),
     SHYLOG_ALLOWED_LOGINS: logins,
     SHYLOG_DEV_LOGIN: z.string().min(1).optional(),
+    // The browser tests' own build of the web app, so a run never rewrites
+    // apps/web/dist under another; development only.
+    SHYLOG_WEB_ROOT: z.string().min(1).optional(),
   })
   // The dev login bypasses the Tailscale identity check, so a production
   // server must never start with it set.
   .refine((env) => !(env.NODE_ENV === "production" && env.SHYLOG_DEV_LOGIN), {
     message: "SHYLOG_DEV_LOGIN must not be set in production",
     path: ["SHYLOG_DEV_LOGIN"],
+  })
+  .refine((env) => !(env.NODE_ENV === "production" && env.SHYLOG_WEB_ROOT), {
+    message: "SHYLOG_WEB_ROOT must not be set in production",
+    path: ["SHYLOG_WEB_ROOT"],
   })
 
 export type Env = z.infer<typeof schema>
