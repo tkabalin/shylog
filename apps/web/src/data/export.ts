@@ -56,10 +56,7 @@ const fileName = (res: FileReply, fallback: string) =>
     res.headers.get("Content-Disposition") ?? ""
   )?.[1] ?? fallback
 
-// A fresh export or snapshot, saved through the share sheet on a phone,
-// whose Save to Files lets the diver choose the folder (the owner picked it
-// over a plain download, which goes straight to Downloads). A desktop, or
-// a browser that can't share the file, downloads it instead.
+// A fresh export or snapshot from the server, saved as saveFile does.
 export async function download(kind: keyof typeof downloads, desk: boolean) {
   const { extension, type, get } = downloads[kind]
   const res = await ask(get)
@@ -71,6 +68,14 @@ export async function download(kind: keyof typeof downloads, desk: boolean) {
       type,
     }
   )
+  await saveFile(file, desk)
+}
+
+// Through the share sheet on a phone, whose Save to Files lets the diver
+// choose the folder (the owner picked it over a plain download, which goes
+// straight to Downloads). A desktop, or a browser that can't share the
+// file, downloads it instead.
+export async function saveFile(file: File, desk: boolean) {
   if (!desk && navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file] })
