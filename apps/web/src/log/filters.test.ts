@@ -141,6 +141,19 @@ describe("header figures and month groups", () => {
     }),
   ]
 
+  it("leaves a draft the server refused out of the counts, as it takes no number", () => {
+    const refused = dive({
+      id: "d4",
+      startTime: "2026-10-01T09:00:00",
+      duration: 1200,
+      maxDepth: 50,
+      draft: true,
+      rejected: "Its site was deleted",
+    })
+    expect(headerFigures([...dives, refused])).toEqual(headerFigures(dives))
+    expect(monthGroups([...dives, refused])[0]).toMatchObject({ count: 1 })
+  })
+
   it("leaves ignored dives out of the counts", () => {
     expect(headerFigures(dives)).toEqual({
       count: 2,

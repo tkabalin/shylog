@@ -452,6 +452,73 @@ describe("drafts in the log", () => {
     })
   })
 
+  it("keeps the server's numbers when no draft waits", async () => {
+    await syncLog({
+      db,
+      fetch: vi.fn(async () =>
+        Response.json(
+          log("v2", [
+            mirrorDive("dive-a", "2026-07-22T08:12:19", 5),
+            mirrorDive("dive-b", "2026-10-25T09:00:00", 9),
+          ])
+        )
+      ),
+    })
+    const { log: view } = await readLog(db, queue)
+    expect(view!.dives.map((dive) => dive.number)).toEqual([9, 5])
+  })
+
+  it("numbers each draft provisionally, and the synced dives after it, as the server will", async () => {
+    await syncLog({
+      db,
+      fetch: vi.fn(async () =>
+        Response.json(
+          log("v2", [
+            mirrorDive("dive-a", "2026-07-22T08:12:19", 1),
+            mirrorDive("dive-b", "2026-10-25T09:00:00", 2),
+          ])
+        )
+      ),
+    })
+    const draft = (id: `dive-${string}`, startTime: string, ignored = false) =>
+      saveDraft(id, fields({ siteId: "site-a", startTime, ignored }), [], queue)
+    await draft("dive-between", "2026-10-20T09:00:00")
+    // Ties go to the dive written first: the synced one, then by saving.
+    await draft("dive-tie", "2026-10-25T09:00:00")
+    await draft("dive-ignored", "2026-10-01T09:00:00", true)
+    // A refused draft won't upload until edited, so it takes no number.
+    await draft("dive-refused", "2026-10-22T09:00:00")
+    const sent = await queue.ops
+      .where("diveId")
+      .equals("dive-refused")
+      .primaryKeys()
+    await rejectDraft("dive-refused", "Its site was deleted", sent, queue)
+    const { log: view } = await readLog(db, queue)
+    const numbers = Object.fromEntries(
+      view!.dives.map((dive) => [dive.id, dive.number ?? dive.provisional])
+    )
+    expect(numbers).toEqual({
+      "dive-a": 1,
+      "dive-between": 2,
+      // Moved up, as it will be once the earlier draft uploads.
+      "dive-b": 3,
+      "dive-tie": 4,
+      "dive-ignored": undefined,
+      "dive-refused": undefined,
+    })
+    expect(view!.dives.map((dive) => dive.id)).toEqual([
+      "dive-tie",
+      "dive-b",
+      "dive-refused",
+      "dive-between",
+      "dive-ignored",
+      "dive-a",
+    ])
+    expect(view!.dive.get("dive-tie")!.savedAt).toEqual(
+      (await queue.drafts.get("dive-tie"))!.createdAt
+    )
+  })
+
   it("puts a draft over the mirror's row for the same dive", async () => {
     await saveDraft(
       "dive-a",

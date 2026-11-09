@@ -77,7 +77,10 @@ export function ProfileCard({
           </CatchBoundary>
         ) : (
           <p className="text-sm leading-[1.45] text-muted-foreground">
-            No dive computer profile. Importing a Subsurface export attaches it.
+            {/* An import pairs only dives the server has. */}
+            {dive.draft
+              ? "No dive computer profile yet. Import from Subsurface once this dive has synced."
+              : "No dive computer profile. Importing a Subsurface export attaches it."}
           </p>
         )}
       </Card>

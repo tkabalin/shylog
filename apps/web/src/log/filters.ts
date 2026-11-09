@@ -74,9 +74,10 @@ export function matchesSearch(dive: Dive, query: string, log: LogView) {
   ].some((text) => text && normaliseName(text).includes(needle))
 }
 
-// The header's figures, leaving out ignored dives.
+// The header's figures, leaving out ignored dives and drafts the server
+// refused, which take no number, so the count matches the newest one's.
 export function headerFigures(dives: readonly Dive[]) {
-  const counted = dives.filter((dive) => !dive.ignored)
+  const counted = dives.filter((dive) => !dive.ignored && !dive.rejected)
   return {
     count: counted.length,
     seconds: counted.reduce((sum, dive) => sum + (dive.duration ?? 0), 0),
@@ -89,7 +90,7 @@ export function headerFigures(dives: readonly Dive[]) {
 export interface MonthGroup {
   key: string
   label: string
-  // Leaves out ignored dives, as the header does.
+  // Leaves out what the header does.
   count: number
   dives: Dive[]
 }
@@ -105,7 +106,7 @@ export function monthGroups(dives: readonly Dive[]): MonthGroup[] {
       groups.push(group)
     }
     group.dives.push(dive)
-    if (!dive.ignored) group.count++
+    if (!dive.ignored && !dive.rejected) group.count++
   }
   return groups
 }

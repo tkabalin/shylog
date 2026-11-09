@@ -142,6 +142,27 @@ function draftDive(draft: Draft): Dive {
   }
 }
 
+// Numbers dives as the server will once drafts upload (see derived.ts): by
+// start time, ties to the one written first (refused drafts never are), so a
+// synced dive after an earlier-dated draft moves up and no number shows twice.
+function numberDrafts(dives: Dive[]) {
+  // With none, the server's numbers stand, and the sort is skipped.
+  if (!dives.some((dive) => dive.draft)) return
+  const counted = dives
+    .filter((dive) => !dive.ignored && !dive.rejected)
+    .sort(
+      (a, b) =>
+        a.startTime.localeCompare(b.startTime) ||
+        Number(!!a.draft) - Number(!!b.draft) ||
+        (a.number ?? 0) - (b.number ?? 0) ||
+        (a.savedAt ?? "").localeCompare(b.savedAt ?? "")
+    )
+  counted.forEach((dive, i) => {
+    if (dive.draft) dive.provisional = i + 1
+    else dive.number = i + 1
+  })
+}
+
 // The entities a draft creates, as the log sends them. One the copy already
 // has is left as the server has it.
 function addEntities(log: LogView, draft: Draft) {
@@ -240,16 +261,16 @@ export async function readLog(
         console.warn("Couldn't read a draft", draft.id, error)
       }
     }
-    const logged = [...dive.values()]
-      .filter((dive) => !dive.deletedAt)
-      // Local wall-clock strings sort as dates. Ties take the server's
-      // numbering, which follows the order they were written.
-      .sort(
-        (a, b) =>
-          b.startTime.localeCompare(a.startTime) ||
-          (b.number ?? 0) - (a.number ?? 0) ||
-          b.id.localeCompare(a.id)
-      )
+    const logged = [...dive.values()].filter((dive) => !dive.deletedAt)
+    numberDrafts(logged)
+    // Local wall-clock strings sort as dates. Ties take the server's
+    // numbering, which follows the order they were written.
+    logged.sort(
+      (a, b) =>
+        b.startTime.localeCompare(a.startTime) ||
+        (b.number ?? b.provisional ?? 0) - (a.number ?? a.provisional ?? 0) ||
+        b.id.localeCompare(a.id)
+    )
     const linkMap = new Map<string, DiveLinks>()
     for (const link of links.sort((a, b) => a.position - b.position)) {
       let entry = linkMap.get(link.diveId)
