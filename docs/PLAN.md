@@ -1228,6 +1228,14 @@ The figures below were worked out before the Import milestones. Milestone 14 gro
 
 **Then a mockup**: the Import screen, starting from the owner's picture (a connected prompt, then on to the review) and covering the states that must exist: no cable or watch, connected, downloading, no new dives, a different watch, failed. Discussed with the owner before any UI is built; suggestions welcome.
 
+**The computer's own stops** (added 9 November 2026 from issue #80, updated 10 November after a raw download of the D4i):
+
+- The D4i doesn't log the recommended stop. A raw download of all 93 of its dives through `dctool` 0.9.0, patched to report the stop events, has no recommended-stop marker and no sample in the `safety` state, so a download can't replace the detected stop and every dive keeps the rule, shown as calculated. The spike checks whether the Zoop Novo is the same.
+- It does log mandatory stops. One begins when an ascent-rate alarm makes the stop mandatory, at any depth (44.8 m on one dive), and ends about 30 s after the diver reaches the band. 42 began and 34 ended across the 93 dives.
+- **The owner's choice**: a downloaded dive records the moment its stop becomes mandatory, as a computer event. How Events and the chart show it is proposed when built.
+- Stock libdivecomputer gives only the `deco` sample state from that moment, to within a sample (10 or 20 s on the D4i), and the same state for real deco. The exact second, told apart from deco, needs the begin event that upstream has suppressed since 2017: issue #80's three-line patch to `suunto_d9_parser.c` in the image's build, or an opt-in upstream. The patch is the likely choice, as the image builds libdivecomputer from source anyway.
+- The conversion to UDDF has to carry the event, as a `deco` alarm or in `<shylog>`, settled when built.
+
 **Likely touches**: the `Dockerfile` (a stage building libdivecomputer with serial support only, pinned, with its licence), `compose.yml` (the device rule, the `/dev` view, the serial group), env parsing, a server module running `dctool` (one download at a time, with a timeout) and converting its output to UDDF for `storePreview`, a migration for the remembered computer and its download marker, routes, apply moving the marker, the Import screen and Forget on You, the README (udev rule and Compose), the image smoke test, tests.
 
 **Acceptance**
@@ -1260,6 +1268,7 @@ The figures below were worked out before the Import milestones. Milestone 14 gro
 - [ ] `dctool` in the image, the cable reachable from the container
 - [ ] Download, conversion and the remembered computer
 - [ ] Import screen and Forget
+- [ ] The moment a stop becomes mandatory, recorded on downloaded dives
 - [ ] README
 - [ ] Tests listed above
 
