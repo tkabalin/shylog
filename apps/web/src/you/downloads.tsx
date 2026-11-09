@@ -9,6 +9,7 @@ import { cn } from "cn"
 
 import { Spinner } from "@/components/ui/spinner"
 import { download } from "@/data/export"
+import { useConnected } from "@/data/sync-status"
 import { Section } from "@/dive/form/rows"
 import { useDesk } from "@/hooks/use-desk"
 import { listRow, pressable, RowContent, SaveFailure } from "@/you/parts"
@@ -42,6 +43,8 @@ const title = (kind: Kind) => rows.find((row) => row.kind === kind)!.title
 // touches the server's backup copies, so Backups' times stay as they are.
 export function Downloads() {
   const desk = useDesk()
+  // Each file is built on the server when tapped.
+  const connected = useConnected()
   const [busy, setBusy] = useState<Partial<Record<Kind, boolean>>>({})
   const [error, setError] = useState<string>()
 
@@ -66,10 +69,16 @@ export function Downloads() {
         <button
           key={kind}
           type="button"
-          // Not disabled, which would grey the row out as if unavailable.
+          // Busy rather than disabled while it runs, which would grey the
+          // row out as if unavailable; offline it is unavailable.
           aria-busy={busy[kind]}
+          disabled={!connected}
           onClick={() => void run(kind)}
-          className={cn(listRow, pressable, "group min-h-15")}
+          className={cn(
+            listRow,
+            pressable,
+            "group min-h-15 disabled:opacity-50"
+          )}
         >
           <span
             aria-hidden

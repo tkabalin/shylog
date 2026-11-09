@@ -9,6 +9,7 @@ import {
   FullSheetContent,
   SheetBar,
 } from "@/components/pickers/sheet"
+import { OfflineMark } from "@/components/offline-mark"
 import { Button } from "@/components/ui/button"
 import {
   Drawer,
@@ -21,6 +22,7 @@ import {
 import { deleteCard, readPicks, saveCard, type Picks } from "@/data/card-edits"
 import type { Card } from "@/data/db"
 import { Segmented } from "@/dive/form/rows"
+import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import { CardImage } from "@/you/cards/card-image"
 import { accept } from "@/you/cards/load-sheet"
@@ -112,7 +114,9 @@ export function CardSheet({
   const named = apart
     ? pages.every((page) => names[page.key]?.trim())
     : !!name.trim()
-  const ready = changed && named && pages.length > 0 && !tooMany
+  // Cards are saved on the server, so Save and Delete wait for it.
+  const connected = useConnected()
+  const ready = changed && named && pages.length > 0 && !tooMany && connected
 
   const save = async () => {
     setBusy(true)
@@ -183,6 +187,7 @@ export function CardSheet({
                 Save
               </BarButton>
             }
+            mark={<OfflineMark show={!connected} className="mx-1 desk:mx-0" />}
           />
           <div
             // A drag in the sheet scrolls or reorders, never pulls it down.
@@ -355,8 +360,9 @@ export function CardSheet({
             {editing && (
               <button
                 type="button"
+                disabled={!connected}
                 onClick={() => setDeleting(true)}
-                className="mt-2 inline-flex h-11 items-center gap-2 self-center px-4 text-[15px] font-medium text-destructive transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
+                className="mt-2 inline-flex h-11 items-center gap-2 self-center px-4 text-[15px] font-medium text-destructive transition-[opacity,color] duration-150 hover:opacity-70 active:opacity-50 active:duration-0 disabled:pointer-events-none disabled:text-muted-foreground disabled:opacity-60"
               >
                 <IconTrash aria-hidden className="size-4.5" />
                 Delete card
@@ -584,6 +590,7 @@ function DeleteCardSheet({
   const body =
     "It goes from Shylog on every phone. Your agency’s app still has the card."
 
+  const connected = useConnected()
   const confirm = async () => {
     setBusy(true)
     setError(undefined)
@@ -623,7 +630,11 @@ function DeleteCardSheet({
             <Button variant="outline" onClick={() => change(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" disabled={busy} onClick={confirm}>
+            <Button
+              variant="destructive"
+              disabled={busy || !connected}
+              onClick={confirm}
+            >
               {error ? "Try again" : "Delete card"}
             </Button>
           </DrawerFooter>
@@ -639,7 +650,7 @@ function DeleteCardSheet({
             <Button
               variant="destructive"
               className="h-12 rounded-[14px] bg-destructive text-base font-semibold text-white hover:bg-destructive/90 dark:bg-red-600 dark:hover:bg-red-600/90"
-              disabled={busy}
+              disabled={busy || !connected}
               onClick={confirm}
             >
               {error ? "Try again" : "Delete card"}

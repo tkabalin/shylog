@@ -88,7 +88,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { DeleteSheet, takeLeave } from "@/dive/delete-sheet"
+import { OfflineMark } from "@/components/offline-mark"
 import { UnsyncedBanner } from "@/components/unsynced-banner"
+import { useConnected } from "@/data/sync-status"
 import { useBack } from "@/you/bar"
 import { Fold } from "@/you/fold"
 import { restore } from "@/dive/restore"
@@ -175,7 +177,15 @@ function DivePage() {
 
 // On a desktop (desk:) the bar reads as shadcn's page headers do: where
 // the dive sits as a breadcrumb, and Edit as an outline button.
-function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
+function DeskBar({
+  dive,
+  site,
+  editable,
+}: {
+  dive: Dive
+  site: string | undefined
+  editable: boolean
+}) {
   const router = useRouter()
   const goBack = useBack()
   const parent = useParent()
@@ -221,19 +231,32 @@ function DeskBar({ dive, site }: { dive: Dive; site: string | undefined }) {
       </Breadcrumb>
       {/* A link styled as shadcn's button, so it's still read as a link.
           A deleted dive is restored before it can be edited. */}
-      {!dive.deletedAt && (
-        <Link
-          to="/dive/$diveId/edit"
-          params={{ diveId: dive.id }}
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            "mr-4 justify-self-end"
-          )}
-        >
-          <IconPencil data-icon="inline-start" />
-          Edit
-        </Link>
-      )}
+      <span className="mr-4 flex items-center gap-3 justify-self-end">
+        <OfflineMark show={!editable} />
+        {!dive.deletedAt &&
+          (editable ? (
+            <Link
+              to="/dive/$diveId/edit"
+              params={{ diveId: dive.id }}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <IconPencil data-icon="inline-start" />
+              Edit
+            </Link>
+          ) : (
+            <span
+              role="link"
+              aria-disabled
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "opacity-50"
+              )}
+            >
+              <IconPencil data-icon="inline-start" />
+              Edit
+            </span>
+          ))}
+      </span>
     </>
   )
 }
@@ -363,6 +386,9 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
   // takes its place.
   const leave = () => goBack() || closeToLog(router)
   const [restoring, setRestoring] = useState(false)
+  // A dive only on this phone is edited there; a synced one needs the server.
+  const connected = useConnected()
+  const editable = connected || !!dive.draft
 
   const visibility =
     dive.visibility != null
@@ -378,7 +404,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         className="sticky top-0 z-30 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-transparent bg-background px-2 pt-[env(safe-area-inset-top)] transition-[border-color] duration-200 data-scrolled:border-border md:px-[max(0.5rem,calc((100%-48rem)/2))] desk:grid-cols-[minmax(0,1fr)_auto] desk:gap-x-4"
       >
         {desk ? (
-          <DeskBar dive={dive} site={site?.name} />
+          <DeskBar dive={dive} site={site?.name} editable={editable} />
         ) : (
           <>
             <BackLink />
@@ -389,16 +415,29 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
             >
               {site?.name}
             </span>
-            {!dive.deletedAt && (
-              <Link
-                to="/dive/$diveId/edit"
-                params={{ diveId: dive.id }}
-                className="inline-flex h-11 items-center gap-1 justify-self-end px-2.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
-              >
-                <IconPencil aria-hidden className="size-[1.15em]" />
-                Edit
-              </Link>
-            )}
+            <span className="flex items-center justify-self-end">
+              <OfflineMark show={!editable} className="mx-1" />
+              {!dive.deletedAt &&
+                (editable ? (
+                  <Link
+                    to="/dive/$diveId/edit"
+                    params={{ diveId: dive.id }}
+                    className="inline-flex h-11 items-center gap-1 px-2.5 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
+                  >
+                    <IconPencil aria-hidden className="size-[1.15em]" />
+                    Edit
+                  </Link>
+                ) : (
+                  <span
+                    role="link"
+                    aria-disabled
+                    className="inline-flex h-11 items-center gap-1 px-2.5 text-base font-medium text-muted-foreground opacity-60 select-none"
+                  >
+                    <IconPencil aria-hidden className="size-[1.15em]" />
+                    Edit
+                  </span>
+                ))}
+            </span>
           </>
         )}
       </header>
@@ -507,7 +546,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
                 </span>
                 <button
                   type="button"
-                  disabled={restoring}
+                  disabled={restoring || !connected}
                   onClick={async () => {
                     setRestoring(true)
                     // Kept until the fold ends. A failure, or a sync that
@@ -517,7 +556,12 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
                       setRestoring(false)
                   }}
                   // Reaches 44px tall, as the cards' Restore does.
-                  className="relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-primary/12 pr-3 pl-2.5 font-medium text-primary transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50"
+                  className={cn(
+                    "relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full pr-3 pl-2.5 font-medium transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50",
+                    connected
+                      ? "bg-primary/12 text-primary"
+                      : "bg-muted text-muted-foreground disabled:opacity-100"
+                  )}
                 >
                   <IconRestore aria-hidden className="size-4" />
                   Restore
@@ -793,8 +837,9 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         {!dive.deletedAt && (
           <button
             type="button"
+            disabled={!editable}
             onClick={() => setDeleting(true)}
-            className="inline-flex h-11 items-center gap-1.5 self-center px-4 text-[15px] font-medium text-destructive transition-opacity duration-150 select-none hover:opacity-70 active:opacity-50 active:duration-0"
+            className="inline-flex h-11 items-center gap-1.5 self-center px-4 text-[15px] font-medium text-destructive transition-[opacity,color] duration-150 select-none hover:opacity-70 active:opacity-50 active:duration-0 disabled:pointer-events-none disabled:text-muted-foreground disabled:opacity-60"
           >
             <IconTrash aria-hidden className="size-[1.15em]" />
             Delete dive

@@ -87,6 +87,8 @@ import { DivePicker } from "./dive-picker"
 import { ChooseDivesRow, DivesCard } from "./dives-card"
 import { kindLabels } from "./kinds"
 import { MergeSheet, type Candidate } from "./merge-sheet"
+import { OfflineMark } from "@/components/offline-mark"
+import { useConnected } from "@/data/sync-status"
 
 // An entity's fields as the Details card edits them. Only a site has them
 // all; the rest are left out of what is saved.
@@ -246,6 +248,9 @@ export function EntityDetail({
       }
     }, [log, kind, id, saved.name])
   const pending = log.pending.has(id)
+  // Renaming, merging, deleting and choosing dives all need the server.
+  const connected = useConnected()
+  const frozen = pending || !connected
   // Imports find it by its name and country, and its dives are at many
   // places, so they are moved off one by one and it is never changed.
   const locked = isUnknown(log, id)
@@ -430,11 +435,11 @@ export function EntityDetail({
   // iOS's edit screens are, so nothing pops in with the first keystroke.
   // A desktop's is filled, as the form's header draws it.
   const saveButton = desk ? (
-    <Button disabled={!changed || pending || busy} onClick={save}>
+    <Button disabled={!changed || frozen || busy} onClick={save}>
       Save
     </Button>
   ) : (
-    <BarButton strong disabled={!changed || pending || busy} onClick={save}>
+    <BarButton strong disabled={!changed || frozen || busy} onClick={save}>
       Save
     </BarButton>
   )
@@ -444,7 +449,14 @@ export function EntityDetail({
       <PageBar
         back={{ label: label.title, to: "/you/entities", search: { kind } }}
         crumb={saved.name}
-        end={!locked && saveButton}
+        end={
+          !locked && (
+            <>
+              <OfflineMark show={!connected} className="mx-1" />
+              {saveButton}
+            </>
+          )
+        }
       />
       <div className="flex flex-col gap-6 px-4 pt-3 pb-10 md:mx-auto md:w-full md:max-w-xl">
         <section className="flex flex-col gap-1 px-1">
@@ -597,7 +609,7 @@ export function EntityDetail({
               <Card className="mt-3 gap-0 py-0">
                 <button
                   type="button"
-                  disabled={busy}
+                  disabled={busy || !connected}
                   onClick={mergeInstead}
                   className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
                 >
@@ -633,7 +645,12 @@ export function EntityDetail({
               </span>
             </div>
             <DivesCard dives={dives} kind={kind} log={log} parent={saved.name}>
-              {choosing && <ChooseDivesRow onClick={() => setSheet("dives")} />}
+              {choosing && (
+                <ChooseDivesRow
+                  onClick={() => setSheet("dives")}
+                  disabled={!connected}
+                />
+              )}
             </DivesCard>
           </section>
         )}
@@ -643,7 +660,7 @@ export function EntityDetail({
             <Card className="gap-0 divide-y py-0">
               <button
                 type="button"
-                disabled={pending}
+                disabled={frozen}
                 onClick={() => setSheet("merge")}
                 className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
               >
@@ -652,7 +669,7 @@ export function EntityDetail({
               </button>
               <button
                 type="button"
-                disabled={!!used || pending}
+                disabled={!!used || frozen}
                 onClick={() => setSheet("delete")}
                 className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-destructive transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
               >

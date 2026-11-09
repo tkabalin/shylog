@@ -6,6 +6,7 @@ import { cn } from "cn"
 
 import type { Card } from "@/data/db"
 import { useLog } from "@/data/log"
+import { useConnected } from "@/data/sync-status"
 import { useFullScreen } from "@/hooks/use-full-screen"
 import { useBack } from "@/you/bar"
 import { CardPages } from "@/you/cards/card-pages"
@@ -81,6 +82,7 @@ function Viewer({ card }: { card: Card }) {
   const closeLink = useRef<HTMLAnchorElement>(null)
   // Edit card over the viewer, a fresh sheet each time it opens.
   const [editing, setEditing] = useState(false)
+  const connected = useConnected()
   const [edits, setEdits] = useState(0)
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -129,12 +131,14 @@ function Viewer({ card }: { card: Card }) {
         <button
           type="button"
           aria-label="Edit card"
+          // Editing and deleting a card need the server.
+          disabled={!connected}
           onPointerDown={() => void loadCardSheet()}
           onClick={() => {
             setEdits((was) => was + 1)
             setEditing(true)
           }}
-          className="inline-flex size-11 items-center justify-center rounded-full bg-white/10 transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
+          className="inline-flex size-11 items-center justify-center rounded-full bg-white/10 transition-opacity duration-150 enabled:hover:opacity-70 enabled:active:opacity-50 enabled:active:duration-0 disabled:opacity-40"
         >
           <IconPencil aria-hidden className="size-4.5" />
         </button>

@@ -94,17 +94,22 @@ export function SheetBar({
   title,
   start,
   end,
+  mark,
 }: {
   title: ReactNode
   start?: ReactNode
   end?: ReactNode
+  // A sign such as OfflineMark, beside the end action on a phone and
+  // across from the title on desktop, as it would be lost in the footer.
+  mark?: ReactNode
 }) {
   const desk = useDesk()
   if (desk)
     return (
       <>
-        <div className="shrink-0 px-4 pt-4 pb-3">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-4 pb-3">
           <DrawerTitle>{title}</DrawerTitle>
+          {mark}
         </div>
         <DrawerActions>
           <InFooter.Provider value>
@@ -120,7 +125,10 @@ export function SheetBar({
     <div className="grid h-14 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-2 pt-2">
       <span className="justify-self-start">{start}</span>
       <DrawerTitle>{title}</DrawerTitle>
-      <span className="justify-self-end">{end}</span>
+      <span className="flex items-center justify-self-end">
+        {mark}
+        {end}
+      </span>
     </div>
   )
 }

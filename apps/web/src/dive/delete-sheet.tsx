@@ -1,5 +1,6 @@
 import { useState } from "react"
 
+import { OfflineMark } from "@/components/offline-mark"
 import { Button } from "@/components/ui/button"
 import {
   Drawer,
@@ -13,6 +14,7 @@ import { deleteDraft } from "@/data/drafts"
 import { deleteDive } from "@/data/edits"
 import { db } from "@/data/db"
 import { draftChanged, upload } from "@/data/upload"
+import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 
 // A dive deleted from its form: the form goes back to the detail, which
@@ -43,6 +45,9 @@ export function DeleteSheet({
 }) {
   const desk = useDesk()
   const [busy, setBusy] = useState(false)
+  // A synced dive goes to Recently deleted on the server.
+  const connected = useConnected()
+  const held = !draft && !connected
   const [error, setError] = useState<string>()
   const body = draft
     ? "It hasn’t synced yet, so it’s removed from this phone straight away. It won’t go to Recently deleted."
@@ -79,13 +84,18 @@ export function DeleteSheet({
     onOpenChange(next)
   }
 
-  const errorLine = error && (
-    <p
-      role="alert"
-      className="text-center text-[13px] text-destructive desk:text-left"
-    >
-      {error}
-    </p>
+  // Delete is held offline, as the dive's own Edit is, with the same mark.
+  const errorLine = held ? (
+    <OfflineMark show className="self-center desk:mt-2 desk:self-start" />
+  ) : (
+    error && (
+      <p
+        role="alert"
+        className="text-center text-[13px] text-destructive desk:text-left"
+      >
+        {error}
+      </p>
+    )
   )
 
   return (
@@ -101,7 +111,11 @@ export function DeleteSheet({
             <Button variant="outline" onClick={() => change(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" disabled={busy} onClick={confirm}>
+            <Button
+              variant="destructive"
+              disabled={busy || held}
+              onClick={confirm}
+            >
               {error ? "Try again" : cta}
             </Button>
           </DrawerFooter>
@@ -117,7 +131,7 @@ export function DeleteSheet({
             <Button
               variant="destructive"
               className="h-12 rounded-[14px] bg-destructive text-base font-semibold text-white hover:bg-destructive/90 dark:bg-red-600 dark:hover:bg-red-600/90"
-              disabled={busy}
+              disabled={busy || held}
               onClick={confirm}
             >
               {error ? "Try again" : cta}

@@ -80,6 +80,8 @@ import { SiteSheet, type SiteRow } from "@/components/pickers/site-sheet"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { DeleteSheet } from "@/dive/delete-sheet"
+import { OfflineMark } from "@/components/offline-mark"
+import { useConnected } from "@/data/sync-status"
 import { Card } from "@/components/ui/card"
 import {
   Drawer,
@@ -237,6 +239,9 @@ export function DiveForm({
   const [sheet, setSheet] = useState<Sheet | null>(null)
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // A synced dive's changes go to the server; a draft's stay on the phone.
+  const connected = useConnected()
+  const held = !!dive && !dive.draft && !connected
   // Copy from last dive fills fields mostly off screen, so its row says it
   // worked for a moment.
   const [copied, setCopied] = useState(false)
@@ -675,11 +680,12 @@ export function DiveForm({
               <h1 className="min-w-0 truncate pl-4 text-base font-semibold tracking-[-0.015em]">
                 {title}
               </h1>
-              <div className="mr-4 flex gap-2 justify-self-end">
+              <div className="mr-4 flex items-center gap-2 justify-self-end">
+                <OfflineMark show={held} className="mr-1" />
                 <Button variant="outline" onClick={cancel}>
                   Cancel
                 </Button>
-                <Button onClick={() => void save()} disabled={saving}>
+                <Button onClick={() => void save()} disabled={saving || held}>
                   {saving ? "Saving…" : "Save"}
                 </Button>
               </div>
@@ -696,14 +702,17 @@ export function DiveForm({
               <h1 className="text-base font-semibold tracking-[-0.015em]">
                 {title}
               </h1>
-              <button
-                type="button"
-                onClick={() => void save()}
-                disabled={saving}
-                className="inline-flex h-11 items-center justify-self-end px-2 text-base font-semibold text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50 active:duration-0 enabled:hover:opacity-70 disabled:text-muted-foreground/60"
-              >
-                {saving ? "Saving…" : "Save"}
-              </button>
+              <span className="flex items-center justify-self-end">
+                <OfflineMark show={held} className="mx-1" />
+                <button
+                  type="button"
+                  onClick={() => void save()}
+                  disabled={saving || held}
+                  className="inline-flex h-11 items-center px-2 text-base font-semibold text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] active:opacity-50 active:duration-0 enabled:hover:opacity-70 disabled:text-muted-foreground/60"
+                >
+                  {saving ? "Saving…" : "Save"}
+                </button>
+              </span>
             </>
           )}
         </header>
@@ -1442,8 +1451,9 @@ export function DiveForm({
           {dive && onDeleted && (
             <button
               type="button"
+              disabled={held}
               onClick={() => setDeleting(true)}
-              className="inline-flex h-11 items-center gap-1.5 self-center px-4 text-[15px] font-medium text-destructive transition-opacity duration-150 select-none hover:opacity-70 active:opacity-50 active:duration-0"
+              className="inline-flex h-11 items-center gap-1.5 self-center px-4 text-[15px] font-medium text-destructive transition-[opacity,color] duration-150 select-none hover:opacity-70 active:opacity-50 active:duration-0 disabled:pointer-events-none disabled:text-muted-foreground disabled:opacity-60"
             >
               <IconTrash aria-hidden className="size-[1.15em]" />
               Delete dive

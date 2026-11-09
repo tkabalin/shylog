@@ -130,7 +130,9 @@ export function Row({
         // A keyboard's place shows as a ring round the row, as shadcn's inputs
         // ring, since the row's own controls are borderless.
         sourceBar,
-        "flex min-h-11.5 items-center gap-3 px-4 desk:has-[:is(input,textarea,button):focus-visible]:ring-2 desk:has-[:is(input,textarea,button):focus-visible]:ring-ring/50 desk:has-[:is(input,textarea,button):focus-visible]:ring-inset",
+        // Disabled (You's settings offline), the label dims with the value,
+        // or the row still reads as one to change.
+        "flex min-h-11.5 items-center gap-3 px-4 has-disabled:opacity-50 desk:has-[:is(input,textarea,button):focus-visible]:ring-2 desk:has-[:is(input,textarea,button):focus-visible]:ring-ring/50 desk:has-[:is(input,textarea,button):focus-visible]:ring-inset",
         className
       )}
     >
@@ -221,7 +223,7 @@ export function PickRow({
         aria-label={`${label}, ${value ?? "not set"}${more ? ` ${more}` : ""}`}
         aria-describedby={describedBy}
         aria-invalid={invalid || undefined}
-        className="flex h-11.5 min-w-0 flex-1 items-center justify-end gap-1 text-right text-base font-medium desk:outline-none"
+        className="flex h-11.5 min-w-0 flex-1 items-center justify-end gap-1 text-right text-base font-medium disabled:opacity-50 desk:outline-none"
       >
         <span className={cn("truncate", !value && "text-muted-foreground/60")}>
           {value ?? empty}
