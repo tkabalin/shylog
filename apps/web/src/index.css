@@ -323,3 +323,21 @@
     cursor: pointer;
   }
 }
+
+/* Where toasts sit (see components/ui/sonner.tsx): over the tab bar, and
+   the Log's floating button while it is on screen, at every width a touch
+   screen has; from desk: up, near the bottom. */
+:root {
+  --toast-bottom: calc(
+    3.0625rem + max(0.5rem, env(safe-area-inset-bottom)) + 1rem +
+      var(--toast-lift, 0px)
+  );
+}
+:root:has([data-fab]) {
+  --toast-lift: 3.9375rem;
+}
+@media (width >= 48rem) and (pointer: fine) {
+  :root {
+    --toast-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+}
