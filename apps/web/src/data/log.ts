@@ -138,6 +138,7 @@ function draftDive(draft: Draft): Dive {
     deletedAt: null,
     draft: true,
     rejected: draft.rejected,
+    savedAt: draft.createdAt,
   }
 }
 
@@ -357,16 +358,48 @@ async function behind(db: LogDb = defaultDb) {
   return state.log?.version !== meta?.version
 }
 
-let syncing: Promise<void> | undefined
+// The wait before a retry: 5 s, doubling to the five-minute check.
+export const retryDelay = (failures: number) =>
+  Math.min(5000 * 2 ** (failures - 1), 5 * 60 * 1000)
 
-// Syncs now, then whenever the app comes back to the foreground and every
-// five minutes while it is open, as the spec's version check does. A 304
-// costs one small request; a failure (offline, server unreachable) just
-// waits for the next try.
+let syncing: Promise<void> | undefined
+let failures = 0
+let retry: ReturnType<typeof setTimeout> | undefined
+
+// The server answered, so it is reachable again and the retries stop.
+export function noteReached() {
+  failures = 0
+  clearTimeout(retry)
+  if (state.failed) set({ ...state, failed: false })
+}
+
+// A sync or upload got no answer. With a connection that is the server
+// out of reach (Tailscale off, say), so it is tried again soon, backing off
+// to the five-minute check. Offline it says nothing of the server, and
+// would flash Can't reach on reconnecting; the online event tries instead.
+export function noteUnreachable() {
+  clearTimeout(retry)
+  if (!navigator.onLine) return
+  if (!state.failed) set({ ...state, failed: true })
+  failures += 1
+  retry = setTimeout(() => void sync(), retryDelay(failures))
+}
+
+// A sync the diver or the phone asked for: the backoff starts again, so a
+// long outage earlier doesn't leave the next retry minutes away.
+export function syncNow() {
+  failures = 0
+  clearTimeout(retry)
+  return sync()
+}
+
+// Syncs now, then whenever the app comes back to the foreground or online,
+// and every five minutes while it is open, as the spec's version check
+// does. A 304 costs one small request.
 export function sync() {
   syncing ??= syncLog()
     .then(async (result) => {
-      if (state.failed) set({ ...state, failed: false })
+      noteReached()
       // A newer server took nothing, so the last sync stays the last real one.
       if (result !== "blocked") await noteSynced()
       if (result === "updated" || (await behind())) await loadLog()
@@ -379,8 +412,7 @@ export function sync() {
         // Every card's pages too, so they open with no signal.
         void downloadCardImages(state.log.cards)
         // A draft whose upload failed earlier, or whose acceptance wasn't
-        // seen, goes again now the server answers. Full retry comes with
-        // the offline work.
+        // seen, goes again now the server answers.
         void upload()
       }
     })
@@ -388,7 +420,7 @@ export function sync() {
       // Expected offline or with Tailscale off, and shown on screen, so it
       // stays out of the console's warnings.
       console.debug("Sync failed", error)
-      set({ ...state, failed: true })
+      noteUnreachable()
     })
     .finally(() => (syncing = undefined))
   return syncing
@@ -399,7 +431,12 @@ export function startSync() {
   void readLastSync().catch(() => {})
   void sync()
   document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") void sync()
+    if (document.visibilityState === "visible") void syncNow()
+  })
+  // Back online, an earlier Can't reach says nothing yet; the sync decides.
+  window.addEventListener("online", () => {
+    if (state.failed) set({ ...state, failed: false })
+    void syncNow()
   })
   setInterval(() => void sync(), 5 * 60 * 1000)
 }
