@@ -1,6 +1,13 @@
 import { memo } from "react"
-import { IconArrowBarToDown, IconEyeOff, IconClock } from "@tabler/icons-react"
+import {
+  IconAlertTriangle,
+  IconArrowBarToDown,
+  IconEyeOff,
+  IconClock,
+  IconCloudOff,
+} from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
+import { cn } from "cn"
 
 import { Sparkline } from "@/components/sparkline"
 import { Item } from "@/components/ui/item"
@@ -15,8 +22,10 @@ import { cardPlace } from "@/format/place"
 // MonthGroup's contain-intrinsic-size).
 export const cardHeight = 84
 
-// LogHifi2's card: number, site, "Sat 10 · place", sparkline, depth and time.
-// Memoised, so a filter change renders only the cards it brings in.
+// LogHifi2's card, memoised so a filter change renders only the cards it
+// brings in. A draft is outlined, with a cloud-off icon under its number to
+// be; a refused one is outlined in the warning colour with a warning icon,
+// and gives its reason on its detail, which has room for all of it.
 export const DiveCard = memo(function DiveCard({
   dive,
   log,
@@ -42,22 +51,50 @@ export const DiveCard = memo(function DiveCard({
       // widths (four digits; 42.3 m, 188 min), so columns line up down the list.
       // Desktop has room to spare, so the sparkline widens to show the profile
       // and keeps clear of the figures.
-      className="grid grid-cols-[minmax(2rem,auto)_minmax(0,1fr)_minmax(4.25rem,auto)] flex-nowrap gap-x-3 py-0 pr-4 pl-3.5 select-none [-webkit-touch-callout:none] min-[390px]:grid-cols-[minmax(2rem,auto)_minmax(0,1fr)_56px_minmax(4.25rem,auto)] md:grid-cols-[minmax(2rem,auto)_minmax(0,1fr)_14rem_minmax(4.25rem,auto)]"
+      className={cn(
+        "grid grid-cols-[minmax(2rem,auto)_minmax(0,1fr)_minmax(4.25rem,auto)] flex-nowrap gap-x-3 py-0 pr-4 pl-3.5 select-none [-webkit-touch-callout:none] min-[390px]:grid-cols-[minmax(2rem,auto)_minmax(0,1fr)_56px_minmax(4.25rem,auto)] md:grid-cols-[minmax(2rem,auto)_minmax(0,1fr)_14rem_minmax(4.25rem,auto)]",
+        dive.draft &&
+          (dive.rejected
+            ? "ring-[1.5px] ring-warn"
+            : "ring-[1.5px] ring-primary")
+      )}
     >
-      <span className="text-[13px] font-medium text-muted-foreground tabular-nums">
+      <span
+        className={cn(
+          "flex flex-col items-start gap-0.75 text-[13px] font-medium text-muted-foreground tabular-nums",
+          dive.draft && (dive.rejected ? "text-warn" : "text-primary")
+        )}
+      >
         {dive.ignored ? (
           <>
             <IconEyeOff aria-hidden className="size-4" />
             <span className="sr-only">Ignored</span>
           </>
         ) : (
-          dive.number
+          <span>
+            {dive.number ?? dive.provisional}
+            {dive.provisional != null && (
+              <span className="sr-only"> (provisional)</span>
+            )}
+          </span>
         )}
+        {dive.draft &&
+          (dive.rejected ? (
+            <IconAlertTriangle aria-hidden className="size-3.75" />
+          ) : (
+            <IconCloudOff aria-hidden className="size-3.75" />
+          ))}
       </span>
       {/* The site name is what tells dives apart, so it wraps to a second
           line rather than losing its end; the place is secondary and
           truncates (the detail shows it whole). */}
-      <span className="flex min-w-0 flex-col gap-1.5">
+      <span
+        className={cn(
+          "flex min-w-0 flex-col gap-1.5",
+          // With no profile its room goes to the site and place.
+          !dive.sparkline && "min-[390px]:col-span-2"
+        )}
+      >
         <span className="line-clamp-2 text-[17px] leading-[1.2] font-medium tracking-[-0.015em] [overflow-wrap:anywhere]">
           {site?.name}
         </span>
@@ -70,17 +107,22 @@ export const DiveCard = memo(function DiveCard({
           </span>
           <span className="min-w-0 truncate">{cardPlace(site, region)}</span>
         </span>
+        {dive.draft && (
+          <span className="sr-only">
+            {dive.rejected ? "Not synced, refused by the server" : "Not synced"}
+          </span>
+        )}
       </span>
-      <span className="hidden items-center min-[390px]:flex md:pr-8">
-        {dive.sparkline && (
+      {dive.sparkline && (
+        <span className="hidden items-center min-[390px]:flex md:pr-8">
           <Sparkline
             points={dive.sparkline}
             maxDepth={profileMaxDepth(dive, log.fieldMeta.get(dive.id))}
             stretch
             className="w-full md:h-7"
           />
-        )}
-      </span>
+        </span>
+      )}
       <span className="flex flex-col items-end gap-1.5 tabular-nums">
         <span className="inline-flex items-center gap-1 text-[15px] font-medium">
           <IconArrowBarToDown

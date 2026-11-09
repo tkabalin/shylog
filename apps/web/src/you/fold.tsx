@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, type ReactNode } from "react"
+import { cn } from "cn"
 
 // The room opens or closes over 250 ms while the content is invisible, and
 // the content fades over 150 ms while its room is open, so it is never seen
@@ -9,21 +10,25 @@ const fade = "150ms var(--ease-out)"
 export const foldMs = 400
 
 // The flex gap under it (You's column is gap-6), closed with its room.
-const gap = "-1.5rem"
+const youGap = "-1.5rem"
 
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches
 
-// A card that comes or goes at the top of You, such as an alert: it
-// unfolds into place and folds away rather than the page jumping by its
-// height under the thumb. With reduced motion only the fade is animated.
-// `appear` is false for a card drawn with the page, which stays still.
+// Something that comes or goes in a column (You's alerts, a dive's offline
+// note) unfolds into place and folds away, so the page never jumps under
+// the thumb; reduced motion only fades. `appear` is false when drawn with
+// the page; `gap` is the margin that cancels its room once closed.
 export function Fold({
   open,
   appear,
+  gap = youGap,
+  className,
   children,
 }: {
   open: boolean
   appear: boolean
+  gap?: string
+  className?: string
   children: ReactNode
 }) {
   const box = useRef<HTMLDivElement>(null)
@@ -52,7 +57,7 @@ export function Fold({
       Object.assign(el.style, { transition: "", height: "" })
     }, foldMs)
     return () => clearTimeout(settled)
-  }, [appear])
+  }, [appear, gap])
 
   useLayoutEffect(() => {
     const el = box.current
@@ -72,10 +77,10 @@ export function Fold({
       marginBottom: gap,
       opacity: "0",
     })
-  }, [open])
+  }, [open, gap])
 
   return (
-    <div ref={box} inert={!open} className="overflow-hidden">
+    <div ref={box} inert={!open} className={cn("overflow-hidden", className)}>
       {children}
     </div>
   )

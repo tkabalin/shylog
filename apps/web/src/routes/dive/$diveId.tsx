@@ -88,7 +88,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { DeleteSheet, takeLeave } from "@/dive/delete-sheet"
+import { UnsyncedBanner } from "@/components/unsynced-banner"
 import { useBack } from "@/you/bar"
+import { Fold } from "@/you/fold"
 import { restore } from "@/dive/restore"
 import type { Dive } from "@/data/db"
 import { currentLog, useLog, type LogView } from "@/data/log"
@@ -338,6 +340,8 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
       .join(", ") || null
   const figures = diveFigures(dive, log)
   const differing = differences(dive, log.fieldMeta.get(dive.id))
+  // Opened before it uploaded: its banner stays to fold away.
+  const [wasDraft] = useState(!!dive.draft)
   const { barRef, title, scrolled, titled } = useBar()
   const desk = useDesk()
   const saved = useLocation({ select: (location) => !!location.state.saved })
@@ -403,25 +407,39 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
           over it, as the form does. */}
       <div className="flex flex-col gap-6 px-4 pt-5 pb-8 md:mx-auto md:w-full md:max-w-3xl">
         <section className="flex flex-col gap-1 px-1">
-          <p className="flex min-h-5.5 items-center text-sm font-medium text-muted-foreground tabular-nums">
-            {dive.deletedAt ? (
-              <span className="inline-flex h-5.5 items-center gap-1 rounded-full bg-muted pr-2 pl-1.5 text-xs font-medium">
-                <IconTrash aria-hidden className="size-3.5" />
-                Deleted {deletedDay(dive.deletedAt)}
-              </span>
-            ) : dive.ignored ? (
-              <>
-                <IconEyeOff aria-hidden className="size-4" />
-                <span className="sr-only">Ignored</span>
-              </>
-            ) : (
-              dive.number != null && (
-                <span className="inline-flex h-5.5 items-center rounded-full bg-primary/12 px-2.5 text-[13px] font-semibold text-primary">
+          {/* A refused draft has no number, nor room kept for one. */}
+          {(dive.deletedAt ||
+            dive.ignored ||
+            dive.number != null ||
+            dive.provisional != null) && (
+            <p className="flex min-h-5.5 items-center text-sm font-medium text-muted-foreground tabular-nums">
+              {dive.deletedAt ? (
+                <span className="inline-flex h-5.5 items-center gap-1 rounded-full bg-muted pr-2 pl-1.5 text-xs font-medium">
+                  <IconTrash aria-hidden className="size-3.5" />
+                  Deleted {deletedDay(dive.deletedAt)}
+                </span>
+              ) : dive.ignored ? (
+                <>
+                  <IconEyeOff aria-hidden className="size-4" />
+                  <span className="sr-only">Ignored</span>
+                </>
+              ) : dive.number != null ? (
+                // Fills in step with the banner fading once the dive uploads.
+                <span className="inline-flex h-5.5 items-center rounded-full bg-primary/12 px-2.5 text-[13px] font-semibold text-primary transition-[background-color,box-shadow] duration-150 ease-out">
                   Dive {dive.number}
                 </span>
-              )
-            )}
-          </p>
+              ) : (
+                // The number the server will give it, outlined rather than
+                // filled until it does.
+                dive.provisional != null && (
+                  <span className="inline-flex h-5.5 items-center rounded-full px-2.5 text-[13px] font-semibold text-primary ring-1 ring-primary/40 transition-[background-color,box-shadow] duration-150 ease-out ring-inset">
+                    Dive {dive.provisional}
+                    <span className="sr-only">, provisional</span>
+                  </span>
+                )
+              )}
+            </p>
+          )}
           <h1
             ref={title}
             className="text-[30px] leading-9 font-semibold tracking-[-0.035em] [overflow-wrap:anywhere]"
@@ -507,6 +525,17 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
               </div>
             </div>
           </div>
+        ) : wasDraft ? (
+          // Folds away once the dive has uploaded, rather than the page
+          // jumping up by its height under the thumb.
+          <Fold
+            open={!!dive.draft}
+            appear={false}
+            className="-mt-2"
+            gap="-1rem"
+          >
+            <UnsyncedBanner dive={dive} />
+          </Fold>
         ) : (
           differing.length > 0 && (
             // Leads to the form, where each value can be used or dismissed.
