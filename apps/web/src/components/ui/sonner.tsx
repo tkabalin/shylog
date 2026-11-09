@@ -46,8 +46,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         classNames: {
+          // A toast with a second line gets room above and below it, which
+          // the board's one-line pill doesn't need.
           toast:
-            "cn-toast !min-h-12 gap-3 !py-1 !pr-2 !pl-4 !font-sans !text-sm !font-medium shadow-[0_8px_24px_-8px_rgb(0_0_0/0.35)]",
+            "cn-toast !min-h-12 gap-3 !py-1 !pr-2 !pl-4 !font-sans !text-sm !font-medium shadow-[0_8px_24px_-8px_rgb(0_0_0/0.35)] has-[[data-description]]:!py-3",
           title: "truncate",
           // Sonner's grey is drawn for its own background, not the board's
           // inverted one, and all but disappears on it.
