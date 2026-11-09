@@ -23,9 +23,13 @@ export const monthKey = (startTime: string) => startTime.slice(0, 7)
 export const monthLabel = (startTime: string) =>
   monthYear.format(utc(startTime))
 
+// A dive named in a line of text: "Sat 25 Jul".
+export const dayMonth = (startTime: string) =>
+  `${cardDay(startTime)} ${months[Number(startTime.slice(5, 7)) - 1]}`
+
 // The detail's title block: "Sat 25 Jul 2026" and "09:12".
 export const longDate = (startTime: string) =>
-  `${cardDay(startTime)} ${months[Number(startTime.slice(5, 7)) - 1]} ${startTime.slice(0, 4)}`
+  `${dayMonth(startTime)} ${startTime.slice(0, 4)}`
 export const clockTime = (startTime: string) => startTime.slice(11, 16)
 
 export const year = (startTime: string) => startTime.slice(0, 4)
