@@ -5,7 +5,7 @@
 [![Node 24](https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white)](.nvmrc)
 [![pnpm 12](https://img.shields.io/badge/pnpm-12-F69220?logo=pnpm&logoColor=white)](package.json)
 
-A self-hosted, mobile-first web app for logging scuba dives. It runs on a home server, is reached only over Tailscale, and keeps its data in SQLite, with a plain UDDF export so the log is never locked in. Dive computer data arrives as Subsurface UDDF exports and is attached to the dives logged by hand.
+A self-hosted, mobile-first web app for logging scuba dives. It runs on a home server, is reached only over Tailscale, and keeps its data in SQLite, with plain UDDF and CSV exports so the log is never locked in. Dive computer data arrives as Subsurface UDDF exports and is attached to the dives logged by hand.
 
 [Subsurface](https://github.com/subsurface/subsurface) is the open-source dive log many divers rely on for the numbers, but it is a desktop app. Shylog is built to be filled in on a phone on the boat, with wet hands and no signal, while giving the same figures Subsurface would.
 
@@ -19,10 +19,11 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 ## What it does
 
 - Log, edit and delete dives from a phone, with new dives saved offline as drafts that sync when there is signal.
-- Show the log, each dive's details and a profile chart of depth, temperature, vertical speed and the computer's alarms.
+- Show the log, each dive's details and a profile chart of depth, temperature, vertical speed, the safety stop and the computer's alarms.
 - Import a Subsurface export and pair each computer dive with the dive logged by hand.
   - The import rules are written and tested for the Suunto D4i and Zoop Novo; other computers' exports go through generic rules that are untested.
 - Work out SAC rate, MOD, max PO₂, CNS and OTU, surface intervals and statistics across the whole log.
+- Export the whole log as UDDF and CSV each night, or download either from You.
 - Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
 - Install to the home screen, with one instance per diver.
 
@@ -104,7 +105,7 @@ If Docker restarts the sidecar on its own and the app stops answering, run `up -
 
 ## Backups and restores
 
-Each night at midnight in `TZ`, an instance writes `snapshots/shylog-<date>.db.gz` to its data folder, keeping dailies for 90 days, weeklies for two years and monthlies forever. The off-site backup must cover `/srv/shylog/`, which holds every instance's snapshots, export and card images.
+Each night at midnight in `TZ`, an instance writes `snapshots/shylog-<date>.db.gz` to its data folder, keeping dailies for 90 days, weeklies for two years and monthlies forever. The off-site backup must cover `/srv/shylog/`, which holds every instance's snapshots, card images and the nightly export (`export/dives.uddf` and `export/dives.csv`).
 
 - `scripts/backup.sh <instance>` takes a snapshot now.
 - `scripts/restore-drill.sh <instance>` restores last night's snapshot to a scratch folder, replays the journal and reports any difference. It never writes to the live database.
