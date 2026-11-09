@@ -44,6 +44,32 @@ describe("opSchema", () => {
     }
   )
 
+  it("takes null for an optional field a draft has lost, as an edit does", () => {
+    const fields = {
+      ...upsertDive.fields,
+      notes: null,
+      averageDepth: null,
+      buddies: null,
+      oxygen: null,
+    }
+    expect(opSchema.parse({ ...upsertDive, fields })).toMatchObject({
+      fields: { notes: null, averageDepth: null, buddies: null },
+    })
+  })
+
+  it.each(["startTime", "siteId", "duration", "maxDepth", "diveType"])(
+    "takes no null for %s, which a dive always has",
+    (field) => {
+      const fields = { ...upsertDive.fields, [field]: null }
+      expect(opSchema.safeParse({ ...upsertDive, fields }).success).toBe(false)
+    }
+  )
+
+  it("still needs the oxygen of a nitrox dive", () => {
+    const fields = { ...upsertDive.fields, nitrox: true, oxygen: null }
+    expect(opSchema.safeParse({ ...upsertDive, fields }).success).toBe(false)
+  })
+
   it("needs a positive whole opVersion", () => {
     for (const version of [0, -1, 1.5, "1"]) {
       expect(

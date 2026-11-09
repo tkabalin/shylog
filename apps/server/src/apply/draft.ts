@@ -1,4 +1,10 @@
-import { entityCreateOrder, opVersion, type Op } from "@shylog/core"
+import {
+  entityCreateOrder,
+  opVersion,
+  type DiveFields,
+  type DraftDiveFields,
+  type Op,
+} from "@shylog/core"
 
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
@@ -9,6 +15,11 @@ import { applyEntityOp, type EntityOp } from "./entity.ts"
 import { Rejected } from "./rejected.ts"
 
 type DiveOp = Extract<Op, { type: "upsertDive" }>
+
+const withoutNulls = (fields: DraftDiveFields) =>
+  Object.fromEntries(
+    Object.entries(fields).filter(([, value]) => value !== null)
+  ) as DiveFields
 
 function check(op: Op, now: Date) {
   // Installed copies running the previous version can still upload.
@@ -59,7 +70,8 @@ export function applyDraft(
 
 export function applyDiveOp(db: Db, op: DiveOp) {
   // Its first reply was lost and the draft was edited offline since, so
-  // the new fields are an edit; anything it leaves out is kept.
+  // the new fields are an edit: null clears a field the draft has lost, and
+  // anything it leaves out is kept.
   const known = prepared<[string], { deletedAt: string | null }>(
     db,
     "SELECT deleted_at AS deletedAt FROM dives WHERE id = ?"
@@ -69,5 +81,6 @@ export function applyDiveOp(db: Db, op: DiveOp) {
     throw new Rejected("This dive is in Recently deleted")
   }
   if (known) editDive(db, op.diveId, { fields: op.fields })
-  else createDive(db, op.diveId, op.fields)
+  // A new dive has nothing to clear.
+  else createDive(db, op.diveId, withoutNulls(op.fields))
 }

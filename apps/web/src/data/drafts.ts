@@ -1,6 +1,7 @@
 import {
   newId,
   opVersion,
+  optionalDiveFields,
   uploadDraftRequest,
   type diveFieldsSchema,
   type DiveId,
@@ -37,6 +38,10 @@ export interface Draft {
   entities: NewEntity[]
   // The server's reason for refusing it, until it is edited.
   rejected?: string
+  // Every optional field it has held since it was saved, so an edit can
+  // clear on the server those it has lost (see Conflict rules in the spec).
+  // Drafts saved before this have only their current fields.
+  held?: string[]
 }
 
 interface OpRow {
@@ -90,13 +95,27 @@ async function queueOps(
   diveId: string,
   fields: DraftFields,
   entities: NewEntity[],
-  at: string
+  at: string,
+  held: string[] = []
 ) {
   const device = await deviceId(db)
   const base = () => ({ opId: newId("op"), opVersion, deviceId: device, at })
+  // A field the draft has lost goes as null: should its first upload have
+  // landed with the reply lost, this one is an edit, which keeps whatever
+  // it leaves out. A new dive ignores them.
+  const lost = held.filter((field) => !(field in fields))
+  const sent = {
+    ...fields,
+    ...Object.fromEntries(lost.map((field) => [field, null])),
+  }
   const ops: QueuedOp[] = [
     // Checked by the parse below.
-    { ...base(), type: "upsertDive", diveId: diveId as DiveId, fields },
+    {
+      ...base(),
+      type: "upsertDive",
+      diveId: diveId as DiveId,
+      fields: sent,
+    },
     ...entities.map((entity) => ({
       ...base(),
       type: "upsertEntity" as const,
@@ -108,6 +127,10 @@ async function queueOps(
   uploadDraftRequest.parse({ ops })
   await db.ops.bulkAdd(ops.map((op) => ({ opId: op.opId, diveId, op })))
 }
+
+// The optional fields a dive holds: only those can be cleared.
+const optional = (fields: DraftFields) =>
+  Object.keys(fields).filter((field) => field in optionalDiveFields)
 
 // The draft and its ops in one transaction, so neither is ever saved alone.
 export function saveDraft(
@@ -125,6 +148,7 @@ export function saveDraft(
       updatedAt: now,
       fields,
       entities,
+      held: optional(fields),
     })
   })
 }
@@ -142,14 +166,21 @@ export function editDraft(
     const draft = await db.drafts.get(diveId)
     if (!draft) throw new Error("This dive has uploaded since you opened it")
     const now = new Date().toISOString()
+    const held = [
+      ...new Set([
+        ...(draft.held ?? optional(draft.fields)),
+        ...optional(fields),
+      ]),
+    ]
     await db.ops.where("diveId").equals(diveId).delete()
-    await queueOps(db, diveId, fields, entities, now)
+    await queueOps(db, diveId, fields, entities, now, held)
     await db.drafts.put({
       id: diveId,
       createdAt: draft.createdAt,
       updatedAt: now,
       fields,
       entities,
+      held,
     })
   })
 }

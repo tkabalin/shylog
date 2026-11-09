@@ -199,10 +199,10 @@ function checkDive(fields: Checked, ctx: z.RefinementCtx) {
 // dive has a known gas mix. Deleted rather than set to undefined, so a key
 // present is a value sent.
 export function nitroxOxygen<
-  S extends z.ZodType<{ nitrox?: boolean; oxygen?: number }>,
+  S extends z.ZodType<{ nitrox?: boolean; oxygen?: number | null }>,
 >(schema: S) {
   return schema
-    .refine((fields) => !fields.nitrox || fields.oxygen !== undefined, {
+    .refine((fields) => !fields.nitrox || fields.oxygen != null, {
       message: "Give the oxygen percentage for nitrox",
       path: ["oxygen"],
     })
@@ -212,26 +212,52 @@ export function nitroxOxygen<
     })
 }
 
+const newDiveDefaults = {
+  diveType: defaultedDiveFields.diveType.default("recreation"),
+  nitrox: defaultedDiveFields.nitrox.default(false),
+  ignored: defaultedDiveFields.ignored.default(false),
+}
+
 // Training details are kept while the form is open but saved only on a
 // Training dive.
-export const diveFieldsSchema = nitroxOxygen(
-  z
-    .strictObject({
-      ...required,
-      ...z.object(optionalDiveFields).partial().shape,
-      diveType: defaultedDiveFields.diveType.default("recreation"),
-      nitrox: defaultedDiveFields.nitrox.default(false),
-      ignored: defaultedDiveFields.ignored.default(false),
-    })
-    .superRefine(checkDive)
-).transform((fields) => {
+function trainingOnly<
+  F extends {
+    diveType: string
+    trainingAgency?: unknown
+    trainingCourse?: unknown
+  },
+>(fields: F) {
   if (fields.diveType !== "training") {
     delete fields.trainingAgency
     delete fields.trainingCourse
   }
   return fields
-})
+}
+
+export const diveFieldsSchema = nitroxOxygen(
+  z
+    .strictObject({
+      ...required,
+      ...z.object(optionalDiveFields).partial().shape,
+      ...newDiveDefaults,
+    })
+    .superRefine(checkDive)
+).transform(trainingOnly)
 export type DiveFields = z.output<typeof diveFieldsSchema>
+
+// A draft's dive as it uploads. Null is a field the draft held and has
+// lost, which clears it on a dive whose first upload landed with its reply
+// lost, and means nothing on a new one (see Conflict rules in the spec).
+export const draftDiveFieldsSchema = nitroxOxygen(
+  z
+    .strictObject({
+      ...required,
+      ...patchShape({}, optionalDiveFields),
+      ...newDiveDefaults,
+    })
+    .superRefine(checkDive)
+).transform(trainingOnly)
+export type DraftDiveFields = z.output<typeof draftDiveFieldsSchema>
 
 // Rules that span fields apply when the patch holds both. The server checks
 // the rest against the saved dive, and clears stored training details or
