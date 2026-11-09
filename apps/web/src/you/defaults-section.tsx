@@ -19,6 +19,7 @@ import {
 } from "@/dive/form/rows"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
+import { useHoldUpdate } from "@/update"
 
 import {
   defaultsValues,
@@ -41,6 +42,7 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
   // A sync that brings other settings shows them unless something is typed.
   const [base, setBase] = useState(saved)
   const changed = JSON.stringify(values) !== JSON.stringify(base)
+  useHoldUpdate(changed)
   if (!changed && JSON.stringify(saved) !== JSON.stringify(base)) {
     setBase(saved)
     setValues(saved)
@@ -59,13 +61,16 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
     setErrors(found)
     if (!request) return
     queue.current = queue.current.then(async () => {
-      // A comma for a point, say: nothing to send. The defaults go as a
-      // whole, as the server replaces them so.
+      // A comma for a point, say: nothing to send, so it shows as saved
+      // again (unless more was typed since), or it would hold the update
+      // offer back. The defaults go as a whole, as the server replaces them.
       if (
         JSON.stringify(request) ===
         JSON.stringify(parseDefaults(last.current).request)
       )
-        return
+        return setValues((was) =>
+          JSON.stringify(was) === JSON.stringify(next) ? last.current : was
+        )
       setFailure(undefined)
       try {
         await commit(apiClient().api.settings.$put({ json: request }))

@@ -28,6 +28,7 @@ import {
 import type { LogView } from "@/data/log"
 import { Label, Row, RowInput, Section } from "@/dive/form/rows"
 import { useDesk } from "@/hooks/use-desk"
+import { useHoldUpdate } from "@/update"
 
 import { PageBar } from "./bar"
 import { DivePicker } from "./dive-picker"
@@ -58,6 +59,7 @@ export function NewEntity({ log, kind }: { log: LogView; kind: DiveSetKind }) {
   const connected = useConnected()
   const ready = !!tidyName(name) && ticked.size > 0 && !busy && connected
   const dives = log.dives.filter((dive) => ticked.has(dive.id))
+  useHoldUpdate(!!name.trim() || ticked.size > 0)
 
   // The saved one takes this screen's place, as a finished step does.
   const open = (to: string) => {

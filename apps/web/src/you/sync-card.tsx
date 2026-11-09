@@ -17,6 +17,7 @@ import { useLastSync } from "@/data/last-sync"
 import { syncNow, useLog } from "@/data/log"
 import { syncCard, useSyncStatus, type SyncCardLook } from "@/data/sync-status"
 import { dayMonth } from "@/format/dates"
+import { reloadApp } from "@/pwa"
 
 const icons: Record<SyncCardLook, typeof IconCloudCheck> = {
   synced: IconCloudCheck,
@@ -41,7 +42,7 @@ export function SyncCard() {
   const place = (dive: Dive) =>
     // The day stays on one line ("Sun 8 Nov").
     `${log?.sites.get(dive.siteId)?.name ?? "a dive"}, ${dayMonth(dive.startTime).replaceAll(" ", "\u00a0")}`
-  const { look, title, sub, warn, retry } = syncCard(status, {
+  const { look, title, sub, warn, retry, reload } = syncCard(status, {
     syncedAt,
     place,
   })
@@ -73,11 +74,12 @@ export function SyncCard() {
         </span>
         {/* Under the words rather than beside them, which left the title
             and line a third of the card to wrap in. */}
-        {retry && (
+        {(retry || reload) && (
           <button
             type="button"
             disabled={trying}
             onClick={async () => {
+              if (reload) return reloadApp()
               setTrying(true)
               await syncNow()
               setTrying(false)
@@ -86,7 +88,7 @@ export function SyncCard() {
             className="relative mt-2 inline-flex h-8.5 shrink-0 items-center gap-1.5 self-start rounded-full bg-primary/12 pr-3 pl-2.5 text-sm font-medium text-primary transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1.5 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50"
           >
             <IconRefresh aria-hidden className="size-4" />
-            Try again
+            {reload ? "Reload" : "Try again"}
           </button>
         )}
       </span>
