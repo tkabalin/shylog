@@ -83,20 +83,20 @@ describe("profileModel", () => {
   it("keeps the safety stop apart from the events, adding no points", () => {
     const { safetyStop: stop } = model
     expect(stop).toMatchObject({
-      start: 1176,
-      end: 1397,
-      held: 195,
-      depth: 5496,
+      start: 1172,
+      end: 1822,
+      held: 579,
+      depth: 5519,
       full: true,
     })
-    // The first point in the band, as Subsurface's points have none at 1176 s.
-    expect(model.points[stop!.index - 1].time).toBeLessThan(1176)
-    expect(model.points[stop!.index].time).toBeGreaterThanOrEqual(1176)
-    expect(model.points.some((point) => point.time === 1176)).toBe(false)
-    expect(model.events.every((event) => event.start !== 1176)).toBe(true)
-    expect(inStop(model, 1176)).toBe(true)
-    expect(inStop(model, 1397)).toBe(true)
-    expect(inStop(model, 1398)).toBe(false)
+    // The first point in the band, as Subsurface's points have none at 1172 s.
+    expect(model.points[stop!.index - 1].time).toBeLessThan(1172)
+    expect(model.points[stop!.index].time).toBeGreaterThanOrEqual(1172)
+    expect(model.points.some((point) => point.time === 1172)).toBe(false)
+    expect(model.events.every((event) => event.start !== 1172)).toBe(true)
+    expect(inStop(model, 1172)).toBe(true)
+    expect(inStop(model, 1822)).toBe(true)
+    expect(inStop(model, 1823)).toBe(false)
   })
 
   it("has no safety stop unless the dive has one", () => {

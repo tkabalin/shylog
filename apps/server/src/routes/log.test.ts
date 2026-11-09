@@ -89,12 +89,12 @@ describe("GET /api/log", () => {
     const log = (await (await get()).json()) as Log
     const dive63 = log.dives.find((dive) => dive.id === diveId(db, 63))!
     expect(dive63.safetyStop).toEqual({
-      start: 2061,
-      end: 2352,
-      held: 285,
-      depth: 5016,
+      start: 2057,
+      end: 2481,
+      held: 380,
+      depth: 5125,
     })
-    // Dive 3 held under a minute in 3 to 6 m.
+    // Dive 3 held under a minute in the band.
     expect(
       log.dives.find((dive) => dive.id === diveId(db, 3))!.safetyStop
     ).toBeNull()
