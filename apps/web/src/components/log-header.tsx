@@ -2,10 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react"
 import { flushSync } from "react-dom"
 import { IconArrowBarToDown, IconClock } from "@tabler/icons-react"
 
-import shyshark from "@/assets/shyshark.svg"
 import { countText } from "@/components/pickers/match"
 import { RollingNumber, useFrameLater } from "@/components/rolling-number"
-import { SyncPill } from "@/components/sync-pill"
+import { SyncShark } from "@/components/sync-shark"
 import { depth, hours } from "@/format/figures"
 import type { headerFigures } from "@/log/filters"
 
@@ -110,16 +109,8 @@ export function LogHeader({
   return (
     <>
       <header className="relative px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] md:mx-auto md:w-full md:max-w-3xl">
-        <div className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-4 flex h-16 items-center gap-2">
-          <SyncPill />
-          {/* The app icon's shyshark, so the Log carries the brand. */}
-          <img
-            src={shyshark}
-            alt=""
-            width={48}
-            height={48}
-            className="size-12 drop-shadow-[0_2px_3px_rgb(42_26_10/0.25)] dark:drop-shadow-none"
-          />
+        <div className="absolute top-[calc(0.75rem+env(safe-area-inset-top))] right-4 flex h-16 items-center">
+          <SyncShark />
         </div>
         <p className="flex h-16 items-baseline gap-2 whitespace-nowrap tabular-nums">
           <span className="text-[52px] leading-14 font-semibold tracking-[-0.05em]">
