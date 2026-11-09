@@ -1120,10 +1120,25 @@ Deferred, or to watch:
 
 **Not in this milestone**: nothing further; this closes the Offline step.
 
-- [ ] Update flow
-- [ ] Queue export file
-- [ ] Sync end-to-end tests
-- [ ] Two-device Playwright test
+- [x] Update flow
+- [x] Queue export file
+- [x] Sync end-to-end tests
+- [x] Two-device Playwright test
+
+**Notes for the next session** (written 9 November 2026, branch `feat/update-flow`, stacked on `feat/offline`)
+
+Decisions taken while building:
+
+- D56 (the owner's choices): the reload offer is a toast on every tab, held back over the dive form, the import steps and any form or sheet with unsaved edits (`useHoldUpdate` in `src/update.ts`, called by the entity detail, new entity, card sheet, dive picker and You's name, maximum PO₂ and defaults), the newer server's paused offer included. It waits for drafts still to upload, counted live from the queue (`useQueueCounts` in `data/drafts.ts`, one Dexie `liveQuery` per queue, which sees other tabs), not from the tab's log copy. Swiped away, it stays away until the next launch; Reload keeps the toast up until the page reloads, and works in a window whose new version another window already let take over. You's sync card gets Reload in Try again's place when syncing is paused. Save waiting dives to a file is the row under You's sync card (`you/sync-card.tsx`, not `routes/settings/`), writing `shylog-waiting-dives-<date>.json` with each draft, refused ones included, as an `/api/ops` body.
+- D57 (the owner's choice): a draft remembers every optional field it has held (`held`) and sends those it has lost as `null`, which `draftDiveFieldsSchema` accepts; the server clears them on a dive whose first reply was lost and ignores them on a new one, so a field cleared offline is cleared, and an edit made elsewhere to a field the draft never held survives.
+- Sonner: a toast re-created under an id still in its 200 ms exit inherits the removal, and `onDismiss` fires for the app's own dismissals, so each showing gets a fresh id (the same one while it is up, so ready turning to paused updates in place) and the take-down waits a tick, which React's double effect cancels. Its `mobileOffset` applies only below 600px, so placement is `--toast-bottom` in `index.css`, switched at `desk:`; on the Log it rises above the floating button (`:root:has([data-fab])`), and on a desktop it centres on the content beside the sidebar. A toast with a second line has 12px above and below it (the owner's request).
+
+Deferred, or to watch:
+
+- To check on the phone: the update toast after a deploy on the installed app and Reload taking the new version, the `application/json` share sheet for the waiting dives file, and toasts above the Log's button in portrait and landscape.
+- The update toast drops 63px over the dive form for a few frames before it is taken down, as the button's lift ends with the Log; a fix would tie the toast to the router.
+- With two tabs open, the sync card's title follows the tab's own log until it syncs, while the row and the offer follow the queue.
+- Carried over from milestone 18: the phone checks listed there (offline cold launch, Home Screen name, status bar, cold-launch blur, persistence, launch time and bytes, fold frame rates), a renamed instance's old Home Screen name, and the built stack's build in every shard; from milestone 17 and earlier as listed there.
 
 ## Milestone 20: Statistics, figures and charts
 
