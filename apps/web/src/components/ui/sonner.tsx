@@ -24,6 +24,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       // dialogs are.
       className="toaster group !font-sans desk:!left-[calc(50%+var(--sidebar-width)/2)]"
       position="bottom-center"
+      // Left to itself, Sonner reads the direction from the page's computed
+      // style on every render, forcing a style recalc on each navigation.
+      dir="ltr"
       // Sonner switches to its mobile offset below 600px, not at desk:,
       // so both read index.css's --toast-bottom, which does.
       offset={{ bottom: "var(--toast-bottom)" }}
