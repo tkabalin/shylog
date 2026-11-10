@@ -68,9 +68,11 @@ export const DepthChart = memo(function DepthChart({
       // stroke is drawn past it, into the card's padding.
       className="aspect-auto w-full text-[10px] [&_.recharts-surface]:overflow-visible"
       style={{ height }}
-      initialDimension={{ width, height }}
+      fixed
     >
       <ComposedChart
+        width={width}
+        height={height}
         data={points}
         margin={{ top: plotTop, right: 0, bottom: 0, left: model.left }}
         // The table under the chart is its screen-reader alternative.
