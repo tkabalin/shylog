@@ -39,9 +39,11 @@ export const TemperatureLane = memo(function TemperatureLane({
       config={config}
       className="aspect-auto w-full text-[10px]"
       style={{ height: laneHeight }}
-      initialDimension={{ width, height: laneHeight }}
+      fixed
     >
       <LineChart
+        width={width}
+        height={laneHeight}
         data={model.points}
         margin={{
           top: laneTop,

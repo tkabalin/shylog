@@ -44,6 +44,7 @@ function ChartContainer({
   children,
   config,
   initialDimension = INITIAL_DIMENSION,
+  fixed = false,
   ...props
 }: React.ComponentProps<"div"> & {
   config: ChartConfig
@@ -54,6 +55,10 @@ function ChartContainer({
     width: number
     height: number
   }
+  // The chart takes its width and height from the caller, which has
+  // measured them: ResponsiveContainer measured again on mount, forcing a
+  // layout and drawing the chart twice.
+  fixed?: boolean
 }) {
   const uniqueId = React.useId()
   const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`
@@ -70,11 +75,15 @@ function ChartContainer({
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer
-          initialDimension={initialDimension}
-        >
-          {children}
-        </RechartsPrimitive.ResponsiveContainer>
+        {fixed ? (
+          children
+        ) : (
+          <RechartsPrimitive.ResponsiveContainer
+            initialDimension={initialDimension}
+          >
+            {children}
+          </RechartsPrimitive.ResponsiveContainer>
+        )}
       </div>
     </ChartContext.Provider>
   )
