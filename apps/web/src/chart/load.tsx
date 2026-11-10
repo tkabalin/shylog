@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react"
+import { startTransition, useEffect, useReducer, useState } from "react"
 
 import type { Dive } from "@/data/db"
 import {
@@ -57,16 +57,36 @@ function useSettled<T>(promise: Promise<T>) {
   return outcome(promise)
 }
 
-// A dive's samples and the chart's code, as they settle, and a retry for
-// either failing (Try again).
+const pending = { status: "pending" } as const
+
+// A dive's samples and the chart's code, as they settle, whether either is
+// still loading (rather than only waiting to draw), and a retry for either
+// failing (Try again).
 export function useChartLoads(dive: Dive) {
   const [loads, setLoads] = useState(() => ({
     profile: loadProfile(dive),
     chart: loadChart(),
   }))
+  const profile = useSettled(loads.profile)
+  const chart = useSettled(loads.chart)
+  // Drawn once the page has painted (the timeout queued from a frame runs
+  // after it), as a transition. In the tap's own commit, a profile already
+  // preloaded held the whole page back ~200 ms.
+  const [drawn, setDrawn] = useState(false)
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    const frame = requestAnimationFrame(() => {
+      timeout = setTimeout(() => startTransition(() => setDrawn(true)))
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+      clearTimeout(timeout)
+    }
+  }, [])
   return {
-    profile: useSettled(loads.profile),
-    chart: useSettled(loads.chart),
+    profile: drawn ? profile : pending,
+    chart: drawn ? chart : pending,
+    loading: profile.status === "pending" || chart.status === "pending",
     retry() {
       retryProfile(dive)
       retryChart()
@@ -76,12 +96,14 @@ export function useChartLoads(dive: Dive) {
 }
 
 // True once `ms` have passed since the first render: a load quicker than
-// that shows no skeleton.
-export function useAfter(ms: number) {
+// that shows no skeleton. Off while `waiting` is false, so a chart slow
+// only to draw neither gets a skeleton nor has its draw interrupted.
+export function useAfter(ms: number, waiting = true) {
   const [after, setAfter] = useState(false)
   useEffect(() => {
+    if (!waiting) return
     const id = setTimeout(() => setAfter(true), ms)
     return () => clearTimeout(id)
-  }, [ms])
+  }, [ms, waiting])
   return after
 }

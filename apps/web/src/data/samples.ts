@@ -78,7 +78,7 @@ function forget(key: string) {
 }
 
 // What a load has come to, read without waiting, so a profile already in
-// hand draws on the card's first render.
+// hand draws as soon as the page has painted, with no skeleton.
 export type Settled<T> =
   | { status: "pending" }
   | { status: "fulfilled"; value: T }

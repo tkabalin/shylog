@@ -62,8 +62,8 @@ function FullScreen({ dive, log }: { dive: Dive; log: LogView }) {
   const frame = useRef<HTMLDivElement>(null)
   const size = useSize(frame)
   const turned = useTurned()
-  const { profile, chart, retry } = useChartLoads(dive)
-  const late = useAfter(150)
+  const { profile, chart, loading, retry } = useChartLoads(dive)
+  const late = useAfter(150, loading)
   const { mod } = diveFigures(dive, log)
   const site = log.sites.get(dive.siteId)
 

@@ -92,8 +92,8 @@ export function ProfileCard({
 // kept on the phone is within a few frames. Until then the card holds its
 // final height, blank for 150 ms so a quick load shows no skeleton.
 function ProfileBody({ dive, mod }: { dive: Dive; mod: number | null }) {
-  const { profile, chart, retry } = useChartLoads(dive)
-  const late = useAfter(150)
+  const { profile, chart, loading, retry } = useChartLoads(dive)
+  const late = useAfter(150, loading)
   if (profile.status === "rejected" || chart.status === "rejected") {
     return <ProfileFailed events={eventCount(dive)} retry={retry} />
   }
