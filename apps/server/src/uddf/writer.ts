@@ -39,7 +39,7 @@ import {
   type Passed,
 } from "./passthrough.ts"
 // Air as the import reads it; a dive with Nitrox off breathes it.
-import { air as airTenths } from "./reader.ts"
+import { air as airTenths, type ProfileEvent } from "./reader.ts"
 import {
   generatorName,
   shylogNamespace,
@@ -341,6 +341,8 @@ function build(db: Db) {
     .concat([...passedMixes.keys()].sort().map((id) => [passedMixes.get(id)!]))
 
   function writeDive(dive: DiveRow): Xml {
+    // Read once, for <shylog>'s stops and for the samples' alarms.
+    const events = eventsOf.all(dive.id)
     const tagKeys = tagsOf.get(dive.id)
     const centreRegion = dive.diveCentreId
       ? centreRegions.get(dive.diveCentreId)
@@ -378,6 +380,16 @@ function build(db: Db) {
         dive.ignored ? leaf("ignored", "true") : null,
         // Otherwise the interval is worked out again, as it was here.
         dive.override ? leaf("surfaceIntervalOverride", "true") : null,
+        // Which deco alarms are a mandatory stop's begin and end, as another
+        // computer's deco alarm is written the same way.
+        ...events
+          .filter((event) => event.type === "mandatory-stop")
+          .map((event) =>
+            leaf(
+              "mandatoryStop",
+              [event.start, event.end ?? ""].join(" ").trim()
+            )
+          ),
       ],
       ` xmlns="${shylogNamespace}"`
     )
@@ -414,7 +426,7 @@ function build(db: Db) {
               ...lines(extra?.applicationdata),
             ])
           : null,
-        writeSamples(dive.id, extra?.waypoints),
+        writeSamples(dive.id, events, extra?.waypoints),
         // UDDF requires a start pressure here, but without one the dive
         // would lose its gas and cylinder, so tankdata stays (see Testing).
         // The mix first: Subsurface takes the gas from the first link.
@@ -473,17 +485,23 @@ function build(db: Db) {
   }
 
   // Events go back as the alarms they were read from: an ascent pair at
-  // both ends, anything else at its time. Each was read off a waypoint, so
-  // its time has a sample.
-  function writeSamples(diveId: string, passed?: Map<number, Passed[]>) {
+  // both ends, anything else at its time. A mandatory stop added later can
+  // end between samples, where no alarm goes; <mandatoryStop> keeps it.
+  function writeSamples(
+    diveId: string,
+    events: readonly ProfileEvent[],
+    passed?: Map<number, Passed[]>
+  ) {
     const samples = samplesOf.all(diveId)
     if (!samples.length) return null
     const alarms = new Map<number, string[]>()
     const alarm = (time: number, type: string) =>
       alarms.set(time, [...(alarms.get(time) ?? []), type])
-    for (const event of eventsOf.all(diveId)) {
-      alarm(event.start, event.type)
-      if (event.end != null) alarm(event.end, event.type)
+    for (const event of events) {
+      // UDDF's alarm for a stop the computer demands.
+      const type = event.type === "mandatory-stop" ? "deco" : event.type
+      alarm(event.start, type)
+      if (event.end != null) alarm(event.end, type)
     }
     return element(
       "samples",

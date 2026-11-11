@@ -10,6 +10,7 @@ import {
 import { sampleTemperatures } from "../derived.ts"
 import { leftOut } from "../import/freedive.ts"
 import { readUddf, UnreadableUddf } from "./reader.ts"
+import { shylogNamespace } from "./shylog-namespace.ts"
 
 const uddf = (body: string) => `<?xml version="1.0"?>
 <uddf xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.0">
@@ -37,6 +38,49 @@ const dive = (mix: string, computer = "") => `<dive>
 </dive>`
 
 describe("readUddf", () => {
+  it("reads deco alarms as a mandatory stop only from Shylog's own files", () => {
+    const alarms = `<dive>
+      <informationbeforedive><datetime>2026-07-22T08:12:19</datetime></informationbeforedive>
+      <samples>
+        <waypoint><depth>10</depth><divetime>0</divetime></waypoint>
+        <waypoint><alarm>deco</alarm><depth>12</depth><divetime>100</divetime></waypoint>
+        <waypoint><alarm>deco</alarm><depth>5</depth><divetime>300</divetime></waypoint>
+      </samples>
+      <informationafterdive>
+        <greatestdepth>20</greatestdepth><diveduration>1800</diveduration>
+      </informationafterdive>
+    </dive>`
+    // Another tool's deco alarm, such as Subsurface's for a violation.
+    expect(readUddf(uddf(alarms))[0].events).toEqual([
+      { type: "deco", start: 100, end: null },
+      { type: "deco", start: 300, end: null },
+    ])
+    const downloaded = uddf(alarms).replace(
+      "<diver>",
+      "<generator><name>Shylog download</name></generator><diver>"
+    )
+    expect(readUddf(downloaded)[0].events).toEqual([
+      { type: "mandatory-stop", start: 100, end: 300 },
+    ])
+    // Shylog's own export names its stops' alarms, so another computer's
+    // deco alarm on the same dive stays one.
+    const own = uddf(
+      alarms
+        .replace(
+          "<depth>5</depth><divetime>300</divetime></waypoint>",
+          "<depth>5</depth><divetime>300</divetime></waypoint><waypoint><alarm>deco</alarm><depth>3</depth><divetime>400</divetime></waypoint>"
+        )
+        .replace(
+          "</informationafterdive>",
+          `</informationafterdive><applicationdata><shylog xmlns="${shylogNamespace}"><mandatoryStop>100 300</mandatoryStop></shylog></applicationdata>`
+        )
+    ).replace("<diver>", "<generator><name>Shylog</name></generator><diver>")
+    expect(readUddf(own)[0].events).toEqual([
+      { type: "mandatory-stop", start: 100, end: 300 },
+      { type: "deco", start: 400, end: null },
+    ])
+  })
+
   it("reads 21 % or less as air", () => {
     const [airDive, nitrox] = readUddf(uddf(dive("air") + dive("ean32")))
     expect(airDive.oxygen).toBeNull()

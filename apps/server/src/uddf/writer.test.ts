@@ -30,6 +30,31 @@ const refs = (parent: Element) =>
 const subsurfaceDives = (xml: string) =>
   Array.from(readAsSubsurface(xml).getElementsByTagName("dive"))
 
+it("gives back a mandatory stop apart from another computer's deco alarm", () => {
+  const db = seededDb()
+  const id = diveId(db, 63)
+  const times = db
+    .prepare("SELECT time FROM samples WHERE dive_id = ? ORDER BY time")
+    .pluck()
+    .all(id) as number[]
+  const insert = db.prepare(
+    "INSERT INTO events (dive_id, type, start_seconds, end_seconds) VALUES (?, ?, ?, ?)"
+  )
+  insert.run(id, "mandatory-stop", times[10], times[20])
+  insert.run(id, "deco", times[30], null)
+  const dive = readUddf(writeUddf(db).xml).find(
+    (found) => found.startTime === fixtureStart[63]
+  )!
+  expect(
+    dive.events.filter(
+      (event) => event.type !== "ascent" && event.type !== "surface"
+    )
+  ).toEqual([
+    { type: "mandatory-stop", start: times[10], end: times[20] },
+    { type: "deco", start: times[30], end: null },
+  ])
+})
+
 describe("the seeded log", { timeout: 20_000 }, () => {
   let db: Db
   let xml: string
