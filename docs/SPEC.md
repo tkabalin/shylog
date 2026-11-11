@@ -837,9 +837,9 @@ Each step ends with something usable, and the core package comes first because e
 7. **UDDF export**: the nightly and on-demand export, with XSD and pass-through tests.
 8. **Import**: Suunto parsing rules (D4i and Zoop Novo), freedive detection, preview, clock offsets, pairing review, fingerprints, events, storing CNS and OTU from imported samples, and apply.
 9. **Offline**: service worker, the draft queue waiting and retrying while offline (the IndexedDB copy exists from step 5 and drafts from step 6), sync indicators, storage warnings, and the update flow.
-10. **Statistics** screen.
-11. **Logging**: structured server logs, request ids, and the app's errors in the same log (see Logging under Server).
-12. **Direct download**: downloading from the dive computer at the home server into the import review (see Downloading from the dive computer under Subsurface import).
+10. **Logging**: structured server logs, request ids, and the app's errors in the same log (see Logging under Server).
+11. **Direct download**: downloading from the dive computer at the home server into the import review (see Downloading from the dive computer under Subsurface import).
+12. **Statistics** screen.
 13. **Dive-number milestones**: the save's milestone burst and the next milestone on Statistics (see Records and milestones).
 14. **Packing checklist**: the editable list and its ticks (see Screens).
 
