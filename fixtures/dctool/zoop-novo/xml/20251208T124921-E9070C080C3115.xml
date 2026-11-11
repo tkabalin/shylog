@@ -1,0 +1,73 @@
+<device>
+<dive>
+<number>1</number>
+<size>163</size>
+<datetime>2025-12-08 12:49:21</datetime>
+<divetime>00:19</divetime>
+<maxdepth>4.72</maxdepth>
+<divemode>freedive</divemode>
+<decomodel>rgbm</decomodel>
+<sample>
+   <time>00:00</time>
+   <depth>1.24</depth>
+   <temperature>12.00</temperature>
+   <event type="9" time="0" flags="0" value="0">surface</event>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:02</time>
+   <depth>2.82</depth>
+   <temperature>12.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:04</time>
+   <depth>4.45</depth>
+   <temperature>12.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:06</time>
+   <depth>4.72</depth>
+   <temperature>12.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:08</time>
+   <depth>4.27</depth>
+   <temperature>12.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:10</time>
+   <depth>3.61</depth>
+   <temperature>12.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:12</time>
+   <depth>3.41</depth>
+   <temperature>12.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:14</time>
+   <depth>2.73</depth>
+   <temperature>12.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:16</time>
+   <depth>2.00</depth>
+   <temperature>12.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:18</time>
+   <depth>1.13</depth>
+   <temperature>12.00</temperature>
+   <event type="9" time="1" flags="0" value="0">surface</event>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+</dive>
+</device>

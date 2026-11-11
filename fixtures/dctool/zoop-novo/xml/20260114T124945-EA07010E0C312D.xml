@@ -1,0 +1,38 @@
+<device>
+<dive>
+<number>1</number>
+<size>145</size>
+<datetime>2026-01-14 12:49:45</datetime>
+<divetime>00:21</divetime>
+<maxdepth>1.92</maxdepth>
+<gasmix>
+   <he>0.0</he>
+   <o2>21.0</o2>
+   <n2>79.0</n2>
+</gasmix>
+<divemode>oc</divemode>
+<decomodel>rgbm</decomodel>
+<sample>
+   <time>00:00</time>
+   <depth>1.37</depth>
+   <temperature>20.00</temperature>
+   <gasmix>0</gasmix>
+   <event type="9" time="0" flags="0" value="0">surface</event>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:10</time>
+   <depth>1.64</depth>
+   <temperature>20.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:20</time>
+   <depth>1.22</depth>
+   <temperature>20.00</temperature>
+   <event type="24" time="1" flags="1" value="0">tissue level warning</event>
+   <event type="9" time="1" flags="0" value="0">surface</event>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+</dive>
+</device>
