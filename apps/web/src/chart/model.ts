@@ -115,7 +115,11 @@ export function profileModel(
     }
   }
 
-  const shown = events.filter((event) => event.type !== "surface")
+  // A downloaded dive's mandatory stop can span most of the ascent, so it
+  // isn't drawn as a warning band like an alarm.
+  const shown = events.filter(
+    (event) => event.type !== "surface" && event.type !== "mandatory-stop"
+  )
   const at = (seconds: number) => pointAt(points, seconds)
   const alarms: Alarm[] = shown
     .filter((event) => event.type === "ascent")

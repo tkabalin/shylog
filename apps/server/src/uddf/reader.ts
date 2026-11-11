@@ -30,6 +30,7 @@ import {
 import { DOMParser, XMLSerializer, type Element } from "@xmldom/xmldom"
 
 import {
+  downloadGeneratorName,
   generatorName,
   shylogNamespace,
   uddfNamespace,
@@ -218,25 +219,37 @@ const labels: Record<string, string> = {
 export const air = 210
 
 // The D4i writes each ascent alarm as a pair, matched in order, and marks
-// surfacings with single alarms.
-function events(waypoints: Element[], times: number[]): ProfileEvent[] {
+// surfacings with single alarms. Shylog writes a computer's mandatory stop
+// as a pair of deco alarms, begin and end; any other deco alarm is single.
+function events(
+  waypoints: Element[],
+  times: number[],
+  stopAt: (time: number) => boolean
+): ProfileEvent[] {
   const found: ProfileEvent[] = []
-  let ascent: number | null = null
+  const open = new Map<string, number>()
   for (const [i, waypoint] of waypoints.entries()) {
     const time = times[i]
     for (const alarm of all(waypoint, "alarm")) {
-      const type = alarm.textContent?.trim() ?? ""
-      if (type !== "ascent") {
-        found.push({ type, start: time, end: null })
-      } else if (ascent == null) {
-        ascent = time
+      const alarmed = alarm.textContent?.trim() ?? ""
+      const type =
+        alarmed === "ascent"
+          ? "ascent"
+          : alarmed === "deco" && stopAt(time)
+            ? "mandatory-stop"
+            : undefined
+      const start = type ? open.get(type) : undefined
+      if (!type) {
+        found.push({ type: alarmed, start: time, end: null })
+      } else if (start == null) {
+        open.set(type, time)
       } else {
-        found.push({ type, start: ascent, end: time })
-        ascent = null
+        found.push({ type, start, end: time })
+        open.delete(type)
       }
     }
   }
-  if (ascent != null) found.push({ type: "ascent", start: ascent, end: null })
+  for (const [type, start] of open) found.push({ type, start, end: null })
   return found
 }
 
@@ -335,6 +348,8 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
   const serializer = new XMLSerializer()
   const generator = all(root, "generator")[0]
   const fromShylog = !!generator && text(generator, "name") === generatorName
+  const fromDownload =
+    !!generator && text(generator, "name") === downloadGeneratorName
 
   // The preview names dives by their ids, so two alike would be confused.
   const refs = new Set<string>()
@@ -490,7 +505,9 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
       samples,
       events: events(
         waypoints,
-        written.map((sample) => sample.time)
+        written.map((sample) => sample.time),
+        // A download's deco alarms are all stops; Shylog's export names its.
+        fromDownload ? () => true : (time) => own?.stopTimes.has(time) ?? false
       ),
       standard: kept([
         "cylinderMaterial",
@@ -577,6 +594,11 @@ function readOwn(dive: Element, before: Element | undefined) {
           : undefined,
     },
     professionals: every("professional"),
+    stopTimes: new Set(
+      every("mandatoryStop").flatMap((times) =>
+        times.split(" ").filter(Boolean).map(Number)
+      )
+    ),
     trip: entityName(one("tripName")),
     diveCentre: centre
       ? {

@@ -7,3 +7,6 @@ export const uddfNamespace = "http://www.streit.cc/uddf/3.2/"
 
 // The export's <generator> name, by which the import knows its own files.
 export const generatorName = "Shylog"
+
+// The generator of the UDDF a download from the dive computer is turned into.
+export const downloadGeneratorName = "Shylog download"
