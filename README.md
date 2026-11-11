@@ -5,7 +5,7 @@
 [![Node 24](https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white)](.nvmrc)
 [![pnpm 12](https://img.shields.io/badge/pnpm-12-F69220?logo=pnpm&logoColor=white)](package.json)
 
-A self-hosted, mobile-first web app for logging scuba dives. It runs on a home server, is reached only over Tailscale, and keeps its data in SQLite, with plain UDDF and CSV exports so the log is never locked in. Dive computer data arrives as Subsurface UDDF exports and is attached to the dives logged by hand.
+A self-hosted, mobile-first web app for logging scuba dives. It runs on a home server, is reached only over Tailscale, and keeps its data in SQLite, with plain UDDF and CSV exports so the log is never locked in. Dive computer data arrives straight from the watch on a cable at the server, or as Subsurface UDDF exports, and is attached to the dives logged by hand.
 
 [Subsurface](https://github.com/subsurface/subsurface) is the open-source dive log many divers rely on for the numbers, but it is a desktop app. Shylog is built to be filled in on a phone on the boat, with wet hands and no signal, while giving the same figures Subsurface would.
 
@@ -20,7 +20,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 
 - Log, edit and delete dives from a phone, with new dives saved offline as drafts that sync when there is signal.
 - Show the log, each dive's details and a profile chart of depth, temperature, vertical speed, the safety stop and the computer's alarms.
-- Import a Subsurface export and pair each computer dive with the dive logged by hand.
+- Download the dives from a Suunto D4i or Zoop Novo on a USB cable at the server, or import a Subsurface export, and pair each computer dive with the dive logged by hand.
   - The import rules are written and tested for the Suunto D4i and Zoop Novo; other computers' exports go through generic rules that are untested.
 - Work out SAC rate, MOD, max PO₂, CNS and OTU, surface intervals and statistics across the whole log.
 - Export the whole log as UDDF and CSV each night, or download either from You.
@@ -65,7 +65,15 @@ SHYLOG_DATA_DIR=/absolute/path/to/shylog-data   # any folder outside the repo
 
 Each diver gets an instance: the app and a Tailscale sidecar, run as one Compose project from the image CI publishes to `ghcr.io/tkabalin/shylog`. The app listens only inside the sidecar's network, so Tailscale Serve is the only way in, and everything an instance keeps is under its `SHYLOG_DATA_DIR`.
 
-Once, in the Tailscale admin console, turn on MagicDNS and HTTPS certificates. Then, for each instance on the home server:
+### What you need
+
+- A Linux server with Docker Engine and the Compose v2 plugin (`docker compose version` answers), and git.
+- A Tailscale account. Once, in the admin console, turn on MagicDNS and HTTPS certificates.
+- An auth key for each instance's `TS_AUTHKEY`, from the admin console's Settings, Keys, Generate auth key. A one-off key is enough. Don't make it ephemeral, or the node leaves the tailnet whenever the sidecar stops.
+
+### Setting up an instance
+
+For each instance on the home server:
 
 ```bash
 git clone https://github.com/tkabalin/shylog.git && cd shylog   # once
@@ -73,7 +81,7 @@ sudo install -d -o 1000 -g 1000 /srv/shylog/<instance>            # the image ru
 mkdir -p instances && cp .env.example instances/<instance>.env    # git ignores instances/
 ```
 
-Edit `instances/<instance>.env`, where comments explain each value. Each instance needs its own `COMPOSE_PROJECT_NAME`, `TS_HOSTNAME` and `SHYLOG_DATA_DIR`, all under one parent folder for the off-site backup. Then start it:
+Edit `instances/<instance>.env`, where comments explain each value. Each instance needs its own `COMPOSE_PROJECT_NAME`, `TS_HOSTNAME` and `SHYLOG_DATA_DIR`, all under `/srv/shylog/`, which the off-site backup should cover (see [Backups and restores](#backups-and-restores)). Then start it:
 
 ```bash
 docker compose --env-file instances/<instance>.env up -d
@@ -82,6 +90,33 @@ docker compose --env-file instances/<instance>.env up -d
 Once the node has joined, clear `TS_AUTHKEY` and disable key expiry for the node in the admin console.
 
 If you set up an instance for another diver, share its node with their Tailscale account and restrict each node to its diver's devices in the tailnet policy.
+
+### Tailnet policy
+
+The app only answers logins in `SHYLOG_ALLOWED_LOGINS`, and the tailnet policy can keep everyone else from reaching the node at all. The default policy lets every device reach every other, so replace its allow-all grant with rules like these, plus whatever your other devices need. Each node is named by its Tailscale IP (`docker compose --env-file instances/<instance>.env exec tailscale tailscale ip -4`), which needs no tag on the auth key, and someone you shared a node with is named by their login:
+
+```jsonc
+{
+  "hosts": {
+    "shylog": "100.64.0.1", // your instance
+    "shylog-buddy": "100.64.0.2", // the second diver's, shared with them
+  },
+  "grants": [
+    // You reach both, for support.
+    {
+      "src": ["diver@example.com"],
+      "dst": ["shylog", "shylog-buddy"],
+      "ip": ["tcp:443"],
+    },
+    // The second diver reaches only theirs.
+    {
+      "src": ["buddy@example.com"],
+      "dst": ["shylog-buddy"],
+      "ip": ["tcp:443"],
+    },
+  ],
+}
+```
 
 ### Smoke test
 
@@ -93,13 +128,51 @@ curl -H 'X-Shylog: 1' https://<TS_HOSTNAME>.<tailnet>.ts.net/api/health
 
 If the host doesn't use MagicDNS, add `--resolve <TS_HOSTNAME>.<tailnet>.ts.net:443:<node IP>`, with the node IP from `docker compose --env-file instances/<instance>.env exec tailscale tailscale ip -4`. A request without the header gets `403 Missing X-Shylog`, and one from a login that isn't allowed gets `403 Login not allowed`. To check the refusal, take your login out of `SHYLOG_ALLOWED_LOGINS`, run `up -d --wait app`, repeat the request, then put it back. For the second diver, install the app on their phone through the shared node: the app sends the header on every call, so it loading proves their login passes.
 
+### Dive computer cable
+
+With the watch's USB cable plugged into the server, Import can download the dives itself. The image includes `dctool` for the Suunto D4i and Zoop Novo, and the cable needs no driver, as Linux's own `ftdi_sio` shows it as a serial port. Once per server, make a group for the cable and install the udev rule that names it `/dev/suunto` and gives it to that group:
+
+```bash
+sudo groupadd --system suunto
+sudo install -m 644 udev/99-suunto.rules /etc/udev/rules.d/
+sudo udevadm control --reload && sudo udevadm trigger --subsystem-match=tty
+```
+
+Plug the cable in (the watch need not be on it) and check it shows up:
+
+```bash
+sudo dmesg | tail -n 5         # "FTDI USB Serial Device converter now attached to ttyUSB0"
+ls -l /dev/suunto /dev/ttyUSB*  # /dev/suunto -> ttyUSB0, which is crw-rw---- root suunto
+getent group suunto             # its id is the third field
+```
+
+To turn downloading on for an instance, add these to its env file, with the `suunto` group's id, and run `docker compose --env-file instances/<instance>.env up -d`:
+
+```bash
+COMPOSE_FILE=compose.yml:compose.dive-computer.yml
+SHYLOG_DC_GID=<the suunto group's id>
+```
+
+`compose.dive-computer.yml` lets the app open the cable: it sees the host's `/dev` at `/host/dev` (without its submounts, needing Docker Engine 25 and Compose 2.26 or later; check with `docker version` and `docker compose version`), may open USB serial devices, and joins the `suunto` group. Without it, Import offers only the upload and the instance can't reach the cable. With several instances on one server, add it to each one that should download: they share the one cable, each remembers the first watch it downloads from and refuses another, and Forget on You clears that for a new watch. One downloads at a time: while one instance reads the watch, another's Detect says the cable is busy.
+
+The cable can be plugged in and out while the containers run, so there is nothing to restart.
+
+#### When Import doesn't see the watch
+
+1. The cable shows as `/dev/suunto` on the host (`ls -l /dev/suunto`). If not, check `dmesg` and the udev rule.
+2. The instance has the cable: `docker compose --env-file instances/<instance>.env config` lists `/host/dev` under the app's volumes. If not, check `COMPOSE_FILE` in its env file.
+3. The app sees it: `docker compose --env-file instances/<instance>.env exec app ls -lL /host/dev/suunto`.
+4. It belongs to `suunto`, and `SHYLOG_DC_GID` matches that group's id on this host.
+5. The watch's battery isn't low and it sits firmly in the cable's clip, which forum reports blame for most failed Suunto downloads.
+6. The watch is awake: press a button and try again.
+
 ### Updating
 
 ```bash
 git pull && scripts/update.sh <instance>
 ```
 
-The image comes from GHCR. `git pull` updates the clone's `compose.yml`, `tailscale/` and `scripts/` so they match it. `update.sh` does nothing if the image hasn't changed. Otherwise it takes a snapshot, starts the new image and rolls back to the old one if it isn't healthy within three minutes. After a migration a rollback isn't possible, so the app is left stopped with the restore command to run. It exits 0 when updated or current, 3 when rolled back and 1 when stopped, so a systemd timer can run it and alert on failure.
+The image comes from GHCR. `git pull` updates the clone's `compose.yml`, `tailscale/` and `scripts/` so they match it. `update.sh` does nothing if the image hasn't changed. Otherwise it takes a snapshot, starts the new image and rolls back to the old one if it isn't healthy within three minutes. After a migration a rollback isn't possible, so the app is left stopped with the restore command to run. It exits 0 when updated or current, 3 when rolled back and 1 when stopped.
 
 If Docker restarts the sidecar on its own and the app stops answering, run `up -d` again.
 
@@ -150,3 +223,5 @@ If the replay fails, the app is left stopped with the old database in `restore-a
 ## Licence
 
 Licensed under [GPL-3.0-or-later](LICENSE).
+
+The image includes `dctool` from [libdivecomputer](https://www.libdivecomputer.org), licensed under LGPL-2.1, built from its [0.9.0 release](https://github.com/libdivecomputer/libdivecomputer/releases/tag/v0.9.0) with [one patch](docker/libdivecomputer/stop-events.patch) (see the `Dockerfile`). Its licence, the patch and where its source is are in the image under `/usr/share/doc/libdivecomputer/`.
