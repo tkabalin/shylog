@@ -13,6 +13,7 @@ const when: Record<SyncState, string> = {
   syncing: "Syncing now",
   offline: "Syncs when you’re back online",
   unreachable: "Can’t reach the server. Is Tailscale on?",
+  fault: "The server ran into a problem. It tries again soon",
   stuck: "The server couldn’t save it. It tries again soon",
   refused: "Syncing now",
   paused: "Waits until Shylog is updated",

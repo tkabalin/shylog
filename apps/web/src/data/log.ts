@@ -67,9 +67,13 @@ export interface LogState {
   loaded: boolean
   // The server runs a newer schema than this app knows.
   blocked: boolean
-  // The last sync failed (offline, server unreachable, login refused).
-  failed: boolean
+  // How the last sync went: unreachable when it got no answer (offline,
+  // Tailscale off), fault when it failed with an answer (a server fault, a
+  // refused login) or on the phone, which isn't Can't reach.
+  reach: Reach
 }
+
+export type Reach = "ok" | "unreachable" | "fault"
 
 const byId = <T extends { id: string }>(rows: T[]) =>
   new Map(rows.map((row) => [row.id, row]))
@@ -225,7 +229,7 @@ export async function readLog(
     // A flag an updated app now understands no longer blocks, as in syncLog.
     const state = {
       loaded: true,
-      failed: false,
+      reach: "ok" as Reach,
       blocked: !!blocked && blocked.schemaVersion > latestSchemaVersion,
     }
     if (!meta) return { ...state, log: null }
@@ -335,7 +339,7 @@ let state: LogState = {
   log: null,
   loaded: false,
   blocked: false,
-  failed: false,
+  reach: "ok",
 }
 const listeners = new Set<() => void>()
 
@@ -362,7 +366,7 @@ export async function loadLog(
   queue: QueueDb = defaultQueue
 ) {
   try {
-    set({ ...(await readLog(db, queue)), failed: state.failed })
+    set({ ...(await readLog(db, queue)), reach: state.reach })
     if (state.log) {
       forgetCardUrls(state.log.cards)
       warmCardImages(state.log.cards, { db })
@@ -388,11 +392,26 @@ let syncing: Promise<void> | undefined
 let failures = 0
 let retry: ReturnType<typeof setTimeout> | undefined
 
-// The server answered, so it is reachable again and the retries stop.
-export function noteReached() {
+function setReach(reach: Reach) {
+  if (state.reach !== reach) set({ ...state, reach })
+}
+
+// A sync or upload got an answer, so the retries stop. One that fetched
+// the log clears a fault too; an upload the server only refused fetched
+// nothing, so a fault a sync met still stands.
+export function noteReached(synced: boolean) {
   failures = 0
   clearTimeout(retry)
-  if (state.failed) set({ ...state, failed: false })
+  if (synced || state.reach === "unreachable") setReach("ok")
+}
+
+// A sync failed with an answer, or on the phone. Asking again within
+// seconds would only repeat it, so the five-minute check, coming back to
+// the app or Try again asks next.
+function noteFault() {
+  failures = 0
+  clearTimeout(retry)
+  setReach("fault")
 }
 
 // A sync or upload got no answer. With a connection that is the server
@@ -402,7 +421,8 @@ export function noteReached() {
 export function noteUnreachable() {
   clearTimeout(retry)
   if (!navigator.onLine) return
-  if (!state.failed) set({ ...state, failed: true })
+  // An earlier fault is over: the server no longer answers at all.
+  setReach("unreachable")
   failures += 1
   retry = setTimeout(() => void sync(), retryDelay(failures))
 }
@@ -421,7 +441,7 @@ export function syncNow() {
 export function sync() {
   syncing ??= syncLog()
     .then(async (result) => {
-      noteReached()
+      noteReached(true)
       // A newer server took nothing, so the last sync stays the last real one.
       if (result !== "blocked") await noteSynced()
       if (result === "updated" || (await behind())) await loadLog()
@@ -439,13 +459,16 @@ export function sync() {
       }
     })
     .catch((error: unknown) => {
-      // Expected offline or with Tailscale off, and shown on screen, so it
-      // stays out of the console's warnings.
+      // Expected offline, with Tailscale off or from a failing server, and
+      // shown on screen, so it stays out of the console's warnings.
       console.debug("Sync failed", error)
       // Not when there was no answer at all, which is Can't reach, and
       // which a report couldn't get through either.
       if (!(error instanceof NoAnswer)) void reportError("sync", error)
-      noteUnreachable()
+      // Anything else, a fault the server answered with or one on the phone,
+      // would only repeat on a quick retry, and isn't Can't reach.
+      if (error instanceof NoAnswer) noteUnreachable()
+      else noteFault()
     })
     .finally(() => (syncing = undefined))
   return syncing
@@ -460,7 +483,7 @@ export function startSync() {
   })
   // Back online, an earlier Can't reach says nothing yet; the sync decides.
   window.addEventListener("online", () => {
-    if (state.failed) set({ ...state, failed: false })
+    if (state.reach === "unreachable") setReach("ok")
     void syncNow()
   })
   setInterval(() => void sync(), 5 * 60 * 1000)

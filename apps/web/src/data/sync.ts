@@ -32,6 +32,10 @@ export async function syncLog(
     headers: tag ? { "If-None-Match": `"${tag}"` } : {},
   })
   if (res.status === 304) return blocked ? "blocked" : "unchanged"
+  // Tailscale Serve, or Vite's proxy, answers 502 or 504 for a server that
+  // is down (restarting after a deploy, say), which is no answer from it.
+  if (res.status === 502 || res.status === 504)
+    throw new NoAnswer(`The log request failed: ${res.status}`)
   if (res.status !== 200)
     throw new RequestFailed(
       `The log request failed: ${res.status}`,

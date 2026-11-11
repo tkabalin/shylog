@@ -219,6 +219,24 @@ test("says when the server can't be reached, keeping the last sync", async ({
   await foreground(page, "All synced")
 })
 
+test("says when the server answers with an error, rather than can't reach", async ({
+  page,
+}) => {
+  await page.goto("/you")
+  await expect(page.getByRole("status")).toHaveText("All synced")
+
+  await page.route("**/api/log", (route) =>
+    route.fulfill({ status: 500, body: "Internal Server Error" })
+  )
+  await foreground(page, "The server ran into a problem")
+  await expect(
+    page.getByText("It tries again in a few minutes · Last sync just now")
+  ).toBeVisible()
+
+  await page.unroute("**/api/log")
+  await foreground(page, "All synced")
+})
+
 test("says when the server can't be reached before the first sync", async ({
   page,
 }) => {

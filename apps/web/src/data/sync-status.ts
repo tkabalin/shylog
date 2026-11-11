@@ -4,17 +4,19 @@ import { countText, diveCount } from "@/components/pickers/match"
 import { ago as agoText } from "@/format/dates"
 
 import type { Dive } from "./db"
-import { useLog, type LogView } from "./log"
+import { useLog, type LogView, type Reach } from "./log"
 import { useSending, useServerError } from "./upload"
 
 // The sync states (see Offline safety in the spec). Paused is a server on
 // a newer schema than this app, which takes nothing until it updates;
-// stuck, one that answered an upload with an error.
+// stuck, one that answered an upload with an error; fault, one that
+// answered a sync with an error.
 export type SyncState =
   | "synced"
   | "syncing"
   | "offline"
   | "unreachable"
+  | "fault"
   | "stuck"
   | "refused"
   | "paused"
@@ -33,14 +35,14 @@ export interface SyncStatus {
 
 export function syncStatus({
   online,
-  failed,
+  reach,
   blocked,
   sending,
   serverError = false,
   log,
 }: {
   online: boolean
-  failed: boolean
+  reach: Reach
   blocked: boolean
   sending: string | undefined
   serverError?: boolean
@@ -52,8 +54,8 @@ export function syncStatus({
     ? "offline"
     : blocked
       ? "paused"
-      : failed
-        ? "unreachable"
+      : reach !== "ok"
+        ? reach
         : sending
           ? "syncing"
           : waiting.length
@@ -88,18 +90,25 @@ export const useOnline = () =>
   useSyncExternalStore(subscribeOnline, () => navigator.onLine)
 
 export function useSyncStatus() {
-  const { log, failed, blocked } = useLog()
+  const { log, reach, blocked } = useLog()
   const online = useOnline()
   const sending = useSending()
   const serverError = useServerError()
-  return syncStatus({ online, failed, blocked, sending, serverError, log })
+  return syncStatus({
+    online,
+    reach,
+    blocked,
+    sending,
+    serverError,
+    log,
+  })
 }
 
 // Whether a change to synced data can reach the server now. Unreachable
 // counts as offline, as SettingsHifi treats it.
 export function useConnected() {
-  const { failed } = useLog()
-  return useOnline() && !failed
+  const { reach } = useLog()
+  return useOnline() && reach !== "unreachable"
 }
 
 // How long ago the oldest waiting dive was saved, in days once it's a day.
@@ -116,6 +125,7 @@ export type SyncCardLook =
   | "waiting"
   | "offline"
   | "unreachable"
+  | "fault"
   | "stuck"
   | "refused"
   | "paused"
@@ -209,6 +219,18 @@ export function syncCard(
       look: "unreachable",
       title: "Can’t reach the server",
       sub: `Is Tailscale on? ${last}`,
+      warn: true,
+      retry: true,
+    }
+  // Reached but failing, so not Can't reach, and nothing to check on the
+  // phone; the server's log has the error under the sync's request id.
+  if (state === "fault")
+    return {
+      look: "fault",
+      title: "The server ran into a problem",
+      sub: waiting
+        ? `${diveCount(waiting)} waiting on this phone · it tries again in a few minutes`
+        : `It tries again in a few minutes · ${last}`,
       warn: true,
       retry: true,
     }

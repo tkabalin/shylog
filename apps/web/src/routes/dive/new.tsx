@@ -20,12 +20,12 @@ interface Kept {
 }
 
 function NewDivePage() {
-  const { log, loaded, failed } = useLog()
+  const { log, loaded, reach } = useLog()
   const autosave = useAutosave<Kept>("new")
   // No log on the phone and the first sync failed: the form hides the tab
   // bar, so the Log, which says why, takes its place rather than a blank
   // screen. While that sync is still going, it waits.
-  if (loaded && !log && failed) return <Navigate to="/" replace />
+  if (loaded && !log && reach !== "ok") return <Navigate to="/" replace />
   if (!log || autosave.restored === undefined) return null
   return <NewDive log={log} autosave={autosave} />
 }
