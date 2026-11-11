@@ -27,6 +27,7 @@ import {
   choicesOf,
   entries,
   handDays,
+  leftOutLabels,
   capital,
   pairedWith,
   type Entry,
@@ -82,7 +83,7 @@ function HandPairing() {
       key: dive.ref,
       icon: IconDeviceWatch,
       label: `${withDay ? `${shortDay(dive.startTime)} · ` : ""}${clockTime(dive.startTime)}`,
-      meta: `${depth(dive.maxDepth)} m · ${minutes(dive.duration)} min${reason ? ` · ${reason === "freedive" ? "Freedive" : "Under 5 min"}` : ""}`,
+      meta: `${depth(dive.maxDepth)} m · ${minutes(dive.duration)} min${reason ? ` · ${leftOutLabels[reason]}` : ""}`,
       note:
         takenFrom &&
         `Now paired with this dive, so ${site(takenFrom)} will be left unpaired`,

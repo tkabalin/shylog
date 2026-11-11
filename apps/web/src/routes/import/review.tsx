@@ -7,6 +7,7 @@ import {
   IconNotebook,
   IconPlayerSkipForward,
   IconPlugConnected,
+  IconHistory,
   IconSwimming,
   IconUpload,
   type Icon,
@@ -28,7 +29,7 @@ import { useLog } from "@/data/log"
 import { headingButton, pressedButton, Reveal } from "@/dive/form/rows"
 import { computerName } from "@/dive/form/values"
 import { clockTime, longDate } from "@/format/dates"
-import { depth } from "@/format/figures"
+import { depth, minutes } from "@/format/figures"
 import { useDesk } from "@/hooks/use-desk"
 import { celebrateImport } from "@/import/celebrate"
 import { ClockSheet } from "@/import/clock-sheet"
@@ -49,6 +50,7 @@ import {
   choose,
   firstDayToCheck,
   gapText,
+  leftOutLabels,
   review,
   type Entry,
 } from "@/import/review"
@@ -193,6 +195,15 @@ function ReviewPage() {
     leftOutDays.set(item.entry.dive.day, list)
   }
   const leftOutCount = current.leftOut.filter((item) => !item.included).length
+  // A download that read every dive leaves out those before the last one too.
+  const earlier = current.leftOut.filter(
+    (item) => item.entry.reason === "earlier"
+  ).length
+  const leftOutKinds = !earlier
+    ? "Freedives and false starts"
+    : earlier === current.leftOut.length
+      ? "From before your last download"
+      : "Freedives, false starts and earlier dives"
 
   // A dive the log doesn't hold, not synced yet, has no day to name.
   const changedName = (id: string) => {
@@ -351,7 +362,14 @@ function ReviewPage() {
         )}
 
         {(preview.alreadyImported > 0 || current.leftOut.length > 0) && (
-          <ImportSection title="Also in this file">
+          <ImportSection
+            title={
+              // Set, if only to null, on a download alone.
+              preview.earlierThan !== undefined
+                ? "Also on the watch"
+                : "Also in this file"
+            }
+          >
             <ListCard>
               {preview.alreadyImported > 0 && (
                 <div className={listRow}>
@@ -373,14 +391,21 @@ function ReviewPage() {
                   >
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-1.5">
-                        <IconSwimming
-                          aria-hidden
-                          className="size-[1.15em] shrink-0 text-muted-foreground"
-                        />
+                        {earlier === current.leftOut.length ? (
+                          <IconHistory
+                            aria-hidden
+                            className="size-[1.15em] shrink-0 text-muted-foreground"
+                          />
+                        ) : (
+                          <IconSwimming
+                            aria-hidden
+                            className="size-[1.15em] shrink-0 text-muted-foreground"
+                          />
+                        )}
                         Left out
                       </span>
                       <span className="mt-0.5 block text-[13px] text-muted-foreground">
-                        Freedives and false starts
+                        {leftOutKinds}
                       </span>
                     </span>
                     <span className="text-muted-foreground tabular-nums">
@@ -616,10 +641,13 @@ function LeftOutRow({
           !included && "text-muted-foreground"
         )}
       >
-        {time} · {depth(dive.maxDepth)} m · {shortLength(dive.duration)}
+        {time} · {depth(dive.maxDepth)} m ·{" "}
+        {reason === "earlier"
+          ? `${minutes(dive.duration)} min`
+          : shortLength(dive.duration)}
         <span className="text-muted-foreground">
           {" "}
-          · {reason === "freedive" ? "Freedive" : "Under 5 min"}
+          · {leftOutLabels[reason!]}
         </span>
       </span>
       <button

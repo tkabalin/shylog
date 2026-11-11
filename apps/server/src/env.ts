@@ -31,6 +31,12 @@ const schema = z
     // The browser tests' own build of the web app, so a run never rewrites
     // apps/web/dist under another; development only.
     SHYLOG_WEB_ROOT: z.string().min(1).optional(),
+    // The dive computer cable's serial device, such as /dev/suunto, which
+    // turns on downloading from the watch; unset, Import only uploads.
+    SHYLOG_DC_DEVICE: z.string().min(1).optional(),
+    // libdivecomputer's dctool, which the image installs; a stand-in in
+    // tests.
+    SHYLOG_DCTOOL: z.string().min(1).default("dctool"),
     // The commit the image was built from (the Dockerfile sets it), which
     // every log line carries.
     SHYLOG_REVISION: z.string().min(1).default("dev"),

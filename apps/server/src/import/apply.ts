@@ -16,6 +16,7 @@ import {
   type Sample,
   type WaterType,
   unknownSite,
+  unpairedReason,
 } from "@shylog/core"
 
 import {
@@ -42,7 +43,8 @@ import { logger } from "../log.ts"
 import { storeProfile } from "../profile.ts"
 import { readUddf, type ProfileEvent, type ReadDive } from "../uddf/reader.ts"
 import { fingerprint } from "./fingerprint.ts"
-import { isShort, type LeftOut } from "./freedive.ts"
+import { moveMarker, storedComputer } from "../download/computer.ts"
+import { type LeftOut } from "./freedive.ts"
 import {
   changedHands,
   computerTemperatures,
@@ -123,6 +125,8 @@ export interface Chunk {
   gasCompared?: true
   // Values the review took from the computer on every paired dive.
   adopt?: ComparedField[]
+  // On a download's last chunk: the watch's next starting dive.
+  computer?: { serial: string; marker: string }
 }
 
 // How many computer dives the file held and the days they span (null when
@@ -435,6 +439,7 @@ export function applyChunk(db: Db, chunk: Chunk, at: Date) {
       file: chunk.file ?? (last?.id === chunk.importId ? last.file : undefined),
     } satisfies LastImport)
   )
+  if (chunk.last && chunk.computer) moveMarker(db, chunk.computer, at)
 }
 
 // What a chunk stores for one computer dive, with the ids of anything it
@@ -517,11 +522,12 @@ function computerDives(preview: StoredPreview) {
     string,
     { dive: ComputerDive; reason: LeftOut | null }
   >()
-  // A paired dive under five minutes is a blip again once unpaired.
+  // A paired dive under five minutes, or before the last download, is
+  // left out again once unpaired.
   for (const { computerDive } of preview.pairs)
     dives.set(computerDive.ref, {
       dive: computerDive,
-      reason: isShort(computerDive.duration) ? "short" : null,
+      reason: unpairedReason(computerDive, preview.earlierThan),
     })
   for (const dive of preview.newDives)
     dives.set(dive.ref, { dive, reason: null })
@@ -682,6 +688,15 @@ export function applyImport(
     .get(id)!
 
   const file: ImportFile = importFile(preview)
+  // Only forward: a download that read every dive ends where the last did.
+  const marker = storedComputer(db)?.marker
+  const computer = preview.download && {
+    serial: preview.download.serial,
+    marker:
+      marker && marker > preview.download.newest
+        ? marker
+        : preview.download.newest,
+  }
   let current = preview
   for (const [i, chunkDives] of chunks.entries()) {
     const chunk: Chunk = {
@@ -692,6 +707,7 @@ export function applyImport(
       file,
       gasCompared: true,
       ...(request.adopt?.length && { adopt: request.adopt }),
+      ...(i === chunks.length - 1 && computer && { computer }),
     }
     try {
       write(db, (journal, at) => {
@@ -729,13 +745,16 @@ export function applyImport(
             pairs: stay,
             newDives: [
               ...current.newDives,
-              ...unpaired.filter((dive) => !isShort(dive.duration)),
+              ...unpaired.filter(
+                (dive) => !unpairedReason(dive, current.earlierThan)
+              ),
             ].filter((dive) => !refs.has(dive.ref)),
             leftOut: [
               ...current.leftOut,
-              ...unpaired
-                .filter((dive) => isShort(dive.duration))
-                .map((dive) => ({ ...dive, reason: "short" as const })),
+              ...unpaired.flatMap((dive) => {
+                const reason = unpairedReason(dive, current.earlierThan)
+                return reason ? [{ ...dive, reason }] : []
+              }),
             ].filter((dive) => !refs.has(dive.ref)),
             unpaired: current.unpaired.filter(
               (hand) => !paired.has(hand.diveId)

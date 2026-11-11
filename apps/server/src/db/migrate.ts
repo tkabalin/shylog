@@ -11,6 +11,7 @@ import { importPreviewFile } from "./migrations/006-import-preview-file.ts"
 import { dropUnreadDefaults } from "./migrations/007-drop-unread-defaults.ts"
 import { safetyStopColumns } from "./migrations/008-safety-stop.ts"
 import { safetyStopStretches } from "./migrations/009-safety-stop-stretches.ts"
+import { diveComputer } from "./migrations/010-dive-computer.ts"
 import type { Db } from "./open.ts"
 
 export interface Migration {
@@ -29,6 +30,7 @@ export const migrations: Migration[] = [
   dropUnreadDefaults,
   safetyStopColumns,
   safetyStopStretches,
+  diveComputer,
 ]
 
 export function schemaVersion(db: Db): number {

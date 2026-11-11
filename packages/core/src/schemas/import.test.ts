@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  computerName,
   fileDives,
   importApplyRequest,
   importFile,
   importOffsetRequest,
   importPreviewSchema,
+  isShort,
+  unpairedReason,
 } from "./import.ts"
 
 const computerDive = {
@@ -154,5 +157,31 @@ describe("importFile", () => {
       to: null,
       computerModel: null,
     })
+  })
+})
+
+describe("unpairedReason", () => {
+  const dive = (computerStartTime: string, duration: number) => ({
+    computerStartTime,
+    duration,
+  })
+
+  it("leaves out a dive from before the last download, else a blip", () => {
+    const marker = "2026-07-22T08:00:00"
+    expect(unpairedReason(dive("2026-07-21T08:00:00", 3000), marker)).toBe(
+      "earlier"
+    )
+    expect(unpairedReason(dive("2026-07-22T08:00:00", 299), marker)).toBe(
+      "short"
+    )
+    expect(unpairedReason(dive("2026-07-22T08:00:00", 300), null)).toBeNull()
+    expect(isShort(299)).toBe(true)
+  })
+})
+
+describe("computerName", () => {
+  it("drops the maker, or says dive computer for none", () => {
+    expect(computerName("Suunto Zoop Novo")).toBe("Zoop Novo")
+    expect(computerName(null)).toBe("dive computer")
   })
 })

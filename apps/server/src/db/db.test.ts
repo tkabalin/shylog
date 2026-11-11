@@ -22,6 +22,7 @@ const tables = [
   "deleted_entities",
   "dive_buddies",
   "dive_centres",
+  "dive_computer",
   "dive_professionals",
   "dive_tags",
   "dives",

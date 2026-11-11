@@ -31,6 +31,8 @@ import { migrations, schemaVersion } from "../db/migrate.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
 import { recalculate } from "../derived.ts"
+import { deleteComputer, insertComputer } from "../download/computer.ts"
+import type { Watch } from "../download/dctool.ts"
 import { applyChunk, type Chunk } from "../import/apply.ts"
 import { setMeta } from "../journal.ts"
 
@@ -125,6 +127,14 @@ const entries: Record<
   importChunk: {
     apply: (db, chunk: Chunk, at) => applyChunk(db, chunk, at),
     derived: true,
+  },
+  rememberComputer: {
+    apply: (db, watch: Watch) => insertComputer(db, watch),
+    derived: false,
+  },
+  forgetComputer: {
+    apply: (db) => deleteComputer(db),
+    derived: false,
   },
   putSettings: {
     apply: (db, request: Partial<Settings>) => putSettings(db, request),

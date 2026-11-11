@@ -521,7 +521,5 @@ export const gasValues = (value: string | number) => ({
 export const gasText = (value: string | number) =>
   gasDetail(Number(value) === computerAir ? null : Number(value))
 
-// "Suunto D4i" → "D4i": screens name the computer by its model (see For a
-// matched dive), or "dive computer" when the export gives none.
-export const computerName = (model: string | null) =>
-  model ? model.replace(/^Suunto\s+/i, "") : "dive computer"
+// Where the form's other computer helpers are.
+export { computerName } from "@shylog/core"
