@@ -60,7 +60,7 @@ services:
       # Midnight for the nightly snapshot is local time.
       TZ: ${TZ:-UTC}
     # Mounted at the same path, so paths in logs and script output are the
-    # host's too.
+    # host's too. compose.dive-computer.yml adds the cable.
     volumes:
       - ${SHYLOG_DATA_DIR:?}:${SHYLOG_DATA_DIR:?}
     # The server writes only to the data folder, apart from SQLite's temp

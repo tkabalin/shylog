@@ -1,0 +1,26 @@
+# Lets an instance open the dive computer's cable. Added only where the
+# instance's env file sets COMPOSE_FILE=compose.yml:compose.dive-computer.yml
+# (see the README), so an instance without it can't reach the cable.
+services:
+  app:
+    environment:
+      # The udev rule's link, relative, so it resolves inside /host/dev.
+      SHYLOG_DC_DEVICE: /host/dev/suunto
+    volumes:
+      # The host's /dev, so a cable plugged in after the container started
+      # still appears. Elsewhere and without its submounts, so the host's
+      # terminals (/dev/pts) stay out and the container keeps its own /dev.
+      - type: bind
+        source: /dev
+        target: /host/dev
+        read_only: true
+        bind:
+          recursive: disabled
+    # USB serial converters (major 188, ttyUSB*), even ones plugged in later,
+    # join the few devices Docker allows.
+    device_cgroup_rules:
+      - "c 188:* rw"
+    # The host's suunto group, which the udev rule gives the cable alone, so
+    # any other USB serial device stays root's.
+    group_add:
+      - "${SHYLOG_DC_GID:?Set SHYLOG_DC_GID to the host's suunto group id}"

@@ -1,0 +1,5 @@
+# Installed on the host in /etc/udev/rules.d (see the README). Suunto's USB
+# cable (an FTDI chip, 0403:f680) gets a fixed name, /dev/suunto, whatever
+# ttyUSB number it lands on, and a group of its own, which the app joins, so
+# no other USB serial device opens for it.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="f680", SYMLINK+="suunto", MODE="0660", GROUP="suunto"
