@@ -70,7 +70,9 @@ export default defineConfig({
           name: "web",
           root: "apps/web",
           environment: "jsdom",
-          setupFiles: ["fake-indexeddb/auto"],
+          // The second keeps error reports off the network in every test
+          // but client-log.test.ts.
+          setupFiles: ["fake-indexeddb/auto", "src/test-setup.ts"],
           include: ["src/**/*.test.{ts,tsx}"],
         },
       },

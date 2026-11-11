@@ -5,11 +5,13 @@ import { matchedRoutes } from "hono/route"
 import { factory } from "./factory.ts"
 import { duringRequest, logger } from "./log.ts"
 
-// Phones poll these, so a line for each would bury everything else.
-const polled = new Set(["/api/version", "/api/health"])
+// Phones poll the first two, so a line for each would bury everything
+// else; an accepted report's own client_error line is the one that matters.
+const quiet = new Set(["/api/version", "/api/health", "/api/client-log"])
 
 // One line per /api request once it has answered. Its level follows the
 // outcome: a refusal warns with its reason, a server error is an error.
+// A rate limit's refusals are debug, or each would be the flood it stops.
 export const requestLog = factory.createMiddleware(async (c, next) => {
   // The app's own id when it sent one, so an error on the phone can be
   // found here; anything else is replaced rather than written to the log.
@@ -24,11 +26,13 @@ export const requestLog = factory.createMiddleware(async (c, next) => {
   const level =
     status >= 500 && status !== 503
       ? "error"
-      : status >= 400
-        ? "warn"
-        : polled.has(c.req.path)
-          ? "debug"
-          : "info"
+      : status === 429
+        ? "debug"
+        : status >= 400
+          ? "warn"
+          : quiet.has(c.req.path)
+            ? "debug"
+            : "info"
   // The pattern of the handler that answered, such as /api/dives/:id, so
   // lines group by route. None when a middleware answered (a refusal), as
   // middleware match every method and handlers one.

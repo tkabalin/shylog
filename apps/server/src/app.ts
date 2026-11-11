@@ -6,6 +6,7 @@ import { factory, type Deps } from "./factory.ts"
 import { logger } from "./log.ts"
 import { requestLog } from "./request-log.ts"
 import { cards } from "./routes/cards.ts"
+import { clientLog } from "./routes/client-log.ts"
 import { dives } from "./routes/dives.ts"
 import { entities } from "./routes/entities.ts"
 import { exports } from "./routes/export.ts"
@@ -47,6 +48,9 @@ export function createApp(deps: Deps) {
         }
       })
       .use("/api/*", security(deps.env))
+      // Ahead of the pause below: the phone's error reports write nothing,
+      // and matter most once the database has failed its check.
+      .route("/api", clientLog)
       // A failed integrity check stops every write until a restore.
       .use("/api/*", async (c, next) => {
         if (deps.state.integrity === "failed" && !readOnly.has(c.req.method)) {

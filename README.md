@@ -103,6 +103,25 @@ The image comes from GHCR. `git pull` updates the clone's `compose.yml`, `tailsc
 
 If Docker restarts the sidecar on its own and the app stops answering, run `up -d` again.
 
+### Logs
+
+The app writes one JSON object per line to stdout, so `docker compose --env-file instances/<instance>.env logs app` shows them, and any Docker log shipper, such as Grafana Alloy into Loki, picks them up with no configuration here. Rotation is Docker's, set by `log-opts` in the daemon's `daemon.json`.
+
+Every line has `time`, `level`, `event`, `msg`, `instance` (the `TS_HOSTNAME`) and `version` (the commit the image was built from). Each `/api` request logs one `request` line with `method`, `route`, `path`, `status`, `durationMs` and `requestId`, the id the app sends with every call and gets back in `X-Request-Id`; a refused request adds its `reason`. The app's own errors arrive as `client_error` lines carrying the `failedRequestId` of the call that failed. Logs hold ids, counts and timings, never what a diver wrote.
+
+Some LogQL, with the shipper labelling each container:
+
+```logql
+# Errors and warnings from one instance
+{container=~".*shylog.*"} | json | instance="shylog" and level=~"error|warn|fatal"
+
+# Everything about one request, from the phone's report to the server's line
+{container=~".*shylog.*"} | json | requestId="<id>" or failedRequestId="<id>"
+
+# Requests slower than half a second
+{container=~".*shylog.*"} | json | event="request" and durationMs > 500
+```
+
 ## Backups and restores
 
 Each night at midnight in `TZ`, an instance writes `snapshots/shylog-<date>.db.gz` to its data folder, keeping dailies for 90 days, weeklies for two years and monthlies forever. The off-site backup must cover `/srv/shylog/`, which holds every instance's snapshots, card images and the nightly export (`export/dives.uddf` and `export/dives.csv`).

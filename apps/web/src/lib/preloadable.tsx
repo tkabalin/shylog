@@ -1,5 +1,7 @@
 import { useEffect, useReducer, type ComponentType } from "react"
 
+import { isChunkFailure, reportError } from "@/data/client-log"
+
 // A component whose code loads on demand, drawn on its first render once
 // loaded. React.lazy suspends that render even when the import has finished,
 // and React holds the empty fallback for 300 ms, so a sheet's first open lagged.
@@ -14,6 +16,7 @@ export function preloadable<P extends object>(
       // Offline before the chunk was cached: the next open tries again.
       (error: unknown) => {
         loading = undefined
+        void reportError(isChunkFailure(error) ? "chunk" : "error", error)
         throw error
       }
     ))
