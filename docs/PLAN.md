@@ -1241,14 +1241,34 @@ Deferred, or to watch:
 - No Node binding: `libdivecomputerjs` (last release April 2024, archived June 2026, no serial support mentioned) and `divecomputer.js` (an empty port from 2022).
 
 - [x] Spike on the server with both computers
-- [ ] Raw downloads and their parsed XML saved as fixtures, without other people's dives
+- [x] Raw downloads and their parsed XML saved as fixtures, without other people's dives
 - [ ] Import screen mocked up and agreed
-- [ ] `dctool` in the image, the cable reachable from the container
-- [ ] Download, conversion and the remembered computer
-- [ ] Import screen and Forget
-- [ ] The moment a stop becomes mandatory, recorded on downloaded dives
+- [x] `dctool` in the image, the cable reachable from the container
+- [x] Download, conversion and the remembered computer
+- [x] Import screen and Forget
+- [x] The moment a stop becomes mandatory, recorded on downloaded dives
 - [ ] README setup steps for the cable, followed on the home server
-- [ ] Tests listed above
+- [x] Tests listed above
+
+**Notes for the next session** (written 11 November 2026, branch `feat/dive-computer-download`, built while the owner was away, so every judgement call below is theirs to review)
+
+Decisions taken while building:
+
+- The conversion copies Subsurface where its export differs from dctool: `fixup_dc_events` drops an event repeating one of the same name and flags within 60 s (the first event is never compared, and a new event goes after others at its second), each event between samples gets its own waypoint at the depth between them, and a temperature is written only where it changes. Three differences remain, all in those event waypoints, asserted in `convert.test.ts`: a centimetre off in a few, extrapolated past the last sample by Subsurface's older stylesheet, and a waypoint for each mandatory stop's begin and end.
+- A mandatory stop is a `mandatory-stop` event from begin to end, written to UDDF as a pair of `deco` alarms and read back as one from a download, or from Shylog's own export, which lists each stop's seconds in `<shylog>`; another tool's `deco` alarm stays a single `deco` event. The profile doesn't draw it. libdivecomputer's violations aren't converted (neither watch reports one).
+- Detect starts a download and cancels it (SIGINT) as soon as dctool names the watch; a watch silent for 8 s isn't there. A download first identifies the watch, so another diver's is refused before any dive is read, then runs `dctool download -p <marker>`, then parses 4 dives at a time. A port another instance holds says the cable is busy. Each download keeps its raw files and their XML in its own folder under `downloads/`.
+- The first download remembers the watch even with nothing new; the marker (a start on the watch's clock) moves only on apply, and before any apply it is the newest dive imported from that model. A dive before the marker that passes the same-dive test with a hand dive pairs, as a short one does; otherwise it is left out as "Earlier".
+- Compose: the cable is an opt-in `compose.dive-computer.yml` (via `COMPOSE_FILE` in the env file), binding the host's `/dev` read-only at `/host/dev` without its submounts, so the host's terminals never reach the container (a recursive `/dev:/dev:ro`, as the spike used, would have exposed `/dev/pts`), and a dedicated `suunto` group, so no other USB serial device opens for the app. Needs Docker Engine 25+.
+- Its state (on, and the remembered watch) loads at launch and is kept on the phone, so the card never pops in above Choose file. The Import screen leads with the dive computer card when downloading is on (Detect, then the watch's picture, model, last download, Download dives and, for a remembered watch, Read every dive again); Choose file stays in thumb reach, outlined. Forget is a row under You's Dive computer, with a confirm sheet. The card fits each state (holding one height left a gap under single-button states; on a phone Choose file is in the bottom bar, so it doesn't move either way), its picture is 112 px with no edge in light mode, Read every dive again is sized like the app's other ghost buttons, and the Import screen holds its review banner during a download, as during an upload, so the new preview doesn't flash it. The import progress bar is now linear (the upload's too). The pictures are 320 px WebP copies of the owner's PNGs.
+- The schema version is 10 (`dive_computer`), so an app from before this branch stops syncing until it updates, as designed.
+
+Deferred, or to watch:
+
+- The owner's: how dive detail shows a mandatory stop (Events row, chart mark or neither); it is recorded but not shown.
+- The owner's: the Import screen as built stands in for the mockup; review it before ticking that item.
+- On the home server (the owner): follow the README's Dive computer cable steps (the `suunto` group replaces the spike's `dialout`, and `/host/dev/suunto` replaces `/dev/suunto`), confirm `COMPOSE_FILE` from the env file takes the override (`docker compose --env-file … config`), plug the watch in after start, check a download with nothing new says so and a new dive opens the review. Nothing Docker-related has run outside CI.
+- On the phone: the card's states and Forget's sheet.
+- Carried over from milestone 20: a server answering 5xx to `/api/log` still shows Can't reach; after deploying, the JSON lines, Docker's log rotation and a shipper. From milestone 19: the update toast after a deploy on the installed app, the `application/json` share sheet for the waiting dives file, toasts above the Log's button in portrait and landscape; the update toast's 63px drop over the dive form; a second tab's sync card title; from milestone 18 and earlier as listed there.
 
 ## Milestone 22: Statistics, figures and charts
 
