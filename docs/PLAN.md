@@ -1179,16 +1179,20 @@ Deferred, or to watch:
 
 **The computer's own stops** (added 9 November 2026 from issue #80, updated 10 November after a raw download of the D4i):
 
-- The D4i doesn't log the recommended stop. A raw download of all 93 of its dives through `dctool` 0.9.0, patched to report the stop events, has no recommended-stop marker and no sample in the `safety` state, so a download can't replace the detected stop and every dive keeps the rule, shown as calculated. The spike checks whether the Zoop Novo is the same.
+- The D4i doesn't log the recommended stop. A raw download of all 93 of its dives through `dctool` 0.9.0, patched to report the stop events, has no recommended-stop marker and no sample in the `safety` state, so a download can't replace the detected stop and every dive keeps the rule, shown as calculated. The Zoop Novo is the same (the spike's 69 dives: 20 mandatory stops, no recommended one).
 - It does log mandatory stops. One begins when an ascent-rate alarm makes the stop mandatory, at any depth (44.8 m on one dive), and ends about 30 s after the diver reaches the band. 42 began and 34 ended across the 93 dives.
 - **The owner's choice**: a downloaded dive records the moment its stop becomes mandatory, as a computer event. How Events and the chart show it is proposed when built.
 - Stock libdivecomputer gives only the `deco` sample state from that moment, to within a sample (10 or 20 s on the D4i), and the same state for real deco. The exact second, told apart from deco, needs the begin event that upstream has suppressed since 2017: issue #80's three-line patch to `suunto_d9_parser.c` in the image's build, or an opt-in upstream. The patch is the likely choice, as the image builds libdivecomputer from source anyway.
 - The conversion to UDDF has to carry the event, as a `deco` alarm or in `<shylog>`, settled when built.
 
-**The D4i checked from the raw download** (11 November 2026, from the 93 dives downloaded on 10 November, parsed with `dctool` 0.9.0):
+**The spike's results** (11 November 2026: the D4i's 10 November download, then both watches on the home server through a throwaway image of `dctool` 0.9.0 on the app's base image, user and hardening, plus #80's patch):
 
-- Fingerprints match: all 66 dives the D4i and its Subsurface export share get the same fingerprint, once the duration is Subsurface's own (`fixup_dc_duration`: time below 0.75 m, core's `underwater()`), not the parser's dive time, which differs by a few seconds on most dives. Start time and maximum depth match as parsed, and so does the average depth from `underwater()`. The spike still checks the Zoop Novo.
-- The watch also holds 24 dives from June to November 2022 that are its previous owner's (the owner, 11 November 2026). A first download must not offer them: it starts from the newest dive already imported from that watch, so they are never read. "Read every dive again" needs a way to keep them out for good, since a skipped dive gets no fingerprint and would come back on every re-read; settled with the mockup.
+- Fingerprints match on every dive both sources hold: 66 on the D4i and 61 on the Zoop Novo, once the duration is Subsurface's own (`fixup_dc_duration`: time below 0.75 m, core's `underwater()`) rather than the parser's dive time, which differs by a few seconds on most dives. Start time, maximum depth and the average depth from `underwater()` match as they are.
+- The cable: the udev rule's `/dev/suunto` appeared in a container started before it was plugged in, through a read-only bind of the host's `/dev` with the `c 188:* rmw` cgroup rule, and the image's `node` user opened it through the host's `dialout` group (gid 20) with no capabilities. `dctool -d "Suunto D4i"` and `-d "Suunto Zoop Novo"` name the watches; the driver reads the real model and serial from the watch.
+- Times: a full read took 23 s for the D4i's 93 dives and 16 s for the Zoop Novo's 69; with the cache's fingerprint, a read with nothing new took 1.0 s and 0.4 s. Every raw dive parsed.
+- Failures differ: the watch off the cable times out after six unanswered packets ("Failed to identify the protocol variant"), and the cable unplugged fails to open `/dev/suunto` ("No such file or directory").
+- A raw dive file holds no serial number (only `dctool`'s cache name and verbose log do), so raw downloads can be fixtures, keeping out other people's dives.
+- Both watches hold other people's dives below their owner's (the owner, 11 November 2026): the D4i 24 from June to November 2022, its previous owner's, and the Zoop Novo 7 from 2019 to 2021, not the second diver's. libdivecomputer's fingerprint for these watches is the dive's start time on the watch's clock (`E607060C0B0C11` is 2022-06-12 11:12:17), so the first download from a watch starts at the newest dive already imported from it and never reads them. "Read every dive again" puts every dive older than that marker and not yet imported in the left-out list, as freedives are, with a reason such as "Before your last download": fingerprinted unless included, so they stay out, and a dive skipped in an earlier review is found there and included (the owner's choice over a separate "not my dive" option). A watch nothing was imported from yet offers its first download whole, to be unticked once; the exports can't say which dives came from which watch, so nothing smarter is reliable.
 
 **Likely touches**: the `Dockerfile` (a stage building libdivecomputer with serial support only, pinned, with its licence), `compose.yml` (the device rule, the `/dev` view, the serial group), env parsing, a server module running `dctool` (one download at a time, with a timeout) and converting its output to UDDF for `storePreview`, a migration for the remembered computer and its download marker, routes, apply moving the marker, the Import screen and Forget on You, the README (udev rule and Compose), the image smoke test, tests.
 
@@ -1218,7 +1222,8 @@ Deferred, or to watch:
 - Licence: the FSF lists LGPL-2.1 as compatible with GPLv3 ([licence list](https://www.gnu.org/licenses/license-list.html)); the image ships its licence text and says where its source is.
 - No Node binding: `libdivecomputerjs` (last release April 2024, archived June 2026, no serial support mentioned) and `divecomputer.js` (an empty port from 2022).
 
-- [ ] Spike on the server with both computers, fixtures saved
+- [x] Spike on the server with both computers
+- [ ] Raw downloads and their parsed XML saved as fixtures, without other people's dives
 - [ ] Import screen mocked up and agreed
 - [ ] `dctool` in the image, the cable reachable from the container
 - [ ] Download, conversion and the remembered computer
