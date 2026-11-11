@@ -4,6 +4,7 @@ import { HTTPException } from "hono/http-exception"
 import { Rejected } from "./apply/rejected.ts"
 import { factory, type Deps } from "./factory.ts"
 import { logger } from "./log.ts"
+import { requestLog } from "./request-log.ts"
 import { cards } from "./routes/cards.ts"
 import { dives } from "./routes/dives.ts"
 import { entities } from "./routes/entities.ts"
@@ -26,6 +27,8 @@ export function createApp(deps: Deps) {
         c.set("deps", deps)
         await next()
       })
+      // First, so refusals by the checks below are logged too.
+      .use("/api/*", requestLog)
       // Gzip for clients that accept it, skipping non-text types such as
       // card images and bodies under 1 KB. Tailscale Serve passes it through.
       .use(compress())
@@ -47,10 +50,9 @@ export function createApp(deps: Deps) {
       // A failed integrity check stops every write until a restore.
       .use("/api/*", async (c, next) => {
         if (deps.state.integrity === "failed" && !readOnly.has(c.req.method)) {
-          return c.json(
-            { error: "Saving is paused: the database failed its check" },
-            503
-          )
+          const error = "Saving is paused: the database failed its check"
+          c.set("refusal", error)
+          return c.json({ error }, 503)
         }
         await next()
       })
@@ -70,6 +72,7 @@ export function createApp(deps: Deps) {
       // card or the form.
       .onError((error, c) => {
         if (error instanceof Rejected) {
+          c.set("refusal", error.logged)
           return c.json(
             { ...error.details, error: error.message, path: error.path },
             error.status

@@ -753,8 +753,12 @@ export function applyImport(
       })
     } catch (error) {
       // The phone shows the reason and can retry; the stack is kept here.
+      // A refusal's message and details can name a site, so it logs its
+      // name-free reason instead.
       logger.error(
-        { event: "import_chunk_failed", importId: id, err: error },
+        error instanceof Rejected
+          ? { event: "import_chunk_failed", importId: id, reason: error.logged }
+          : { event: "import_chunk_failed", importId: id, err: error },
         "An import chunk failed"
       )
       const last = lastImport(db)

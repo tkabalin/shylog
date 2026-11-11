@@ -110,10 +110,13 @@ export function setEntityDives(
     } catch (failure) {
       // Named, so the picker can say which of many dives was refused.
       if (!(failure instanceof Rejected)) throw failure
-      throw new Rejected(failure.message, failure.status, edit.at, {
-        ...failure.details,
-        diveId: edit.diveId,
-      })
+      throw new Rejected(
+        failure.message,
+        failure.status,
+        edit.at,
+        { ...failure.details, diveId: edit.diveId },
+        failure.logged
+      )
     }
   }
   if (deleteIfEmpty && !inUse(db, kind, target)) {

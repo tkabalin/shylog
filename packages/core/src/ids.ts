@@ -25,8 +25,12 @@ export type DiveId = Id<"dive">
 // from plain-HTTP pages such as a dev server opened by LAN address.
 declare const crypto: { getRandomValues(array: Uint8Array): Uint8Array }
 
+// The id the app sends with each API call (a uuid()), which the server
+// logs it under; the server checks one it is sent against this.
+export const requestIdPattern = /^[A-Za-z0-9-]{8,64}$/
+
 // A version 4 UUID (RFC 9562): random apart from the version and variant.
-function uuid(): string {
+export function uuid(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16))
   bytes[6] = (bytes[6] & 0x0f) | 0x40
   bytes[8] = (bytes[8] & 0x3f) | 0x80

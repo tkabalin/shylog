@@ -240,7 +240,8 @@ function moveSites(db: Db, regionId: string, countryCode: string) {
         `A site in that country is already called ${other.name}`,
         409,
         ["countryCode"],
-        { conflict: other }
+        { conflict: other },
+        "A site in that country already has that name"
       )
     }
     prepared(db, "UPDATE sites SET key = ?, country_code = ? WHERE id = ?").run(
@@ -395,7 +396,8 @@ export function putEntity(
       `There is already a ${nouns[kind]} called ${other.name}`,
       409,
       ["name"],
-      { conflict: other }
+      { conflict: other },
+      `There is already a ${nouns[kind]} with that name`
     )
   }
   save(db, kind, id, fields, key, before)

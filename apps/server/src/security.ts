@@ -1,6 +1,5 @@
-import { createMiddleware } from "hono/factory"
-
 import type { Env } from "./env.ts"
+import { factory } from "./factory.ts"
 
 // Tailscale Serve sends a login with non-ASCII characters as an RFC 2047
 // encoded word, which it writes with Go's mime.QEncoding in UTF-8. Long
@@ -51,8 +50,11 @@ export const readOnly = new Set(["GET", "HEAD", "OPTIONS"])
 // is the person Tailscale Serve vouches for. Tagged devices send no login.
 export function security(env: Env) {
   const allowed = new Set(env.SHYLOG_ALLOWED_LOGINS)
-  return createMiddleware(async (c, next) => {
-    const refuse = (error: string) => c.json({ error }, 403)
+  return factory.createMiddleware(async (c, next) => {
+    const refuse = (error: string) => {
+      c.set("refusal", error)
+      return c.json({ error }, 403)
+    }
 
     if (c.req.header("X-Shylog") === undefined)
       return refuse("Missing X-Shylog")
