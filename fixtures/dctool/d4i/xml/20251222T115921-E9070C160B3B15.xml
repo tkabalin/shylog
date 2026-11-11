@@ -1,0 +1,1777 @@
+<device>
+<dive>
+<number>1</number>
+<size>1601</size>
+<datetime>2025-12-22 11:59:21</datetime>
+<divetime>48:47</divetime>
+<maxdepth>13.98</maxdepth>
+<gasmix>
+   <he>0.0</he>
+   <o2>21.0</o2>
+   <n2>79.0</n2>
+</gasmix>
+<divemode>oc</divemode>
+<decomodel>rgbm</decomodel>
+<sample>
+   <time>00:00</time>
+   <depth>1.63</depth>
+   <temperature>19.00</temperature>
+   <gasmix>0</gasmix>
+   <event type="9" time="0" flags="0" value="0">surface</event>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:10</time>
+   <depth>2.45</depth>
+   <temperature>19.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:20</time>
+   <depth>3.29</depth>
+   <temperature>19.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:30</time>
+   <depth>4.77</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:40</time>
+   <depth>5.20</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>00:50</time>
+   <depth>5.24</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>01:00</time>
+   <depth>5.87</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>01:10</time>
+   <depth>5.97</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>01:20</time>
+   <depth>5.86</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>01:30</time>
+   <depth>6.04</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>01:40</time>
+   <depth>6.02</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>01:50</time>
+   <depth>6.29</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>02:00</time>
+   <depth>6.63</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>02:10</time>
+   <depth>6.87</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>02:20</time>
+   <depth>6.64</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>02:30</time>
+   <depth>6.47</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>02:40</time>
+   <depth>6.25</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>02:50</time>
+   <depth>6.08</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>03:00</time>
+   <depth>6.71</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>03:10</time>
+   <depth>7.04</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>03:20</time>
+   <depth>6.76</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>03:30</time>
+   <depth>6.75</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>03:40</time>
+   <depth>6.59</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>03:50</time>
+   <depth>6.58</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>04:00</time>
+   <depth>6.81</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>04:10</time>
+   <depth>6.94</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>04:20</time>
+   <depth>7.03</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>04:30</time>
+   <depth>7.53</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>04:40</time>
+   <depth>7.70</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>04:50</time>
+   <depth>7.92</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>05:00</time>
+   <depth>8.30</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>05:10</time>
+   <depth>8.30</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>05:20</time>
+   <depth>8.07</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>05:30</time>
+   <depth>7.81</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>05:40</time>
+   <depth>7.74</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>05:50</time>
+   <depth>8.10</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>06:00</time>
+   <depth>8.21</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>06:10</time>
+   <depth>8.04</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>06:20</time>
+   <depth>7.88</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>06:30</time>
+   <depth>7.66</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>06:40</time>
+   <depth>7.62</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>06:50</time>
+   <depth>8.03</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>07:00</time>
+   <depth>8.31</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>07:10</time>
+   <depth>8.41</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>07:20</time>
+   <depth>8.44</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>07:30</time>
+   <depth>8.64</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>07:40</time>
+   <depth>8.42</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>07:50</time>
+   <depth>8.67</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>08:00</time>
+   <depth>8.82</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>08:10</time>
+   <depth>9.08</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>08:20</time>
+   <depth>9.03</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>08:30</time>
+   <depth>9.28</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>08:40</time>
+   <depth>9.43</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>08:50</time>
+   <depth>9.24</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>09:00</time>
+   <depth>9.31</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>09:10</time>
+   <depth>9.34</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>09:20</time>
+   <depth>9.55</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>09:30</time>
+   <depth>9.86</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>09:40</time>
+   <depth>9.74</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>09:50</time>
+   <depth>9.85</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>10:00</time>
+   <depth>9.85</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>10:10</time>
+   <depth>10.04</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>10:20</time>
+   <depth>10.00</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>10:30</time>
+   <depth>9.75</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>10:40</time>
+   <depth>9.77</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>10:50</time>
+   <depth>10.11</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>11:00</time>
+   <depth>10.10</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>11:10</time>
+   <depth>10.10</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>11:20</time>
+   <depth>9.95</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>11:30</time>
+   <depth>10.54</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>11:40</time>
+   <depth>10.57</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>11:50</time>
+   <depth>10.37</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>12:00</time>
+   <depth>9.83</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>12:10</time>
+   <depth>10.23</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>12:20</time>
+   <depth>9.86</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>12:30</time>
+   <depth>10.14</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>12:40</time>
+   <depth>10.24</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>12:50</time>
+   <depth>10.29</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>13:00</time>
+   <depth>10.84</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>13:10</time>
+   <depth>10.74</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>13:20</time>
+   <depth>10.43</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>13:30</time>
+   <depth>10.83</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>13:40</time>
+   <depth>10.69</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>13:50</time>
+   <depth>10.59</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>14:00</time>
+   <depth>10.86</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>14:10</time>
+   <depth>11.08</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>14:20</time>
+   <depth>10.99</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>14:30</time>
+   <depth>10.84</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>14:40</time>
+   <depth>10.96</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>14:50</time>
+   <depth>10.95</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>15:00</time>
+   <depth>11.35</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>15:10</time>
+   <depth>10.81</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>15:20</time>
+   <depth>10.74</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>15:30</time>
+   <depth>10.73</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>15:40</time>
+   <depth>10.93</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>15:50</time>
+   <depth>10.91</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>16:00</time>
+   <depth>10.84</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>16:10</time>
+   <depth>10.51</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>16:20</time>
+   <depth>10.49</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>16:30</time>
+   <depth>10.17</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>16:40</time>
+   <depth>10.39</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>16:50</time>
+   <depth>10.45</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>17:00</time>
+   <depth>10.78</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>17:10</time>
+   <depth>10.58</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>17:20</time>
+   <depth>10.64</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>17:30</time>
+   <depth>10.80</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>17:40</time>
+   <depth>10.70</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>17:50</time>
+   <depth>10.85</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>18:00</time>
+   <depth>11.12</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>18:10</time>
+   <depth>11.19</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>18:20</time>
+   <depth>11.06</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>18:30</time>
+   <depth>10.86</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>18:40</time>
+   <depth>10.92</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>18:50</time>
+   <depth>10.53</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>19:00</time>
+   <depth>10.99</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>19:10</time>
+   <depth>11.25</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>19:20</time>
+   <depth>11.30</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>19:30</time>
+   <depth>11.18</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>19:40</time>
+   <depth>11.53</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>19:50</time>
+   <depth>11.68</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>20:00</time>
+   <depth>11.89</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>20:10</time>
+   <depth>11.96</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>20:20</time>
+   <depth>11.93</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>20:30</time>
+   <depth>12.27</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>20:40</time>
+   <depth>12.95</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>20:50</time>
+   <depth>12.81</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>21:00</time>
+   <depth>12.78</depth>
+   <temperature>17.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>21:10</time>
+   <depth>12.61</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>21:20</time>
+   <depth>13.13</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>21:30</time>
+   <depth>13.02</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>21:40</time>
+   <depth>13.48</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>21:50</time>
+   <depth>13.25</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>22:00</time>
+   <depth>12.90</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>22:10</time>
+   <depth>13.13</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>22:20</time>
+   <depth>12.69</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>22:30</time>
+   <depth>12.86</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>22:40</time>
+   <depth>12.40</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>22:50</time>
+   <depth>13.05</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>23:00</time>
+   <depth>12.45</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>23:10</time>
+   <depth>12.09</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>23:20</time>
+   <depth>12.64</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>23:30</time>
+   <depth>12.07</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>23:40</time>
+   <depth>11.76</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>23:50</time>
+   <depth>11.77</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>24:00</time>
+   <depth>11.74</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>24:10</time>
+   <depth>11.75</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>24:20</time>
+   <depth>11.66</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>24:30</time>
+   <depth>11.78</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>24:40</time>
+   <depth>11.64</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>24:50</time>
+   <depth>11.53</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>25:00</time>
+   <depth>11.73</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>25:10</time>
+   <depth>12.05</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>25:20</time>
+   <depth>11.50</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>25:30</time>
+   <depth>11.37</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>25:40</time>
+   <depth>11.19</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>25:50</time>
+   <depth>11.26</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>26:00</time>
+   <depth>11.39</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>26:10</time>
+   <depth>10.93</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>26:20</time>
+   <depth>10.49</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>26:30</time>
+   <depth>10.45</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>26:40</time>
+   <depth>10.54</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>26:50</time>
+   <depth>10.39</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>27:00</time>
+   <depth>9.73</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>27:10</time>
+   <depth>11.44</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>27:20</time>
+   <depth>10.96</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>27:30</time>
+   <depth>10.99</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>27:40</time>
+   <depth>11.07</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>27:50</time>
+   <depth>11.34</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>28:00</time>
+   <depth>11.28</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>28:10</time>
+   <depth>11.22</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>28:20</time>
+   <depth>11.20</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>28:30</time>
+   <depth>10.94</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>28:40</time>
+   <depth>10.78</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>28:50</time>
+   <depth>9.93</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>29:00</time>
+   <depth>9.84</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>29:10</time>
+   <depth>10.36</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>29:20</time>
+   <depth>10.17</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>29:30</time>
+   <depth>10.36</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>29:40</time>
+   <depth>10.47</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>29:50</time>
+   <depth>10.17</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>30:00</time>
+   <depth>10.35</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>30:10</time>
+   <depth>9.49</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>30:20</time>
+   <depth>9.18</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>30:30</time>
+   <depth>9.51</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>30:40</time>
+   <depth>10.29</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>30:50</time>
+   <depth>9.51</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>31:00</time>
+   <depth>9.09</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>31:10</time>
+   <depth>8.59</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>31:20</time>
+   <depth>8.93</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>31:30</time>
+   <depth>8.54</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>31:40</time>
+   <depth>8.91</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>31:50</time>
+   <depth>9.28</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>32:00</time>
+   <depth>9.32</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>32:10</time>
+   <depth>9.55</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>32:20</time>
+   <depth>9.51</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>32:30</time>
+   <depth>9.02</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>32:40</time>
+   <depth>8.46</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>32:50</time>
+   <depth>8.61</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>33:00</time>
+   <depth>7.98</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>33:10</time>
+   <depth>8.09</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>33:20</time>
+   <depth>7.82</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>33:30</time>
+   <depth>7.88</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>33:40</time>
+   <depth>7.48</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>33:50</time>
+   <depth>7.26</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>34:00</time>
+   <depth>7.89</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>34:10</time>
+   <depth>7.56</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>34:20</time>
+   <depth>8.12</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>34:30</time>
+   <depth>8.37</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>34:40</time>
+   <depth>8.53</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>34:50</time>
+   <depth>8.38</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>35:00</time>
+   <depth>8.52</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>35:10</time>
+   <depth>8.81</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>35:20</time>
+   <depth>8.27</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>35:30</time>
+   <depth>8.70</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>35:40</time>
+   <depth>8.49</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>35:50</time>
+   <depth>8.59</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>36:00</time>
+   <depth>8.64</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>36:10</time>
+   <depth>8.42</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>36:20</time>
+   <depth>8.32</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>36:30</time>
+   <depth>8.33</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>36:40</time>
+   <depth>8.21</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>36:50</time>
+   <depth>8.64</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>37:00</time>
+   <depth>8.27</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>37:10</time>
+   <depth>8.43</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>37:20</time>
+   <depth>8.27</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>37:30</time>
+   <depth>8.37</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>37:40</time>
+   <depth>8.08</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>37:50</time>
+   <depth>7.95</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>38:00</time>
+   <depth>7.96</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>38:10</time>
+   <depth>7.30</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>38:20</time>
+   <depth>7.88</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>38:30</time>
+   <depth>7.38</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>38:40</time>
+   <depth>7.31</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>38:50</time>
+   <depth>6.66</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>39:00</time>
+   <depth>7.49</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>39:10</time>
+   <depth>6.68</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>39:20</time>
+   <depth>8.25</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>39:30</time>
+   <depth>7.13</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>39:40</time>
+   <depth>6.95</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>39:50</time>
+   <depth>6.28</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>40:00</time>
+   <depth>7.56</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>40:10</time>
+   <depth>7.16</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>40:20</time>
+   <depth>7.77</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>40:30</time>
+   <depth>8.43</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>40:40</time>
+   <depth>8.82</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>40:50</time>
+   <depth>8.20</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>41:00</time>
+   <depth>7.81</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>41:10</time>
+   <depth>7.61</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>41:20</time>
+   <depth>7.76</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>41:30</time>
+   <depth>7.67</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>41:40</time>
+   <depth>8.01</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>41:50</time>
+   <depth>7.99</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>42:00</time>
+   <depth>7.56</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>42:10</time>
+   <depth>7.69</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>42:20</time>
+   <depth>6.99</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>42:30</time>
+   <depth>7.23</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>42:40</time>
+   <depth>7.41</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>42:50</time>
+   <depth>7.20</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>43:00</time>
+   <depth>7.36</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>43:10</time>
+   <depth>7.29</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>43:20</time>
+   <depth>7.22</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>43:30</time>
+   <depth>7.15</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>43:40</time>
+   <depth>7.12</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>43:50</time>
+   <depth>7.69</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>44:00</time>
+   <depth>6.68</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>44:10</time>
+   <depth>6.42</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>44:20</time>
+   <depth>6.15</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>44:30</time>
+   <depth>6.09</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>44:40</time>
+   <depth>5.04</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>44:50</time>
+   <depth>5.60</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>45:00</time>
+   <depth>5.20</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>45:10</time>
+   <depth>5.46</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>45:20</time>
+   <depth>4.62</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>45:30</time>
+   <depth>2.83</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>45:40</time>
+   <depth>2.99</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>45:50</time>
+   <depth>3.96</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>46:00</time>
+   <depth>3.87</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>46:10</time>
+   <depth>4.34</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>46:20</time>
+   <depth>4.86</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>46:30</time>
+   <depth>4.70</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>46:40</time>
+   <depth>4.76</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>46:50</time>
+   <depth>5.26</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>47:00</time>
+   <depth>5.08</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>47:10</time>
+   <depth>5.97</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>47:20</time>
+   <depth>5.61</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>47:30</time>
+   <depth>5.62</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>47:40</time>
+   <depth>4.96</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>47:50</time>
+   <depth>4.36</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>48:00</time>
+   <depth>4.11</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>48:10</time>
+   <depth>4.13</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>48:20</time>
+   <depth>3.60</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>48:30</time>
+   <depth>2.83</depth>
+   <temperature>18.00</temperature>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+<sample>
+   <time>48:40</time>
+   <depth>2.01</depth>
+   <temperature>18.00</temperature>
+   <event type="9" time="7" flags="0" value="0">surface</event>
+   <deco time="0" depth="0.00">ndl</deco>
+</sample>
+</dive>
+</device>
