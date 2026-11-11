@@ -1,6 +1,6 @@
 # Shylog build plan
 
-This plan turns `docs/SPEC.md` into milestones that each fit one working session. It follows the spec's Build order (scaffold, core, server, deploy, read-only app, editing, UDDF export, import, offline, statistics) and splits the larger steps. Import and offline were moved ahead of statistics on 1 November 2026, so the app is usable for real logging before the statistics are built. A milestone is done only when typecheck, lint and its tests pass and its acceptance criteria below are met, with evidence shown (test output, screenshots).
+This plan turns `docs/SPEC.md` into milestones that each fit one working session. It follows the spec's Build order (scaffold, core, server, deploy, read-only app, editing, UDDF export, import, offline, logging, direct download, statistics) and splits the larger steps. Import and offline were moved ahead of statistics on 1 November 2026, so the app is usable for real logging before the statistics are built, and logging and direct download followed on 11 November 2026, so the Subsurface step goes away sooner and the download's failures are logged from the start. A milestone is done only when typecheck, lint and its tests pass and its acceptance criteria below are met, with evidence shown (test output, screenshots).
 
 Conventions used throughout:
 
@@ -101,11 +101,11 @@ Where a board shows something the spec does not and no decision above covers it,
 | 17 | 8 | Import: screens | 15, 16 |
 | 18 | 9 | Offline: service worker, sync states, storage | 11, 17 (the Import screen's offline state) |
 | 19 | 9 | Offline: update flow, queue export, end-to-end tests | 18 |
-| 20 | 10 | Statistics: figures and charts | 9, 18 (the stats chunk offline) |
-| 21 | 10 | Statistics: patterns | 20 |
-| 22 | 11 | Logging: structured server log, request ids, the app's errors | 7 |
-| 23 | 12 | Direct download from the dive computer | 7, 17 |
-| 24 | 13 | Dive-number milestones | 10, 20 (the Records card) |
+| 20 | 10 | Logging: structured server log, request ids, the app's errors | 7 |
+| 21 | 11 | Direct download from the dive computer | 7, 17, 20 (its log lines) |
+| 22 | 12 | Statistics: figures and charts | 9, 18 (the stats chunk offline) |
+| 23 | 12 | Statistics: patterns | 22 |
+| 24 | 13 | Dive-number milestones | 10, 22 (the Records card) |
 | 25 | 14 | Packing checklist | 11 |
 
 ---
@@ -240,7 +240,7 @@ Deferred, or to watch:
 - `likely-same.test.ts`: the four conditions, each with a passing and a failing pair, using fixture dive 63 against hand-logged variants.
 - `fast-check` is optional; use it only where it shortens a test.
 
-**Not in this milestone**: statistics (milestones 20 and 21), pattern rules, anything touching XML in production code.
+**Not in this milestone**: statistics (milestones 22 and 23), pattern rules, anything touching XML in production code.
 
 - [x] Depth to pressure, surface threshold, water density
 - [x] Z factor and SAC
@@ -918,7 +918,7 @@ Deferred, or to watch:
 - The reader doesn't read sites (the spec's site matching on apply), the raw dive fragment for `import_raw`, or standard elements Shylog doesn't model; milestone 16 needs all three. The "empty site link, dummy divebase and empty divetrip are ignored" bullet holds because none of them is read yet.
 - `abroad.uddf` never puts a dive on another date on the computer's clock; milestone 15 may want such a case for per-day offsets.
 - The seed still stores only the fields it did (no weight, notes or tank data from the file), as the apply step will define how those become computer values.
-- Carried over from milestone 13: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the export's xmldom re-parse at about 1,000 dives (3–5 s); the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 22). From milestone 12 and earlier: the viewer and reorder gestures, the photo picker and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days.
+- Carried over from milestone 13: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the export's xmldom re-parse at about 1,000 dives (3–5 s); the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 20). From milestone 12 and earlier: the viewer and reorder gestures, the photo picker and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days.
 
 ## Milestone 15: Import, preview, clock offsets and pairing
 
@@ -959,7 +959,7 @@ Deferred, or to watch:
 
 - Apply has to return "the dives changed since the preview", but `basedOnVersion` is a random id that can't name them. Record the journal's `MAX(seq)` with the preview and scan later entries, or snapshot the paired hand dives' figures; previews are scratch, so their shape can change freely.
 - The import-route bullet's "needs a connection" is the app's job (milestone 17's offline state); the server can't test it.
-- Carried over from milestone 14: Subsurface links no dive to its computer, so a two-computer export gives a null model; the reader doesn't read sites, the raw fragment or standard elements Shylog doesn't model (milestone 16); a dive with depth or duration 0 still refuses the whole file; the seed stores only the fields it did. From milestone 13 and earlier: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the export's xmldom re-parse at about 1,000 dives (3–5 s); the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 22); the viewer and reorder gestures, the photo picker and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days.
+- Carried over from milestone 14: Subsurface links no dive to its computer, so a two-computer export gives a null model; the reader doesn't read sites, the raw fragment or standard elements Shylog doesn't model (milestone 16); a dive with depth or duration 0 still refuses the whole file; the seed stores only the fields it did. From milestone 13 and earlier: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the export's xmldom re-parse at about 1,000 dives (3–5 s); the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 20); the viewer and reorder gestures, the photo picker and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days.
 
 ## Milestone 16: Import, apply, fingerprints and pass-through export
 
@@ -1001,7 +1001,7 @@ Deferred, or to watch:
 - Milestone 17's review must send `revision`, handle `changed` (re-fetch the pending preview) and `failed` (retry), show the Unknown site, and name the unsupported gas as air.
 - Each imported dive costs about 1.5 ms of export time for its fragment (190 dives: 353 ms, against 76 ms without), on top of the re-parse noted at about 1,000 dives. Each `importChunk` entry carries the samples and the fragment, so the journal grows by roughly the export's size per import.
 - The seed still stores only the fields it did, rather than going through apply.
-- Carried over from milestone 15: a dive with depth or duration 0 still refuses the whole file; Subsurface links no dive to its computer, so a two-computer export gives a null model. From milestone 13 and earlier: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 22); the viewer and reorder gestures, the photo picker and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days.
+- Carried over from milestone 15: a dive with depth or duration 0 still refuses the whole file; Subsurface links no dive to its computer, so a two-computer export gives a null model. From milestone 13 and earlier: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 20); the viewer and reorder gestures, the photo picker and a card opened offline after a sync, all to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers, Node and Tailscale bumps, `minimumReleaseAge` to seven days.
 
 ## Milestone 17: Import, screens
 
@@ -1048,7 +1048,7 @@ Deferred, or to watch:
 - To check on the phone: the native day picker in the clock sheet, the file picker with a `.uddf` from Files, the sticky review footer over the home bar, and the back label falling back to "Back" on the entity screens.
 - "Show dives from other days" offers the export's other hand-logged dives and any dive without a profile within two days; the log doesn't say which dives have a fingerprint, so a dive with a profile stands for one and the server refuses any it gets wrong.
 - The review lists every new dive flat, as the board does; a file of hundreds of new dives (a first import) is a long list. Day headings could come later.
-- Carried over from milestone 16: a dive with depth or duration 0 still refuses the whole file; a two-computer export gives a null model; each imported dive costs about 1.5 ms of export time for its fragment; the seed doesn't go through apply. From milestone 13 and earlier: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 22); the card gestures, photo picker and offline card to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers (the import test's deleted dives join them), Node and Tailscale bumps, `minimumReleaseAge` to seven days.
+- Carried over from milestone 16: a dive with depth or duration 0 still refuses the whole file; a two-computer export gives a null model; each imported dive costs about 1.5 ms of export time for its fragment; the seed doesn't go through apply. From milestone 13 and earlier: the Download rows from the installed app and the snapshot and `text/csv` share sheets to try on the phone; the two export renames not atomic as a pair; the faint keyboard focus ring in Chromium's light theme; server logging (milestone 20); the card gestures, photo picker and offline card to check on the phone; offline guards on card add, edit and delete (milestone 18); the Log count's width snap, `log.spec.ts`'s flaky scroll test in WebKit, the e2e `@writes` leftovers (the import test's deleted dives join them), Node and Tailscale bumps, `minimumReleaseAge` to seven days.
 
 ## Milestone 18: Offline, service worker, sync states, storage
 
@@ -1141,62 +1141,11 @@ Deferred, or to watch:
 - With two tabs open, the sync card's title follows the tab's own log until it syncs, while the row and the offer follow the queue.
 - Carried over from milestone 18: the phone checks listed there (offline cold launch, Home Screen name, status bar, cold-launch blur, persistence, launch time and bytes, fold frame rates), a renamed instance's old Home Screen name, and the built stack's build in every shard; from milestone 17 and earlier as listed there.
 
-## Milestone 20: Statistics, figures and charts
-
-**Goal**: the Statistics screen shows every figure and chart in the spec's table for the chosen year, lazily loaded, cached until the log changes, with the early-days states.
-
-**Implements**: Statistics (table, Records and milestones, Early days, Averages, SAC rate trend), the lazy chunk rule, decision D24. Screens: `StatsHifi` (all cards except Patterns), `StatsEmptyHifi` (2 dives and no dives).
-
-**Touches**: `apps/web/src/stats/` (lazy chunk: `figures.ts`, `charts/` on shadcn charts, `StatsScreen.tsx`, table alternatives), `apps/web/src/stats/cache.ts` (keyed by log version and year), tests.
-
-**Acceptance**
-
-The figures below were worked out before the Import milestones. Milestone 14 grows the seed's sample reader into the full reader, which can change what the seed stores (temperatures from the samples, D10; the computer's average depth), so re-derive them against the seed before writing the tests.
-
-- `figures.test.ts`: on the seeded fixture (42 scuba dives), totals, deepest (dive 54, 42.3 m), longest (dive 50, 72 min), plain-mean average depth and duration, dives per month for 2026 and per year, depth bands (0 to 10, 10 to 18, 18 to 30, over 30), time of day (before 11:00, 11:00 to 14:00, 14:00 to 18:00, after 18:00), water range from min and max fields; average SAC is duration-weighted and drops 0.1 L/min or less; nitrox share and average nitrox oxygen (four of the 42 dives, average 32.3%); marking a dive ignored removes it from every figure and chart (D23).
-- `records.test.ts` (D24), all time on the seeded fixture unless stated: coldest dive 72 (12 °C), warmest dive 1 (25 °C, tied with dive 2, so a tie goes to the earlier dive; not dive 5, whose maximum of 29 °C is the highest); total depth descended 735.9 m, worded "You've descended Lion's Head" with "89% of the way to the Burj Khalifa"; synthetic totals for below the first rung (a share of the Leaning Tower of Pisa), exactly on a rung, "twice" and "3 times", and past the last rung; the landmark list is strictly ascending; longest streaks of 6 days (17 to 22 July 2026) and 4 weeks (4 to 25 April 2026), two dives on one day counting once, and a running streak marked as such; anniversary "7 years diving, since 10 February 2019" with the clock at 19 October 2026, the "today" wording on 10 February, months under a year, unchanged by the year filter; an ignored first dive moves the anniversary to the next dive.
-- `trend.test.ts`: the rolling average of the last five dives, only dives with a SAC and not ignored, in date order.
-- `stats.spec.ts`: the year chip switches every figure; below five dives the screen shows totals, records and the "More after 5 dives" progress; with no dives the empty state and "Log a dive"; each chart has a table alternative; the chunk is separate in `dist`, not loaded on the Log, precached by the service worker and works offline; `pointerdown` on the Stats tab starts loading the chunk (`preload="intent"`), so a tap doesn't wait on it.
-- Tap-to-content time for Statistics on the owner's phone, first visit and cached, is recorded in the notes against the performance target.
-- Screenshots of Statistics (2026 and all time), the 2-dive and 0-dive states at 390 px against the boards.
-
-**Not in this milestone**: patterns (milestone 21).
-
-- [ ] Figures with the Subsurface averaging rules
-- [ ] Records and milestones: coldest and warmest, depth descended against the landmark ladder, day and week streaks, anniversary (D24)
-- [ ] Charts: dives per month or year, SAC trend, depth bands, conditions bars, weather and surface, time of day, gas, entry, sites, buddies, regions, tags
-- [ ] Early-days and empty states
-- [ ] Cache keyed by version and year
-- [ ] Tests and screenshots listed above
-
-## Milestone 21: Statistics, patterns
-
-**Goal**: the Patterns section shows the top three findings that clear the bar from the full catalogue, with an All patterns list and a drill-down.
-
-**Implements**: Patterns (Computing, Rule types, Catalogue, The bar, Choosing and showing).
-
-**Touches**: `apps/web/src/stats/patterns/` (`rules/` one file per rule type, `catalogue.ts`, `score.ts`, `wording.ts`, `PatternsCard.tsx`, `AllPatterns.tsx`, `PatternDetail.tsx`), tests with synthetic logs.
-
-**Acceptance**
-
-- `rules.test.ts`: a Difference rule needs five dives per group and finds the best adjacent-level split; a Threshold rule scans whole-number cut-offs and words "4 of 5 dives" when not all match; Change compares with the previous year or the two halves of the log; Trend uses a linear fit; Habit needs 60% over ten dives; Season needs a region and month; Records always qualify; minimum effect sizes per measure as listed; ignored dives never enter a group or a record (D23).
-- `score.test.ts`: score is effect over minimum times √(smallest group); ties break by rule id; the top three has at most one per measure and one per field and never a record.
-- `wording.test.ts`: describes rather than explains ("is higher in", never "because of"); numbers rounded as elsewhere.
-- `patterns.spec.ts`: a seeded log that supports two patterns shows exactly those two; All patterns groups by measure; tapping shows the groups and opens those dives in the Log; with none qualifying the section is hidden.
-
-**Not in this milestone**: new rules beyond the catalogue; this closes the Statistics step and v1.
-
-- [ ] Rule types
-- [ ] Catalogue of measures and fields
-- [ ] Bar, scoring, selection
-- [ ] Wording, All patterns, drill-down to the Log
-- [ ] Tests listed above
-
-## Milestone 22: Logging
+## Milestone 20: Logging
 
 **Goal**: the server's log says what happened, one JSON line per event on stdout, so a shipper can put it in Loki and someone (or an agent with Loki access) can follow a problem from the phone's request to the server and back.
 
-**Implements**: Server (Logging), Endpoint `POST /api/client-log`, Build order step 11. Decided with the owner on 2 November 2026: pino; `/api` requests only, with the polled `/api/version` and `/api/health` at debug; the phone's errors in the same log; Shylog writes stdout and a README note, and the shipper's configuration lives with the home server, not in this repo.
+**Implements**: Server (Logging), Endpoint `POST /api/client-log`, Build order step 10. Decided with the owner on 2 November 2026: pino; `/api` requests only, with the polled `/api/version` and `/api/health` at debug; the phone's errors in the same log; Shylog writes stdout and a README note, and the shipper's configuration lives with the home server, not in this repo.
 
 **Touches**: `apps/server/src/log.ts` (the pino logger with `instance` and `version`, error serialising, redaction), a request-log middleware in `app.ts` (request id from `X-Request-Id` or a new one, echoed in the response, a child logger on the context), the nightly job, integrity, `onError`, refused writes (`Rejected`) and the security checks, `apps/server/src/routes/client-log.ts`, `apps/web/src/api/client.ts` (an `X-Request-Id` on every call), `apps/web/src/data/client-log.ts` (reporting the app's errors), `README.md` (logs and example LogQL queries), tests. The `console.*` calls in the server's long-running code move to the logger; the CLI keeps printing for a person.
 
@@ -1218,11 +1167,11 @@ The figures below were worked out before the Import milestones. Milestone 14 gro
 - [ ] README note and LogQL examples
 - [ ] Tests listed above
 
-## Milestone 23: Direct download from the dive computer
+## Milestone 21: Direct download from the dive computer
 
 **Goal**: with the watch on its USB cable at the home server, the Import screen offers to download it, and the dives newer than the last confirmed download go into the usual review, so the Subsurface step goes away. The UDDF upload stays.
 
-**Implements**: Subsurface import (Downloading from the dive computer), Instance configuration (Dive computer cable), Build order step 12, decision D51.
+**Implements**: Subsurface import (Downloading from the dive computer), Instance configuration (Dive computer cable), Build order step 11, decision D51.
 
 **First, a spike on the server** (before any code): a throwaway image with `dctool` from a pinned libdivecomputer release, which the owner runs on the home server with the D4i and then the Zoop Novo. It confirms that the cable appears (and the udev rule's fixed name), that a container started before the cable was plugged in can open it as the image's user, the family name `dctool` wants, how long identifying the watch takes, and that a full raw download and `dctool parse` both work. Most of all it checks that the downloaded dives get the same fingerprints as in the Subsurface fixtures (`fixtures/subsurface/d4i-2026-10-12.uddf` and `zoop-novo-2026-11-01.uddf`) for the dives both hold. The raw downloads and their parsed XML become fixtures. If the fingerprints differ, the rule is settled with the owner before going on.
 
@@ -1270,6 +1219,57 @@ The figures below were worked out before the Import milestones. Milestone 14 gro
 - [ ] Import screen and Forget
 - [ ] The moment a stop becomes mandatory, recorded on downloaded dives
 - [ ] README
+- [ ] Tests listed above
+
+## Milestone 22: Statistics, figures and charts
+
+**Goal**: the Statistics screen shows every figure and chart in the spec's table for the chosen year, lazily loaded, cached until the log changes, with the early-days states.
+
+**Implements**: Statistics (table, Records and milestones, Early days, Averages, SAC rate trend), the lazy chunk rule, decision D24. Screens: `StatsHifi` (all cards except Patterns), `StatsEmptyHifi` (2 dives and no dives).
+
+**Touches**: `apps/web/src/stats/` (lazy chunk: `figures.ts`, `charts/` on shadcn charts, `StatsScreen.tsx`, table alternatives), `apps/web/src/stats/cache.ts` (keyed by log version and year), tests.
+
+**Acceptance**
+
+The figures below were worked out before the Import milestones. Milestone 14 grows the seed's sample reader into the full reader, which can change what the seed stores (temperatures from the samples, D10; the computer's average depth), so re-derive them against the seed before writing the tests.
+
+- `figures.test.ts`: on the seeded fixture (42 scuba dives), totals, deepest (dive 54, 42.3 m), longest (dive 50, 72 min), plain-mean average depth and duration, dives per month for 2026 and per year, depth bands (0 to 10, 10 to 18, 18 to 30, over 30), time of day (before 11:00, 11:00 to 14:00, 14:00 to 18:00, after 18:00), water range from min and max fields; average SAC is duration-weighted and drops 0.1 L/min or less; nitrox share and average nitrox oxygen (four of the 42 dives, average 32.3%); marking a dive ignored removes it from every figure and chart (D23).
+- `records.test.ts` (D24), all time on the seeded fixture unless stated: coldest dive 72 (12 °C), warmest dive 1 (25 °C, tied with dive 2, so a tie goes to the earlier dive; not dive 5, whose maximum of 29 °C is the highest); total depth descended 735.9 m, worded "You've descended Lion's Head" with "89% of the way to the Burj Khalifa"; synthetic totals for below the first rung (a share of the Leaning Tower of Pisa), exactly on a rung, "twice" and "3 times", and past the last rung; the landmark list is strictly ascending; longest streaks of 6 days (17 to 22 July 2026) and 4 weeks (4 to 25 April 2026), two dives on one day counting once, and a running streak marked as such; anniversary "7 years diving, since 10 February 2019" with the clock at 19 October 2026, the "today" wording on 10 February, months under a year, unchanged by the year filter; an ignored first dive moves the anniversary to the next dive.
+- `trend.test.ts`: the rolling average of the last five dives, only dives with a SAC and not ignored, in date order.
+- `stats.spec.ts`: the year chip switches every figure; below five dives the screen shows totals, records and the "More after 5 dives" progress; with no dives the empty state and "Log a dive"; each chart has a table alternative; the chunk is separate in `dist`, not loaded on the Log, precached by the service worker and works offline; `pointerdown` on the Stats tab starts loading the chunk (`preload="intent"`), so a tap doesn't wait on it.
+- Tap-to-content time for Statistics on the owner's phone, first visit and cached, is recorded in the notes against the performance target.
+- Screenshots of Statistics (2026 and all time), the 2-dive and 0-dive states at 390 px against the boards.
+
+**Not in this milestone**: patterns (milestone 23).
+
+- [ ] Figures with the Subsurface averaging rules
+- [ ] Records and milestones: coldest and warmest, depth descended against the landmark ladder, day and week streaks, anniversary (D24)
+- [ ] Charts: dives per month or year, SAC trend, depth bands, conditions bars, weather and surface, time of day, gas, entry, sites, buddies, regions, tags
+- [ ] Early-days and empty states
+- [ ] Cache keyed by version and year
+- [ ] Tests and screenshots listed above
+
+## Milestone 23: Statistics, patterns
+
+**Goal**: the Patterns section shows the top three findings that clear the bar from the full catalogue, with an All patterns list and a drill-down.
+
+**Implements**: Patterns (Computing, Rule types, Catalogue, The bar, Choosing and showing).
+
+**Touches**: `apps/web/src/stats/patterns/` (`rules/` one file per rule type, `catalogue.ts`, `score.ts`, `wording.ts`, `PatternsCard.tsx`, `AllPatterns.tsx`, `PatternDetail.tsx`), tests with synthetic logs.
+
+**Acceptance**
+
+- `rules.test.ts`: a Difference rule needs five dives per group and finds the best adjacent-level split; a Threshold rule scans whole-number cut-offs and words "4 of 5 dives" when not all match; Change compares with the previous year or the two halves of the log; Trend uses a linear fit; Habit needs 60% over ten dives; Season needs a region and month; Records always qualify; minimum effect sizes per measure as listed; ignored dives never enter a group or a record (D23).
+- `score.test.ts`: score is effect over minimum times √(smallest group); ties break by rule id; the top three has at most one per measure and one per field and never a record.
+- `wording.test.ts`: describes rather than explains ("is higher in", never "because of"); numbers rounded as elsewhere.
+- `patterns.spec.ts`: a seeded log that supports two patterns shows exactly those two; All patterns groups by measure; tapping shows the groups and opens those dives in the Log; with none qualifying the section is hidden.
+
+**Not in this milestone**: new rules beyond the catalogue; this closes the Statistics step and v1.
+
+- [ ] Rule types
+- [ ] Catalogue of measures and fields
+- [ ] Bar, scoring, selection
+- [ ] Wording, All patterns, drill-down to the Log
 - [ ] Tests listed above
 
 ## Milestone 24: Dive-number milestones
