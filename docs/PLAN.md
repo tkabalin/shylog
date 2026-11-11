@@ -1160,12 +1160,30 @@ Deferred, or to watch:
 
 **Not in this milestone**: metrics, tracing, alerting, and the Alloy or Loki configuration, which belongs to the home server's own setup.
 
-- [ ] Logger with instance, version, error serialising and redaction
-- [ ] Request log with request ids, quiet polls
-- [ ] Nightly, integrity, refusal and error lines
-- [ ] `POST /api/client-log` and the app's error reports
-- [ ] README note and LogQL examples
-- [ ] Tests listed above
+- [x] Logger with instance, version, error serialising and redaction
+- [x] Request log with request ids, quiet polls
+- [x] Nightly, integrity, refusal and error lines
+- [x] `POST /api/client-log` and the app's error reports
+- [x] README note and LogQL examples
+- [x] Tests listed above
+
+**Notes for the next session** (written 11 November 2026, branch `feat/logging`)
+
+Decisions taken while building:
+
+- pino 10 writes level names and ISO times, without pino's `pid` and `hostname`. `instance` and `version` come from a mixin over a module variable that `configureLog` replaces, not pino's bindings (a second call appended duplicate keys, and returning a shared object leaked one line's fields into the next). A request's id travels in AsyncLocalStorage (`duringRequest`), so any line logged during it carries `requestId`.
+- Debug only in development; no level setting. At debug: `/api/version`, `/api/health`, an accepted `/api/client-log` report's request line, and the report limit's 429s.
+- Refusals log `Rejected.logged`, which is the message unless it names something: the two name-collision messages and a refusal failing an import chunk log a generic reason. The request line's `route` is the pattern of the handler that answered, null when a middleware refused.
+- Request ids match `requestIdPattern` in core's `ids.ts`, and the app makes them with core's `uuid()`, as `crypto.randomUUID()` needs a secure context.
+- `/api/client-log` is registered before the integrity pause, so reports still arrive while saving is paused, and its rate limit runs before the body is checked. The app reports failed syncs and uploads (no answer, including a body cut off mid-download, is Can't reach and not reported), refused drafts by id without the reason, lazy chunks (`preloadable`, the chart loader), screens caught by an error boundary (React's `onCaughtError`: TanStack's `defaultOnCatch` never runs without a route error component), and window errors and unhandled rejections. One message is sent once a minute; nothing is sent offline or queued.
+- The CLI writes the server's lines to stderr. Server tests drop log lines except errors and read them with `captureLog()` (`test/log.ts`); web tests stub `reportError` and `startErrorReports` in `src/test-setup.ts`, and `client-log.test.ts` unmocks them.
+
+Deferred, or to watch:
+
+- The owner's call: a server answering 5xx to `/api/log` still shows Can't reach and retries every few seconds, as before this branch.
+- On the server after deploying: the JSON lines in `docker compose logs app`, Docker's log rotation (`log-opts`), and a shipper such as Alloy, configured with the home server.
+- Any message an uncaught error carries goes in its report; no current path rejects with a site name unhandled, so keep content-bearing errors handled.
+- Carried over from milestone 19: on the phone, the update toast after a deploy on the installed app, the `application/json` share sheet for the waiting dives file, toasts above the Log's button in portrait and landscape; the update toast's 63px drop over the dive form; a second tab's sync card title; from milestone 18 and earlier as listed there.
 
 ## Milestone 21: Direct download from the dive computer
 
