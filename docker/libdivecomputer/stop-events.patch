@@ -1,0 +1,36 @@
+Reports the Suunto D9 family's safety stop events, for libdivecomputer 0.9.0.
+
+The D9 parser reads when a voluntary or mandatory safety stop begins and
+ends, but upstream has reported them as no event since 2017, leaving only
+the deco state on the samples. Shylog records the moment a stop becomes
+mandatory (issue #80), so the image's dctool is built with this patch
+(patch -p1) to report them.
+
+--- a/src/suunto_d9_parser.c
++++ b/src/suunto_d9_parser.c
+@@ -597,14 +597,14 @@
+ 					seconds = data[offset + 1];
+ 					switch (type & 0x7F) {
+ 					case 0x00: // Voluntary Safety Stop
+-						sample.event.type = SAMPLE_EVENT_NONE;
++						sample.event.type = SAMPLE_EVENT_SAFETYSTOP_VOLUNTARY;
+ 						if (type & 0x80)
+ 							in_deco &= ~SAFETYSTOP;
+ 						else
+ 							in_deco |= SAFETYSTOP;
+ 						break;
+ 					case 0x01: // Mandatory Safety Stop - odd concept; model as deco stop
+-						sample.event.type = SAMPLE_EVENT_NONE;
++						sample.event.type = SAMPLE_EVENT_SAFETYSTOP_MANDATORY;
+ 						if (type & 0x80)
+ 							in_deco &= ~DECOSTOP;
+ 						else
+@@ -675,7 +675,7 @@
+ 							in_deco |= DEEPSTOP;
+ 						break;
+ 					case 0x14: // Mandatory Safety Stop - again, model as deco stop
+-						sample.event.type = SAMPLE_EVENT_NONE;
++						sample.event.type = SAMPLE_EVENT_SAFETYSTOP_MANDATORY;
+ 						if (type & 0x80)
+ 							in_deco &= ~DECOSTOP;
+ 						else
