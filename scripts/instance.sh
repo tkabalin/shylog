@@ -1,11 +1,13 @@
 # Sourced by the other scripts with $instance set: checks the instance's env
 # file and defines `compose`. Compose lets the shell's variables win over
 # --env-file, so those the file sets are unset, lest one aim at another
-# instance.
+# instance, and so are Compose's own, so a COMPOSE_FILE left in the shell
+# can't give an instance the dive computer's cable.
 env_file=instances/$instance.env
 [[ -f $env_file ]] || { echo "No $env_file" >&2; exit 1; }
-unset_args=()
-while IFS='=' read -r key _; do
+unset_args=(-u COMPOSE_FILE -u COMPOSE_PROJECT_NAME)
+# A last line without a newline counts too.
+while IFS='=' read -r key _ || [[ -n $key ]]; do
   [[ $key =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] && unset_args+=(-u "$key")
 done <"$env_file"
 compose() { env "${unset_args[@]}" docker compose --env-file "$env_file" "$@"; }
