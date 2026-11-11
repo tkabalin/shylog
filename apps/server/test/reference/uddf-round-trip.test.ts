@@ -35,7 +35,7 @@ import { readUddf, type ProfileEvent } from "../../src/uddf/reader.ts"
 import { writeUddf } from "../../src/uddf/writer.ts"
 import { send, testApp } from "../app.ts"
 import { testDb } from "../db.ts"
-import { fuzzOptions } from "../fuzz.ts"
+import { fuzzOptions } from "../../../../packages/core/test/reference/fuzz.ts"
 import { uddfSchemaErrors } from "../uddf-schema.ts"
 import { readOnceAsSubsurface } from "./subsurface-uddf.ts"
 

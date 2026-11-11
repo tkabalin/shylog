@@ -5,7 +5,7 @@ import { beforeAll, describe, expect, it } from "vitest"
 import { send, testApp } from "../../test/app.ts"
 import { testDb } from "../../test/db.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
-import { fuzzOptions } from "../../test/fuzz.ts"
+import { fuzzOptions } from "../../../../packages/core/test/reference/fuzz.ts"
 import type { Db } from "../db/open.ts"
 import { mod, sacRate } from "@shylog/core"
 

@@ -26,13 +26,15 @@ import {
   speedBands,
   verticalSpeeds,
 } from "../../src/calc/velocity.ts"
+import { fuzzOptions } from "./fuzz.ts"
 import { startSubsurface } from "./subsurface.ts"
 
 // Core against Subsurface's own code (subsurface.cpp) on random dives, so
 // "follows Subsurface" holds for every input, not just the fixture's. Where
 // Shylog departs on purpose, the departure is applied to Subsurface's answer.
 
-const runs = 1000
+// Seeded like the server's fuzzers, so a red build is always the change's.
+const options = fuzzOptions(20261111, 1000)
 let subsurface: ReturnType<typeof startSubsurface>
 beforeAll(() => {
   subsurface = startSubsurface()
@@ -45,7 +47,7 @@ const ask = async (...words: (string | number)[]) =>
 const check = <T>(
   arbitrary: fc.Arbitrary<T>,
   test: (value: T) => Promise<void>
-) => fc.assert(fc.asyncProperty(arbitrary, test), { numRuns: runs })
+) => fc.assert(fc.asyncProperty(arbitrary, test), options)
 
 // Unrounded figures agree to about the last bit: V8's exp and pow can be one
 // unit off glibc's. Every figure Shylog shows is rounded and compared exactly.
