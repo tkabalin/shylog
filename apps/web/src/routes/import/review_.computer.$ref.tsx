@@ -190,9 +190,11 @@ function ComputerPairing() {
                 icon: IconPlayerSkipForward,
                 label: entry.reason ? "Leave out" : "Don’t import",
                 meta: entry.reason
-                  ? entry.reason === "freedive"
-                    ? "It looks like a freedive"
-                    : "It looks like a false start"
+                  ? {
+                      freedive: "It looks like a freedive",
+                      short: "It looks like a false start",
+                      earlier: "It’s from before your last download",
+                    }[entry.reason]
                   : `Leave this ${name} dive out`,
                 current: was?.kind === "skip",
                 on: choice.kind === "skip",

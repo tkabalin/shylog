@@ -2,6 +2,7 @@ import { createHash } from "node:crypto"
 
 import {
   newId,
+  unpairedReason,
   type ComputerDive,
   type DiveId,
   type ImportOffsetRequest,
@@ -18,7 +19,7 @@ import { currentVersion } from "../journal.ts"
 import { sparkline } from "../profile.ts"
 import { readUddf, UnreadableUddf, type ReadDive } from "../uddf/reader.ts"
 import { fingerprint } from "./fingerprint.ts"
-import { isShort, leftOut, type LeftOut } from "./freedive.ts"
+import { leftOut, type LeftOut } from "./freedive.ts"
 import { dateOf, estimateOffsets, planDays, shift } from "./offset.ts"
 import { nearestStartGap, pairDay, type HandDive } from "./pairing.ts"
 
@@ -38,6 +39,9 @@ export type StoredPreview = ImportPreview & {
   // Computer dives a failed apply's earlier chunks applied, which a retry
   // may still name.
   applied: string[]
+  // From a download: the watch, and its newest dive's start on its clock,
+  // which apply makes the next download's starting point.
+  download?: { serial: string; newest: string }
 }
 
 // Live dives no computer dive has been paired with, the only ones an
@@ -184,8 +188,14 @@ function readFile(xml: string) {
 }
 
 // Reads an export into a preview against the log as it is now. Computer
-// dives an earlier import fingerprinted are only counted.
-export function buildPreview(db: Db, xml: string, now: Date): ImportPreview {
+// dives an earlier import fingerprinted are only counted. `earlierThan` is
+// given (null when nothing came before) only for a download.
+export function buildPreview(
+  db: Db,
+  xml: string,
+  now: Date,
+  earlierThan?: string | null
+): ImportPreview {
   const read = readFile(xml)
   // A dive the file holds twice is the same computer dive, so the repeat
   // counts as imported, as apply could only fingerprint it once.
@@ -197,7 +207,9 @@ export function buildPreview(db: Db, xml: string, now: Date): ImportPreview {
     inFile.add(print)
     return true
   })
-  const reasons = new Map(fresh.map((dive) => [dive.ref, leftOut(dive)]))
+  const reasons = new Map(
+    fresh.map((dive) => [dive.ref, leftOut(dive, earlierThan)])
+  )
   const hands = handDives(db)
   const estimates = estimateOffsets(
     hands,
@@ -234,13 +246,19 @@ export function buildPreview(db: Db, xml: string, now: Date): ImportPreview {
     unpaired: proposals.flatMap((proposal) => proposal.unpaired),
     leftOut: proposals.flatMap((proposal) => proposal.leftOut),
     alreadyImported: read.length - fresh.length,
+    ...(earlierThan !== undefined && { earlierThan }),
   }
 }
 
 // Previews are scratch, not log data: they are written outside the journal
 // and change no version. One waits at a time, so a new upload replaces it.
-export function storePreview(db: Db, xml: string, now = new Date()) {
-  const preview = buildPreview(db, xml, now)
+export function storePreview(
+  db: Db,
+  xml: string,
+  now = new Date(),
+  download?: StoredPreview["download"] & { earlierThan: string | null }
+) {
+  const preview = buildPreview(db, xml, now, download?.earlierThan)
   const stored: StoredPreview = {
     ...preview,
     hands: handsOn(
@@ -249,6 +267,9 @@ export function storePreview(db: Db, xml: string, now = new Date()) {
     ),
     asked: [],
     applied: [],
+    ...(download && {
+      download: { serial: download.serial, newest: download.newest },
+    }),
   }
   db.transaction(() => {
     prepared(db, "DELETE FROM import_previews").run()
@@ -282,6 +303,7 @@ function forApp(stored: StoredPreview): ImportPreview {
   delete preview.hands
   delete preview.asked
   delete preview.applied
+  delete preview.download
   return preview as ImportPreview
 }
 
@@ -389,11 +411,11 @@ function proposeAgain(
   const others = <T extends { day: string }>(list: T[]) =>
     list.filter((item) => item.day !== date)
   const entries: Entry[] = [
-    // A paired dive is never a freedive, so a short one is a blip again
-    // if the new offset unpairs it.
+    // A paired dive is never a freedive, so a short or earlier one is left
+    // out again if the new offset unpairs it.
     ...preview.pairs.map(({ computerDive }) => ({
       ...computerDive,
-      reason: isShort(computerDive.duration) ? ("short" as const) : null,
+      reason: unpairedReason(computerDive, preview.earlierThan),
     })),
     ...preview.newDives.map((dive) => ({ ...dive, reason: null })),
     ...preview.leftOut,

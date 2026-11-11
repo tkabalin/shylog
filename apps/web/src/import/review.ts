@@ -1,9 +1,11 @@
 import {
   likelySame,
+  unpairedReason,
   type ComputerDive,
   type DiveId,
   type ImportApplyRequest,
   type ImportPreview,
+  type LeftOutReason,
 } from "@shylog/core"
 
 import type { Dive } from "@/data/db"
@@ -14,24 +16,28 @@ import { keyFields, type CompareKey } from "./compare"
 // The review of a preview (ImportReviewHifi): the choices the diver makes
 // on the phone, sent with apply, over what the server proposed.
 
-// What happens to one computer dive. For a left-out dive (a freedive or a
-// dive under five minutes) add means include it, and skip leaves it out,
-// which the server fingerprints so it isn't offered again.
+// What happens to one computer dive. For a left-out dive (a freedive, a
+// dive under five minutes, or one from before the last download) add means
+// include it, and skip leaves it out, which the server fingerprints so it
+// isn't offered again.
 export type Choice =
   { kind: "pair"; diveId: DiveId } | { kind: "add" } | { kind: "skip" }
 
 export type Overrides = Record<string, Choice>
 
-export type LeftOutReason = "freedive" | "short"
+export type { LeftOutReason }
+
+// Why a dive is left out, in a review row.
+export const leftOutLabels: Record<LeftOutReason, string> = {
+  freedive: "Freedive",
+  short: "Under 5 min",
+  earlier: "Earlier",
+}
 
 export interface Entry {
   dive: ComputerDive
   reason: LeftOutReason | null
 }
-
-// A paired computer dive under five minutes is a blip again once unpaired,
-// as the server treats it.
-const shortDive = 5 * 60
 
 // Every computer dive the review offers, by its ref, newest first, as the
 // Log lists dives.
@@ -39,7 +45,8 @@ export function entries(preview: ImportPreview) {
   const all: Entry[] = [
     ...preview.pairs.map(({ computerDive }) => ({
       dive: computerDive,
-      reason: computerDive.duration < shortDive ? ("short" as const) : null,
+      // Left out again once unpaired, as the server treats it.
+      reason: unpairedReason(computerDive, preview.earlierThan),
     })),
     ...preview.newDives.map((dive) => ({ dive, reason: null })),
     ...preview.leftOut.map(({ reason, ...dive }) => ({ dive, reason })),

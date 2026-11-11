@@ -7,6 +7,7 @@ import { logger } from "./log.ts"
 import { requestLog } from "./request-log.ts"
 import { cards } from "./routes/cards.ts"
 import { clientLog } from "./routes/client-log.ts"
+import { diveComputer } from "./routes/dive-computer.ts"
 import { dives } from "./routes/dives.ts"
 import { entities } from "./routes/entities.ts"
 import { exports } from "./routes/export.ts"
@@ -70,6 +71,7 @@ export function createApp(deps: Deps) {
       .route("/api", cards)
       .route("/api", exports)
       .route("/api", imports)
+      .route("/api", diveComputer)
       .route("/api", health)
       .route("/", web(deps.webRoot, deps.env.SHYLOG_APP_NAME))
       // A refused write has rolled back; the reason goes to the draft's

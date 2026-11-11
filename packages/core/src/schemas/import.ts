@@ -47,6 +47,28 @@ export const importDaySchema = z.strictObject({
 })
 export type ImportDay = z.output<typeof importDaySchema>
 
+export const leftOutReason = z.enum(["freedive", "short", "earlier"])
+export type LeftOutReason = z.output<typeof leftOutReason>
+
+// Under five minutes is a blip, such as a weight check or the swim back:
+// the owner's shortest real dive is 15 minutes, the longest blip 3.
+export const isShort = (duration: number) => duration < 5 * 60
+
+// Why a computer dive that isn't a freedive is left out unless paired:
+// from before the last download, or a blip.
+export function unpairedReason(
+  dive: Pick<ComputerDive, "computerStartTime" | "duration">,
+  earlierThan: string | null | undefined
+): LeftOutReason | null {
+  if (earlierThan && dive.computerStartTime < earlierThan) return "earlier"
+  return isShort(dive.duration) ? "short" : null
+}
+
+// "Suunto D4i" → "D4i": screens name the computer by its model (see For a
+// matched dive), or "dive computer" when the export gives none.
+export const computerName = (model: string | null) =>
+  model ? model.replace(/^Suunto\s+/i, "") : "dive computer"
+
 export const importPreviewSchema = z.strictObject({
   id: idSchema("import"),
   basedOnVersion: z.string(),
@@ -74,11 +96,14 @@ export const importPreviewSchema = z.strictObject({
       nearestStartGap: z.int().nonnegative().nullable(),
     })
   ),
-  // Freedives and dives under five minutes, offered only to include.
-  leftOut: z.array(
-    computerDiveSchema.extend({ reason: z.enum(["freedive", "short"]) })
-  ),
+  // Freedives, dives under five minutes and, from a download that read
+  // every dive, those before the last one, offered only to include.
+  leftOut: z.array(computerDiveSchema.extend({ reason: leftOutReason })),
   alreadyImported: z.int().nonnegative(),
+  // From a download: the start, on the watch's clock, of the newest dive
+  // an earlier download (or import) brought in, or null for none. Dives
+  // before it are left out, as they are someone else's or were skipped.
+  earlierThan: localDateTime.nullable().optional(),
 })
 export type ImportPreview = z.output<typeof importPreviewSchema>
 

@@ -5,7 +5,7 @@ import { leftOut, type Signs } from "./freedive.ts"
 
 const dive = (
   over: Partial<ReadDive> & { every?: number }
-): Signs & Partial<ReadDive> => {
+): Signs & Pick<ReadDive, "startTime"> & Partial<ReadDive> => {
   const { every = 2, ...rest } = over
   return {
     ref: "id1",
@@ -58,5 +58,18 @@ describe("leftOut", () => {
     const scuba = { hasTankData: true, hasGas: true, every: 10 }
     expect(leftOut(dive({ ...scuba, duration: 299 }))).toBe("short")
     expect(leftOut(dive({ ...scuba, duration: 300 }))).toBeNull()
+  })
+
+  it("leaves out a download's dive from before the last download", () => {
+    const scuba = { hasTankData: true, hasGas: true, every: 10, duration: 2400 }
+    const marker = "2025-12-28T10:00:00"
+    expect(
+      leftOut(dive({ ...scuba, startTime: "2025-12-28T09:00:00" }), marker)
+    ).toBe("earlier")
+    expect(leftOut(dive({ ...scuba, startTime: marker }), marker)).toBeNull()
+    // A freedive says so, whenever it was.
+    expect(leftOut(dive({ startTime: "2025-12-28T09:00:00" }), marker)).toBe(
+      "freedive"
+    )
   })
 })

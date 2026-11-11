@@ -1,17 +1,25 @@
-import { mkdtempSync, rmSync } from "node:fs"
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { fileURLToPath } from "node:url"
 
-import { opSchema, opVersion, unknownSite } from "@shylog/core"
+import {
+  opSchema,
+  opVersion,
+  unknownSite,
+  type ImportPreview,
+} from "@shylog/core"
 import Database from "better-sqlite3"
 import { describe, expect, it, onTestFinished } from "vitest"
 
 import { apiHeaders, origin, send, testApp } from "../../test/app.ts"
+import { testDb } from "../../test/db.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
 import { applyDraft } from "../apply/draft.ts"
 import { putEntity } from "../apply/entity.ts"
 import { initial } from "../db/migrations/001-initial.ts"
 import { migrate, migrations } from "../db/migrate.ts"
+import { applyImport } from "../import/apply.ts"
 import { openDatabase, type Db } from "../db/open.ts"
 import { change } from "../routes/change.ts"
 import { compare } from "./compare.ts"
@@ -198,6 +206,45 @@ describe("replay", () => {
       ])
     )
     // Including the dive's deleted_at, from the time first applied.
+    expect(compare(snapshot, db)).toEqual([])
+  })
+
+  it("replays remembering a watch, its download's marker and forgetting it", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "shylog-replay-"))
+    onTestFinished(() => rmSync(dir, { recursive: true, force: true }))
+    const device = join(dir, "suunto")
+    writeFileSync(device, "")
+    const db = testDb()
+    const app = testApp({
+      db,
+      env: {
+        SHYLOG_DATA_DIR: dir,
+        SHYLOG_DC_DEVICE: device,
+        SHYLOG_DCTOOL: fileURLToPath(
+          new URL("../../test/fake-dctool.mjs", import.meta.url)
+        ),
+      },
+    })
+    const snapshot = copyOf(db)
+    process.env.FAKE_DCTOOL_BEFORE = "20251223"
+    onTestFinished(() => void delete process.env.FAKE_DCTOOL_BEFORE)
+    const response = await send(app, "POST", "/api/dive-computer/download", {})
+    const { preview } = (await response.json()) as { preview: ImportPreview }
+    applyImport(db, preview.id, {
+      revision: preview.revision,
+      pairs: [],
+      add: preview.newDives.map((dive) => dive.ref),
+      include: [],
+    })
+    const remembered = copyOf(db)
+    await send(app, "DELETE", "/api/dive-computer")
+
+    expect(replay(snapshot, remembered).failure).toBeUndefined()
+    expect(compare(snapshot, remembered)).toEqual([])
+    expect(
+      snapshot.prepare("SELECT marker FROM dive_computer").pluck().get()
+    ).toBe("2025-12-22T11:59:21")
+    expect(replay(snapshot, db).failure).toBeUndefined()
     expect(compare(snapshot, db)).toEqual([])
   })
 
