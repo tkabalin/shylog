@@ -22,6 +22,7 @@ import type { Db } from "../db/open.ts"
 import { syncDir } from "../fs.ts"
 import type { Integrity } from "../integrity.ts"
 import { setMeta } from "../journal.ts"
+import { logger } from "../log.ts"
 import { uddfNamespace, writeUddf } from "../uddf/writer.ts"
 
 // Far longer than any export or snapshot download takes.
@@ -139,6 +140,14 @@ export function writeExport(
     setMeta(db, "last_export_at", now.toISOString())
     setMeta(db, "export_failed_at", null)
   } catch (error) {
-    console.error("Couldn’t record the export’s time:", error)
+    logger.error(
+      { event: "export_time_not_recorded", err: error },
+      "Couldn’t record the export’s time"
+    )
+  }
+  return {
+    dives,
+    uddfBytes: Buffer.byteLength(xml),
+    csvBytes: Buffer.byteLength(csv.csv),
   }
 }

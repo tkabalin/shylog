@@ -5,6 +5,7 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   utimesSync,
   writeFileSync,
 } from "node:fs"
@@ -16,6 +17,7 @@ import { DOMParser } from "@xmldom/xmldom"
 import { describe, expect, it, onTestFinished, vi } from "vitest"
 
 import { apiHeaders, testApp } from "../../test/app.ts"
+import { captureLog } from "../../test/log.ts"
 import { seededDb } from "../../test/fixture.ts"
 import { csvHeaders } from "../csv/writer.ts"
 import { openDatabase } from "../db/open.ts"
@@ -104,18 +106,46 @@ describe("nightly", () => {
     // A file where the folder should be makes the next snapshot fail.
     rmSync(snapshotsDir(dir), { recursive: true })
     writeFileSync(snapshotsDir(dir), "")
-    const error = vi.spyOn(console, "error").mockImplementation(() => {})
-    onTestFinished(() => error.mockRestore())
+    const lines = captureLog()
     await nightly(db, dir, "ok", new Date(2026, 9, 22))
 
-    expect(error).toHaveBeenCalledWith(
-      "Nightly snapshot failed:",
-      expect.any(Error)
+    expect(lines).toContainEqual(
+      expect.objectContaining({
+        level: "error",
+        event: "snapshot_failed",
+        err: expect.objectContaining({ stack: expect.any(String) }),
+      })
     )
     const health = (await (
       await app.request("/api/health", { headers: apiHeaders })
     ).json()) as { lastSnapshotAt: string }
     expect(health.lastSnapshotAt).toBe(first.toISOString())
+  })
+
+  it("logs what the snapshot and the export wrote, and how long each took", async () => {
+    const dir = dataDir()
+    const db = seededDb()
+    const lines = captureLog()
+    await nightly(db, dir, "ok", new Date(2026, 9, 22))
+
+    const file = join(snapshotsDir(dir), "shylog-2026-10-22.db.gz")
+    expect(lines).toEqual([
+      expect.objectContaining({
+        level: "info",
+        event: "snapshot",
+        file,
+        bytes: statSync(file).size,
+        durationMs: expect.any(Number),
+      }),
+      expect.objectContaining({
+        level: "info",
+        event: "export",
+        dives: 42,
+        uddfBytes: statSync(exportFile(dir)).size,
+        csvBytes: statSync(csvFile(dir)).size,
+        durationMs: expect.any(Number),
+      }),
+    ])
   })
 
   it("purges expired import previews before the snapshot", async () => {
@@ -196,15 +226,13 @@ describe("nightly", () => {
       .mockImplementation(() => {
         throw new Error("unreadable")
       })
-    const error = vi.spyOn(console, "error").mockImplementation(() => {})
-    onTestFinished(() => error.mockRestore())
+    const lines = captureLog()
     const second = new Date(2026, 9, 22)
     await nightly(db, dir, "ok", second)
     parse.mockRestore()
 
-    expect(error).toHaveBeenCalledWith(
-      "Nightly export failed:",
-      expect.any(Error)
+    expect(lines).toContainEqual(
+      expect.objectContaining({ level: "error", event: "export_failed" })
     )
     expect(readFileSync(exportFile(dir), "utf8")).toBe(good)
     // The CSV isn't swapped in without the UDDF beside it.
@@ -238,17 +266,15 @@ describe("nightly", () => {
     const id = db.prepare("SELECT id FROM dives LIMIT 1").pluck().get()
     db.prepare("UPDATE dives SET notes = ? WHERE id = ?").run("ok", id)
     csvCheck.fail = true
-    const error = vi.spyOn(console, "error").mockImplementation(() => {})
     onTestFinished(() => {
       csvCheck.fail = false
-      error.mockRestore()
     })
+    const lines = captureLog()
     const second = new Date(2026, 9, 22)
     await nightly(db, dir, "ok", second)
 
-    expect(error).toHaveBeenCalledWith(
-      "Nightly export failed:",
-      expect.any(Error)
+    expect(lines).toContainEqual(
+      expect.objectContaining({ level: "error", event: "export_failed" })
     )
     expect(readFileSync(exportFile(dir), "utf8")).toBe(good)
     expect(readFileSync(csvFile(dir), "utf8")).toBe(goodCsv)
@@ -334,15 +360,12 @@ describe("nightly", () => {
   it("leaves the last export, and no alert, for a damaged database", async () => {
     const dir = dataDir()
     const db = seededDb()
-    const error = vi.spyOn(console, "error").mockImplementation(() => {})
-    onTestFinished(() => error.mockRestore())
+    const lines = captureLog()
     await nightly(db, dir, "failed", new Date(2026, 9, 22))
 
-    expect(error).toHaveBeenCalledTimes(1)
-    expect(error).toHaveBeenCalledWith(
-      "Nightly snapshot failed:",
-      expect.any(Error)
-    )
+    expect(lines.map(({ level, event }) => ({ level, event }))).toEqual([
+      { level: "error", event: "snapshot_failed" },
+    ])
     expect(readdirSync(dir)).not.toContain("export")
     expect(
       db

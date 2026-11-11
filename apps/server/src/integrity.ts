@@ -1,4 +1,5 @@
 import type { Db } from "./db/open.ts"
+import { logger } from "./log.ts"
 
 export type Integrity = "ok" | "failed"
 
@@ -10,9 +11,19 @@ export function checkIntegrity(db: Db): Integrity {
       integrity_check: string
     }[]
     if (rows.length === 1 && rows[0].integrity_check === "ok") return "ok"
-    console.error("integrity_check failed:", rows)
+    // SQLite's own wording, naming pages and indexes, not their contents.
+    logger.error(
+      {
+        event: "integrity_failed",
+        problems: rows.slice(0, 20).map((row) => row.integrity_check),
+      },
+      "The database failed its integrity check"
+    )
   } catch (error) {
-    console.error("integrity_check failed:", error)
+    logger.error(
+      { event: "integrity_failed", err: error },
+      "The integrity check couldn’t run"
+    )
   }
   return "failed"
 }

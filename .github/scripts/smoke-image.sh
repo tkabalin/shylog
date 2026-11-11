@@ -36,6 +36,11 @@ for _ in $(seq 30); do
 done
 [[ $(docker inspect -f '{{.State.Health.Status}}' "$container") == healthy ]]
 get /api/health | jq -e '.integrity == "ok" and .diveCount == 0'
+# The log is JSON lines, each naming the instance, and startup's carries
+# the commit the image was built from.
+docker logs "$container" 2>/dev/null | jq -se --arg rev "${revision:-dev}" '
+  (map(select(.event == "listening")) | length == 1 and .[0].version == $rev)
+  and all(.[]; .instance == "shylog")'
 get /manifest.webmanifest | jq -e '.name == "Shylog CI"'
 # The built web app, with its title from SHYLOG_APP_NAME and its assets.
 page=$(get /)

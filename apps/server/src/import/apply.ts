@@ -38,6 +38,7 @@ import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
 import { recalculate } from "../derived.ts"
 import { getMeta, setMeta, write } from "../journal.ts"
+import { logger } from "../log.ts"
 import { storeProfile } from "../profile.ts"
 import { readUddf, type ProfileEvent, type ReadDive } from "../uddf/reader.ts"
 import { fingerprint } from "./fingerprint.ts"
@@ -751,6 +752,11 @@ export function applyImport(
         }
       })
     } catch (error) {
+      // The phone shows the reason and can retry; the stack is kept here.
+      logger.error(
+        { event: "import_chunk_failed", importId: id, err: error },
+        "An import chunk failed"
+      )
       const last = lastImport(db)
       return {
         status: "failed",

@@ -18,6 +18,7 @@ import { syncDir } from "../fs.ts"
 import { purgeExpiredPreviews } from "../import/preview.ts"
 import type { Integrity } from "../integrity.ts"
 import { setMeta } from "../journal.ts"
+import { logger } from "../log.ts"
 import { csvFile, exportFile, writeExport } from "./export.ts"
 
 const day = 24 * 60 * 60 * 1000
@@ -148,27 +149,59 @@ export async function nightly(
     try {
       purgeExpiredPreviews(db, now)
     } catch (error) {
-      console.error("Couldn’t purge expired import previews:", error)
+      logger.error(
+        { event: "preview_purge_failed", err: error },
+        "Couldn’t purge expired import previews"
+      )
     }
   }
+  let start = performance.now()
   try {
-    await checkedSnapshot(db, dataDir, integrity, now)
+    const file = await checkedSnapshot(db, dataDir, integrity, now)
+    logger.info(
+      {
+        event: "snapshot",
+        file,
+        // Not a throw, which would log a written snapshot as failed.
+        bytes: statSync(file, { throwIfNoEntry: false })?.size,
+        durationMs: Math.round(performance.now() - start),
+      },
+      "Nightly snapshot written"
+    )
   } catch (error) {
-    console.error("Nightly snapshot failed:", error)
+    logger.error(
+      { event: "snapshot_failed", err: error },
+      "Nightly snapshot failed"
+    )
   }
   // Its refusal is the snapshot's, already logged, and the last export
   // stays the good one.
   if (integrity === "failed") return
+  start = performance.now()
   try {
-    writeExport(db, dataDir, integrity, now)
+    const written = writeExport(db, dataDir, integrity, now)
+    logger.info(
+      {
+        event: "export",
+        ...written,
+        durationMs: Math.round(performance.now() - start),
+      },
+      "Nightly export written"
+    )
   } catch (error) {
-    console.error("Nightly export failed:", error)
+    logger.error(
+      { event: "export_failed", err: error },
+      "Nightly export failed"
+    )
     // A full disk can refuse this write too, and the run isn't awaited, so
     // a throw here would be an unhandled rejection that ends the server.
     try {
       setMeta(db, "export_failed_at", now.toISOString())
     } catch (metaError) {
-      console.error("Couldn’t record the failed export:", metaError)
+      logger.error(
+        { event: "export_failure_not_recorded", err: metaError },
+        "Couldn’t record the failed export"
+      )
     }
   }
 }
