@@ -1185,6 +1185,11 @@ Deferred, or to watch:
 - Stock libdivecomputer gives only the `deco` sample state from that moment, to within a sample (10 or 20 s on the D4i), and the same state for real deco. The exact second, told apart from deco, needs the begin event that upstream has suppressed since 2017: issue #80's three-line patch to `suunto_d9_parser.c` in the image's build, or an opt-in upstream. The patch is the likely choice, as the image builds libdivecomputer from source anyway.
 - The conversion to UDDF has to carry the event, as a `deco` alarm or in `<shylog>`, settled when built.
 
+**The D4i checked from the raw download** (11 November 2026, from the 93 dives downloaded on 10 November, parsed with `dctool` 0.9.0):
+
+- Fingerprints match: all 66 dives the D4i and its Subsurface export share get the same fingerprint, once the duration is Subsurface's own (`fixup_dc_duration`: time below 0.75 m, core's `underwater()`), not the parser's dive time, which differs by a few seconds on most dives. Start time and maximum depth match as parsed, and so does the average depth from `underwater()`. The spike still checks the Zoop Novo.
+- The watch also holds 24 dives from June to November 2022 that are its previous owner's (the owner, 11 November 2026). A first download must not offer them: it starts from the newest dive already imported from that watch, so they are never read. "Read every dive again" needs a way to keep them out for good, since a skipped dive gets no fingerprint and would come back on every re-read; settled with the mockup.
+
 **Likely touches**: the `Dockerfile` (a stage building libdivecomputer with serial support only, pinned, with its licence), `compose.yml` (the device rule, the `/dev` view, the serial group), env parsing, a server module running `dctool` (one download at a time, with a timeout) and converting its output to UDDF for `storePreview`, a migration for the remembered computer and its download marker, routes, apply moving the marker, the Import screen and Forget on You, the README (udev rule and Compose), the image smoke test, tests.
 
 **Acceptance**
