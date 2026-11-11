@@ -14,6 +14,13 @@ import {
 } from "./drafts"
 import { loadLog, noteReached, noteUnreachable, retryDelay } from "./log"
 import { noteSynced } from "./last-sync"
+import {
+  answered,
+  NoAnswer,
+  reportError,
+  RequestFailed,
+  requestIdOf,
+} from "./client-log"
 import { syncLog } from "./sync"
 
 // The reason a refused request carries (see onError in the server's app),
@@ -58,19 +65,7 @@ export const useServerError = () =>
 // An upload the server answered with an error. It was reached, so this
 // isn't Can't reach the server, whose quick retries would resend the draft
 // every few seconds as each sync that gets through restarts them.
-class ServerError extends Error {}
-
-// A request that got no answer at all, as fetch rejects. Only this is the
-// server out of reach: a failure on the phone, such as a database error,
-// would otherwise show Can't reach and retry every 5 s on a working server.
-class NoAnswer extends Error {}
-
-const answered =
-  (fetch?: typeof globalThis.fetch): typeof globalThis.fetch =>
-  (input, init) =>
-    (fetch ?? globalThis.fetch)(input, init).catch((error: unknown) => {
-      throw new NoAnswer(String(error), { cause: error })
-    })
+class ServerError extends RequestFailed {}
 
 // Its own retries, backing off from 5 s to the five-minute check, which a
 // sync that gets through doesn't reset.
@@ -118,6 +113,15 @@ export async function uploadDrafts({
         if (await db.dives.get(draft.id)) await dropDraft(draft.id, sent, queue)
       } else if (status === 400 || status === 422) {
         const reason = await serverMessage(res)
+        // Without the reason, which can name a site or person; the server's
+        // line for this request id has it. The id keeps each draft's report.
+        void reportError(
+          "rejected",
+          new RequestFailed(
+            `The server refused draft ${draft.id} (${status})`,
+            requestIdOf(res)
+          )
+        )
         await rejectDraft(
           draft.id,
           reason ?? `The server refused this dive (${status})`,
@@ -125,7 +129,7 @@ export async function uploadDrafts({
           queue
         )
       } else {
-        throw new ServerError(`The upload failed: ${status}`)
+        throw new ServerError(`The upload failed: ${status}`, requestIdOf(res))
       }
       changed = true
     }
@@ -167,6 +171,7 @@ export function upload() {
       else console.warn("Upload failed", error)
       if (error instanceof NoAnswer) noteUnreachable()
       else {
+        void reportError("sync", error)
         setRefusing(true)
         failures += 1
         clearTimeout(retry)

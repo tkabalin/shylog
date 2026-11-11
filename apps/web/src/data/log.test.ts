@@ -1,6 +1,7 @@
 import { latestSchemaVersion } from "@shylog/core"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
+import { NoAnswer } from "./client-log"
 import type { Meta } from "./db"
 
 // The store outside React: the hook reads the snapshot directly.
@@ -92,7 +93,7 @@ describe("sync", () => {
 
   it("says so when a sync fails, until the next one answers", async () => {
     vi.spyOn(console, "debug").mockImplementation(() => {})
-    syncLog.mockRejectedValueOnce(new TypeError("Failed to fetch"))
+    syncLog.mockRejectedValueOnce(new NoAnswer("Failed to fetch"))
     await log.sync()
     expect(state().failed).toBe(true)
 

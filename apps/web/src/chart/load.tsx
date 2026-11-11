@@ -1,5 +1,6 @@
 import { startTransition, useEffect, useReducer, useState } from "react"
 
+import { isChunkFailure, reportError } from "@/data/client-log"
 import type { Dive } from "@/data/db"
 import {
   LoadFailed,
@@ -19,6 +20,7 @@ let chart: Promise<ChartModule> | undefined
 export function loadChart() {
   chart ??= settled(
     import("./profile").catch((cause: unknown) => {
+      void reportError(isChunkFailure(cause) ? "chunk" : "error", cause)
       throw new LoadFailed("Couldn't load the chart", { cause })
     })
   )

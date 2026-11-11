@@ -10,13 +10,14 @@ import {
   type Meta,
 } from "./db"
 import { pruneCardImages } from "./cards"
+import { answered, NoAnswer, RequestFailed, requestIdOf } from "./client-log"
 import { pruneProfiles } from "./samples"
 
 export type SyncResult = "updated" | "unchanged" | "blocked"
 
 // Fetches /api/log with the version the mirror holds as its ETag, and
 // replaces the mirror in one transaction, so a reader never sees half of
-// two versions. A network failure throws, leaving the mirror as it was.
+// two versions. No answer throws NoAnswer, leaving the mirror as it was.
 export async function syncLog(
   options: { db?: LogDb; fetch?: typeof globalThis.fetch } = {}
 ): Promise<SyncResult> {
@@ -27,13 +28,22 @@ export async function syncLog(
   // Blocked, it still asks, in case the server was rolled back, but with
   // the blocking version's tag, so an unchanged server costs a 304.
   const tag = blocked ? found.version : meta?.version
-  const res = await apiClient(options.fetch).api.log.$get(undefined, {
+  const res = await apiClient(answered(options.fetch)).api.log.$get(undefined, {
     headers: tag ? { "If-None-Match": `"${tag}"` } : {},
   })
   if (res.status === 304) return blocked ? "blocked" : "unchanged"
   if (res.status !== 200)
-    throw new Error(`The log request failed: ${res.status}`)
-  const log: Log = await res.json()
+    throw new RequestFailed(
+      `The log request failed: ${res.status}`,
+      requestIdOf(res)
+    )
+  // A connection dropped part-way through the body is no answer too, not
+  // a fault to report: the likeliest failure on a weak signal.
+  const log: Log = await res.json().catch((error: unknown) => {
+    if (error instanceof TypeError)
+      throw new NoAnswer(String(error), { cause: error })
+    throw error
+  })
 
   if (log.schemaVersion > latestSchemaVersion) {
     await db.meta.put({

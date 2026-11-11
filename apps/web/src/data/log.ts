@@ -31,6 +31,7 @@ import { downloadProfiles } from "./samples"
 import { noteSynced, readLastSync } from "./last-sync"
 import { upload } from "./upload"
 import { syncLog } from "./sync"
+import { NoAnswer, reportError } from "./client-log"
 
 export interface DiveLinks {
   buddies: string[]
@@ -441,6 +442,9 @@ export function sync() {
       // Expected offline or with Tailscale off, and shown on screen, so it
       // stays out of the console's warnings.
       console.debug("Sync failed", error)
+      // Not when there was no answer at all, which is Can't reach, and
+      // which a report couldn't get through either.
+      if (!(error instanceof NoAnswer)) void reportError("sync", error)
       noteUnreachable()
     })
     .finally(() => (syncing = undefined))
