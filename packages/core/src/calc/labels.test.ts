@@ -107,20 +107,20 @@ describe("depthLabels", () => {
   })
 
   it("stops when the deepest point left is under 2 m", () => {
+    // 5 m at 20 s is 2 m below the valley, but the range ends before it, so
+    // the deepest point left is 1 m.
     const points = [
       point(0, 0),
       point(10, 1000),
-      point(20, 1500),
+      point(20, 5000),
       point(30, 0),
       point(40, 20_000),
       point(50, 0),
-      point(60, 1500),
-      point(70, 1900),
+      point(60, 0),
+      point(70, 0),
       point(80, 0),
-      point(90, 0),
-      point(100, 0),
     ]
-    expect(brief(depthLabels(points, 11, 5))).toEqual(["peak 20000 at 40"])
+    expect(brief(depthLabels(points, 9, 5))).toEqual(["peak 20000 at 40"])
   })
 
   it("stops on the right too, past a valley above the surface", () => {
