@@ -14,5 +14,11 @@ export interface Deps {
   state: { integrity: Integrity }
 }
 
+export interface Variables {
+  deps: Deps
+  // Why the request was refused, for its log line.
+  refusal?: string
+}
+
 // Shared by the app and its route modules, so handlers see `c.var.deps`.
-export const factory = createFactory<{ Variables: { deps: Deps } }>()
+export const factory = createFactory<{ Variables: Variables }>()
