@@ -16,9 +16,11 @@ import {
   useImport,
   type LastImport,
 } from "@/data/import"
+import { useDiveComputer } from "@/data/dive-computer"
 import { months } from "@/format/dates"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
+import { DiveComputerCard } from "@/import/dive-computer-card"
 import { bigButton, ImportSection, ListCard, SummaryRows } from "@/import/parts"
 
 export const Route = createFileRoute("/import/")({
@@ -75,14 +77,18 @@ function ImportPage() {
   const navigate = useNavigate()
   const input = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
-  // The preview from before the upload. The new one lands in the store a
-  // moment before the review opens, and would flash its card here.
+  const [downloading, setDownloading] = useState(false)
+  // The preview from before the upload or download. The new one lands in
+  // the store a moment before the review opens, and would flash its card.
   const [before, setBefore] = useState(preview)
-  const shown = uploading ? before : preview
+  const shown = uploading || downloading ? before : preview
   const [error, setError] = useState<string>()
   const desk = useDesk()
   // ImportHifi's Offline state: the server reads the file, so no upload.
   const connected = useConnected()
+  // With the server's cable, the download leads and the upload is the
+  // fallback, so its button is outlined.
+  const { enabled: downloads } = useDiveComputer()
 
   useEffect(() => {
     // Offline, the screen says so; asked again once back.
@@ -108,7 +114,10 @@ function ImportPage() {
   const button = (
     <label
       className={cn(
-        "inline-flex w-full cursor-pointer items-center justify-center gap-2 bg-primary text-primary-foreground transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-90 active:opacity-80 active:duration-0 has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
+        "inline-flex w-full cursor-pointer items-center justify-center gap-2 transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-90 active:opacity-80 active:duration-0 has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
+        downloads
+          ? "border bg-background text-foreground dark:border-input dark:bg-input/30"
+          : "bg-primary text-primary-foreground",
         // Offline it stays where it is, greyed, as ImportHifi draws it.
         "has-disabled:cursor-default has-disabled:bg-muted has-disabled:text-muted-foreground/60 has-disabled:hover:opacity-100 has-disabled:active:opacity-100",
         bigButton
@@ -139,7 +148,8 @@ function ImportPage() {
     <div className="flex min-h-full flex-col">
       <div className="flex flex-1 flex-col gap-6 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-10 md:mx-auto md:w-full md:max-w-xl">
         <h1 className="sr-only">Import</h1>
-        {/* Kept while a new file uploads, so the card below doesn't jump. */}
+        {/* Kept while a file uploads or the watch downloads, so the card below
+            doesn't jump and the new preview doesn't flash its card. */}
         {shown && (
           <Link
             to="/import/review"
@@ -172,6 +182,14 @@ function ImportPage() {
             />
           </Link>
         )}
+
+        <DiveComputerCard
+          connected={connected}
+          onDownload={(running) => {
+            if (running) setBefore(preview)
+            setDownloading(running)
+          }}
+        />
 
         <Card className="items-center gap-3.5 px-5 pt-7 pb-5.5 text-center">
           <span
