@@ -194,6 +194,17 @@ test.describe("at desktop width", () => {
     await expect(current).toHaveAttribute("aria-current", "page")
   })
 
+  test("detects the dive computer from Import's card", async ({ page }) => {
+    await page.goto("/import")
+    await page.getByRole("button", { name: "Detect dive computer" }).click()
+    await expect(page.getByText("Suunto D4i", { exact: true })).toBeVisible()
+    await expect(
+      page.getByRole("button", { name: "Download dives" })
+    ).toBeVisible()
+    // The upload's button stays in its card with a mouse.
+    await expect(page.getByText("Choose file", { exact: true })).toBeVisible()
+  })
+
   test("moves the crosshair to the safety stop with a click", async ({
     page,
   }) => {

@@ -184,9 +184,13 @@ export async function uploadExport(file: File, fetch = globalThis.fetch) {
   )
   if (!res?.ok) throw await failure(res)
   const preview = (await res.json()) as ImportPreview
-  set({ ...state, loaded: true, preview, overrides: {}, adopt: [] })
+  startReview(preview)
   return preview
 }
+
+// A new preview, from an upload or the dive computer, for the review.
+export const startReview = (preview: ImportPreview) =>
+  set({ ...state, loaded: true, preview, overrides: {}, adopt: [] })
 
 // Clock changes still on their way, which apply waits for, so it never
 // imports under a clock the diver has already moved.

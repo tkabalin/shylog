@@ -18,6 +18,13 @@ export SHYLOG_DEV_LOGIN=diver@example.com
 export SHYLOG_ALLOWED_LOGINS=diver@example.com
 export SHYLOG_ORIGIN=${E2E_ORIGIN:?}
 export PORT=$E2E_API_PORT
+# Downloading from the dive computer, against a stand-in for dctool that
+# plays back the D4i's raw fixtures; the "cable" is a file in the folder.
+server=$(cd "$(dirname "$0")/../../server" && pwd)
+export SHYLOG_DCTOOL=$server/test/fake-dctool.mjs
+export SHYLOG_DC_DEVICE=$dir/suunto
+touch "$SHYLOG_DC_DEVICE"
+export FAKE_DCTOOL_SHIFT_EACH=1
 
 # The built-app stack serves a production build of its own, in this run's
 # folder, so it never rewrites apps/web/dist under another run.

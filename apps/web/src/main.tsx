@@ -9,6 +9,7 @@ import {
   reportError,
   startErrorReports,
 } from "@/data/client-log"
+import { loadDiveComputer } from "@/data/dive-computer"
 import { loadLog, startSync } from "@/data/log"
 import { protectOnFirstLaunch } from "@/data/storage"
 import { startWorker } from "@/pwa"
@@ -36,6 +37,7 @@ declare module "@tanstack/react-router" {
 startErrorReports()
 await loadLog()
 startSync()
+void loadDiveComputer()
 // Asks the browser to keep the drafts and the log's copy (see storage.ts).
 void protectOnFirstLaunch()
 startWorker()

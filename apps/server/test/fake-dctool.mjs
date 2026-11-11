@@ -4,8 +4,16 @@
 // fingerprint given with -p, and "parses" a raw file to its fixture XML.
 // FAKE_DCTOOL_MODE picks a failure: silent (never answers), noWatch,
 // stopped (answers, then hangs), timedOut (answers, then dctool times
-// out), busy (another process has the port), failed.
-import { copyFileSync, existsSync, readdirSync } from "node:fs"
+// out), busy (another process has the port), failed. With
+// FAKE_DCTOOL_SHIFT_EACH, each download moves the dives a further ten years
+// on from 2126, so the browser tests find new dives, clear of the seeded log.
+import {
+  copyFileSync,
+  existsSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs"
 import { basename, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -27,12 +35,33 @@ const command = args.find((arg) => ["download", "parse"].includes(arg))
 const say = (line) => process.stderr.write(`${line}\n`)
 const hang = () => setInterval(() => {}, 1000)
 
+// A start (20261024T144900) and its fingerprint moved on by whole years.
+const shifted = (name, years) => {
+  const [time, print] = name.replace(/\.bin$/, "").split("-")
+  const year = Number(time.slice(0, 4)) + years
+  const moved = `${year}${time.slice(4)}`
+  const bytes =
+    (year & 0xff).toString(16).padStart(2, "0") +
+    (year >> 8).toString(16).padStart(2, "0")
+  return [moved, `${bytes.toUpperCase()}${print.slice(4)}`]
+}
+
 if (command === "parse") {
   const file = args.at(-1)
-  copyFileSync(
-    join(fixtures, "xml", basename(file).replace(/\.bin$/, ".xml")),
-    option("-o")
+  // The fixture with the same bytes, as a moved file's name isn't its own.
+  const raw = readFileSync(file)
+  const name = readdirSync(join(fixtures, "raw")).find((found) =>
+    readFileSync(join(fixtures, "raw", found)).equals(raw)
   )
+  const years = Number(basename(file).slice(0, 4)) - Number(name.slice(0, 4))
+  const xml = readFileSync(
+    join(fixtures, "xml", name.replace(/\.bin$/, ".xml")),
+    "utf8"
+  ).replace(
+    /<datetime>(\d{4})/,
+    (_, year) => `<datetime>${Number(year) + years}`
+  )
+  writeFileSync(option("-o"), xml)
   process.exit(0)
 }
 
@@ -64,12 +93,21 @@ else if (mode === "noWatch") {
     setTimeout(() => {
       const template = option("-o")
       const after = option("-p")
+      let years = 0
+      if (process.env.FAKE_DCTOOL_SHIFT_EACH && option("-f") === "raw") {
+        const counter = `${device}.downloads`
+        const count = existsSync(counter)
+          ? Number(readFileSync(counter, "utf8"))
+          : 0
+        writeFileSync(counter, String(count + 1))
+        years = 100 + 10 * count
+      }
       const names = readdirSync(join(fixtures, "raw"))
         .filter((name) => name < before)
         .sort()
         .reverse()
       for (const name of names) {
-        const [time, print] = name.replace(/\.bin$/, "").split("-")
+        const [time, print] = shifted(name, years)
         if (print === after) break
         if (option("-f") === "raw")
           copyFileSync(
