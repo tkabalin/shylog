@@ -135,6 +135,85 @@ describe("the sync status", () => {
     await until(() => state() === "synced")
   })
 
+  it("is a server fault, not unreachable, when the server answers a sync with an error", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+    vi.spyOn(console, "debug").mockImplementation(() => {})
+    const fetch = vi.fn(async () => new Response("Oops", { status: 500 }))
+    vi.stubGlobal("fetch", fetch)
+    await store.sync()
+    expect(state()).toBe("fault")
+    // Reached, so changes to synced data stay allowed.
+    expect(status.useConnected()).toBe(true)
+
+    // No quick retries: the five-minute check or a foreground asks next.
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(fetch).toHaveBeenCalledTimes(1)
+    server()
+    await store.syncNow()
+    expect(state()).toBe("synced")
+  })
+
+  it("is a fault, not unreachable, when a sync fails on the phone", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+    vi.spyOn(console, "debug").mockImplementation(() => {})
+    // An answer that isn't the log, which no quick retry would fix.
+    const fetch = vi.fn(async () => new Response("<html>", { status: 200 }))
+    vi.stubGlobal("fetch", fetch)
+    await store.sync()
+    expect(state()).toBe("fault")
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it("is unreachable, not a fault, when the next sync gets no answer", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+    vi.spyOn(console, "debug").mockImplementation(() => {})
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("Oops", { status: 500 }))
+    )
+    await store.sync()
+    expect(state()).toBe("fault")
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed")))
+    await store.sync()
+    expect(state()).toBe("unreachable")
+  })
+
+  it("keeps a sync's fault through an upload the server refused", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+    vi.spyOn(console, "debug").mockImplementation(() => {})
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) =>
+        String(input).endsWith("/api/ops")
+          ? Response.json({ error: "Missing its site" }, { status: 422 })
+          : new Response("Oops", { status: 500 })
+      )
+    )
+    await store.sync()
+    await drafts.saveDraft("dive-new", fields("2026-11-08T09:00:00"), [])
+    await store.loadLog()
+    await upload.upload()
+    // The upload was answered, but the log still can't be fetched.
+    expect(state()).toBe("fault")
+  })
+
+  it("clears a sync's fault once an upload fetches the log", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
+    vi.spyOn(console, "debug").mockImplementation(() => {})
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("Oops", { status: 500 }))
+    )
+    await store.sync()
+    expect(state()).toBe("fault")
+    server()
+    await drafts.saveDraft("dive-new", fields("2026-11-08T09:00:00"), [])
+    await store.loadLog()
+    await upload.upload()
+    expect(store.useLog().reach).toBe("ok")
+  })
+
   it("backs off between retries, up to the five-minute check", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] })
     const fetch = vi.fn().mockRejectedValue(new TypeError("Failed"))
@@ -240,7 +319,7 @@ describe("the sync status", () => {
     } as unknown as import("./log").LogView
     const result = status.syncStatus({
       online: true,
-      failed: false,
+      reach: "ok",
       blocked: false,
       sending: undefined,
       log: view,
@@ -254,7 +333,7 @@ describe("the sync status", () => {
     expect(
       status.syncStatus({
         online: true,
-        failed: false,
+        reach: "ok",
         blocked: true,
         sending: undefined,
         log: null,
@@ -331,6 +410,19 @@ describe("You's sync card", () => {
     ).toBe(
       "The server couldn’t save it. It’s safe on this phone. 1 more was refused."
     )
+  })
+
+  it("says the server ran into a problem, with Try again", () => {
+    expect(card("fault", [])).toEqual({
+      look: "fault",
+      title: "The server ran into a problem",
+      sub: "It tries again in a few minutes · Last sync 3 h ago",
+      warn: true,
+      retry: true,
+    })
+    expect(
+      card("fault", [draft("dive-a", "2026-11-09T11:00:00.000Z")]).sub
+    ).toBe("1 dive waiting on this phone · it tries again in a few minutes")
   })
 
   it("asks for a reload when the server is newer", () => {

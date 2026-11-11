@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { Log } from "@/api/client"
 
+import { NoAnswer } from "./client-log"
 import { LogDb, type Meta } from "./db"
 import { lastSync, noteSynced, readLastSync } from "./last-sync"
 import { syncLog } from "./sync"
@@ -190,6 +191,13 @@ describe("syncLog", () => {
     )
     await expect(syncLog({ db, fetch })).rejects.toThrow("403")
     expect(await db.dives.count()).toBe(1)
+  })
+
+  it("counts a proxy's 502 or 504 as no answer, as the server is down", async () => {
+    for (const status of [502, 504]) {
+      const fetch = vi.fn(async () => new Response("Bad Gateway", { status }))
+      await expect(syncLog({ db, fetch })).rejects.toBeInstanceOf(NoAnswer)
+    }
   })
 })
 

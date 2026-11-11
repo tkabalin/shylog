@@ -293,6 +293,19 @@ test("says it can't reach Shylog on a first visit offline, and tries again", asy
   await expect(cards(page)).toHaveCount(42)
 })
 
+test("says the server ran into a problem on a first visit, and tries again", async ({
+  page,
+}) => {
+  await page.route("**/api/log", (route) =>
+    route.fulfill({ status: 500, body: "Internal Server Error" })
+  )
+  await page.goto("/")
+  await expect(page.getByText("The server ran into a problem")).toBeVisible()
+  await page.unroute("**/api/log")
+  await page.getByRole("button", { name: "Try again" }).click()
+  await expect(cards(page)).toHaveCount(42)
+})
+
 // The log as a newer server sends it, fetched in full so a phone with a
 // copy can't be answered "not modified".
 const newerServer = (page: Page) =>

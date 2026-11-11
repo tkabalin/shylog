@@ -5,6 +5,7 @@ import {
   IconPlus,
   IconRefresh,
   IconSearch,
+  IconServerBolt,
   IconUpload,
 } from "@tabler/icons-react"
 import { createFileRoute, Link } from "@tanstack/react-router"
@@ -32,7 +33,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Skeleton } from "@/components/ui/skeleton"
-import { sync, useLog, type LogView } from "@/data/log"
+import { syncNow, useLog, type LogView } from "@/data/log"
 import {
   depthScale,
   durationScale,
@@ -105,7 +106,7 @@ export const Route = createFileRoute("/")({
 })
 
 function LogPage() {
-  const { log, loaded, blocked, failed } = useLog()
+  const { log, loaded, blocked, reach } = useLog()
   // So the first dive opened draws its chart without waiting on the code.
   usePreloadChart()
   const search = Route.useSearch()
@@ -169,27 +170,32 @@ function LogPage() {
             </EmptyContent>
           </Empty>
         )}
-        {loaded && failed && !blocked && (
+        {loaded && reach !== "ok" && !blocked && (
           <Empty className="flex-1">
             <EmptyHeader>
               <EmptyMedia variant="accent">
-                <IconCloudOff />
+                {reach === "fault" ? <IconServerBolt /> : <IconCloudOff />}
               </EmptyMedia>
-              <EmptyTitle>Can't reach Shylog</EmptyTitle>
+              <EmptyTitle>
+                {reach === "fault"
+                  ? "The server ran into a problem"
+                  : "Can't reach Shylog"}
+              </EmptyTitle>
               <EmptyDescription>
-                Your log appears here once this phone can reach the server, on
-                your tailnet.
+                {reach === "fault"
+                  ? "Your log appears here once the server is working again."
+                  : "Your log appears here once this phone can reach the server, on your tailnet."}
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button variant="link" size="lg" onClick={() => void sync()}>
+              <Button variant="link" size="lg" onClick={() => void syncNow()}>
                 <IconRefresh data-icon="inline-start" />
                 Try again
               </Button>
             </EmptyContent>
           </Empty>
         )}
-        {!(loaded && failed) && !blocked && <LogSkeleton />}
+        {!(loaded && reach !== "ok") && !blocked && <LogSkeleton />}
       </div>
     )
   }

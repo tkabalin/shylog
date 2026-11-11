@@ -3,6 +3,7 @@ import {
   IconAlertTriangle,
   IconCloudPause,
   IconCloudUpload,
+  IconServerBolt,
   IconServerOff,
   IconWifiOff,
 } from "@tabler/icons-react"
@@ -21,6 +22,11 @@ const looks: Record<
   unreachable: {
     icon: IconServerOff,
     spoken: "Can’t reach the server",
+    warn: true,
+  },
+  fault: {
+    icon: IconServerBolt,
+    spoken: "The server ran into a problem",
     warn: true,
   },
   syncing: { icon: IconCloudUpload, spoken: "Syncing" },

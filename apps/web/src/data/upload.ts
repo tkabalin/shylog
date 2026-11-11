@@ -75,7 +75,8 @@ let retry: ReturnType<typeof setTimeout> | undefined
 // Sends the drafts one at a time, oldest first, each as one request (Flow
 // steps 3 to 6 in the spec). A refused draft keeps the server's reason and
 // the next one goes; a network failure or server error throws, leaving the
-// queue as it is. Says whether it reached the server.
+// queue as it is. Says how the server answered: accepted when it took a
+// draft, which fetches the log too, refused when it only refused, or false.
 export async function uploadDrafts({
   db = defaultDb,
   queue = defaultQueue,
@@ -87,6 +88,7 @@ export async function uploadDrafts({
   const blocked = (await db.meta.get("blocked")) as Blocked | undefined
   if (blocked && blocked.schemaVersion > latestSchemaVersion) return false
   let changed = false
+  let accepted = false
   try {
     for (const draft of await listDrafts(queue)) {
       // Not again until it is edited, which clears the reason.
@@ -106,6 +108,7 @@ export async function uploadDrafts({
         // One the copy still lacks (an app too old for the server's schema)
         // keeps its draft, which a resend finds already applied.
         await syncLog({ db, fetch })
+        accepted = true
         await noteSynced(db)
         // A sync already under way may have written an older log first, so
         // one more fetch before keeping the draft.
@@ -138,7 +141,7 @@ export async function uploadDrafts({
     // Memory once for the run, even one a failure stopped part-way.
     if (changed) await loadLog(db, queue)
   }
-  return changed
+  return accepted ? "accepted" : changed ? "refused" : false
 }
 
 let uploading: Promise<void> | undefined
@@ -157,7 +160,8 @@ export function upload() {
     try {
       do {
         again = false
-        if (await uploadDrafts()) noteReached()
+        const reply = await uploadDrafts()
+        if (reply) noteReached(reply === "accepted")
       } while (again)
       // Every draft went, was refused, or is gone.
       failures = 0

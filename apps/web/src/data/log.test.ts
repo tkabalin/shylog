@@ -76,7 +76,7 @@ describe("sync", () => {
       return "updated"
     })
     await log.sync()
-    expect(state()).toMatchObject({ loaded: true, failed: false })
+    expect(state()).toMatchObject({ loaded: true, reach: "ok" })
     expect(log.currentLog()?.version).toBe("v1")
     expect(downloadProfiles).toHaveBeenCalledOnce()
     expect(upload).toHaveBeenCalledOnce()
@@ -95,11 +95,11 @@ describe("sync", () => {
     vi.spyOn(console, "debug").mockImplementation(() => {})
     syncLog.mockRejectedValueOnce(new NoAnswer("Failed to fetch"))
     await log.sync()
-    expect(state().failed).toBe(true)
+    expect(state().reach).toBe("unreachable")
 
     syncLog.mockResolvedValueOnce("unchanged")
     await log.sync()
-    expect(state().failed).toBe(false)
+    expect(state().reach).toBe("ok")
   })
 
   it("stops downloading and uploading for a server on a newer schema", async () => {

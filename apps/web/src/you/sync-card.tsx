@@ -7,6 +7,7 @@ import {
   IconCloudUpload,
   IconDownload,
   IconRefresh,
+  IconServerBolt,
   IconServerOff,
   IconWifiOff,
 } from "@tabler/icons-react"
@@ -33,6 +34,7 @@ const icons: Record<SyncCardLook, typeof IconCloudCheck> = {
   waiting: IconCloudOff,
   offline: IconWifiOff,
   unreachable: IconServerOff,
+  fault: IconServerBolt,
   stuck: IconAlertTriangle,
   refused: IconAlertTriangle,
   paused: IconCloudPause,
