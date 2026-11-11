@@ -41,6 +41,7 @@ import { countText } from "@/components/pickers/match"
 import { parseMaxPo2 } from "@/you/defaults"
 import { Switch } from "@/components/ui/switch"
 import { DefaultsSection } from "@/you/defaults-section"
+import { DiveComputerRow } from "@/you/dive-computer-row"
 import { CardImage } from "@/you/cards/card-image"
 import { Downloads } from "@/you/downloads"
 import { Fold, foldMs } from "@/components/fold"
@@ -530,6 +531,7 @@ function Preferences({ settings }: { settings: Settings }) {
             </Row>
             <ErrorLine id="error-maxPo2" message={error} />
           </div>
+          <DiveComputerRow />
         </Section>
       </PlainLabels.Provider>
       <SaveFailure error={failure} />
