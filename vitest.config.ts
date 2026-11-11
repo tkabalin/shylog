@@ -56,6 +56,8 @@ export default defineConfig({
           name: "server",
           root: "apps/server",
           environment: "node",
+          // Silences the server's log; a test reads it with captureLog().
+          setupFiles: ["test/setup.ts"],
           // The UDDF tests run xmllint and xsltproc alongside every other
           // file, and under that load whichever database test is slowest at
           // the time (replay, nightly) went past the 5 s default.

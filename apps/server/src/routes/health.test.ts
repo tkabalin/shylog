@@ -2,7 +2,7 @@ import { closeSync, mkdtempSync, openSync, rmSync, writeSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { describe, expect, it, onTestFinished, vi } from "vitest"
+import { describe, expect, it, onTestFinished } from "vitest"
 
 import {
   apiHeaders,
@@ -12,6 +12,7 @@ import {
   testWebRoot,
 } from "../../test/app.ts"
 import { fixtureXml, seededDb } from "../../test/fixture.ts"
+import { captureLog } from "../../test/log.ts"
 import { migrate } from "../db/migrate.ts"
 import { openDatabase, type Db } from "../db/open.ts"
 import { seed } from "../seed.ts"
@@ -107,13 +108,11 @@ describe("the startup integrity check", () => {
     setup.close()
     corrupt(file)
 
-    const logged = vi.spyOn(console, "error").mockImplementation(() => {})
-    onTestFinished(() => logged.mockRestore())
+    const lines = captureLog()
     const { app, state } = boot()
     expect(state.integrity).toBe("failed")
-    expect(logged).toHaveBeenCalledWith(
-      "integrity_check failed:",
-      expect.anything()
+    expect(lines).toContainEqual(
+      expect.objectContaining({ level: "error", event: "integrity_failed" })
     )
     expect(await health(app)).toMatchObject({
       integrity: "failed",

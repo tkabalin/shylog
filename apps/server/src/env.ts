@@ -31,6 +31,9 @@ const schema = z
     // The browser tests' own build of the web app, so a run never rewrites
     // apps/web/dist under another; development only.
     SHYLOG_WEB_ROOT: z.string().min(1).optional(),
+    // The commit the image was built from (the Dockerfile sets it), which
+    // every log line carries.
+    SHYLOG_REVISION: z.string().min(1).default("dev"),
   })
   // The dev login bypasses the Tailscale identity check, so a production
   // server must never start with it set.

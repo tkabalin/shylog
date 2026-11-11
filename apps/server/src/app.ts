@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception"
 
 import { Rejected } from "./apply/rejected.ts"
 import { factory, type Deps } from "./factory.ts"
+import { logger } from "./log.ts"
 import { cards } from "./routes/cards.ts"
 import { dives } from "./routes/dives.ts"
 import { entities } from "./routes/entities.ts"
@@ -78,7 +79,7 @@ export function createApp(deps: Deps) {
         if (error instanceof HTTPException) return error.getResponse()
         // As Hono's default does: a rethrow reaches the Node adapter, which
         // answers an empty 500 and logs nothing.
-        console.error(error)
+        logger.error({ event: "error", err: error }, error.message)
         return c.text("Internal Server Error", 500)
       })
   )

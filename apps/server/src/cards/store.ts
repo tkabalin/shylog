@@ -16,6 +16,7 @@ import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
 import { syncDir } from "../fs.ts"
 import type { Entry } from "../journal.ts"
+import { logger } from "../log.ts"
 
 export interface Image {
   hash: string
@@ -209,6 +210,9 @@ function prune(db: Db, folder: string, id: string) {
       if (!used.has(file)) rmSync(join(folder, file), { force: true })
     }
   } catch (error) {
-    console.error(error)
+    logger.error(
+      { event: "card_prune_failed", cardId: id, err: error },
+      "Couldn’t remove a card’s unused images"
+    )
   }
 }

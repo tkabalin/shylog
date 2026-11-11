@@ -42,6 +42,10 @@ COPY --from=deps /src/apps/server/node_modules apps/server/node_modules
 COPY --from=build /src/apps/server/package.json apps/server/
 COPY --from=build /src/apps/server/dist apps/server/dist
 COPY --from=build /src/apps/web/dist apps/web/dist
+# After the COPYs, so the revision never invalidates them. Every log line
+# carries it.
+ARG VITE_REVISION=dev
+ENV SHYLOG_REVISION=${VITE_REVISION}
 USER node
 # A short start interval, so scripts/update.sh sees a new server healthy within
 # seconds; the start period leaves room for migrations on a large log.

@@ -7,6 +7,7 @@ import { openDatabase } from "./db/open.ts"
 import { parseEnv } from "./env.ts"
 import { checkIntegrity } from "./integrity.ts"
 import { checkedSnapshot } from "./jobs/nightly.ts"
+import { configureLog, logTo } from "./log.ts"
 import {
   NotInJournal,
   rowsSql,
@@ -36,9 +37,15 @@ function parse() {
   }
 }
 
+// stdout is for the person running it; the server's own lines, such as a
+// failed integrity check, go to stderr beside its errors.
+logTo((line) => void process.stderr.write(line))
+
 const { positionals, values } = parse()
 const [command, ...rest] = positionals
 const env = parseEnv(process.env)
+// The instance and build on its lines too, as on the server's.
+configureLog(env)
 const dataDir = env.SHYLOG_DATA_DIR
 
 const line = (row: JournalRow) => `  ${row.seq}  ${row.appliedAt}  ${row.type}`
