@@ -31,7 +31,8 @@ type Event = Profile["events"][number]
 // A 135 min trimix-free deep dive on a Shearwater logging every 4 s: a
 // fast descent to 62.4 m, a ragged bottom, deco stops at 21, 15, 9, 6 and
 // 3 m, a thermocline from 14.2 to 4.1 °C in 0.1 steps, and a dozen ascent
-// alarms, some a second apart, one never closed, plus two other alarm types.
+// alarms, some a second apart, one never closed, plus two other alarm types
+// and two mandatory stops, begun at alarms, the second never cleared.
 function deepDive(): Profile {
   const legs: [number, number][] = [
     [0, 0],
@@ -94,6 +95,8 @@ function deepDive(): Profile {
     ...ascents.map(([start, end]) => ({ type: "ascent", start, end })),
     { type: "microbubbles", start: 4200, end: null },
     { type: "rbt", start: 7900, end: null },
+    { type: "mandatory-stop", start: 1504, end: 3640 },
+    { type: "mandatory-stop", start: 8064, end: null },
     { type: "surface", start: 8124, end: null },
   ]
   return { samples, events }
@@ -140,6 +143,9 @@ function DevProfilePage() {
             : base.computerModel,
       ascentAlarmCount: profile.events.filter((e) => e.type === "ascent")
         .length,
+      mandatoryStopEvents: profile.events
+        .filter((e) => e.type === "mandatory-stop")
+        .reduce((rows, e) => rows + (e.end == null ? 1 : 2), 0),
       safetyStop: safetyStop(profile.samples),
     }
     primeProfile(

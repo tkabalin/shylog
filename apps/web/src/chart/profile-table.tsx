@@ -16,6 +16,8 @@ import {
   eventLabel,
   eventsAt,
   inStop,
+  mandatoryAt,
+  mandatoryLabel,
   rate,
   stopLabel,
   type ProfileModel,
@@ -46,28 +48,32 @@ export const ProfileTable = memo(function ProfileTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {model.points.map((point, i) => (
-            <TableRow key={i}>
-              <TableCell>{clock(point.time)}</TableCell>
-              <TableCell>{depth(point.depth / 1000)}</TableCell>
-              <TableCell>
-                {point.temperature == null
-                  ? "—"
-                  : temperature(point.temperature)}
-              </TableCell>
-              <TableCell>{rateLabel(rate(model.speeds[i].speed))}</TableCell>
-              <TableCell>
-                {[
-                  ...eventsAt(model.events, point.time, model.eventEnd).map(
-                    (event) => `${eventLabel(event.type)} alarm`
-                  ),
-                  ...(inStop(model, point.time)
-                    ? [stopLabel(model.safetyStop!)]
-                    : []),
-                ].join(", ")}
-              </TableCell>
-            </TableRow>
-          ))}
+          {model.points.map((point, i) => {
+            const mandatory = mandatoryAt(model, i)
+            return (
+              <TableRow key={i}>
+                <TableCell>{clock(point.time)}</TableCell>
+                <TableCell>{depth(point.depth / 1000)}</TableCell>
+                <TableCell>
+                  {point.temperature == null
+                    ? "—"
+                    : temperature(point.temperature)}
+                </TableCell>
+                <TableCell>{rateLabel(rate(model.speeds[i].speed))}</TableCell>
+                <TableCell>
+                  {[
+                    ...(mandatory ? [mandatoryLabel[mandatory]] : []),
+                    ...eventsAt(model.events, point.time, model.eventEnd).map(
+                      (event) => `${eventLabel(event.type)} alarm`
+                    ),
+                    ...(inStop(model, point.time)
+                      ? [stopLabel(model.safetyStop!)]
+                      : []),
+                  ].join(", ")}
+                </TableCell>
+              </TableRow>
+            )
+          })}
         </TableBody>
       </Table>
     </div>

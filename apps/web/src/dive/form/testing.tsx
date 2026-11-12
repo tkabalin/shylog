@@ -73,6 +73,7 @@ export function testDive(fields: Partial<Dive> & { id: string }): Dive {
     otu: null,
     sparkline: null,
     ascentAlarmCount: 0,
+    mandatoryStopEvents: 0,
     sampleDuration: null,
     sampleAverageDepth: null,
     safetyStop: null,

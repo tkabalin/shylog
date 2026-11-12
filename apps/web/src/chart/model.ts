@@ -39,6 +39,16 @@ export interface Alarm {
   peakIndex: number
 }
 
+// A stop the computer made mandatory: a red line where it became so, and
+// rows in Events for that moment and, if the computer logged it, the
+// moment it was cleared, each with its chart point.
+export interface MandatoryStop {
+  event: ProfileEvent
+  begin: ChartPoint
+  beginIndex: number
+  cleared: { point: ChartPoint; index: number } | null
+}
+
 // The safety stop as the chart shows it: apart from the events, as it is no
 // warning, and moving the crosshair to the first point in the band. Its ends
 // add no chart points, which would change Subsurface's vertical rates.
@@ -139,6 +149,19 @@ export function profileModel(
       }
     })
 
+  const mandatoryStops: MandatoryStop[] = events
+    .filter((event) => event.type === "mandatory-stop")
+    .map((event) => {
+      const beginIndex = at(event.start)
+      const end = event.end == null ? null : at(event.end)
+      return {
+        event,
+        begin: points[beginIndex],
+        beginIndex,
+        cleared: end == null ? null : { point: points[end], index: end },
+      }
+    })
+
   // The crosshair rests on the deepest point until touched.
   let deepest = 0
   for (let i = 1; i < points.length; i++) {
@@ -176,6 +199,7 @@ export function profileModel(
     depthLabels: depthLabels(all, inView, interval),
     events: shown,
     alarms,
+    mandatoryStops,
     safetyStop: stop,
     mod: modInView(mod, depth) ? mod : null,
     deepest,
@@ -189,6 +213,24 @@ export const stopLabel = (stop: StopMark) =>
   stop.full ? "Safety stop" : "Short safety stop"
 export const stopTone = (stop: StopMark) =>
   stop.full ? "text-ok" : "text-muted-foreground"
+
+// A mandatory stop's moment at a chart point: where a stop became
+// mandatory, or where one was cleared.
+export type MandatoryMoment = "begin" | "cleared"
+export const mandatoryLabel: Record<MandatoryMoment, string> = {
+  begin: "Mandatory stop",
+  cleared: "Stop cleared",
+}
+export function mandatoryAt(
+  model: ProfileModel,
+  index: number
+): MandatoryMoment | null {
+  for (const stop of model.mandatoryStops) {
+    if (stop.beginIndex === index) return "begin"
+    if (stop.cleared?.index === index) return "cleared"
+  }
+  return null
+}
 
 // Whether a time is inside the safety stop.
 export const inStop = (model: ProfileModel, seconds: number) =>

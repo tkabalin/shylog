@@ -18,9 +18,9 @@ import {
 } from "./layout"
 
 // The Events section's rows, known from the dive before its samples arrive:
-// each ascent alarm, and the safety stop.
+// each ascent alarm, each mandatory stop and its clearing, and the safety stop.
 export const eventCount = (dive: Dive) =>
-  dive.ascentAlarmCount + (dive.safetyStop ? 1 : 0)
+  dive.ascentAlarmCount + dive.mandatoryStopEvents + (dive.safetyStop ? 1 : 0)
 
 // The chart's sections at their final heights (see profile.tsx), each
 // sketched where its content will land: the readout, the chart with its

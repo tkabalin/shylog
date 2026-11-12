@@ -137,6 +137,7 @@ function draftDive(draft: Draft): Dive {
     otu: null,
     sparkline: null,
     ascentAlarmCount: 0,
+    mandatoryStopEvents: 0,
     sampleDuration: null,
     sampleAverageDepth: null,
     safetyStop: null,

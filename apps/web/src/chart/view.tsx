@@ -1,6 +1,11 @@
 import { useRef, useState, type PointerEvent } from "react"
 import { speedBand, speedBands } from "@shylog/core"
-import { IconAlertTriangle, IconStairsUp } from "@tabler/icons-react"
+import {
+  IconAlertTriangle,
+  IconCircleCheck,
+  IconHandStop,
+  IconStairsUp,
+} from "@tabler/icons-react"
 import { cn } from "cn"
 
 import { depth, temperature } from "@/format/figures"
@@ -13,6 +18,8 @@ import {
   eventLabel,
   eventsAt,
   inStop,
+  mandatoryAt,
+  mandatoryLabel,
   pointAt,
   rate,
   stopLabel,
@@ -97,18 +104,20 @@ export function Readout({
   const speed = model?.speeds[index].speed ?? 0
   const band = speedBand(speed)
   const strong = speedBands.indexOf(band) >= speedBands.indexOf("moderate")
-  // One line at most, so the readout keeps its height.
-  // An alarm wins the line, as the one to notice, but not where only its
-  // widened band reaches into the stop.
+  // One line at most, so the readout keeps its height. A mandatory stop's
+  // moment wins, as an alarm often begins one; then an alarm, as the one to
+  // notice, but not where only its widened band reaches into the stop.
+  const mandatory = model && point ? mandatoryAt(model, index) : null
   const stop =
     model &&
     point &&
+    !mandatory &&
     inStop(model, point.time) &&
     !eventsAt(model.events, point.time).length
       ? model.safetyStop
       : null
   const now =
-    model && point && !stop
+    model && point && !stop && !mandatory
       ? eventsAt(model.events, point.time, model.eventEnd)[0]
       : null
   return (
@@ -132,6 +141,21 @@ export function Readout({
             </span>
           </div>
           <div className="flex flex-col items-end gap-0.5 text-[13px] tabular-nums">
+            {mandatory && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 font-semibold",
+                  mandatory === "cleared" ? "text-ok" : "text-mandatory"
+                )}
+              >
+                {mandatory === "cleared" ? (
+                  <IconCircleCheck className="size-3.25 stroke-[2.25]" />
+                ) : (
+                  <IconHandStop className="size-3.25 stroke-[2.25]" />
+                )}
+                {mandatoryLabel[mandatory]}
+              </span>
+            )}
             {now && (
               <span className="inline-flex items-center gap-1 font-semibold text-warn">
                 <IconAlertTriangle className="size-3.25 stroke-[2.25]" />

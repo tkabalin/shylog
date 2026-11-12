@@ -76,6 +76,7 @@ export default function Profile({
           />
           <Events
             alarms={model.alarms}
+            mandatory={model.mandatoryStops}
             stop={model.safetyStop}
             onShow={setChosen}
           />

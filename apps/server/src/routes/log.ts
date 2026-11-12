@@ -33,6 +33,12 @@ const sampleFigures = (schema: number) =>
     ? "sample_duration AS sampleDuration, sample_average_depth AS sampleAverageDepth"
     : "NULL AS sampleDuration, NULL AS sampleAverageDepth"
 
+// Added by migration 10, likewise.
+const mandatoryStopColumn = (schema: number) =>
+  schema >= 10
+    ? "mandatory_stop_events AS mandatoryStopEvents"
+    : "0 AS mandatoryStopEvents"
+
 // Added by migration 8, likewise.
 const stopColumns = (schema: number) =>
   schema >= 8
@@ -81,6 +87,7 @@ interface DiveRow {
   otu: number | null
   sparkline: string | null
   ascentAlarmCount: number
+  mandatoryStopEvents: number
   sampleDuration: number | null
   sampleAverageDepth: number | null
   stopStart: number | null
@@ -127,7 +134,7 @@ function readLog(db: Db) {
       // Deleted dives too, with deletedAt, for Recently deleted.
       dives: all<DiveRow>(
         db,
-        `SELECT ${diveColumns}, ${sampleFigures(schema)}, ${stopColumns(schema)} FROM dives ORDER BY start_time, seq`
+        `SELECT ${diveColumns}, ${sampleFigures(schema)}, ${mandatoryStopColumn(schema)}, ${stopColumns(schema)} FROM dives ORDER BY start_time, seq`
       ).map(dive),
       sites: all<{
         id: string
