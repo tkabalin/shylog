@@ -115,15 +115,16 @@ test.describe("at phone width", () => {
     await expect.poll(line).toMatch(none)
   })
 
-  // Import's Choose file bar sits on the nav, so content never runs under
-  // the nav there: the bar takes the line, or the two drew a double line.
+  // Import's bar of dive computer buttons sits on the nav, so content never
+  // runs under the nav there: the bar takes the line, or the two drew a
+  // double line.
   test("gives Import's bottom bar the line instead of the nav", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 520 })
     await page.goto("/import")
     await expect(
-      page.getByRole("button", { name: "Choose file" })
+      page.getByRole("button", { name: "Detect dive computer" })
     ).toBeVisible()
     const nav = page.getByRole("navigation", { name: "Main" })
     const bar = page.locator(".bottom-bar")
@@ -137,6 +138,31 @@ test.describe("at phone width", () => {
     await main.evaluate((el) => (el.scrollTop = el.scrollHeight))
     await expect.poll(() => bar.evaluate(line)).toMatch(none)
     expect(await nav.evaluate(line)).toMatch(none)
+  })
+
+  // Without the cable Import has no bar, so the nav keeps its own line.
+  test("leaves the nav its line on Import without the cable", async ({
+    page,
+  }) => {
+    await page.route("**/api/dive-computer", (route) =>
+      route.fulfill({ json: { enabled: false, computer: null } })
+    )
+    // A fresh browser starts with downloading off, so the stub's answer
+    // has to land first, or this would pass without it.
+    const answered = page.waitForResponse("**/api/dive-computer")
+    await page.goto("/import")
+    await answered
+    await expect
+      .poll(() =>
+        page.evaluate(() => localStorage.getItem("shylog-dive-computer"))
+      )
+      .toContain('"enabled":false')
+    await expect(page.getByText("Import a Subsurface file")).toBeVisible()
+    await expect(page.locator(".bottom-bar")).toHaveCount(0)
+    const nav = page.getByRole("navigation", { name: "Main" })
+    expect(
+      await nav.evaluate((el) => getComputedStyle(el).animationName)
+    ).not.toBe("none")
   })
 
   test("switches tabs in place, so back never steps through them", async ({
@@ -194,15 +220,18 @@ test.describe("at desktop width", () => {
     await expect(current).toHaveAttribute("aria-current", "page")
   })
 
-  test("detects the dive computer from Import's card", async ({ page }) => {
+  // On a stack of its own, as two detects at once would find the cable
+  // busy.
+  test("detects the dive computer on Import @writes", async ({ page }) => {
     await page.goto("/import")
     await page.getByRole("button", { name: "Detect dive computer" }).click()
     await expect(page.getByText("Suunto D4i", { exact: true })).toBeVisible()
-    await expect(
-      page.getByRole("button", { name: "Download dives" })
-    ).toBeVisible()
-    // The upload's button stays in its card with a mouse.
-    await expect(page.getByText("Choose file", { exact: true })).toBeVisible()
+    // With a mouse the buttons stay under the watch, with no bottom bar.
+    const download = page.getByRole("button", { name: "Download dives" })
+    await expect(download).toBeVisible()
+    await expect(page.locator(".bottom-bar")).toHaveCount(0)
+    const row = await page.getByText("Import a Subsurface file").boundingBox()
+    expect((await download.boundingBox())!.y).toBeLessThan(row!.y)
   })
 
   test("moves the crosshair to the safety stop with a click", async ({

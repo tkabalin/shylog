@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 import { expect, type APIRequestContext, type Page } from "@playwright/test"
 
-import { deleteDive, getLog, test, uploadDive } from "./api"
+import { deleteDive, discardPending, getLog, test, uploadDive } from "./api"
 import { still } from "./ui"
 
 // The D4i fixture moved ten years on, and further on each retry and
@@ -38,29 +38,7 @@ async function undo(request: APIRequestContext, years: number[]) {
       years.some((year) => dive.startTime.startsWith(String(year)))
     )
       await deleteDive(request, dive.id)
-  const origin = new URL(test.info().project.use.baseURL!).origin
-  const pending = await request.get("/api/import/pending", {
-    headers: { "X-Shylog": "1", Origin: origin },
-  })
-  const { preview } = (await pending.json()) as {
-    preview: { id: string } | null
-  }
-  if (preview)
-    await request.delete(`/api/import/${preview.id}`, {
-      headers: { "X-Shylog": "1", Origin: origin },
-    })
-}
-
-// On a phone Choose file sits just above the tab bar, in thumb reach, even
-// when the Last import makes the page scroll.
-async function expectChooseInReach(page: Page) {
-  const button = await page
-    .getByText("Choose file", { exact: true })
-    .boundingBox()
-  const tabs = await page
-    .getByRole("navigation", { name: "Main" })
-    .boundingBox()
-  expect(tabs!.y - (button!.y + button!.height)).toBeLessThan(24)
+  await discardPending(request)
 }
 
 test("imports an export against hand-logged dives, end to end @writes", async ({
@@ -90,7 +68,7 @@ test("imports an export against hand-logged dives, end to end @writes", async ({
 
   await page.goto("/")
   await page.goto("/import")
-  await expectChooseInReach(page)
+  await expect(page.getByText("Import a Subsurface file")).toBeVisible()
   await page.locator('input[type="file"]').setInputFiles({
     name: "d4i.uddf",
     mimeType: "application/octet-stream",
@@ -206,8 +184,11 @@ test("imports an export against hand-logged dives, end to end @writes", async ({
     .getByRole("link", { name: "Import" })
     .click()
   await expect(page.getByText("Last import")).toBeVisible()
-  await expect(page.getByText(/^72 computer dives from/)).toBeVisible()
-  await expectChooseInReach(page)
+  // The included freedive counts as new; nothing was already imported.
+  await expect(page.getByText("2 paired", { exact: true })).toBeVisible()
+  await expect(page.getByText("40 new", { exact: true })).toBeVisible()
+  await expect(page.getByText("29 left out", { exact: true })).toBeVisible()
+  await expect(page.getByText(/already imported$/)).toHaveCount(0)
   await page.locator('input[type="file"]').setInputFiles({
     name: "d4i.uddf",
     mimeType: "application/octet-stream",

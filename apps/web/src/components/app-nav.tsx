@@ -125,13 +125,10 @@ export function useImportStep() {
 
 export function BottomNav() {
   const logTab = useLogTab()
-  // Import's Choose file bar sits on the nav and takes its top line.
-  const barAbove = !!useMatchRoute()({ to: "/import" })
   if (useOnForm()) return null
   return (
     <nav
       aria-label="Main"
-      data-bar-above={barAbove || undefined}
       className="bottom-nav fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t bg-background pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] desk:hidden"
     >
       {destinations.map(({ to, label, icon: Icon }) => (

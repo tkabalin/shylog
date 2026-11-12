@@ -20,6 +20,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - The axes fit the dive (Subsurface's zoomed plot), not the board's fixed 35 m and 48 min.
 - The temperature lane's header reads only its caption and the crosshair's value. The board's min–max range moves to two labels in the gutter, at the lane's lowest and highest levels.
 - The caption names the line, "Water temperature · Smoothed" or "· Recorded", and opens a menu of the two, with a little more space above and below it than the board's. A bubble, a segmented control in the header and one in its own row under the lane were all tried on the phone and looked cramped on the card.
+- A downloaded dive's mandatory stop, which no board draws, is a red vertical line where it became mandatory with a hand-stop icon among the alarms' (an alarm's icon at that moment steps aside), and two Events rows, Mandatory stop with how long until it cleared and Stop cleared.
 
 ## Forms and inputs
 
@@ -56,6 +57,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - The Export rows' subtitles are "Opens in Subsurface" and "The SQLite file", shorter than the board's so they stay on one line beside the download arrow down to 320 px, and show a spinner in place of the download arrow while the server builds the file. A failed download says which file and why under the card, and a failed Export now says why under its action. After a failed night, "Last export" reads "Failed today" without the time, as the board has it. The Offline storage row comes with the offline work.
 - New-dive defaults use the dive form's controls (material and volume in litres), not the board's preset lists, and a new dive is filled from them. The board's gas and start pressure defaults are left out: a new dive starts on air with its start pressure empty, as both are read dive by dive, and a default would record a reading nobody took. `EditDiveHifi` leaves them blank.
 - Dive professionals are labelled "Dive professionals", with no instructor or divemaster role, and the people list shows names only, without the boards' role subtitles.
+- You's Dive computer section, which `SettingsHifi` doesn't have, lists the remembered watch (its model as the watch reports it, and when it was last downloaded) with Forget in red, after a confirm sheet, so Import can take another watch.
 
 ## Sites and regions
 
@@ -75,9 +77,9 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 ## Import
 
 - Name the computer by the model the export gives, not a hard-coded "D4i".
-- On a phone, the upload's Choose file sits in a bar pinned above the tab bar, in thumb reach; `ImportHifi` puts it in the card at the top of the screen. With a mouse it stays in the card.
+- The dive computer, when the instance has its cable, leads the screen with no card around it, its buttons in a bar pinned above the tab bar on a phone and under the watch with a mouse (12 November 2026, not drawn on any board). `ImportHifi`'s upload card, its Getting the file steps and its Choose file button give way to one row, Import a Subsurface file, whose subtitle is the menu path in Subsurface; tapping it opens the file picker. Last import is a card of counts two to a row under a heading with the day, a count of none left out and included dives counted as new, in place of the board's date line and summary rows.
 - The review's bar has Discard on the right, which the boards leave empty. A hand-logged dive under Your dives with no match opens the pairing screen turned round, with that day's computer dives and Leave unpaired.
-- `ImportReviewHifi`'s Freedives row is a Left out row covering dives under five minutes too, called false starts, each row saying "Freedive" or "Under 5 min". Its "From earlier imports" row reads Already imported, with no split, as the preview counts them together.
+- `ImportReviewHifi`'s Freedives row is a Left out row covering dives under five minutes too, called false starts, each row saying "Freedive" or "Under 5 min", and after Read every dive again "Earlier" for a dive from before the last download, with a history icon. Done's summary counts them all under Left out. Its "From earlier imports" row reads Already imported, with no split, as the preview counts them together.
 - A dive the review will store on air, as v1 can't hold its gas, says so on its row and on its pairing screen.
 - The Compare table also shows the gas.
 - `ImportReviewHifi` marks a Paired row that differs with a warning dot. It uses the arrows-diff icon in the warning colour instead, the mark the Done screen gives dives that differ, so the two screens read as one.
@@ -102,7 +104,7 @@ These were settled while planning the build (see the decisions in `docs/PLAN.md`
 - The app icon's shyshark sits in full colour at the right of the Log's count, scrolling away with it. The Log with no dives has no header, so it shows the shark larger in place of `LogHifi2`'s notebook in a tinted circle.
 - The Import done screen lists the dives that differ from the computer, each linking to its detail. The board links the row to one dive.
 - The Compare table on Change pairing also shows average depth.
-- The upload card shows an indeterminate "Reading your export" state. The board's "48 of 72 dives" progress bar implies streaming that the server does not do.
+- The upload's row shows an indeterminate "Reading your export" state. The board's "48 of 72 dives" progress bar implies streaming that the server does not do.
 - The import summary counts included freedives separately when there are any. The review board folds them into "new".
 - Dives under five minutes are left out and listed with the freedives, which the boards don't draw.
 - Entities are created from the dive form's pickers, and trips, dive centres and people also from their list's add button with their dives; the entity screens list, rename, merge, delete, and tick dives onto a trip, dive centre or person. No board draws the add button, the New screen or the dive picker.
