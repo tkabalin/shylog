@@ -144,21 +144,14 @@ function SummaryRow({
   label,
   value,
   muted,
-  tall,
 }: {
   icon: Icon
   label: string
   value: number
   muted?: boolean
-  tall?: boolean
 }) {
   return (
-    <div
-      className={cn(
-        "flex items-center gap-3 px-4 py-2 text-[15px]",
-        tall ? "min-h-12" : "min-h-11"
-      )}
-    >
+    <div className="flex min-h-12 items-center gap-3 px-4 py-2 text-[15px]">
       <RowIcon
         aria-hidden
         className={cn(
@@ -181,51 +174,43 @@ function SummaryRow({
   )
 }
 
-// What an import did, as ImportHifi's Last import and ImportDoneHifi list
-// it; included left-out dives only when there were any.
+// What an import did, as ImportDoneHifi lists it; included left-out dives
+// only when there were any.
 export function SummaryRows({
   summary,
-  tall,
   className,
 }: {
   summary: Omit<ImportSummary, "differing">
-  // Done's rows are 48 px, Last import's 44, as the boards draw them.
-  tall?: boolean
   className?: string
 }) {
   return (
     <dl className={cn("m-0 flex flex-col divide-y", className)}>
       <SummaryRow
-        tall={tall}
         icon={IconPlugConnected}
         label="Paired with your dives"
         value={summary.paired}
       />
       <SummaryRow
-        tall={tall}
         icon={IconFilePlus}
         label="Added as new dives"
         value={summary.added}
       />
       {summary.included > 0 && (
         <SummaryRow
-          tall={tall}
           icon={IconFilePlus}
           label="Left-out dives included"
           value={summary.included}
         />
       )}
       <SummaryRow
-        tall={tall}
         icon={IconPlayerSkipForward}
         label="Already imported, skipped"
         value={summary.alreadyImported}
         muted
       />
       <SummaryRow
-        tall={tall}
         icon={IconSwimming}
-        label="Freedives and false starts left out"
+        label="Left out"
         value={summary.leftOut}
         muted
       />

@@ -246,7 +246,8 @@
     animation-range: calc(100% - 1rem) 100%;
   }
 }
-.bottom-nav[data-bar-above] {
+/* Whichever screen draws one, while it shows. */
+:root:has(.bottom-bar) .bottom-nav {
   border-top-color: transparent;
   animation: none;
 }

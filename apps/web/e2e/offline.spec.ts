@@ -246,13 +246,14 @@ test("the Import screen shows its Offline state and doesn't upload", async ({
   context,
 }) => {
   await page.goto("/import")
-  const choose = page.getByText("Choose file", { exact: true })
+  const choose = page.getByText("Import a Subsurface file")
   await expect(choose).toBeVisible()
   await context.setOffline(true)
-  await expect(
-    page.getByText("Import needs a connection to the server.")
-  ).toBeVisible()
-  // Greyed where it was, as the board draws it, and the picker won't open.
+  // Greyed where it was, with the offline mark, and the picker won't open.
+  await expect(page.getByRole("img", { name: "Offline" })).toBeVisible()
   await expect(choose).toBeVisible()
   await expect(page.locator("input[type=file]")).toBeDisabled()
+  await expect(
+    page.getByRole("button", { name: "Detect dive computer" })
+  ).toBeDisabled()
 })

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { IconDeviceWatch } from "@tabler/icons-react"
 import { useNavigate } from "@tanstack/react-router"
 import { cn } from "cn"
@@ -6,7 +6,6 @@ import { cn } from "cn"
 import d4i from "@/assets/dive-computers/d4i.webp"
 import zoopNovo from "@/assets/dive-computers/zoop-novo.webp"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import {
   ComputerError,
   computerProgress,
@@ -63,48 +62,47 @@ const advice: Partial<Record<ComputerError["reason"], string>> = {
   noWatch: "Check the watch is seated in the cable and awake.",
   stopped: "Check the watch is still seated in the cable.",
   failed: "Check the watch is seated in the cable, then try again.",
+  unreachable: "Check your connection, then try again.",
 }
 
 // Its picture on a white tile, or a watch icon for a model without one, in
-// the same box either way, so the card keeps its height between states.
+// the same box either way, so the hero keeps its height between states.
 function Picture({ model, muted }: { model: string | null; muted: boolean }) {
   const src = model ? pictures[model] : undefined
   if (!src)
+    // A tile the photo's size, so the hero doesn't open a gap above
+    // its title.
     return (
-      <span aria-hidden className="flex size-28 items-center justify-center">
-        <span
-          className={cn(
-            "inline-flex size-13 items-center justify-center rounded-full",
-            muted
-              ? "bg-muted text-muted-foreground/60"
-              : "bg-primary/12 text-primary"
-          )}
-        >
-          <IconDeviceWatch className="size-6 stroke-[1.75]" />
-        </span>
+      <span
+        aria-hidden
+        className={cn(
+          "flex size-54 items-center justify-center rounded-3xl bg-muted transition-colors duration-150 ease-out",
+          muted ? "text-muted-foreground/60" : "text-muted-foreground"
+        )}
+      >
+        <IconDeviceWatch className="size-24 stroke-[1.25]" />
       </span>
     )
-  // Wrapped, as the card takes a bare image first as a full-bleed header.
   return (
-    <span className="flex">
-      <img
-        src={src}
-        alt=""
-        width={112}
-        height={112}
-        className={cn(
-          // On the white card in light mode the tile needs no edge.
-          "size-28 rounded-2xl bg-white object-contain dark:ring-1 dark:ring-white/10",
-          muted && "opacity-50 grayscale"
-        )}
-      />
-    </span>
+    <img
+      src={src}
+      alt=""
+      width={216}
+      height={216}
+      draggable={false}
+      className={cn(
+        // On the white page in light mode the tile needs no edge; no
+        // long-press menu, as it isn't content to save.
+        "size-54 rounded-3xl bg-white object-contain transition-[opacity,filter] duration-150 ease-out select-none [-webkit-touch-callout:none] dark:ring-1 dark:ring-white/10",
+        muted && "opacity-50 grayscale"
+      )}
+    />
   )
 }
 
 // The share of the watch read so far when the server knows it; otherwise,
 // opening the watch or matching its dives, a third of the track sweeping.
-function Progress({
+export function Progress({
   label,
   value = null,
 }: {
@@ -123,33 +121,55 @@ function Progress({
       {value == null ? (
         <span className="absolute inset-y-0 w-1/3 animate-import-progress rounded-full bg-primary motion-reduce:w-full motion-reduce:animate-none motion-reduce:opacity-60" />
       ) : (
-        // Eased between the server's answers, a few times a second.
+        // Slid rather than scaled, which would squash its round end, and
+        // linear across the server's answers, a few times a second.
         <span
-          className="absolute inset-0 origin-left rounded-full bg-primary transition-transform duration-300 ease-out"
-          style={{ transform: `scaleX(${value})` }}
+          className="absolute inset-0 rounded-full bg-primary transition-transform duration-300 ease-linear"
+          style={{ transform: `translateX(${(value - 1) * 100}%)` }}
         />
       )}
     </span>
   )
 }
 
-// The Import screen's dive computer, when this instance has the cable (see
-// Downloading from the dive computer in the spec): Detect opens the watch
-// on the server's cable, and a watch found offers its download, which goes
-// on to the usual review. Nothing touches the watch until Detect.
-export function DiveComputerCard({
+// The Import screen's dive computer (see Downloading from the dive computer
+// in the spec): nothing touches the watch until Detect, and a watch found
+// offers its download into the usual review. Hero and buttons come apart,
+// as a phone puts the buttons above the tab bar; null when downloading is off.
+export function useComputerDownload({
   connected,
+  uploading,
   onDownload,
 }: {
   connected: boolean
+  // A file being read, as the server takes one import at a time.
+  uploading: boolean
   // Told when a download starts and when it ends without a review, so
   // the screen can hold its review banner as the new preview lands.
   onDownload: (running: boolean) => void
-}) {
+}): { hero: ReactNode; actions: ReactNode } | null {
   const { enabled, computer } = useDiveComputer()
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>({ kind: "idle" })
   const [read, setRead] = useState<number | null>(null)
+  const slot = useRef<HTMLDivElement>(null)
+  // A download can end after the diver has left Import, which then
+  // shows its waiting card instead of pulling them into the review.
+  const mounted = useRef(true)
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+  // The button pressed gives way to the bar, or the bar to buttons, so
+  // focus that fell to the page moves to whatever took its place.
+  const shown = useRef(step.kind)
+  useEffect(() => {
+    if (shown.current === step.kind) return
+    shown.current = step.kind
+    if (document.activeElement === document.body) slot.current?.focus()
+  }, [step.kind])
 
   useEffect(() => {
     if (connected) void loadDiveComputer()
@@ -195,7 +215,8 @@ export function DiveComputerCard({
     try {
       const preview = await downloadFromComputer(readAll)
       if (preview) {
-        await navigate({ to: "/import/review", replace: true })
+        if (mounted.current)
+          await navigate({ to: "/import/review", replace: true })
         return
       }
       // The download remembered the watch, so it can be read whole now.
@@ -209,18 +230,20 @@ export function DiveComputerCard({
   const watch = "watch" in step ? step.watch : undefined
   const name = watch ? computerName(watch.model) : null
   const remembered = computer && computerName(computer.model)
-  // Greyed offline, as the upload's button is.
+  const disabled = !connected || uploading
+  // Greyed offline and while a file uploads.
   const offline =
     "disabled:bg-muted disabled:text-muted-foreground/60 disabled:opacity-100"
 
   let title: string
   let detail: ReactNode
   let actions: ReactNode = null
+  let progress: ReactNode = null
   const detectButton = (label: string, outline = false) => (
     <Button
       size="lg"
       variant={outline ? "outline" : "default"}
-      disabled={!connected}
+      disabled={disabled}
       onClick={() => void detect()}
       className={cn("w-full", bigButton, offline)}
     >
@@ -232,7 +255,7 @@ export function DiveComputerCard({
     found.known && (
       <Button
         variant="ghost"
-        disabled={!connected}
+        disabled={disabled}
         onClick={() => void download(found, true)}
         // Sized as the app's other ghost buttons under a primary one.
         className={cn(
@@ -255,7 +278,7 @@ export function DiveComputerCard({
     case "looking":
       title = "Looking for your dive computer"
       detail = "Opening it on the server’s cable"
-      actions = <Progress label="Looking for your dive computer" />
+      progress = <Progress label="Looking for your dive computer" />
       break
     case "found":
       title = step.watch.other ? "Another dive computer" : step.watch.model
@@ -263,14 +286,17 @@ export function DiveComputerCard({
         ? `This ${name} isn’t the ${remembered ?? "watch"} this log downloads from. To use it, forget your ${remembered ?? "watch"} on the You tab.`
         : step.watch.lastDownloadAt
           ? `Last downloaded ${instant(step.watch.lastDownloadAt)}`
-          : "Not downloaded yet"
+          : // Remembered, from a download whose dives weren't imported.
+            step.watch.known
+            ? "Nothing imported from it yet"
+            : "Not downloaded yet"
       actions = step.watch.other ? (
         detectButton("Detect again", true)
       ) : (
         <>
           <Button
             size="lg"
-            disabled={!connected}
+            disabled={disabled}
             onClick={() => void download(step.watch, false)}
             className={cn("w-full", bigButton, offline)}
           >
@@ -284,12 +310,12 @@ export function DiveComputerCard({
       title = `Reading your ${name}`
       detail = step.readAll
         ? "Every dive on it, which takes up to half a minute"
-        : "Then matching its dives with your log"
-      actions = <Progress label={`Reading your ${name}`} value={read} />
+        : "Reading, then matching its dives with your log"
+      progress = <Progress label={`Reading your ${name}`} value={read} />
       break
     case "nothingNew":
       title = "No new dives"
-      detail = `Your ${name} has nothing since your last download.`
+      detail = `Your ${name} has nothing new since your last download.`
       actions = (
         <>
           {detectButton("Detect again", true)}
@@ -304,29 +330,43 @@ export function DiveComputerCard({
       break
   }
 
-  return (
-    <Card
-      aria-live="polite"
-      aria-busy={step.kind === "looking" || step.kind === "downloading"}
-      className="items-center gap-3 px-5 pt-5 pb-5 text-center"
-    >
-      {/* The remembered watch until Detect says which is on the cable. */}
-      <Picture
-        model={watch?.model ?? computer?.model ?? null}
-        muted={!connected}
-      />
-      <span className="flex flex-col gap-1">
-        <span className="text-[17px] font-semibold tracking-[-0.015em]">
-          {title}
+  return {
+    hero: (
+      <div
+        aria-live="polite"
+        className="flex flex-col items-center gap-4 px-1 text-center"
+      >
+        {/* The remembered watch until Detect says which is on the cable. */}
+        <Picture
+          model={watch?.model ?? computer?.model ?? null}
+          muted={!connected}
+        />
+        <span className="flex flex-col gap-1">
+          <span className="text-[22px] font-semibold tracking-[-0.02em] text-balance">
+            {title}
+          </span>
+          <span className="text-[15px] leading-[1.45] text-pretty text-muted-foreground tabular-nums">
+            {detail}
+          </span>
         </span>
-        <span className="text-sm leading-[1.45] text-pretty text-muted-foreground tabular-nums">
-          {detail}
-        </span>
-      </span>
-      {/* Fitted to each state rather than held at one height: the room a
-          second button needs left a gap under the others, and on a phone
-          Choose file sits in the bottom bar, so nothing under a thumb moves. */}
-      <div className="flex w-full flex-col gap-2">{actions}</div>
-    </Card>
-  )
+      </div>
+    ),
+    // The bar stands where the buttons were while the watch is read, at a
+    // button's height, so the screen and the phone's bar stay put; each
+    // step's content fades in. A phone keeps the primary button lowest.
+    actions: (
+      <div
+        key={step.kind}
+        ref={slot}
+        tabIndex={-1}
+        className="flex flex-col-reverse gap-1 transition-opacity duration-150 ease-out outline-none starting:opacity-0 desk:flex-col desk:gap-2"
+      >
+        {progress ? (
+          <div className="flex h-12 items-center desk:h-9">{progress}</div>
+        ) : (
+          actions
+        )}
+      </div>
+    ),
+  }
 }

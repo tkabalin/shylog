@@ -77,7 +77,7 @@ function DonePage() {
           </p>
         </div>
         <Card className="gap-0 py-0">
-          <SummaryRows summary={lastImport} tall />
+          <SummaryRows summary={lastImport} />
         </Card>
         {differing.length > 0 && (
           <Card className="gap-0 divide-y py-0">

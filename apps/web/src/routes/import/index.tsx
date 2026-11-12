@@ -4,11 +4,16 @@ import {
   IconChevronRight,
   IconClipboardCheck,
   IconDeviceWatch,
+  IconFilePlus,
   IconFileUpload,
+  IconPlayerSkipForward,
+  IconPlugConnected,
+  IconSwimming,
 } from "@tabler/icons-react"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { OfflineMark } from "@/components/offline-mark"
 import { Card } from "@/components/ui/card"
 import {
   loadPending,
@@ -16,12 +21,11 @@ import {
   useImport,
   type LastImport,
 } from "@/data/import"
-import { useDiveComputer } from "@/data/dive-computer"
-import { months } from "@/format/dates"
+import { instant } from "@/format/dates"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
-import { DiveComputerCard } from "@/import/dive-computer-card"
-import { bigButton, ImportSection, ListCard, SummaryRows } from "@/import/parts"
+import { Progress, useComputerDownload } from "@/import/computer-download"
+import { ImportSection } from "@/import/parts"
 
 export const Route = createFileRoute("/import/")({
   component: ImportPage,
@@ -36,42 +40,51 @@ function expiry(expiresAt: string, now = new Date()) {
   return `expires in ${Math.floor(left / day)} days`
 }
 
-// An instant the server stamped, in the phone's zone: "Sun 2 Aug 2026 · 21:40".
-function importedAt(at: string) {
-  const date = new Date(at)
-  const weekday = date.toLocaleString("en-GB", { weekday: "short" })
-  const time = date.toLocaleString("en-GB", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  })
-  return `${weekday} ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} · ${time}`
+// What the last import did, two to a row. A count of none is left out,
+// and the left-out dives the review included count as new; the dives that
+// never went into the log are muted, so paired and new read first.
+function LastImportCounts({ last }: { last: LastImport }) {
+  const counts = [
+    { icon: IconPlugConnected, value: last.paired, label: "paired" },
+    { icon: IconFilePlus, value: last.added + last.included, label: "new" },
+    {
+      icon: IconPlayerSkipForward,
+      value: last.alreadyImported,
+      label: "already imported",
+      muted: true,
+    },
+    { icon: IconSwimming, value: last.leftOut, label: "left out", muted: true },
+  ]
+  // An import that skipped every dive still says it added none.
+  const shown = counts.filter((count) => count.value > 0)
+  if (!shown.length) shown.push(counts[1])
+  return (
+    <Card className="gap-0 px-4 py-3.5">
+      <ul className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-2.5 p-0 text-[15px] text-muted-foreground tabular-nums">
+        {shown.map(({ icon: Icon, value, label, muted }) => (
+          // Sized so "already imported" just fits its column on a 390 px
+          // phone; a narrower one wraps it.
+          <li key={label} className="flex items-center gap-1.25">
+            <Icon aria-hidden className="size-4.25 shrink-0 stroke-[1.8]" />
+            <span>
+              <span
+                className={cn("font-semibold", !muted && "text-foreground")}
+              >
+                {value}
+              </span>{" "}
+              {label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  )
 }
 
-// The export's days: "18 Jul – 1 Aug 2026", the first year only when it
-// differs, or "on 18 Jul 2026" for one day.
-function dayRange(from: string, to: string) {
-  const parts = (date: string) => ({
-    day: `${Number(date.slice(8, 10))} ${months[Number(date.slice(5, 7)) - 1]}`,
-    year: date.slice(0, 4),
-  })
-  const [a, b] = [parts(from), parts(to)]
-  if (from === to) return `on ${a.day} ${a.year}`
-  return a.year === b.year
-    ? `from ${a.day} – ${b.day} ${b.year}`
-    : `from ${a.day} ${a.year} – ${b.day} ${b.year}`
-}
-
-function fileLine(last: LastImport) {
-  if (!last.file) return null
-  const { dives, from, to } = last.file
-  const count = `${dives} computer ${dives === 1 ? "dive" : "dives"}`
-  return from && to ? `${count} ${dayRange(from, to)}` : count
-}
-
-// ImportHifi: the upload, a preview waiting for review, and the last
-// import. Each step replaces the last, so back from the review or the
-// summary never reaches a finished step (see Navigation history).
+// A preview waiting for review, the dive computer when this instance has
+// its cable, the Subsurface upload, and the last import. Each step
+// replaces the last, so back from the review or the summary never reaches
+// a finished step (see Navigation history).
 function ImportPage() {
   const { loaded, preview, lastImport } = useImport()
   const navigate = useNavigate()
@@ -84,14 +97,19 @@ function ImportPage() {
   const shown = uploading || downloading ? before : preview
   const [error, setError] = useState<string>()
   const desk = useDesk()
-  // ImportHifi's Offline state: the server reads the file, so no upload.
+  // The server reads the file and the watch, so neither works offline.
   const connected = useConnected()
-  // With the server's cable, the download leads and the upload is the
-  // fallback, so its button is outlined.
-  const { enabled: downloads } = useDiveComputer()
+  const computer = useComputerDownload({
+    connected,
+    uploading,
+    onDownload: (running) => {
+      if (running) setBefore(preview)
+      setDownloading(running)
+    },
+  })
 
   useEffect(() => {
-    // Offline, the screen says so; asked again once back.
+    // Asked again once back online.
     if (connected) loadPending().catch(() => {})
   }, [connected])
 
@@ -111,44 +129,15 @@ function ImportPage() {
     if (input.current) input.current.value = ""
   }
 
-  const button = (
-    <label
-      className={cn(
-        "inline-flex w-full cursor-pointer items-center justify-center gap-2 transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-90 active:opacity-80 active:duration-0 has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
-        downloads
-          ? "border bg-background text-foreground dark:border-input dark:bg-input/30"
-          : "bg-primary text-primary-foreground",
-        // Offline it stays where it is, greyed, as ImportHifi draws it.
-        "has-disabled:cursor-default has-disabled:bg-muted has-disabled:text-muted-foreground/60 has-disabled:hover:opacity-100 has-disabled:active:opacity-100",
-        bigButton
-      )}
-    >
-      <input
-        ref={input}
-        type="file"
-        disabled={!connected}
-        accept=".uddf,.xml"
-        className="sr-only"
-        onChange={(event) => void choose(event.target.files?.[0])}
-      />
-      <IconFileUpload aria-hidden className="size-[1.15em]" />
-      Choose file
-    </label>
-  )
-  const failed = error && (
-    <p
-      role="alert"
-      className="text-center text-[13px] text-pretty text-destructive"
-    >
-      {error}
-    </p>
-  )
+  // Greyed where it is offline and while the watch downloads, as the
+  // server reads one thing at a time.
+  const dim = !connected || downloading
 
   return (
     <div className="flex min-h-full flex-col">
-      <div className="flex flex-1 flex-col gap-6 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-10 md:mx-auto md:w-full md:max-w-xl">
+      <div className="flex flex-1 flex-col gap-7 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-10 md:mx-auto md:w-full md:max-w-xl">
         <h1 className="sr-only">Import</h1>
-        {/* Kept while a file uploads or the watch downloads, so the card below
+        {/* Kept while a file uploads or the watch downloads, so the screen
             doesn't jump and the new preview doesn't flash its card. */}
         {shown && (
           <Link
@@ -183,106 +172,94 @@ function ImportPage() {
           </Link>
         )}
 
-        <DiveComputerCard
-          connected={connected}
-          onDownload={(running) => {
-            if (running) setBefore(preview)
-            setDownloading(running)
-          }}
-        />
+        {computer && (
+          <div className="flex flex-col gap-4 pt-3">
+            {computer.hero}
+            {/* With a mouse the buttons stay under the watch. */}
+            {desk && computer.actions}
+          </div>
+        )}
 
-        <Card className="items-center gap-3.5 px-5 pt-7 pb-5.5 text-center">
-          <span
-            aria-hidden
-            className={cn(
-              "inline-flex size-13 items-center justify-center rounded-full",
-              connected || uploading
-                ? "bg-primary/12 text-primary"
-                : "bg-muted text-muted-foreground/60"
-            )}
-          >
-            <IconFileUpload className="size-6 stroke-[1.75]" />
-          </span>
-          <span className="flex flex-col gap-1">
-            <span className="text-[17px] font-semibold tracking-[-0.015em]">
-              {uploading ? "Reading your export" : "Import from Subsurface"}
-            </span>
-            <span className="text-sm leading-[1.45] text-pretty text-muted-foreground">
-              {uploading
-                ? "Matching its dives with your log"
-                : connected
-                  ? "Choose a UDDF export to attach your dive computer’s profiles to the dives you’ve logged."
-                  : "Import needs a connection to the server."}
-            </span>
-          </span>
-          {uploading ? (
-            // The preview comes back in one response, so the bar can't say
-            // how far along it is.
+        <div className="flex flex-col gap-2">
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-card py-3 pr-3.5 pl-3 ring-1 ring-foreground/10 transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/40 has-focus-visible:ring-3 has-focus-visible:ring-ring/50 has-disabled:pointer-events-none data-press:bg-muted/60 data-press:duration-0">
+            <input
+              ref={input}
+              type="file"
+              disabled={dim || uploading}
+              accept=".uddf,.xml"
+              className="sr-only"
+              onChange={(event) => void choose(event.target.files?.[0])}
+            />
             <span
-              role="progressbar"
-              aria-label="Reading your export"
-              className="relative block h-1.5 w-full overflow-hidden rounded-full bg-muted"
+              aria-hidden
+              className={cn(
+                "inline-flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-muted text-muted-foreground transition-opacity duration-150 ease-out",
+                dim && "opacity-45"
+              )}
             >
-              <span className="absolute inset-y-0 w-1/3 animate-import-progress rounded-full bg-primary motion-reduce:w-full motion-reduce:animate-none motion-reduce:opacity-60" />
+              <IconFileUpload className="size-[21px] stroke-[1.8]" />
             </span>
-          ) : (
-            desk && (
-              <>
-                {button}
-                {failed}
-              </>
-            )
-          )}
-        </Card>
-
-        <ImportSection title="Getting the file">
-          <ol className="m-0 flex list-none flex-col gap-2.5 px-1 pt-1">
-            {[
-              "Download the dives from your dive computer in Subsurface.",
-              "In Subsurface, choose File › Export › UDDF.",
-              "Choose that file here. Nothing changes until you’ve reviewed it.",
-            ].map((step, i) => (
-              <li
-                key={step}
-                className="flex items-baseline gap-3 text-sm leading-[1.45] text-muted-foreground"
-              >
-                <span
-                  aria-hidden
-                  className="inline-flex size-5.5 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold"
-                >
-                  {i + 1}
+            <span
+              className={cn(
+                "flex min-w-0 flex-1 flex-col gap-px transition-opacity duration-150 ease-out",
+                dim && "opacity-45"
+              )}
+            >
+              <span className="text-[15px] font-medium">
+                {uploading ? "Reading your export" : "Import a Subsurface file"}
+              </span>
+              {uploading ? (
+                // The preview comes back in one response, so the bar can't
+                // say how far along it is.
+                // At the subtitle's line height, so the row keeps its own.
+                <span className="flex h-lh items-center text-[13px]">
+                  <Progress label="Reading your export" />
                 </span>
-                {step}
-              </li>
-            ))}
-          </ol>
-        </ImportSection>
+              ) : (
+                <span className="text-[13px] text-muted-foreground">
+                  File › Export › UDDF
+                </span>
+              )}
+            </span>
+            {/* The page's one sign that the server is out of reach, beside
+                the chevron rather than in its place. */}
+            <OfflineMark show={!connected} />
+            {!uploading && (
+              <IconChevronRight
+                aria-hidden
+                className={cn(
+                  "size-4.5 shrink-0 text-muted-foreground/60 transition-opacity duration-150 ease-out",
+                  dim && "opacity-45"
+                )}
+              />
+            )}
+          </label>
+          {error && (
+            <p
+              role="alert"
+              className="px-1 text-[13px] text-pretty text-destructive"
+            >
+              {error}
+            </p>
+          )}
+        </div>
 
         {loaded && lastImport && (
-          <ImportSection title="Last import">
-            <ListCard>
-              <div className="flex flex-col gap-0.5 px-4 pt-3.5 pb-3">
-                <span className="text-[15px] font-medium tabular-nums">
-                  {importedAt(lastImport.at)}
-                </span>
-                {fileLine(lastImport) && (
-                  <span className="text-[13px] text-muted-foreground tabular-nums">
-                    {fileLine(lastImport)}
-                  </span>
-                )}
-              </div>
-              <SummaryRows summary={lastImport} />
-            </ListCard>
+          <ImportSection
+            title="Last import"
+            aside={
+              <span className="font-normal">{instant(lastImport.at)}</span>
+            }
+          >
+            <LastImportCounts last={lastImport} />
           </ImportSection>
         )}
       </div>
-      {/* On a phone the button sits above the tab bar, in thumb reach,
-          rather than in the card at the top; with a mouse it stays in the
-          card. While a file uploads, the card shows its progress. */}
-      {!desk && !uploading && (
-        <div className="bottom-bar sticky bottom-0 z-10 flex flex-col gap-2.5 border-t bg-background px-4 py-3 md:px-[calc(max(0rem,(100%-36rem)/2)+1rem)]">
-          {failed}
-          {button}
+      {/* On a phone the watch's buttons sit above the tab bar, in thumb
+          reach, with its progress in their place while it's read. */}
+      {!desk && computer && (
+        <div className="bottom-bar sticky bottom-0 z-10 border-t bg-background px-4 py-3 md:px-[calc(max(0rem,(100%-36rem)/2)+1rem)]">
+          {computer.actions}
         </div>
       )}
     </div>
