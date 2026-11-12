@@ -219,12 +219,14 @@ const labels: Record<string, string> = {
 export const air = 210
 
 // The D4i writes each ascent alarm as a pair, matched in order, and marks
-// surfacings with single alarms. Shylog writes a computer's mandatory stop
-// as a pair of deco alarms, begin and end; any other deco alarm is single.
+// surfacings with single alarms. A download writes a computer's mandatory
+// stop as a pair of deco alarms, begin and end ("pair"); Shylog's export
+// names its stops apart, so one deco alarm for each of their seconds is
+// skipped (`stops` says so); any other deco alarm is single.
 function events(
   waypoints: Element[],
   times: number[],
-  stopAt: (time: number) => boolean
+  stops: "pair" | ((time: number) => boolean)
 ): ProfileEvent[] {
   const found: ProfileEvent[] = []
   const open = new Map<string, number>()
@@ -232,10 +234,11 @@ function events(
     const time = times[i]
     for (const alarm of all(waypoint, "alarm")) {
       const alarmed = alarm.textContent?.trim() ?? ""
+      if (alarmed === "deco" && stops !== "pair" && stops(time)) continue
       const type =
         alarmed === "ascent"
           ? "ascent"
-          : alarmed === "deco" && stopAt(time)
+          : alarmed === "deco" && stops === "pair"
             ? "mandatory-stop"
             : undefined
       const start = type ? open.get(type) : undefined
@@ -503,12 +506,23 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
       hasGas: switchmixes.length > 0,
       computerModel: computerOf(dive),
       samples,
-      events: events(
-        waypoints,
-        written.map((sample) => sample.time),
-        // A download's deco alarms are all stops; Shylog's export names its.
-        fromDownload ? () => true : (time) => own?.stopTimes.has(time) ?? false
-      ),
+      // A download's deco alarms are all stops. Shylog's export names its
+      // stops' seconds, read from there: a stop added to a dive imported
+      // from Subsurface can end between its samples, where no alarm goes.
+      events: fromDownload
+        ? events(
+            waypoints,
+            written.map((sample) => sample.time),
+            "pair"
+          )
+        : [
+            ...events(
+              waypoints,
+              written.map((sample) => sample.time),
+              stopAlarms(own?.stopTimes)
+            ),
+            ...(own?.stops ?? []),
+          ].sort((a, b) => a.start - b.start),
       standard: kept([
         "cylinderMaterial",
         "entry",
@@ -545,6 +559,18 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
   })
 }
 
+// Skips one deco alarm for each a stop put at that second, so another
+// tool's deco alarm at the same second is still read.
+function stopAlarms(counts: ReadonlyMap<number, number> | undefined) {
+  const left = new Map(counts)
+  return (time: number) => {
+    const count = left.get(time) ?? 0
+    if (!count) return false
+    left.set(time, count - 1)
+    return true
+  }
+}
+
 // Shylog's <shylog> block, which only its own export writes.
 function readOwn(dive: Element, before: Element | undefined) {
   const block = Array.from(
@@ -564,6 +590,19 @@ function readOwn(dive: Element, before: Element | undefined) {
   const regionName = entityName(one("diveCentreRegion"))
   const regionCountry = country(one("diveCentreRegionCountry"))
   const maxTemperature = one("maxTemperature")
+  // Each stop's begin and end ("1699 3293"), or its begin alone; one that
+  // isn't a number of seconds is dropped.
+  const stops: ProfileEvent[] = every("mandatoryStop").flatMap((times) => {
+    const [start, end] = times.split(" ").filter(Boolean).map(Number)
+    if (!Number.isInteger(start)) return []
+    return [
+      {
+        type: "mandatory-stop",
+        start,
+        end: Number.isInteger(end) ? end : null,
+      },
+    ]
+  })
   return {
     fields: {
       trainingAgency: one("trainingAgency") ?? undefined,
@@ -594,11 +633,14 @@ function readOwn(dive: Element, before: Element | undefined) {
           : undefined,
     },
     professionals: every("professional"),
-    stopTimes: new Set(
-      every("mandatoryStop").flatMap((times) =>
-        times.split(" ").filter(Boolean).map(Number)
-      )
-    ),
+    // How many deco alarms the export wrote at each second for its stops.
+    stopTimes: stops
+      .flatMap(({ start, end }) => (end == null ? [start] : [start, end]))
+      .reduce(
+        (counts, time) => counts.set(time, (counts.get(time) ?? 0) + 1),
+        new Map<number, number>()
+      ),
+    stops,
     trip: entityName(one("tripName")),
     diveCentre: centre
       ? {

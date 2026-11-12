@@ -32,6 +32,7 @@ import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
 import { recalculate } from "../derived.ts"
 import { deleteComputer, insertComputer } from "../download/computer.ts"
+import { insertStops, type Stop } from "../download/stops.ts"
 import type { Watch } from "../download/dctool.ts"
 import { applyChunk, type Chunk } from "../import/apply.ts"
 import { setMeta } from "../journal.ts"
@@ -134,6 +135,13 @@ const entries: Record<
   },
   forgetComputer: {
     apply: (db) => deleteComputer(db),
+    derived: false,
+  },
+  // Stops read off the watch for a dive already in the log; no figure
+  // depends on them.
+  addMandatoryStops: {
+    apply: (db, { diveId, stops }: { diveId: string; stops: Stop[] }) =>
+      insertStops(db, diveId, stops),
     derived: false,
   },
   putSettings: {
