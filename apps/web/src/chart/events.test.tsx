@@ -101,7 +101,7 @@ test("lists a mandatory stop after the alarm that began it, then its clearing", 
   expect(buttons.map((button) => button.getAttribute("aria-label"))).toEqual([
     expect.stringMatching(/^Ascent rate alarm at 25:00/),
     "Mandatory stop from 25:00 at 8.0 metres. Show on profile.",
-    "Stop cleared at 26:30, 5.2 metres. Show on profile.",
+    "Mandatory stop cleared at 26:30, 5.2 metres. Show on profile.",
     expect.stringMatching(/^Safety stop from 34:21/),
   ])
   expect(buttons[1].textContent).toBe("Mandatory stop8.0 m at 25:00")

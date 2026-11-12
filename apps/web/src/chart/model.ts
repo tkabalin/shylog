@@ -219,7 +219,7 @@ export const stopTone = (stop: StopMark) =>
 export type MandatoryMoment = "begin" | "cleared"
 export const mandatoryLabel: Record<MandatoryMoment, string> = {
   begin: "Mandatory stop",
-  cleared: "Stop cleared",
+  cleared: "Mandatory stop cleared",
 }
 export function mandatoryAt(
   model: ProfileModel,
