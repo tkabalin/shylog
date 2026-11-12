@@ -39,6 +39,7 @@ afterEach(() => {
     "FAKE_DCTOOL_SERIAL",
     "FAKE_DCTOOL_BEFORE",
     "FAKE_DCTOOL_DELAY",
+    "FAKE_DCTOOL_PARSE_DELAY",
   ])
     delete process.env[key]
 })
@@ -116,8 +117,11 @@ describe("the dive computer's states", () => {
     process.env.FAKE_DCTOOL_DELAY = "10"
     const running = download(app)
     let read: number | null = null
-    // A pause between asks, so dctool's output gets its turn.
-    while (read == null) {
+    let done = false
+    void running.finally(() => (done = true))
+    // A pause between asks, so dctool's output gets its turn; a download
+    // that ends without any progress fails here rather than spinning.
+    while (read == null && !done) {
       await new Promise((resolve) => setTimeout(resolve, 5))
       read = await progress()
     }
@@ -125,6 +129,37 @@ describe("the dive computer's states", () => {
     expect(read).toBeLessThanOrEqual(1)
     expect((await running).status).toBe(200)
     expect(await progress()).toBeNull()
+  })
+
+  it("holds the cable from opening the watch to its preview", async () => {
+    const { app } = setup()
+    const progress = async () => {
+      const response = await app.request("/api/dive-computer/progress", {
+        headers: apiHeaders,
+      })
+      return ((await response.json()) as { progress: number | null }).progress
+    }
+    process.env.FAKE_DCTOOL_DELAY = "5"
+    // Long enough a parse that the dives are still parsing when asked.
+    process.env.FAKE_DCTOOL_PARSE_DELAY = "40"
+    let done = false
+    const running = download(app).finally(() => (done = true))
+    const until = async (ready: () => boolean | Promise<boolean>) => {
+      while (!(await ready()) && !done)
+        await new Promise((resolve) => setTimeout(resolve, 5))
+    }
+    // Read, then cleared once the read ends: the parse, where the cable
+    // used to be free.
+    await until(async () => (await progress()) != null)
+    await until(async () => (await progress()) == null)
+    expect(done).toBe(false)
+    const second = await download(app)
+    expect(second.status).toBe(409)
+    expect(second.body.reason).toBe("busy")
+    const forget = await send(app, "DELETE", "/api/dive-computer")
+    expect(forget.status).toBe(409)
+    expect((await running).status).toBe(200)
+    expect((await send(app, "DELETE", "/api/dive-computer")).status).toBe(204)
   })
 
   it("answers a read that broke off as the server's failure", async () => {

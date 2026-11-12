@@ -169,9 +169,6 @@ function mandatoryStops(events: Event[]) {
   return spans
 }
 
-// A dive's start on the watch's clock, as the import reads it.
-export const diveStart = (xml: DctoolDive) => readDive(xml).start
-
 const mm = (metres: number) => Math.round(metres * 1000)
 
 // uddf-export.xslt's depth for an event between samples: straight between
@@ -298,24 +295,26 @@ function convertDive(dive: ReturnType<typeof readDive>, id: string): Xml {
 }
 
 // The download as one UDDF file, the computer named as Subsurface names it
-// ("Suunto D4i"), the dives in the order given.
-export function downloadToUddf(
+// ("Suunto D4i"), the dives in the order given, with the first one's start
+// on the watch's clock, read while it was converted.
+export function convertDownload(
   dives: readonly { id: string; xml: DctoolDive }[],
   model: string
 ) {
   const mixes = new Map<string, Mix>()
-  const converted = dives.map(({ id, xml }) => {
-    const dive = readDive(xml)
+  const read = dives.map(({ xml }) => readDive(xml))
+  const converted = read.map((dive, i) => {
     for (const mix of dive.mixes) mixes.set(mixId(mix), mix)
-    return convertDive(dive, id)
+    return convertDive(dive, dives[i].id)
   })
+  const first = read[0]?.start ?? null
   const name = (mix: Mix) =>
     mix.he > 0
       ? `TMx ${percent(mix.o2)}/${percent(mix.he)}`
       : Math.round(mix.o2 * 10) === 210
         ? "air"
         : `EANx ${percent(mix.o2)}`
-  return [
+  const uddf = [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     ...element(
       "uddf",
@@ -367,4 +366,10 @@ export function downloadToUddf(
       ` xmlns="http://www.streit.cc/uddf/3.2/" version="3.2.1"`
     ),
   ].join("\n")
+  return { uddf, first }
 }
+
+export const downloadToUddf = (
+  dives: readonly { id: string; xml: DctoolDive }[],
+  model: string
+) => convertDownload(dives, model).uddf

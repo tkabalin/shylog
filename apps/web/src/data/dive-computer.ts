@@ -4,7 +4,7 @@ import type { ImportPreview } from "@shylog/core"
 import { apiClient } from "@/api/client"
 
 import { unreachable } from "./edits"
-import { reasonIn } from "./upload"
+import { reasonIn, send } from "./upload"
 
 // The watch on the home server's cable (see Downloading from the dive
 // computer in the spec): whether this instance downloads at all, the watch
@@ -88,9 +88,6 @@ function subscribe(listener: () => void) {
 export const useDiveComputer = () =>
   useSyncExternalStore(subscribe, () => state)
 
-const send = (request: () => Promise<Response>) =>
-  request().catch(() => undefined)
-
 async function failure(res: Response | undefined) {
   if (!res) return new ComputerError("unreachable", unreachable)
   const body = (await res.json().catch(() => undefined)) as
@@ -138,10 +135,19 @@ export async function downloadFromComputer(
   const res = await send(() =>
     apiClient(fetch).api["dive-computer"].download.$post({ json: { readAll } })
   )
-  if (!res?.ok) throw await failure(res)
+  if (!res?.ok) {
+    // The watch may have been remembered before the download broke off.
+    if (res) await loadDiveComputer(fetch)
+    throw await failure(res)
+  }
   const { preview } = (await res.json()) as { preview: ImportPreview | null }
   // Loaded here, as launch loads this module and the review's isn't needed.
-  if (preview) (await import("./import")).startReview(preview)
+  // The preview is stored either way, so a chunk that fails to load leaves
+  // the review to fetch it rather than calling the download failed.
+  if (preview)
+    await import("./import")
+      .then(({ startReview }) => startReview(preview))
+      .catch(() => {})
   await loadDiveComputer(fetch)
   return preview
 }

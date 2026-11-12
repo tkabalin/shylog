@@ -7,13 +7,20 @@ import { afterEach, describe, expect, it } from "vitest"
 
 import {
   d9Fingerprint,
-  download,
+  download as downloadOn,
   DownloadError,
+  holdCable,
   identify,
   parse,
   readProgress,
   type DctoolConfig,
 } from "./dctool.ts"
+
+// A download holds the cable, as the app's downloads do.
+const download = (
+  config: DctoolConfig,
+  options: Parameters<typeof downloadOn>[1]
+) => holdCable(config, () => downloadOn(config, options))
 
 const fake = fileURLToPath(
   new URL("../../test/fake-dctool.mjs", import.meta.url)
@@ -24,11 +31,15 @@ function setup(mode = "ok") {
   const device = join(dir, "suunto")
   writeFileSync(device, "")
   process.env.FAKE_DCTOOL_MODE = mode
+  // Short only where the timeout is what's tested (a watch that never
+  // answers; one that answers, then hangs), so a slow spawn under load
+  // can't turn another case into a silent watch.
+  const timeout = mode === "silent" ? 1000 : mode === "stopped" ? 3000 : 10_000
   const config: DctoolConfig = {
     device,
     command: fake,
-    identifyTimeout: 1000,
-    downloadTimeout: 1000,
+    identifyTimeout: timeout,
+    downloadTimeout: timeout,
   }
   return { dir, config }
 }

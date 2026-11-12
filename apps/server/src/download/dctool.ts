@@ -120,8 +120,10 @@ function run(
       let cancelled = false
       let error: DownloadError | null = null
       // SIGINT cancels the download cleanly, closing the port; SIGKILL
-      // follows if dctool doesn't stop.
+      // follows if dctool doesn't stop. The timeout is off once stopping,
+      // lest it fire while dctool closes and turn a found watch to a failure.
       const stop = () => {
+        clearTimeout(timer)
         cancelled = true
         child.kill("SIGINT")
         setTimeout(() => child.kill("SIGKILL"), 2000).unref()
@@ -167,7 +169,12 @@ function run(
   )
 }
 
-async function exclusive<T>(config: DctoolConfig, work: () => Promise<T>) {
+// One download at a time, from opening the watch until its dives are in a
+// preview, so a second can't slip in while the first parses.
+export async function holdCable<T>(
+  config: DctoolConfig,
+  work: () => Promise<T>
+) {
   if (running) throw new DownloadError("busy")
   // Instant, so a missing cable is said at once.
   if (!existsSync(config.device)) throw new DownloadError("noCable")
@@ -180,20 +187,23 @@ async function exclusive<T>(config: DctoolConfig, work: () => Promise<T>) {
   }
 }
 
+export const cableBusy = () => running
+
 // Opens the watch for its model and serial, then cancels the download it
-// started, before any dive is read.
-export function identify(config: DctoolConfig) {
-  return exclusive(config, async () => {
-    const { watch } = await run(config, {
-      args: ["-d", "Suunto D4i", "download", "-o", "/dev/null", config.device],
-      timeout: config.identifyTimeout ?? 8000,
-      silent: "noWatch",
-      onWatch: () => true,
-    })
-    if (!watch) throw new DownloadError("noWatch")
-    return watch
+// started, before any dive is read. The caller holds the cable.
+export async function identifyOn(config: DctoolConfig) {
+  const { watch } = await run(config, {
+    args: ["-d", "Suunto D4i", "download", "-o", "/dev/null", config.device],
+    timeout: config.identifyTimeout ?? 8000,
+    silent: "noWatch",
+    onWatch: () => true,
   })
+  if (!watch) throw new DownloadError("noWatch")
+  return watch
 }
+
+export const identify = (config: DctoolConfig) =>
+  holdCable(config, () => identifyOn(config))
 
 // The start on the watch's clock as the D9 family's fingerprint: the year
 // in two bytes, low first, then month, day, hour, minute and second.
@@ -215,53 +225,61 @@ export interface Download {
 
 // Downloads the dives after `after` (a start on the watch's clock), or all
 // of them, as raw files into `dir`. `accept` refuses a watch by throwing,
-// which stops the read before any dive.
-export function download(
+// which stops the read before any dive. The caller holds the cable.
+export async function download(
   config: DctoolConfig,
   options: { dir: string; after: string | null; accept: (watch: Watch) => void }
 ) {
-  return exclusive(config, async () => {
-    mkdirSync(options.dir, { recursive: true })
-    let refusal: unknown = null
-    const { watch } = await run(config, {
-      args: [
-        // Both models are opened alike; the watch reports which it is.
-        "-d",
-        "Suunto D4i",
-        "download",
-        ...(options.after ? ["-p", d9Fingerprint(options.after)] : []),
-        "-f",
-        "raw",
-        "-o",
-        join(options.dir, "%t-%f.bin"),
-        config.device,
-      ],
-      timeout: config.downloadTimeout ?? 120_000,
-      silent: "noWatch",
-      onProgress: (fraction) => (reading = fraction),
-      onWatch: (found) => {
-        try {
-          options.accept(found)
-          return false
-        } catch (error) {
-          refusal = error
-          return true
-        }
-      },
-    })
-    if (refusal) throw refusal
-    if (!watch) throw new DownloadError("failed", "dctool named no watch")
-    const files = readdirSync(options.dir)
-      .filter((name) => name.endsWith(".bin"))
-      .sort()
-      .reverse()
-      .map((name) => join(options.dir, name))
-    return { watch, files }
+  mkdirSync(options.dir, { recursive: true })
+  let refusal: unknown = null
+  const { watch } = await run(config, {
+    args: [
+      // Both models are opened alike; the watch reports which it is.
+      "-d",
+      "Suunto D4i",
+      "download",
+      ...(options.after ? ["-p", d9Fingerprint(options.after)] : []),
+      "-f",
+      "raw",
+      "-o",
+      join(options.dir, "%t-%f.bin"),
+      config.device,
+    ],
+    timeout: config.downloadTimeout ?? 120_000,
+    silent: "noWatch",
+    onProgress: (fraction) => (reading = fraction),
+    onWatch: (found) => {
+      try {
+        options.accept(found)
+        return false
+      } catch (error) {
+        refusal = error
+        return true
+      }
+    },
+  }).finally(() => {
+    // The read is over, often early at the last dive downloaded, so the
+    // Import screen fills its bar while the dives are parsed and matched.
+    reading = null
   })
+  if (refusal) throw refusal
+  if (!watch) throw new DownloadError("failed", "dctool named no watch")
+  const files = readdirSync(options.dir)
+    .filter((name) => name.endsWith(".bin"))
+    .sort()
+    .reverse()
+    .map((name) => join(options.dir, name))
+  return { watch, files }
 }
 
-// One raw dive as dctool's XML, kept beside it.
-export function parse(config: DctoolConfig, model: string, file: string) {
+// One raw dive as dctool's XML, kept beside it. A parse takes well under
+// a second, so one that hangs is stopped rather than holding the download.
+export function parse(
+  config: DctoolConfig,
+  model: string,
+  file: string,
+  timeout = 30_000
+) {
   const xml = file.replace(/\.bin$/, ".xml")
   return new Promise<string>((resolve, reject) => {
     const child = spawn(
@@ -269,15 +287,29 @@ export function parse(config: DctoolConfig, model: string, file: string) {
       ["-q", "-d", model, "parse", "-o", xml, file],
       { stdio: ["ignore", "ignore", "pipe"] }
     )
+    const timer = setTimeout(() => child.kill("SIGKILL"), timeout)
     let stderr = ""
     child.stderr.setEncoding("utf8").on("data", (chunk) => (stderr += chunk))
-    child.on("error", (error) =>
+    child.on("error", (error) => {
+      clearTimeout(timer)
       reject(new DownloadError("failed", error.message))
-    )
-    child.on("close", (code) =>
-      code === 0
-        ? resolve(readFileSync(xml, "utf8"))
-        : reject(new DownloadError("failed", `parse exit ${code}: ${stderr}`))
-    )
+    })
+    child.on("close", (code, signal) => {
+      clearTimeout(timer)
+      if (code !== 0)
+        return reject(
+          new DownloadError(
+            "failed",
+            `parse ${signal ?? `exit ${code}`}: ${stderr}`
+          )
+        )
+      // Read here, inside the promise, so a missing file rejects rather
+      // than throwing from the event handler.
+      try {
+        resolve(readFileSync(xml, "utf8"))
+      } catch (error) {
+        reject(new DownloadError("failed", String(error)))
+      }
+    })
   })
 }

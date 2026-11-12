@@ -7,10 +7,12 @@ import { Rejected } from "../apply/rejected.ts"
 import type { Db } from "../db/open.ts"
 import { storePreview } from "../import/preview.ts"
 import { firstMarker, rememberComputer, storedComputer } from "./computer.ts"
-import { diveStart, downloadToUddf } from "./convert.ts"
+import { convertDownload } from "./convert.ts"
 import {
   download,
+  holdCable,
   identify,
+  identifyOn,
   parse,
   type DctoolConfig,
   type Watch,
@@ -18,7 +20,7 @@ import {
 
 // A watch other than the one this log downloads from, which could be the
 // other diver's.
-function refuseOther(stored: Watch | null, watch: Watch) {
+export function refuseOther(stored: Watch | null, watch: Watch) {
   if (stored && stored.serial !== watch.serial) {
     throw new Rejected(
       `This ${computerName(watch.model)} isn't the ${computerName(stored.model)} this log downloads from. Forget it on You to use another.`,
@@ -32,12 +34,12 @@ function refuseOther(stored: Watch | null, watch: Watch) {
 export async function detect(db: Db, config: DctoolConfig) {
   const watch = await identify(config)
   const stored = storedComputer(db)
+  const known = stored?.serial === watch.serial
   return {
     model: watch.model,
-    known: stored?.serial === watch.serial,
-    other: !!stored && stored.serial !== watch.serial,
-    lastDownloadAt:
-      stored?.serial === watch.serial ? stored.lastDownloadAt : null,
+    known,
+    other: !!stored && !known,
+    lastDownloadAt: known ? stored.lastDownloadAt : null,
   }
 }
 
@@ -50,6 +52,7 @@ const stamp = (now: Date) =>
 // Reads the watch's dives after `after` (a start on its clock), or all of
 // them, into a folder of its own under the data directory, where the raw
 // download is kept, and parses each. `accept` refuses a watch by throwing.
+// The caller holds the cable.
 export async function readWatch(
   config: DctoolConfig,
   dataDir: string,
@@ -93,33 +96,37 @@ export async function downloadDives(
   { readAll = false }: { readAll?: boolean },
   now = new Date()
 ) {
-  // Opened first for its model, which picks the starting dive, and so a
-  // different watch is refused before anything is read or stored.
-  const watch = await identify(config)
-  const stored = storedComputer(db)
-  refuseOther(stored, watch)
-  // A remembered watch nothing was applied from yet (its first download
-  // discarded, or with nothing new) still starts where the import left off.
-  const earlierThan = stored?.marker ?? firstMarker(db, watch.model)
-  const dives = await readWatch(
-    config,
-    dataDir,
-    {
-      watch,
-      after: readAll ? null : earlierThan,
-      // Swapped on the cable since it was opened.
-      accept: (found) => refuseOther(stored ?? watch, found),
-    },
-    now
-  )
-  if (!stored) rememberComputer(db, watch)
-  if (!dives.length) return null
-  const uddf = downloadToUddf(dives, watch.model)
-  // The files come newest first.
-  const newest = diveStart(dives[0].xml)
-  return storePreview(db, uddf, now, {
-    serial: watch.serial,
-    newest,
-    earlierThan,
+  // One download from opening the watch to its preview, so another can't
+  // remember a different watch or replace the preview meanwhile.
+  return holdCable(config, async () => {
+    // Opened first for its model, which picks the starting dive, and so a
+    // different watch is refused before anything is read or stored.
+    const watch = await identifyOn(config)
+    const stored = storedComputer(db)
+    refuseOther(stored, watch)
+    // A remembered watch nothing was applied from yet (its first download
+    // discarded, or with nothing new) still starts where the import left
+    // off.
+    const earlierThan = stored?.marker ?? firstMarker(db, watch.model)
+    const dives = await readWatch(
+      config,
+      dataDir,
+      {
+        watch,
+        after: readAll ? null : earlierThan,
+        // Swapped on the cable since it was opened.
+        accept: (found) => refuseOther(stored ?? watch, found),
+      },
+      now
+    )
+    if (!stored) rememberComputer(db, watch)
+    // The files come newest first.
+    const { uddf, first: newest } = convertDownload(dives, watch.model)
+    if (!newest) return null
+    return storePreview(db, uddf, now, {
+      serial: watch.serial,
+      newest,
+      earlierThan,
+    })
   })
 }
