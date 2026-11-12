@@ -18,14 +18,14 @@ const kept = 50
 // the error, and a fresh request on each render would loop.
 const failed = new Set<string>()
 
-// Figures the server keeps from a dive's samples: its sparkline, alarm count
-// and SAC's sample figures. A re-import that changes the samples changes at
-// least one of them, so a stale copy is fetched again. The safety stop is
-// left out, as the chart reads it from the dive, not the samples.
+// What the server keeps from a dive's samples and events (sparkline, alarm
+// and mandatory stop counts, SAC's figures): a change to them changes one,
+// so a stale copy is fetched again. The safety stop is read from the dive.
 const digest = (dive: Dive) =>
   JSON.stringify([
     dive.sparkline,
     dive.ascentAlarmCount,
+    dive.mandatoryStopEvents,
     dive.sampleDuration,
     dive.sampleAverageDepth,
   ])

@@ -17,6 +17,7 @@ const dive = (sparkline: number[] | null = [0, 10, 0], id = "dive-a") =>
     id,
     sparkline,
     ascentAlarmCount: 1,
+    mandatoryStopEvents: 0,
     sampleDuration: 2400,
     sampleAverageDepth: 18.2,
   }) as Dive
@@ -96,6 +97,11 @@ describe("loadProfile", () => {
     expect(await loadProfile(more, { db, fetch: again })).toEqual(profile)
     expect(fetch).toHaveBeenCalledOnce()
     expect(again).toHaveBeenCalledOnce()
+    // So do mandatory stops added to a dive already in the log.
+    const stops = server(profile)
+    const stopped = { ...more, mandatoryStopEvents: 2 }
+    expect(await loadProfile(stopped, { db, fetch: stops })).toEqual(profile)
+    expect(stops).toHaveBeenCalledOnce()
   })
 
   it("keeps the 50 dives used most recently in memory", async () => {

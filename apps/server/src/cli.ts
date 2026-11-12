@@ -15,11 +15,17 @@ import {
   type Replay,
 } from "./restore/replay.ts"
 import { drill, restore, SnapshotRefused } from "./restore/restore.ts"
+import { downloadToUddf } from "./download/convert.ts"
+import { DownloadError, identify } from "./download/dctool.ts"
+import { readWatch } from "./download/download.ts"
+import { storedComputer } from "./download/computer.ts"
+import { addStops, stopsToAdd } from "./download/stops.ts"
 
-// The backup tools, run inside the app container by scripts/*.sh, so files
-// written to the data folder belong to the container's user.
+// The backup tools, and the one-off fill of mandatory stops, run inside the
+// app container by scripts/*.sh, so files written to the data folder belong
+// to the container's user.
 const usage =
-  "Usage: cli.js snapshot | journal --since <time> | restore <snapshot> [--replay-to <seq>|all] | drill | health"
+  "Usage: cli.js snapshot | journal --since <time> | restore <snapshot> [--replay-to <seq>|all] | drill | health | mandatory-stops [--dry-run]"
 
 function parse() {
   try {
@@ -28,6 +34,7 @@ function parse() {
       options: {
         "replay-to": { type: "string" },
         since: { type: "string" },
+        "dry-run": { type: "boolean" },
       },
     })
   } catch {
@@ -141,6 +148,65 @@ if (command === "snapshot" && !rest.length) {
     console.log("No differences from the live database.")
   }
   if (result.replay.failure || result.differences.length) process.exitCode = 1
+} else if (command === "mandatory-stops" && !rest.length) {
+  // Reads every dive off the watch on the cable, as Read every dive again
+  // does, and gives the dives already in the log the stops it holds.
+  const device = env.SHYLOG_DC_DEVICE
+  if (!device) {
+    console.error("This instance doesn't have the dive computer's cable.")
+    process.exit(1)
+  }
+  const config = { device, command: env.SHYLOG_DCTOOL }
+  const db = openDatabase(join(dataDir, "shylog.db"))
+  try {
+    const watch = await identify(config)
+    // Another diver's watch, as a download would refuse it.
+    const stored = storedComputer(db)
+    if (stored && stored.serial !== watch.serial)
+      throw new DownloadError(
+        "failed",
+        `This ${watch.model} isn't the ${stored.model} this log downloads from.`
+      )
+    console.log(`Reading every dive on the ${watch.model}...`)
+    const dives = await readWatch(
+      config,
+      dataDir,
+      {
+        watch,
+        after: null,
+        accept: (found) => {
+          if (found.serial !== watch.serial)
+            throw new DownloadError("failed", "Another watch on the cable")
+        },
+      },
+      new Date()
+    )
+    const uddf = downloadToUddf(dives, watch.model)
+    const { found, twice } = values["dry-run"]
+      ? stopsToAdd(db, uddf)
+      : addStops(db, uddf)
+    const when = (startTime: string) => startTime.replace("T", " ")
+    for (const { startTime, stops } of found)
+      console.log(
+        `  ${when(startTime)}: ${stops.length} mandatory ${stops.length === 1 ? "stop" : "stops"}`
+      )
+    for (const { startTime } of twice)
+      console.log(
+        `  ${when(startTime)}: matches a dive another one does, left alone`
+      )
+    console.log(
+      `Read ${dives.length} dives; ${found.length} in the log ${values["dry-run"] ? "would get" : "got"} mandatory stops.`
+    )
+    if (values["dry-run"])
+      console.log("Dry run: nothing was written to the log.")
+  } catch (error) {
+    if (!(error instanceof DownloadError)) throw error
+    console.error(error.message)
+    if (error.detail) console.error(error.detail)
+    process.exitCode = 1
+  } finally {
+    db.close()
+  }
 } else if (command === "health" && !rest.length) {
   // Docker's healthcheck, which scripts/update.sh waits on. It asks as Serve
   // would, as the first allowed login. A failed integrity check still passes:

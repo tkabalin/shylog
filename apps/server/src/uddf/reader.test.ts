@@ -79,6 +79,22 @@ describe("readUddf", () => {
       { type: "mandatory-stop", start: 100, end: 300 },
       { type: "deco", start: 400, end: null },
     ])
+    // Another deco alarm at a stop's own second is kept, as only one alarm
+    // there was the stop's; a stop that isn't seconds is dropped.
+    const shared = own
+      .replace(
+        "<alarm>deco</alarm><depth>12</depth>",
+        "<alarm>deco</alarm><alarm>deco</alarm><depth>12</depth>"
+      )
+      .replace(
+        "<mandatoryStop>100 300</mandatoryStop>",
+        "<mandatoryStop>100 300</mandatoryStop><mandatoryStop>soon</mandatoryStop>"
+      )
+    expect(readUddf(shared)[0].events).toEqual([
+      { type: "deco", start: 100, end: null },
+      { type: "mandatory-stop", start: 100, end: 300 },
+      { type: "deco", start: 400, end: null },
+    ])
   })
 
   it("reads 21 % or less as air", () => {

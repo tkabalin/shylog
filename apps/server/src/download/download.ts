@@ -47,6 +47,42 @@ const stamp = (now: Date) =>
     .replace(/[-:]/g, "")
     .replace(/\.\d+Z$/, "Z")
 
+// Reads the watch's dives after `after` (a start on its clock), or all of
+// them, into a folder of its own under the data directory, where the raw
+// download is kept, and parses each. `accept` refuses a watch by throwing.
+export async function readWatch(
+  config: DctoolConfig,
+  dataDir: string,
+  {
+    watch,
+    after,
+    accept,
+  }: { watch: Watch; after: string | null; accept: (found: Watch) => void },
+  now: Date
+) {
+  // A folder of its own, even for two downloads in one second.
+  const downloads = join(dataDir, "downloads")
+  mkdirSync(downloads, { recursive: true })
+  const dir = mkdtempSync(join(downloads, `${stamp(now)}-${watch.serial}-`))
+  const { files } = await download(config, { dir, after, accept }).finally(
+    () => {
+      // Nothing new, or a refused watch, leaves no empty folder behind.
+      if (!readdirSync(dir).length) rmdirSync(dir)
+    }
+  )
+  // Each parse is its own dctool run on a file, clear of the cable, so a
+  // few run at once; all at once could pass the container's process limit.
+  const dives: { id: string; xml: string }[] = []
+  for (let i = 0; i < files.length; i += 4) {
+    const batch = files.slice(i, i + 4)
+    const parsed = await Promise.all(
+      batch.map((file) => parse(config, watch.model, file))
+    )
+    parsed.forEach((xml, j) => dives.push({ id: `dive-${i + j + 1}`, xml }))
+  }
+  return dives
+}
+
 // Reads the watch's dives after the last applied one (or every dive) into
 // a preview, keeping the raw download in the data directory. Null when
 // there is nothing new.
@@ -65,31 +101,19 @@ export async function downloadDives(
   // A remembered watch nothing was applied from yet (its first download
   // discarded, or with nothing new) still starts where the import left off.
   const earlierThan = stored?.marker ?? firstMarker(db, watch.model)
-  // A folder of its own, even for two downloads in one second.
-  const downloads = join(dataDir, "downloads")
-  mkdirSync(downloads, { recursive: true })
-  const dir = mkdtempSync(join(downloads, `${stamp(now)}-${watch.serial}-`))
-  const { files } = await download(config, {
-    dir,
-    after: readAll ? null : earlierThan,
-    // Swapped on the cable since it was opened.
-    accept: (found) => refuseOther(stored ?? watch, found),
-  }).finally(() => {
-    // Nothing new, or a refused watch, leaves no empty folder behind.
-    if (!readdirSync(dir).length) rmdirSync(dir)
-  })
+  const dives = await readWatch(
+    config,
+    dataDir,
+    {
+      watch,
+      after: readAll ? null : earlierThan,
+      // Swapped on the cable since it was opened.
+      accept: (found) => refuseOther(stored ?? watch, found),
+    },
+    now
+  )
   if (!stored) rememberComputer(db, watch)
-  if (!files.length) return null
-  // Each parse is its own dctool run on a file, clear of the cable, so a
-  // few run at once; all at once could pass the container's process limit.
-  const dives: { id: string; xml: string }[] = []
-  for (let i = 0; i < files.length; i += 4) {
-    const batch = files.slice(i, i + 4)
-    const parsed = await Promise.all(
-      batch.map((file) => parse(config, watch.model, file))
-    )
-    parsed.forEach((xml, j) => dives.push({ id: `dive-${i + j + 1}`, xml }))
-  }
+  if (!dives.length) return null
   const uddf = downloadToUddf(dives, watch.model)
   // The files come newest first.
   const newest = diveStart(dives[0].xml)
