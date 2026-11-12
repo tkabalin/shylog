@@ -52,11 +52,13 @@ function DialogContent({
       <DialogOverlay />
       {/* Shylog: transitions rather than keyframes, so a close mid-open turns
           back from where it is; 200ms in on the app's ease-out, out faster,
-          and a fade alone under reduced motion. */}
+          and a fade alone under reduced motion. Centred to whole pixels: an
+          odd-sized dialog at half its size sat on a half pixel, which its
+          icons re-snapped to as the open transition ended. */}
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 transition-[opacity,scale] duration-200 ease-out outline-none data-ending-style:scale-95 data-ending-style:opacity-0 data-ending-style:duration-150 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:data-ending-style:scale-100 motion-reduce:data-starting-style:scale-100 sm:max-w-sm",
+          "fixed top-[round(down,50%,1px)] left-[round(down,50%,1px)] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[round(down,-50%,1px)] translate-y-[round(down,-50%,1px)] gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 transition-[opacity,scale] duration-200 ease-out outline-none data-ending-style:scale-95 data-ending-style:opacity-0 data-ending-style:duration-150 data-starting-style:scale-95 data-starting-style:opacity-0 motion-reduce:data-ending-style:scale-100 motion-reduce:data-starting-style:scale-100 sm:max-w-sm",
           className
         )}
         {...props}

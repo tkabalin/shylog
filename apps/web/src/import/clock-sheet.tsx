@@ -208,9 +208,11 @@ export function ClockSheet({
       <DrawerContent>
         <DrawerHeader className="pb-4">
           <DrawerTitle className="inline-flex items-center justify-center gap-1.5 desk:justify-start">
+            {/* 18 px, so it centres in the title's 24 px line on a whole
+                pixel rather than shifting as the sheet's transition ends. */}
             <IconClockEdit
               aria-hidden
-              className="size-[1.15em] shrink-0 text-muted-foreground"
+              className="size-4.5 shrink-0 text-muted-foreground"
             />
             {title}
           </DrawerTitle>

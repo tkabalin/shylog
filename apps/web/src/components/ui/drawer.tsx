@@ -211,7 +211,7 @@ function DeskContent({
     <DialogContent
       showCloseButton={false}
       className={cn(
-        "group/drawer-popup left-[calc(50%+var(--sidebar-width)/2)] flex max-h-[calc(100dvh-4rem)] flex-col gap-0 overflow-hidden p-0 select-none sm:max-w-md",
+        "group/drawer-popup left-[round(down,calc(50%+var(--sidebar-width)/2),1px)] flex max-h-[calc(100dvh-4rem)] flex-col gap-0 overflow-hidden p-0 select-none sm:max-w-md",
         className
       )}
       {...(props as React.ComponentProps<typeof DialogContent>)}
