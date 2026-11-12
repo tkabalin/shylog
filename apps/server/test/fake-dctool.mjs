@@ -6,9 +6,12 @@
 // stopped (answers, then hangs), timedOut (answers, then dctool times
 // out), busy (another process has the port), failed. With
 // FAKE_DCTOOL_SHIFT_EACH, each download moves the dives a further ten years
-// on from 2126, so the browser tests find new dives, clear of the seeded log.
+// on from 2526, so the browser tests find new dives, clear of the seeded log
+// and of the import tests' moved files (2036 to about 2240), whose dives
+// would otherwise be newer and start the first download after them.
 // FAKE_DCTOOL_DELAY sets how long each dive takes to read (default none),
-// with libdivecomputer's progress line after each.
+// with libdivecomputer's progress line after each, and
+// FAKE_DCTOOL_PARSE_DELAY how long each parse takes (default none).
 import {
   copyFileSync,
   existsSync,
@@ -63,6 +66,9 @@ if (command === "parse") {
     /<datetime>(\d{4})/,
     (_, year) => `<datetime>${Number(year) + years}`
   )
+  const parseDelay = Number(process.env.FAKE_DCTOOL_PARSE_DELAY ?? 0)
+  if (parseDelay)
+    await new Promise((resolve) => setTimeout(resolve, parseDelay))
   writeFileSync(option("-o"), xml)
   process.exit(0)
 }
@@ -102,7 +108,7 @@ else if (mode === "noWatch") {
           ? Number(readFileSync(counter, "utf8"))
           : 0
         writeFileSync(counter, String(count + 1))
-        years = 100 + 10 * count
+        years = 500 + 10 * count
       }
       const names = readdirSync(join(fixtures, "raw"))
         .filter((name) => name < before)

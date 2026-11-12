@@ -16,8 +16,9 @@ import {
 } from "./restore/replay.ts"
 import { drill, restore, SnapshotRefused } from "./restore/restore.ts"
 import { downloadToUddf } from "./download/convert.ts"
-import { DownloadError, identify } from "./download/dctool.ts"
-import { readWatch } from "./download/download.ts"
+import { DownloadError, holdCable, identifyOn } from "./download/dctool.ts"
+import { Rejected } from "./apply/rejected.ts"
+import { readWatch, refuseOther } from "./download/download.ts"
 import { storedComputer } from "./download/computer.ts"
 import { addStops, stopsToAdd } from "./download/stops.ts"
 
@@ -159,28 +160,24 @@ if (command === "snapshot" && !rest.length) {
   const config = { device, command: env.SHYLOG_DCTOOL }
   const db = openDatabase(join(dataDir, "shylog.db"))
   try {
-    const watch = await identify(config)
-    // Another diver's watch, as a download would refuse it.
-    const stored = storedComputer(db)
-    if (stored && stored.serial !== watch.serial)
-      throw new DownloadError(
-        "failed",
-        `This ${watch.model} isn't the ${stored.model} this log downloads from.`
-      )
-    console.log(`Reading every dive on the ${watch.model}...`)
-    const dives = await readWatch(
-      config,
-      dataDir,
-      {
-        watch,
-        after: null,
-        accept: (found) => {
-          if (found.serial !== watch.serial)
-            throw new DownloadError("failed", "Another watch on the cable")
+    // Opened and read in one hold of the cable, as a download is.
+    const { watch, dives } = await holdCable(config, async () => {
+      const watch = await identifyOn(config)
+      // Another diver's watch, refused as a download refuses it.
+      refuseOther(storedComputer(db), watch)
+      console.log(`Reading every dive on the ${watch.model}...`)
+      const dives = await readWatch(
+        config,
+        dataDir,
+        {
+          watch,
+          after: null,
+          accept: (found) => refuseOther(watch, found),
         },
-      },
-      new Date()
-    )
+        new Date()
+      )
+      return { watch, dives }
+    })
     const uddf = downloadToUddf(dives, watch.model)
     const { found, twice } = values["dry-run"]
       ? stopsToAdd(db, uddf)
@@ -200,9 +197,11 @@ if (command === "snapshot" && !rest.length) {
     if (values["dry-run"])
       console.log("Dry run: nothing was written to the log.")
   } catch (error) {
-    if (!(error instanceof DownloadError)) throw error
+    if (!(error instanceof DownloadError || error instanceof Rejected))
+      throw error
     console.error(error.message)
-    if (error.detail) console.error(error.detail)
+    if (error instanceof DownloadError && error.detail)
+      console.error(error.detail)
     process.exitCode = 1
   } finally {
     db.close()

@@ -34,6 +34,10 @@ export async function serverMessage(res: { json(): Promise<unknown> }) {
   return reasonIn(await res.json().catch(() => undefined))
 }
 
+// A request's response, or undefined when the server couldn't be reached.
+export const send = (request: () => Promise<Response>) =>
+  request().catch(() => undefined)
+
 // The draft on its way to the server, and whether the server answered the
 // last upload with an error, for the sync status. A store of its own, so an
 // upload doesn't re-render every screen that reads the log.

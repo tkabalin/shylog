@@ -13,7 +13,7 @@ import { applyRequest, carryOver, type Overrides } from "@/import/review"
 
 import { unreachable } from "./edits"
 import { currentLog, sync } from "./log"
-import { reasonIn } from "./upload"
+import { reasonIn, send } from "./upload"
 
 type Pending = InferResponseType<
   ReturnType<typeof apiClient>["api"]["import"]["pending"]["$get"],
@@ -128,9 +128,6 @@ async function failure(res: Response | undefined) {
       (res.status >= 500 ? unreachable : `Something went wrong (${res.status})`)
   )
 }
-
-const send = (request: () => Promise<Response>) =>
-  request().catch(() => undefined)
 
 // `GET /api/import/pending`, on opening the Import screens. A failure
 // leaves what the phone last had and throws for the screen to say.

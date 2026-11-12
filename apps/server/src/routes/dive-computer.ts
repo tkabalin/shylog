@@ -5,6 +5,7 @@ import { factory, type Variables } from "../factory.ts"
 import { logger } from "../log.ts"
 import { forgetComputer, storedComputer } from "../download/computer.ts"
 import {
+  cableBusy,
   DownloadError,
   readProgress,
   type DctoolConfig,
@@ -63,6 +64,12 @@ export const diveComputer = factory
   // download is turned off: before the check below, as its pattern
   // matches /dive-computer too.
   .delete("/dive-computer", (c) => {
+    // A download running now would remember the watch again as it ends.
+    if (cableBusy()) {
+      const { message } = new DownloadError("busy")
+      c.set("refusal", message)
+      return c.json({ error: message, reason: "busy" as const }, 409)
+    }
     forgetComputer(c.var.deps.db)
     return c.body(null, 204)
   })

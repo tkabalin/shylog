@@ -1,9 +1,9 @@
-import { expect } from "@playwright/test"
+import { expect, type APIRequestContext } from "@playwright/test"
 
 import { deleteDive, discardPending, getLog, test } from "./api"
 
 // The stack's dctool is a stand-in playing back the D4i's raw fixtures,
-// moved a further ten years on from 2126 with each download, so every run
+// moved a further ten years on from 2526 with each download, so every run
 // finds new dives clear of the seeded log.
 
 test("downloads from the dive computer through the review @writes", async ({
@@ -13,13 +13,22 @@ test("downloads from the dive computer through the review @writes", async ({
   test.slow()
   const origin = new URL(test.info().project.use.baseURL!).origin
   const headers = { "X-Shylog": "1", Origin: origin }
-  // Starts with no remembered watch, and leaves none, nor its dives.
-  const forget = () => page.request.delete("/api/dive-computer", { headers })
-  await forget()
+  // Starts with no remembered watch, and leaves none, nor its dives. A
+  // timed-out attempt's download may still hold the cable, which answers
+  // Forget busy until it ends.
+  const forget = (request: APIRequestContext) =>
+    expect
+      .poll(
+        async () =>
+          (await request.delete("/api/dive-computer", { headers })).status(),
+        { timeout: 30_000 }
+      )
+      .toBe(204)
+  await forget(page.request)
   restore(async (request) => {
-    await request.delete("/api/dive-computer", { headers })
+    await forget(request)
     for (const dive of (await getLog(request)).dives)
-      if (!dive.deletedAt && dive.startTime >= "2100")
+      if (!dive.deletedAt && dive.startTime >= "2500")
         await deleteDive(request, dive.id)
     // A failed attempt's review, which would greet the retry on Import.
     await discardPending(request)
