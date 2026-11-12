@@ -84,7 +84,7 @@ export function Downloads() {
             aria-hidden
             // Darker while pressed, or it would vanish into the row's own
             // pressed fill.
-            className="inline-flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground group-active:bg-foreground/10"
+            className="inline-flex size-7.5 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground group-data-press:bg-foreground/10"
           >
             <Icon className="size-[17px] stroke-[1.9]" />
           </span>

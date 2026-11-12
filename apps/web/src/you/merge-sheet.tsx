@@ -132,7 +132,7 @@ export function MergeSheet({
                     // A refusal was about the one picked before.
                     setError(undefined)
                   }}
-                  className="flex min-h-14 shrink-0 items-center gap-3 px-4 py-2 text-left transition-colors duration-150 select-none hover:bg-muted/60 active:bg-muted active:duration-0"
+                  className="flex min-h-14 shrink-0 items-center gap-3 px-4 py-2 text-left transition-colors duration-150 select-none hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
                 >
                   <span
                     aria-hidden

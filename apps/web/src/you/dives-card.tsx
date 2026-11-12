@@ -81,7 +81,7 @@ export function DivesCard({
           <button
             type="button"
             onClick={() => setShown((was) => was + 50)}
-            className="flex min-h-0 items-center gap-1.5 overflow-hidden px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none hover:bg-muted/60 active:bg-muted active:duration-0"
+            className="flex min-h-0 items-center gap-1.5 overflow-hidden px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
           >
             {/* "All" only when one tap shows them all. */}
             <span className="flex min-h-12 items-center gap-1.5">
@@ -112,7 +112,7 @@ export function ChooseDivesRow({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+      className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 disabled:text-muted-foreground/60 enabled:data-press:bg-muted enabled:data-press:duration-0"
     >
       <IconListCheck aria-hidden className="size-[1.15em]" />
       Choose dives
@@ -183,7 +183,7 @@ export function DiveRow({
       to="/dive/$diveId"
       params={{ diveId: dive.id }}
       state={{ pushed: true, parent }}
-      className="flex min-h-14 items-center gap-3 py-2.5 pr-3 pl-4 transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 active:bg-muted active:duration-0"
+      className="flex min-h-14 items-center gap-3 py-2.5 pr-3 pl-4 transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
     >
       {content}
       <IconChevronRight

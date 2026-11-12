@@ -422,7 +422,7 @@ const PickerRow = memo(function PickerRow({
       role="checkbox"
       aria-checked={on}
       onClick={() => onTick([dive.id], !on)}
-      className="flex min-h-15 items-center gap-3 py-2.5 pr-3.5 pl-3.5 text-left transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 active:bg-muted active:duration-0"
+      className="flex min-h-15 items-center gap-3 py-2.5 pr-3.5 pl-3.5 text-left transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
     >
       <span
         aria-hidden

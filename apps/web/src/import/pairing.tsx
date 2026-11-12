@@ -43,7 +43,7 @@ function OptionRow({ option }: { option: PairOption }) {
       role="radio"
       aria-checked={option.on}
       onClick={option.onPick}
-      className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 active:bg-muted active:duration-0"
+      className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
     >
       <Radio on={option.on} />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">

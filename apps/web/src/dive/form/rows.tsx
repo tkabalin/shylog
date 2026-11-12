@@ -145,7 +145,7 @@ export function Row({
 // while its control is hovered), as the sheets' rows do, since the tap
 // flash is off app-wide (index.css).
 export const pressedRow =
-  "transition-colors duration-150 control-hover:bg-muted/60 has-[:active]:bg-muted has-[:active]:duration-0"
+  "transition-colors duration-150 control-hover:bg-muted/60 has-data-press:bg-muted has-data-press:duration-0"
 
 // Small inline buttons dim on touch-down and recover on release, as the
 // bar buttons do.

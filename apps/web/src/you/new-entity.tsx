@@ -168,7 +168,7 @@ export function NewEntity({ log, kind }: { log: LogView; kind: DiveSetKind }) {
                 type="button"
                 disabled={busy}
                 onClick={addToExisting}
-                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 disabled:text-muted-foreground/60 enabled:data-press:bg-muted enabled:data-press:duration-0"
               >
                 <IconArrowMerge aria-hidden className="size-[1.15em]" />
                 <span className="[overflow-wrap:anywhere]">

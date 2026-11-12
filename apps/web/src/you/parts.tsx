@@ -11,7 +11,9 @@ export const listRow =
 
 // A tappable row darkens while pressed, as the form's do, since the tap
 // flash is off app-wide.
-export const pressable = "hover:bg-muted/60 active:bg-muted active:duration-0"
+// A disabled row, offline, keeps still under the mouse.
+export const pressable =
+  "not-disabled:hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
 
 export function RowContent({
   icon: Icon,

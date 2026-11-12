@@ -22,7 +22,7 @@ import {
 
 // The tint comes on at once and fades on release.
 const row =
-  "grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2 text-left transition-colors duration-150 outline-none select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hover:bg-muted/60 focus-visible:bg-muted active:bg-muted active:duration-0"
+  "grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-4 py-2 text-left transition-colors duration-150 outline-none select-none [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] hover:bg-muted/60 focus-visible:bg-muted data-press:bg-muted data-press:duration-0"
 
 // Minutes and seconds in words, for the spoken labels.
 const spokenTime = (seconds: number) => {
