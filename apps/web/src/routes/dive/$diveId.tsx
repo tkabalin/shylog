@@ -586,7 +586,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
             <Link
               to="/dive/$diveId/edit"
               params={{ diveId: dive.id }}
-              className="-mt-2 flex min-h-11 items-center gap-2.5 rounded-xl bg-primary/8 px-3.5 text-sm transition-colors duration-150 hover:bg-primary/11 active:bg-primary/14 active:duration-0"
+              className="-mt-2 flex min-h-11 items-center gap-2.5 rounded-xl bg-primary/8 px-3.5 text-sm transition-colors duration-150 hover:bg-primary/11 data-press:bg-primary/14 data-press:duration-0"
             >
               <IconArrowsDiff
                 aria-hidden

@@ -12,6 +12,7 @@ import {
 import { loadDiveComputer } from "@/data/dive-computer"
 import { loadLog, startSync } from "@/data/log"
 import { protectOnFirstLaunch } from "@/data/storage"
+import { startPress } from "@/lib/press"
 import { startWorker } from "@/pwa"
 import { routeTree } from "./routeTree.gen.ts"
 
@@ -41,6 +42,8 @@ void loadDiveComputer()
 // Asks the browser to keep the drafts and the log's copy (see storage.ts).
 void protectOnFirstLaunch()
 startWorker()
+// Rows tint on a held press, not on a touch that turns into a scroll.
+startPress()
 
 createRoot(document.getElementById("root")!, {
   // A screen that failed to render or whose code didn't load, caught by the

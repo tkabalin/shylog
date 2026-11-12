@@ -183,7 +183,7 @@ function Choice({
       type="button"
       aria-pressed={selected}
       onClick={onClick}
-      className="flex min-h-13 w-full items-center gap-3 border-t px-4 py-2 text-left transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
+      className="flex min-h-13 w-full items-center gap-3 border-t px-4 py-2 text-left transition-colors duration-150 hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
     >
       <span className="flex-1 text-base font-medium">{label}</span>
       {detail && (

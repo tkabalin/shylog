@@ -106,7 +106,7 @@ export function LineMenu() {
               setOpen(false)
               trigger.current?.focus()
             }}
-            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted desk:min-h-9 desk:hover:bg-muted"
+            className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-press:bg-muted data-press:duration-0 desk:min-h-9 desk:hover:bg-muted"
           >
             <IconCheck
               aria-hidden

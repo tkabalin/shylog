@@ -229,7 +229,7 @@ export function NamesSheet({
                 role="option"
                 aria-selected={false}
                 onClick={() => choose(c.id)}
-                className="flex min-h-13.5 w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-150 not-first:border-t hover:bg-muted/60 active:bg-muted active:duration-0"
+                className="flex min-h-13.5 w-full items-center gap-3 px-4 py-2 text-left transition-colors duration-150 not-first:border-t hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
               >
                 <Avatar kind={kind} name={c.name} />
                 <span className="flex min-w-0 flex-1 flex-col gap-px">
@@ -250,7 +250,7 @@ export function NamesSheet({
               <button
                 type="button"
                 onClick={() => choose(onCreate(typed))}
-                className="flex min-h-13.5 w-full items-center gap-3 border-t px-4 py-2 text-left text-primary transition-colors duration-150 first:border-t-0 hover:bg-muted/60 active:bg-muted active:duration-0"
+                className="flex min-h-13.5 w-full items-center gap-3 border-t px-4 py-2 text-left text-primary transition-colors duration-150 first:border-t-0 hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
               >
                 <span
                   aria-hidden

@@ -154,7 +154,7 @@ function ImportPage() {
           <Link
             to="/import/review"
             replace
-            className="flex items-center gap-3 rounded-xl bg-card py-3.5 pr-3 pl-4 ring-[1.5px] ring-primary transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 active:bg-muted active:duration-0"
+            className="flex items-center gap-3 rounded-xl bg-card py-3.5 pr-3 pl-4 ring-[1.5px] ring-primary transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
           >
             <span
               aria-hidden

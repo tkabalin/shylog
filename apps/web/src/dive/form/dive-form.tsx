@@ -753,7 +753,7 @@ export function DiveForm({
                   update(copyFromDive(values, latest, log))
                   setCopied(true)
                 }}
-                className="flex min-h-11.5 w-full items-center gap-3 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
+                className="flex min-h-11.5 w-full items-center gap-3 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
               >
                 {/* One row like the form's own; the last dive's site, which
                     is what it's remembered by, gives way to the title. Each

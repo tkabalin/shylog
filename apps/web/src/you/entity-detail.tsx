@@ -613,7 +613,7 @@ export function EntityDetail({
                   type="button"
                   disabled={busy || !connected}
                   onClick={mergeInstead}
-                  className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+                  className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 disabled:text-muted-foreground/60 enabled:data-press:bg-muted enabled:data-press:duration-0"
                 >
                   <IconArrowMerge aria-hidden className="size-[1.15em]" />
                   <span className="[overflow-wrap:anywhere]">
@@ -664,7 +664,7 @@ export function EntityDetail({
                 type="button"
                 disabled={frozen}
                 onClick={() => setSheet("merge")}
-                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none enabled:hover:bg-muted/60 disabled:text-muted-foreground/60 enabled:data-press:bg-muted enabled:data-press:duration-0"
               >
                 <IconArrowMerge aria-hidden className="size-[1.15em]" />
                 Merge a duplicate into this
@@ -673,7 +673,7 @@ export function EntityDetail({
                 type="button"
                 disabled={!!used || frozen}
                 onClick={() => setSheet("delete")}
-                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-destructive transition-colors duration-150 select-none enabled:hover:bg-muted/60 enabled:active:bg-muted enabled:active:duration-0 disabled:text-muted-foreground/60"
+                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium text-destructive transition-colors duration-150 select-none enabled:hover:bg-muted/60 disabled:text-muted-foreground/60 enabled:data-press:bg-muted enabled:data-press:duration-0"
               >
                 <IconTrash aria-hidden className="size-[1.15em]" />
                 Delete {label.one}
@@ -797,7 +797,7 @@ export function EntityDetail({
                     set("regionId", region.id)
                     setSheet(null)
                   }}
-                  className="flex min-h-12 items-center gap-3 px-4 text-left transition-colors duration-150 hover:bg-muted/60 active:bg-muted active:duration-0"
+                  className="flex min-h-12 items-center gap-3 px-4 text-left transition-colors duration-150 hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
                 >
                   <span
                     className={cn(
