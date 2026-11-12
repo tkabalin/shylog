@@ -289,7 +289,12 @@ function DrawerDescription({
   return (
     <DrawerPrimitive.Description
       data-slot="drawer-description"
-      className={cn("text-sm text-balance text-muted-foreground", className)}
+      // Shylog: balanced under a centred sheet title; in the left-aligned
+      // desktop dialog that wrapped short and left the right half empty.
+      className={cn(
+        "text-sm text-balance text-muted-foreground desk:text-pretty",
+        className
+      )}
       {...props}
     />
   )
