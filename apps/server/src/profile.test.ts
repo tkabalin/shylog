@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { sparkline } from "./profile.ts"
+import { diveId, seededDb } from "../test/fixture.ts"
+import { sparkline, storeProfile } from "./profile.ts"
 
 const sample = (time: number, depth: number) => ({
   time,
@@ -37,5 +38,34 @@ describe("sparkline", () => {
 
   it("is null without samples", () => {
     expect(sparkline([], 2700)).toBeNull()
+  })
+})
+
+describe("storeProfile", () => {
+  it("counts the Events rows the mandatory stops take", () => {
+    const db = seededDb()
+    const id = diveId(db, 54)
+    db.prepare("DELETE FROM events WHERE dive_id = ?").run(id)
+    db.prepare("DELETE FROM samples WHERE dive_id = ?").run(id)
+    storeProfile(
+      db,
+      id,
+      600,
+      [sample(10, 12), sample(300, 5), sample(600, 0)],
+      [
+        { type: "ascent", start: 100, end: 102 },
+        // Where it became mandatory and where it was cleared, then one the
+        // computer never logged clearing.
+        { type: "mandatory-stop", start: 100, end: 400 },
+        { type: "mandatory-stop", start: 500, end: null },
+      ]
+    )
+    expect(
+      db
+        .prepare(
+          "SELECT ascent_alarm_count, mandatory_stop_events FROM dives WHERE id = ?"
+        )
+        .get(id)
+    ).toEqual({ ascent_alarm_count: 1, mandatory_stop_events: 3 })
   })
 })

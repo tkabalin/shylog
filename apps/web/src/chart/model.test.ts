@@ -14,6 +14,7 @@ import {
   eventLabel,
   eventsAt,
   inStop,
+  mandatoryAt,
   pointAt,
   profileModel,
   rate,
@@ -155,6 +156,33 @@ describe("profileModel", () => {
     expect(model.time.max).toBe(600)
     // 9.4 + 3 m on six ticks: 4 m steps to 16 m, no 30 m floor.
     expect(Math.round(model.depth.max)).toBe(16_000)
+  })
+
+  it("marks where each mandatory stop began and was cleared, with no band", () => {
+    const profile: Profile = {
+      samples: [10, 20, 30, 40, 50].map((time) => ({
+        time,
+        depth: 60 - time,
+        temperature: 20,
+        pressure: null,
+      })),
+      events: [
+        { type: "ascent", start: 20, end: 22 },
+        { type: "mandatory-stop", start: 20, end: 45 },
+        { type: "mandatory-stop", start: 48, end: null },
+      ],
+    }
+    const model = profileModel(profile, { maxDepth: 50, mod: null }, 326)
+    expect(model.events.map((event) => event.type)).toEqual(["ascent"])
+    const [cleared, open] = model.mandatoryStops
+    expect(cleared.begin).toMatchObject({ time: 20, depth: 40_000 })
+    // A point of its own between samples, at the depth between them.
+    expect(cleared.cleared!.point).toMatchObject({ time: 45, depth: 15_000 })
+    expect(open.cleared).toBeNull()
+    expect(mandatoryAt(model, cleared.beginIndex)).toBe("begin")
+    expect(mandatoryAt(model, cleared.cleared!.index)).toBe("cleared")
+    expect(mandatoryAt(model, open.beginIndex)).toBe("begin")
+    expect(mandatoryAt(model, cleared.beginIndex + 1)).toBeNull()
   })
 
   it("puts events in time order", () => {

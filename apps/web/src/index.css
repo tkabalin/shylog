@@ -61,6 +61,7 @@
   --color-foreground: var(--foreground);
   --color-background: var(--background);
   --color-warn: var(--warn);
+  --color-mandatory: var(--mandatory);
   --color-ok: var(--ok);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -113,6 +114,8 @@
   --speed-fast: var(--color-amber-600);
   --speed-crazy: var(--color-red-600);
   --warn: var(--color-orange-700);
+  /* A stop the computer made mandatory, red as the fastest ascent is. */
+  --mandatory: var(--color-red-600);
   --warn-band: color-mix(in oklab, var(--color-orange-500) 16%, transparent);
   --ok: var(--color-emerald-700);
   --ok-band: color-mix(in oklab, var(--color-emerald-700) 12%, transparent);
@@ -158,6 +161,7 @@
   --speed-fast: var(--color-amber-500);
   --speed-crazy: var(--color-red-500);
   --warn: var(--color-orange-400);
+  --mandatory: var(--color-red-500);
   --warn-band: color-mix(in oklab, var(--color-orange-500) 22%, transparent);
   --ok: var(--color-emerald-400);
   --ok-band: color-mix(in oklab, var(--color-emerald-400) 12%, transparent);

@@ -13,6 +13,11 @@ export const selectSamples = (db: Db) =>
     "SELECT time, depth, temperature, pressure FROM samples WHERE dive_id = ? ORDER BY time"
   )
 
+// The Events rows mandatory stops take: one where each became mandatory and
+// one where it was cleared, if it was.
+export const mandatoryStopRows = (stops: readonly { end: number | null }[]) =>
+  stops.reduce((rows, { end }) => rows + (end == null ? 1 : 2), 0)
+
 // A dive's computer events in time order, as stored.
 export const selectEvents = (db: Db) =>
   prepared<[string], ProfileEvent>(
@@ -52,9 +57,9 @@ export function sparkline(samples: readonly Sample[], duration: number) {
   })
 }
 
-// Writes a dive's samples and events, and the sparkline, ascent-alarm count,
-// SAC's sample figures and safety stop kept on the dive so the phone never
-// needs the samples for the Log or the dive's figures.
+// Writes a dive's samples and events, and the sparkline, the alarm and
+// mandatory stop counts, SAC's sample figures and safety stop kept on the
+// dive so the phone never needs the samples for the Log or the dive's figures.
 export function storeProfile(
   db: Db,
   diveId: string,
@@ -79,10 +84,11 @@ export function storeProfile(
   const stop = safetyStop(samples)
   prepared(
     db,
-    "UPDATE dives SET sparkline = ?, ascent_alarm_count = ?, sample_duration = ?, sample_average_depth = ?, safety_stop_start = ?, safety_stop_end = ?, safety_stop_held = ?, safety_stop_depth = ? WHERE id = ?"
+    "UPDATE dives SET sparkline = ?, ascent_alarm_count = ?, mandatory_stop_events = ?, sample_duration = ?, sample_average_depth = ?, safety_stop_start = ?, safety_stop_end = ?, safety_stop_held = ?, safety_stop_depth = ? WHERE id = ?"
   ).run(
     line && JSON.stringify(line),
     events.filter((e) => e.type === "ascent").length,
+    mandatoryStopRows(events.filter((e) => e.type === "mandatory-stop")),
     figures?.duration ?? null,
     figures?.averageDepth ?? null,
     stop?.start ?? null,
