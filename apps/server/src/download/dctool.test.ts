@@ -11,6 +11,7 @@ import {
   DownloadError,
   identify,
   parse,
+  readProgress,
   type DctoolConfig,
 } from "./dctool.ts"
 
@@ -35,6 +36,7 @@ function setup(mode = "ok") {
 afterEach(() => {
   delete process.env.FAKE_DCTOOL_MODE
   delete process.env.FAKE_DCTOOL_WATCH
+  delete process.env.FAKE_DCTOOL_DELAY
 })
 
 const reason = (promise: Promise<unknown>) =>
@@ -97,6 +99,24 @@ describe("download", () => {
     expect(some.files.map((file) => file.slice(-34, -19))).toEqual([
       "20261024T144900",
     ])
+  })
+
+  it("reports how much of the watch it has read while it reads", async () => {
+    const { dir, config } = setup()
+    process.env.FAKE_DCTOOL_DELAY = "5"
+    const seen: (number | null)[] = []
+    const watching = setInterval(() => seen.push(readProgress()), 2)
+    await download(
+      { ...config, downloadTimeout: 5000 },
+      { dir: join(dir, "out"), after: null, accept: () => {} }
+    )
+    clearInterval(watching)
+    const fractions = seen.filter((value) => value != null)
+    expect(new Set(fractions).size).toBeGreaterThan(5)
+    expect(fractions).toEqual([...fractions].sort((a, b) => a - b))
+    expect(fractions.at(-1)).toBeLessThanOrEqual(1)
+    // Nothing once the read is over, so the screen goes back to waiting.
+    expect(readProgress()).toBe(null)
   })
 
   it("stops before any dive when the watch is refused", async () => {

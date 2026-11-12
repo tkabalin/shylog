@@ -79,6 +79,18 @@ export async function deleteDive(request: APIRequestContext, id: string) {
     throw new Error(`DELETE: ${res.status()}`)
 }
 
+// Discards a preview left waiting, so the next test's Import has none.
+export async function discardPending(request: APIRequestContext) {
+  const pending = await request.get("/api/import/pending", {
+    headers: headers(),
+  })
+  const { preview } = (await pending.json()) as {
+    preview: { id: string } | null
+  }
+  if (preview)
+    await request.delete(`/api/import/${preview.id}`, { headers: headers() })
+}
+
 // Uploads a hand-logged dive as a draft would, so it has no samples.
 export async function uploadDive(
   request: APIRequestContext,

@@ -7,6 +7,8 @@
 // out), busy (another process has the port), failed. With
 // FAKE_DCTOOL_SHIFT_EACH, each download moves the dives a further ten years
 // on from 2126, so the browser tests find new dives, clear of the seeded log.
+// FAKE_DCTOOL_DELAY sets how long each dive takes to read (default none),
+// with libdivecomputer's progress line after each.
 import {
   copyFileSync,
   existsSync,
@@ -106,17 +108,28 @@ else if (mode === "noWatch") {
         .filter((name) => name < before)
         .sort()
         .reverse()
-      for (const name of names) {
-        const [time, print] = shifted(name, years)
-        if (print === after) break
+      const delay = Number(process.env.FAKE_DCTOOL_DELAY ?? 0)
+      // As dctool prints it: the share of the watch's memory read so far.
+      const progress = (read) =>
+        say(
+          `Event: progress ${((100 * read) / names.length).toFixed(2)}% (${read}/${names.length})`
+        )
+      progress(0)
+      const next = (i) => {
+        const name = names[i]
+        const [time, print] = name ? shifted(name, years) : []
+        if (!name || print === after) process.exit(0)
         if (option("-f") === "raw")
           copyFileSync(
             join(fixtures, "raw", name),
             template.replace("%t", time).replace("%f", print)
           )
         say(`Dive: number=1, size=1, fingerprint=${print}`)
+        progress(i + 1)
+        if (delay) setTimeout(() => next(i + 1), delay)
+        else next(i + 1)
       }
-      process.exit(0)
+      next(0)
     }, 50)
   }
 }

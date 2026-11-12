@@ -25,6 +25,8 @@ export SHYLOG_DCTOOL=$server/test/fake-dctool.mjs
 export SHYLOG_DC_DEVICE=$dir/suunto
 touch "$SHYLOG_DC_DEVICE"
 export FAKE_DCTOOL_SHIFT_EACH=1
+# About two seconds a read, so the card's progress shows between its asks.
+export FAKE_DCTOOL_DELAY=30
 
 # The built-app stack serves a production build of its own, in this run's
 # folder, so it never rewrites apps/web/dist under another run.

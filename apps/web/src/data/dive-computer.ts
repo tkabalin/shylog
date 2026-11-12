@@ -119,6 +119,16 @@ export async function detectComputer(fetch?: typeof globalThis.fetch) {
   return (await res.json()) as Detected
 }
 
+// `GET /api/dive-computer/progress`: how much of the watch the running
+// download has read, 0 to 1, or null before and after the read itself.
+export async function computerProgress(fetch?: typeof globalThis.fetch) {
+  const res = await send(() =>
+    apiClient(fetch).api["dive-computer"].progress.$get()
+  )
+  if (!res?.ok) return null
+  return ((await res.json()) as { progress: number | null }).progress
+}
+
 // `POST /api/dive-computer/download`: the review's preview, or null when
 // the watch has nothing new. The first download remembers the watch.
 export async function downloadFromComputer(

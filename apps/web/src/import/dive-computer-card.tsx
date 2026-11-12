@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
   ComputerError,
+  computerProgress,
   detectComputer,
   downloadFromComputer,
   loadDiveComputer,
@@ -101,15 +102,33 @@ function Picture({ model, muted }: { model: string | null; muted: boolean }) {
   )
 }
 
-function Progress({ label }: { label: string }) {
+// The share of the watch read so far when the server knows it; otherwise,
+// opening the watch or matching its dives, a third of the track sweeping.
+function Progress({
+  label,
+  value = null,
+}: {
+  label: string
+  value?: number | null
+}) {
   return (
-    // dctool can't say how far along it is, so neither can the bar.
     <span
       role="progressbar"
       aria-label={label}
+      aria-valuemin={value == null ? undefined : 0}
+      aria-valuemax={value == null ? undefined : 100}
+      aria-valuenow={value == null ? undefined : Math.round(value * 100)}
       className="relative block h-1.5 w-full overflow-hidden rounded-full bg-muted"
     >
-      <span className="absolute inset-y-0 w-1/3 animate-import-progress rounded-full bg-primary motion-reduce:w-full motion-reduce:animate-none motion-reduce:opacity-60" />
+      {value == null ? (
+        <span className="absolute inset-y-0 w-1/3 animate-import-progress rounded-full bg-primary motion-reduce:w-full motion-reduce:animate-none motion-reduce:opacity-60" />
+      ) : (
+        // Eased between the server's answers, a few times a second.
+        <span
+          className="absolute inset-0 origin-left rounded-full bg-primary transition-transform duration-300 ease-out"
+          style={{ transform: `scaleX(${value})` }}
+        />
+      )}
     </span>
   )
 }
@@ -130,10 +149,34 @@ export function DiveComputerCard({
   const { enabled, computer } = useDiveComputer()
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>({ kind: "idle" })
+  const [read, setRead] = useState<number | null>(null)
 
   useEffect(() => {
     if (connected) void loadDiveComputer()
   }, [connected])
+
+  // The download answers only once the dives are matched, so how much of
+  // the watch it has read is asked for alongside, one ask at a time.
+  const downloading = step.kind === "downloading"
+  useEffect(() => {
+    if (!downloading) return
+    let stopped = false
+    let timer: ReturnType<typeof setTimeout>
+    const ask = async () => {
+      const progress = await computerProgress()
+      if (stopped) return
+      // A read that ended, often early at the last dive downloaded, is
+      // whole: the bar fills while the dives are matched.
+      setRead((before) => progress ?? (before == null ? null : 1))
+      timer = setTimeout(() => void ask(), 250)
+    }
+    void ask()
+    return () => {
+      stopped = true
+      clearTimeout(timer)
+      setRead(null)
+    }
+  }, [downloading])
 
   if (!enabled) return null
 
@@ -242,7 +285,7 @@ export function DiveComputerCard({
       detail = step.readAll
         ? "Every dive on it, which takes up to half a minute"
         : "Then matching its dives with your log"
-      actions = <Progress label={`Reading your ${name}`} />
+      actions = <Progress label={`Reading your ${name}`} value={read} />
       break
     case "nothingNew":
       title = "No new dives"
