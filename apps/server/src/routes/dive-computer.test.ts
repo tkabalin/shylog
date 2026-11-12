@@ -38,6 +38,7 @@ afterEach(() => {
     "FAKE_DCTOOL_MODE",
     "FAKE_DCTOOL_SERIAL",
     "FAKE_DCTOOL_BEFORE",
+    "FAKE_DCTOOL_DELAY",
   ])
     delete process.env[key]
 })
@@ -101,6 +102,29 @@ describe("the dive computer's states", () => {
       other: false,
       lastDownloadAt: null,
     })
+  })
+
+  it("says how far a download has read, and nothing outside one", async () => {
+    const { app } = setup()
+    const progress = async () => {
+      const response = await app.request("/api/dive-computer/progress", {
+        headers: apiHeaders,
+      })
+      return ((await response.json()) as { progress: number | null }).progress
+    }
+    expect(await progress()).toBeNull()
+    process.env.FAKE_DCTOOL_DELAY = "10"
+    const running = download(app)
+    let read: number | null = null
+    // A pause between asks, so dctool's output gets its turn.
+    while (read == null) {
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      read = await progress()
+    }
+    expect(read).toBeGreaterThanOrEqual(0)
+    expect(read).toBeLessThanOrEqual(1)
+    expect((await running).status).toBe(200)
+    expect(await progress()).toBeNull()
   })
 
   it("answers a read that broke off as the server's failure", async () => {

@@ -4,7 +4,11 @@ import { z } from "zod"
 import { factory, type Variables } from "../factory.ts"
 import { logger } from "../log.ts"
 import { forgetComputer, storedComputer } from "../download/computer.ts"
-import { DownloadError, type DctoolConfig } from "../download/dctool.ts"
+import {
+  DownloadError,
+  readProgress,
+  type DctoolConfig,
+} from "../download/dctool.ts"
 import { detect, downloadDives } from "../download/download.ts"
 import type { Env } from "../env.ts"
 import { json } from "../validate.ts"
@@ -76,6 +80,9 @@ export const diveComputer = factory
     )
     return found instanceof Response ? found : c.json(found)
   })
+  // How far the running download has read the watch, which the Import
+  // screen asks for while it waits, as the download answers only at the end.
+  .get("/dive-computer/progress", (c) => c.json({ progress: readProgress() }))
   .post("/dive-computer/download", json(downloadRequest), async (c) => {
     const { db, env } = c.var.deps
     const preview = await answer(c, () =>

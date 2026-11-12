@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test"
 
-import { deleteDive, getLog, test } from "./api"
+import { deleteDive, discardPending, getLog, test } from "./api"
 
 // The stack's dctool is a stand-in playing back the D4i's raw fixtures,
 // moved a further ten years on from 2126 with each download, so every run
@@ -21,6 +21,8 @@ test("downloads from the dive computer through the review @writes", async ({
     for (const dive of (await getLog(request)).dives)
       if (!dive.deletedAt && dive.startTime >= "2100")
         await deleteDive(request, dive.id)
+    // A failed attempt's review, which would greet the retry on Import.
+    await discardPending(request)
   })
 
   await page.goto("/")
@@ -39,8 +41,14 @@ test("downloads from the dive computer through the review @writes", async ({
     }).observe(document.body, { childList: true, subtree: true })
   })
   await page.getByRole("button", { name: "Download dives" }).click()
+  // The bar shows how much of the watch has been read.
+  await expect(
+    page.getByRole("progressbar", { name: "Reading your D4i" })
+  ).toHaveAttribute("aria-valuenow", /^\d+$/)
 
-  await expect(page).toHaveURL(/\/import\/review$/)
+  // The stand-in reads 69 dives at 30 ms each, then parses each in a process
+  // of its own, which takes a loaded CI runner past the 5 s default.
+  await expect(page).toHaveURL(/\/import\/review$/, { timeout: 30_000 })
   await expect(page.locator("body")).not.toHaveAttribute("data-flashed")
   const importDives = page.getByRole("button", { name: /^Import \d+ dives$/ })
   await expect(importDives).toBeVisible()

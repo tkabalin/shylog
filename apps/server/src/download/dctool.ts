@@ -65,10 +65,16 @@ export interface DctoolConfig {
 }
 
 let running = false
+// How much of the watch's memory the current download has read, 0 to 1,
+// while dctool reads it; null otherwise.
+let reading: number | null = null
+export const readProgress = () => reading
 
 // dctool prints the watch's model and serial once it has opened it; the
 // serial's closing " (" so a line cut between chunks isn't read short.
 const devinfo = /Event: model=(\d+) .* serial=(\d+) \(/
+// libdivecomputer's progress through the watch's memory, one per line.
+const progressLine = /^Event: progress\s+([\d.]+)%/gm
 
 // A watch that had answered and then timed out stopped, not went missing.
 // Another instance has the port open: libdivecomputer opens it exclusively.
@@ -96,9 +102,14 @@ interface Run {
   silent: DownloadFailure
   // Called with the watch once it is known; returning true stops the run.
   onWatch: (watch: Watch) => boolean
+  // Called with each progress line's fraction.
+  onProgress?: (fraction: number) => void
 }
 
-function run(config: DctoolConfig, { args, timeout, silent, onWatch }: Run) {
+function run(
+  config: DctoolConfig,
+  { args, timeout, silent, onWatch, onProgress }: Run
+) {
   return new Promise<{ watch: Watch | null; cancelled: boolean }>(
     (resolve, reject) => {
       const child = spawn(config.command, args, {
@@ -120,8 +131,18 @@ function run(config: DctoolConfig, { args, timeout, silent, onWatch }: Run) {
         stop()
       }, timeout)
       child.stderr.setEncoding("utf8")
+      // Up to the last whole line read, so a line split between chunks is
+      // read once it's complete.
+      let scanned = 0
       child.stderr.on("data", (chunk: string) => {
         stderr += chunk
+        const lineEnd = stderr.lastIndexOf("\n") + 1
+        if (onProgress && lineEnd > scanned) {
+          const lines = stderr.slice(scanned, lineEnd)
+          scanned = lineEnd
+          const last = [...lines.matchAll(progressLine)].at(-1)
+          if (last) onProgress(Math.min(Number(last[1]) / 100, 1))
+        }
         const match = !watch && devinfo.exec(stderr)
         if (!match) return
         try {
@@ -155,6 +176,7 @@ async function exclusive<T>(config: DctoolConfig, work: () => Promise<T>) {
     return await work()
   } finally {
     running = false
+    reading = null
   }
 }
 
@@ -216,6 +238,7 @@ export function download(
       ],
       timeout: config.downloadTimeout ?? 120_000,
       silent: "noWatch",
+      onProgress: (fraction) => (reading = fraction),
       onWatch: (found) => {
         try {
           options.accept(found)
