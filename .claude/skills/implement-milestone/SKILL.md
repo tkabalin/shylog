@@ -15,9 +15,9 @@ Every shell needs `source ~/.nvm/nvm.sh; nvm use` first (`.nvmrc` pins Node 24).
 
 ## 1. Load context
 
-- Read `CLAUDE.md`, then from `docs/PLAN.md`: the conventions at the top, the decisions table, "Milestones at a glance", this milestone's section, "pnpm scripts", "Still open", and the previous milestone's **Notes for the next session**.
+- Read `CLAUDE.md`, then from `docs/PLAN.md`: the conventions at the top, the decisions table, "Milestones at a glance", this milestone's section, "pnpm scripts", and the previous milestone's **Notes for the next session**.
 - Read the `docs/SPEC.md` sections the milestone's **Implements** line names, the boards it names in `docs/design/hifi/`, and `docs/design/NOTES.md`.
-- Check the **Depends on** column in "Milestones at a glance" against the codebase, not the checklist ticks: for each milestone listed, the files its **Touches** line names exist and its acceptance criteria look met. Any other prerequisite there or in "Still open" (a fixture, figures the owner records) must be met too. If something is missing, stop and say so.
+- Check the **Depends on** column in "Milestones at a glance" against the codebase, not the checklist ticks: for each milestone listed, the files its **Touches** line names exist and its acceptance criteria look met. Any other prerequisite there (a fixture, figures the owner records) must be met too. If something is missing, stop and say so.
 
 ## 2. Preflight
 
@@ -26,7 +26,7 @@ Every shell needs `source ~/.nvm/nvm.sh; nvm use` first (`.nvmrc` pins Node 24).
 
 ## 3. Settle ambiguity before building
 
-Collect anything the build would otherwise guess at: spec against board conflicts, choices the spec leaves open, items under "Still open" that this milestone touches, and anything the previous notes deferred to it. Ask them together, in as few AskUserQuestion calls as possible (up to four questions each), recommended option first. The spec wins for behaviour and the board for layout; when they disagree on anything else, ask.
+Collect anything the build would otherwise guess at: spec against board conflicts, choices the spec leaves open, and anything the previous notes deferred to it. Ask them together, in as few AskUserQuestion calls as possible (up to four questions each), recommended option first. The spec wins for behaviour and the board for layout; when they disagree on anything else, ask.
 
 ## 4. Docs first
 

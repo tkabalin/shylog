@@ -1482,12 +1482,3 @@ Root `package.json`:
 Vitest and Playwright only find their config in the working directory, so the package scripts point back at the root configs. The server's `dev` loads the root `.env` and sets `NODE_ENV`, since an unset `NODE_ENV` counts as production and refuses `SHYLOG_DEV_LOGIN`. `apps/server/tsup.config.ts` holds the entry, `esm` format and the Node target, read from `engines.node` in its `package.json`, so a Node LTS bump is one edit. `check` runs the whole Vitest suite and is for CI only. Locally, including at sign-off, run `typecheck` and `lint` in full and only the test files the milestone names, with `vitest run <paths>` (`packages/core` for all of core). `restore-drill` runs in the instance's app container through Docker Compose (D26), so the host needs only Docker, and it never runs in CI.
 
 `playwright.config.ts` runs Chromium and WebKit at a 390 × 844 viewport with a `webServer` that starts the server on a temp `SHYLOG_DATA_DIR` with `SHYLOG_DEV_LOGIN` set and seeds the fixture. UDDF schema checks run inside Vitest: `uddfSchemaErrors` in `apps/server/test/uddf-schema.ts` strips `<shylog>` elements, runs `xmllint --noout --schema fixtures/uddf/uddf_v321.xsd` on the XML it is given and drops the one allowed `tankdata` error, so CI installs `libxml2-utils` before the tests.
-
-## Still open
-
-Everything else that was under-specified has been decided and written into the spec. One item remains, and three are now closed:
-
-1. **UDDF elements for site data**: settled against the vendored XSD on 2 November 2026 and written into the spec (UDDF export, Sites); no longer open.
-2. **Subsurface comparison figures**: recorded on 19 October 2026 and checked in `cns-otu.test.ts` (milestone 3); no longer open.
-3. **Sync pill colours**: settled on 9 November 2026 (D55); no longer open.
-4. **Landscape on phones** (26 October 2026): the app is close to unusable sideways. Safari's 750 × 340 leaves room for one card under the tab bar and sticky search, and the installed app's 844 × 390 crossed the `md:` width, so the desktop sidebar took 256 px. The sidebar and compact sizes now need a fine pointer (`desk:`, 28 October 2026), so a sideways phone keeps the tab bar and touch sizes. Still deferred: a compact-height layout (a slim rail or short tab bar, search and filters on one row). The full-screen chart (D28) covers the profile meanwhile.
