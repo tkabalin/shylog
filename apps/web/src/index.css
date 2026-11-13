@@ -228,6 +228,14 @@
 
 :root {
   color-scheme: light;
+  /* Statistics' thermal comfort colours, cold to hot, StatsHifi's own
+     muted tones, which no Tailwind colour matches. */
+  --stats-very-cold: oklch(0.5 0.1 238);
+  --stats-cold: oklch(0.77 0.07 232);
+  --stats-comfortable: oklch(0.72 0.14 152);
+  --stats-hot: oklch(0.7 0.16 50);
+  /* The faintest step of the strips' and bands' ramp. */
+  --stats-ramp-floor: color-mix(in oklab, var(--primary) 30%, var(--card));
 }
 
 /* As on iOS, the bottom nav's top line shows only while content runs under
@@ -307,6 +315,12 @@
 
 .dark {
   color-scheme: dark;
+  --stats-very-cold: oklch(0.55 0.11 238);
+  --stats-cold: oklch(0.76 0.07 232);
+  --stats-comfortable: oklch(0.66 0.13 152);
+  --stats-hot: oklch(0.74 0.15 55);
+  /* A 30% tint of the accent all but vanished on the dark card. */
+  --stats-ramp-floor: var(--color-cyan-800);
   /* The preset's cyan-800 is unreadable as text on a dark background. */
   --primary: var(--color-cyan-400);
   --primary-foreground: var(--color-cyan-950);
