@@ -1,9 +1,8 @@
 import { readdirSync, readFileSync } from "node:fs"
 
-import Database from "better-sqlite3"
 import { describe, expect, it } from "vitest"
 
-import { testDb } from "../../test/db.ts"
+import { copyOf, testDb } from "../../test/db.ts"
 import { d4iXml } from "../../test/uddf-fixtures.ts"
 import { applyImport } from "../import/apply.ts"
 import { storePreview } from "../import/preview.ts"
@@ -81,7 +80,7 @@ describe("mandatory stops for dives already in the log", () => {
 
   it("comes back in a restore", () => {
     const db = importedLog()
-    const snapshot = new Database(db.serialize())
+    const snapshot = copyOf(db)
     addStops(db, download())
     expect(replay(snapshot, db).failure).toBeUndefined()
     expect(compare(snapshot, db)).toEqual([])

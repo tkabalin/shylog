@@ -9,11 +9,10 @@ import {
   unknownSite,
   type ImportPreview,
 } from "@shylog/core"
-import Database from "better-sqlite3"
 import { describe, expect, it, onTestFinished } from "vitest"
 
 import { apiHeaders, origin, send, testApp } from "../../test/app.ts"
-import { testDb } from "../../test/db.ts"
+import { copyOf, testDb } from "../../test/db.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
 import { applyDraft } from "../apply/draft.ts"
 import { putEntity } from "../apply/entity.ts"
@@ -24,13 +23,6 @@ import { openDatabase, type Db } from "../db/open.ts"
 import { change } from "../routes/change.ts"
 import { compare } from "./compare.ts"
 import { replay } from "./replay.ts"
-
-// An in-memory copy, as a nightly snapshot would hold.
-function copyOf(db: Db) {
-  const copy = new Database(db.serialize())
-  copy.pragma("foreign_keys = ON")
-  return copy
-}
 
 const png = (n: number) =>
   new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, n])

@@ -1,5 +1,6 @@
+import type { Db } from "../src/db/open.ts"
 import { seed } from "../src/seed.ts"
-import { testDb } from "./db.ts"
+import { copyOf, testDb } from "./db.ts"
 import { d4iXml } from "./uddf-fixtures.ts"
 
 export const fixtureXml = d4iXml
@@ -18,10 +19,16 @@ export const fixtureStart = {
   63: "2026-07-22T08:12:19",
 }
 
+// Seeding parses the whole export, most of a server test's time, so each
+// test file seeds once and every test gets a copy. The copies share their
+// ids, which are still random from one file to the next.
+let seeded: Db | undefined
 export function seededDb() {
-  const db = testDb()
-  seed(db, fixtureXml, "d4i-2026-10-12.uddf")
-  return db
+  if (!seeded) {
+    seeded = testDb()
+    seed(seeded, fixtureXml, "d4i-2026-10-12.uddf")
+  }
+  return copyOf(seeded)
 }
 
 export const diveId = (
