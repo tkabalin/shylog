@@ -14,7 +14,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 - Draw the MOD line ("MOD 33.2 m") and size the depth axis to the deepest point plus 3 m, rounded up to the next tick. The board has no MOD line and a fixed 35 m axis.
 - Colour the depth line by vertical speed with no legend. The board's "Accent" option (plain line with a "Depth" legend) is not a choice, and an ascent exactly on a band boundary falls in the slower band, not the faster one.
 - Give the chart a table alternative. An `aria-label` summary is not enough.
-- Event markers are an icon centred over the event's band, with no text; the events list and the readout name them.
+- Event markers are an icon centred over the event's band, or its line when the event lasted under 6 px of the axis, with no text; the events list and the readout name them.
 - The board has no safety stop. The chart marks it with a faint green band and a stairs icon beside the alarms', and the section under the chart, "Alarms" on the board, becomes "Events" and lists the stop among the alarms in time order, in green rather than the alarms' orange.
 - Depth labels sit in a gutter left of the plot, not inside it as the board draws them, so a steep descent never runs under them.
 - The axes fit the dive (Subsurface's zoomed plot), not the board's fixed 35 m and 48 min.

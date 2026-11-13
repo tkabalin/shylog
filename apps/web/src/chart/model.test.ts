@@ -267,6 +267,15 @@ describe("the crosshair", () => {
     expect(eventsAt(model.events, 300, model.eventEnd)).toEqual([])
   })
 
+  it("draws an alarm under 6 px wide as a line, a longer one as its band", () => {
+    // 6 px is about 37 s on a 1837 s axis 296 px wide.
+    const model = dive54(326 - 30)
+    expect(model.events.every(model.eventLine)).toBe(true)
+    const long = { type: "ascent", start: 400, end: 520 }
+    expect(model.eventLine(long)).toBe(false)
+    expect(model.eventEnd(long)).toBe(520)
+  })
+
   it("names the alarm recorded at a time before a widened band over it", () => {
     const events = [
       { type: "rbt", start: 100, end: 101 },

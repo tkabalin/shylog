@@ -114,18 +114,30 @@ export const DepthChart = memo(function DepthChart({
             zIndex={DefaultZIndexes.grid}
           />
         ))}
-        {model.events.map((event) => (
-          <ReferenceArea
-            key={`${event.type} ${event.start}`}
-            x1={event.start}
-            x2={model.eventEnd(event)}
-            fill="var(--warn-band)"
-            fillOpacity={1}
-            ifOverflow="hidden"
-            // Under the profile's fill and line, over the grid.
-            zIndex={DefaultZIndexes.barBackground}
-          />
-        ))}
+        {/* Under the profile's fill and line, over the grid. Before the
+            mandatory stops' lines, so one covers the alarm it began on. */}
+        {model.events.map((event) =>
+          model.eventLine(event) ? (
+            <ReferenceLine
+              key={`${event.type} ${event.start}`}
+              className="alarm-line"
+              x={event.start}
+              stroke="var(--warn-line)"
+              strokeWidth={1.5}
+              zIndex={DefaultZIndexes.barBackground}
+            />
+          ) : (
+            <ReferenceArea
+              key={`${event.type} ${event.start}`}
+              x1={event.start}
+              x2={model.eventEnd(event)}
+              fill="var(--warn-band)"
+              fillOpacity={1}
+              ifOverflow="hidden"
+              zIndex={DefaultZIndexes.barBackground}
+            />
+          )
+        )}
         {/* Faint, behind the line like the alarms' bands, and green so
             it never reads as a warning; grey when the stop was short. */}
         {model.safetyStop && (
@@ -266,7 +278,11 @@ function Annotations({ model }: { model: ProfileModel }) {
     })),
     alarms: model.events.map((event) => ({
       time: event.start,
-      x: x((event.start + model.eventEnd(event)) / 2)!,
+      x: x(
+        model.eventLine(event)
+          ? event.start
+          : (event.start + model.eventEnd(event)) / 2
+      )!,
     })),
     stop: stop && (x(stop.start)! + x(stop.end)!) / 2,
     left,

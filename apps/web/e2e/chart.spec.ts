@@ -14,11 +14,12 @@ test("draws dive 54's ascent alarms and moves the crosshair to one", async ({
   await page.goto(`/dive/${await diveId(request, 54)}`)
   const card = profile(page)
 
-  // The alarms' five bands, each with its icon and no text: the list
-  // names them.
+  // The alarms' five lines, as each lasted under 6 px of the axis, each
+  // with its icon and no text: the list names them.
+  await expect(card.locator(".alarm-line")).toHaveCount(5)
   await expect(
     card.locator(".recharts-reference-area:not(.stop-band)")
-  ).toHaveCount(5)
+  ).toHaveCount(0)
   await expect(card.locator("svg g.text-warn")).toHaveCount(5)
   await expect(card.locator("svg text", { hasText: "Ascent" })).toHaveCount(0)
 
@@ -55,10 +56,10 @@ test("lists dive 54's safety stop, marks it and moves the crosshair to it", asyn
   )
   await expect(stop).toContainText("at an average of 5.5 m from 19:32")
   await expect(stop).toContainText("9:39")
-  // Marked by its icon and a band of its own beside the alarms' five.
+  // Marked by its icon and the only band, the alarms' being lines.
   await expect(card.locator("svg g.text-ok")).toHaveCount(1)
   await expect(card.locator(".stop-band")).toHaveCount(1)
-  await expect(card.locator(".recharts-reference-area")).toHaveCount(6)
+  await expect(card.locator(".recharts-reference-area")).toHaveCount(1)
 
   // On the first chart point in the band, 8 s after the stop's start.
   await stop.click()
