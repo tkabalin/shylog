@@ -1,24 +1,17 @@
 import { memo, useDeferredValue, useState } from "react"
 import { tags as allTags, type Tag } from "@shylog/core"
-import {
-  IconCloudOff,
-  IconPlus,
-  IconRefresh,
-  IconSearch,
-  IconServerBolt,
-  IconUpload,
-} from "@tabler/icons-react"
+import { IconPlus, IconSearch, IconUpload } from "@tabler/icons-react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
-import { reloadApp } from "@/pwa"
 import shyshark from "@/assets/shyshark.svg"
 
 import { useAfter, usePreloadChart } from "@/chart/load"
 import { FilterPills } from "@/components/filter-pills"
 import { LogHeader } from "@/components/log-header"
 import { MonthGroup } from "@/components/month-group"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { NoLog } from "@/components/no-log"
+import { buttonVariants } from "@/components/ui/button"
 import {
   Empty,
   EmptyContent,
@@ -33,7 +26,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { Skeleton } from "@/components/ui/skeleton"
-import { syncNow, useLog, type LogView } from "@/data/log"
+import { useLog, type LogView } from "@/data/log"
 import {
   depthScale,
   durationScale,
@@ -106,7 +99,7 @@ export const Route = createFileRoute("/")({
 })
 
 function LogPage() {
-  const { log, loaded, blocked, reach } = useLog()
+  const { log } = useLog()
   // So the first dive opened draws its chart without waiting on the code.
   usePreloadChart()
   const search = Route.useSearch()
@@ -139,66 +132,7 @@ function LogPage() {
     log?.dives.filter((dive) => matchesFilters(dive, filters, log)) ?? []
   )
 
-  // Nothing to show until the mirror is read, or while a first sync fills
-  // an empty one; if that sync fails, say so and offer another try. With a
-  // log, a newer server's offer to reload is a toast (UpdateToast).
-  if (!log) {
-    return (
-      <div className="flex min-h-full flex-col pt-[env(safe-area-inset-top)]">
-        <h1 className="sr-only">Log</h1>
-        {blocked && (
-          <Empty className="flex-1">
-            <EmptyHeader>
-              <EmptyMedia variant="accent">
-                <IconRefresh />
-              </EmptyMedia>
-              <EmptyTitle>Update Shylog</EmptyTitle>
-              <EmptyDescription>
-                The server has a newer version of Shylog. Reload to get it, and
-                your log syncs again.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <Button
-                size="lg"
-                // The board's primary action: 48 px, rounder, semibold.
-                className="h-12 w-full rounded-[14px] text-base font-semibold"
-                onClick={reloadApp}
-              >
-                Reload
-              </Button>
-            </EmptyContent>
-          </Empty>
-        )}
-        {loaded && reach !== "ok" && !blocked && (
-          <Empty className="flex-1">
-            <EmptyHeader>
-              <EmptyMedia variant="accent">
-                {reach === "fault" ? <IconServerBolt /> : <IconCloudOff />}
-              </EmptyMedia>
-              <EmptyTitle>
-                {reach === "fault"
-                  ? "The server ran into a problem"
-                  : "Can't reach Shylog"}
-              </EmptyTitle>
-              <EmptyDescription>
-                {reach === "fault"
-                  ? "Your log appears here once the server is working again."
-                  : "Your log appears here once this phone can reach the server, on your tailnet."}
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <Button variant="link" size="lg" onClick={() => void syncNow()}>
-                <IconRefresh data-icon="inline-start" />
-                Try again
-              </Button>
-            </EmptyContent>
-          </Empty>
-        )}
-        {!(loaded && reach !== "ok") && !blocked && <LogSkeleton />}
-      </div>
-    )
-  }
+  if (!log) return <NoLog title="Log" skeleton={<LogSkeleton />} />
 
   return (
     <div className="flex min-h-full flex-col">
