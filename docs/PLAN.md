@@ -1409,6 +1409,13 @@ Deferred, or to watch:
 
 ---
 
+## Next steps
+
+Directly after milestone 25, in this order, each planned as its own milestone when it starts (added 13 November 2026). How each is built is not decided yet.
+
+1. **A map of dive sites**, using the Cape Town site map Dive Team (Simon's Town) publishes at [diveteam.co.za](https://diveteam.co.za/pages/cape-town-dive-site-map). It is a Google My Maps map whose KML can be downloaded: 140 sites, each a point with a free-text description of its kind (reef, wreck), access (shore or boat) and depth, and a link to its Wikivoyage page. Its text, and likely its positions, come from Wikivoyage's [Diving the Cape Peninsula and False Bay](https://en.wikivoyage.org/wiki/Diving_the_Cape_Peninsula_and_False_Bay%2FDive_sites), which covers 300 or more sites under CC BY-SA, while the shop's map states no licence. Sites store no position yet (the spec's Units table lists latitude and longitude, but no table has them), so this starts with coordinates on sites.
+2. **The MCP server** for logging dives with Claude, which the spec lists under Not in v1 and Later, with its notes on reaching a tailnet-only server and keeping the MCP layer separate in the server.
+
 ## pnpm scripts
 
 The test stack is fixed in `CLAUDE.md`. These scripts were confirmed on 17 October 2026 and milestone 1 sets them up as written.
