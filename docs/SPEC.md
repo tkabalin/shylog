@@ -532,7 +532,7 @@ A second diver's history is in the PADI app's logbook, which keeps no start time
 
 ## Statistics
 
-The Statistics screen is lazy loaded: its code and charts are split into their own chunk, fetched only when you open it, and figures are computed on first visit then cached until the log changes. The service worker still precaches that chunk, so statistics work offline. A year filter applies to every figure. Ignored dives are left out of every figure, chart, and pattern (see Ignored dives).
+The Statistics screen is lazy loaded: its code and charts are split into their own chunk, fetched only when you open it, and figures are computed on first visit then cached until the log changes. The service worker still precaches that chunk, so statistics work offline. A year filter applies to every figure: the year beside the dive count opens a list of All time and each year with a dive, newest first, and the screen opens on All time. The year is kept in the address, so coming back from a record's dive keeps it. Ignored dives are left out of every figure, chart, and pattern (see Ignored dives).
 
 The chart library is the heavy part, not the maths, so the dive detail's profile chart is lazy loaded the same way. That keeps the log list, the screen you open most, as light as possible.
 
@@ -558,7 +558,7 @@ The chart library is the heavy part, not the maths, so the dive detail's profile
 | Gas: share of nitrox dives and average nitrox oxygen | Gas fields |
 | Entry | Entry field |
 
-**Early days**: below five dives, the screen shows the totals and records it has, with a note that charts and patterns follow from five dives. From five on, each pattern still needs the minimums under The bar a pattern must clear.
+**Early days**: below five dives in the whole log, the screen shows the totals and records it has, with a note that charts and patterns follow from five dives. There is no year filter then. A year with fewer than five dives in a bigger log still shows its charts. From five on, each pattern still needs the minimums under The bar a pattern must clear.
 
 **Records and milestones**: these sit in the Records and averages card and count as records for Early days, so they show from the first dive.
 
