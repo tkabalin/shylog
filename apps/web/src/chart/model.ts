@@ -175,9 +175,12 @@ export function profileModel(
   }
 
   const temperature = temperatureAxis(points)
-  // An event drawn at least 6 px wide, so a one-second alarm still shows;
-  // the readout names it for as long as the crosshair is on that band.
+  // An event that would draw under 6 px wide is a line where it began, as
+  // a band widened to show it read as the alarm's length. The readout still
+  // names it for 6 px from there, or samples could step over a short alarm.
   const minSpan = (6 * time.max) / width
+  const eventLine = (event: ProfileEvent) =>
+    (event.end ?? event.start) - event.start < minSpan
   const eventEnd = (event: ProfileEvent) =>
     Math.max(event.end ?? event.start, event.start + minSpan)
   return {
@@ -187,6 +190,7 @@ export function profileModel(
     // The depth chart's whole height: the event band, the plot, the times.
     chartHeight: plotTop + plotHeight + timeAxisHeight,
     eventEnd,
+    eventLine,
     points,
     speeds,
     time,

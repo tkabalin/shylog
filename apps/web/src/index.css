@@ -117,6 +117,9 @@
   /* A stop the computer made mandatory, red as the fastest ascent is. */
   --mandatory: var(--color-red-600);
   --warn-band: color-mix(in oklab, var(--color-orange-500) 16%, transparent);
+  /* An alarm too short for a band: the band's orange, softened so it
+     neither outshouts the bands nor passes for a stop's red line. */
+  --warn-line: color-mix(in oklab, var(--color-orange-500) 60%, transparent);
   --ok: var(--color-emerald-700);
   --ok-band: color-mix(in oklab, var(--color-emerald-700) 12%, transparent);
 }
@@ -163,6 +166,7 @@
   --warn: var(--color-orange-400);
   --mandatory: var(--color-red-500);
   --warn-band: color-mix(in oklab, var(--color-orange-500) 22%, transparent);
+  --warn-line: color-mix(in oklab, var(--color-orange-500) 70%, transparent);
   --ok: var(--color-emerald-400);
   --ok-band: color-mix(in oklab, var(--color-emerald-400) 12%, transparent);
 }
