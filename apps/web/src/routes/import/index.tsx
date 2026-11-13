@@ -24,7 +24,8 @@ import {
 import { instant } from "@/format/dates"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
-import { Progress, useComputerDownload } from "@/import/computer-download"
+import { Progress } from "@/components/progress"
+import { useComputerDownload } from "@/import/computer-download"
 import { ImportSection } from "@/import/parts"
 
 export const Route = createFileRoute("/import/")({
