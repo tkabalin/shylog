@@ -78,6 +78,10 @@ export function RollingNumber({
         {places.map((place) => {
           const here = shown.digits.filter((d) => d.place === place)
           const current = here.find((d) => d.out == null)
+          // One digit holds the place's width, the rest roll over it: two
+          // left in the flow wrapped in the shut column, a line taller.
+          const holder =
+            current ?? here.reduce((last, d) => (d.out! > last.out! ? d : last))
           // A place the number gains or loses eases its width open or shut
           // over the roll, so the digits beside it never overlap and the
           // words after it don't jump.
@@ -104,8 +108,9 @@ export function RollingNumber({
                       className={cn(
                         "inline-block transition-[translate,opacity] duration-400 ease-roll motion-reduce:translate-y-0 motion-reduce:duration-150",
                         // Out of the flow beside the digit taking its place;
-                        // alone, it holds the width while that eases shut.
-                        d.out != null && current && "absolute inset-0",
+                        // the latest to leave a place now empty holds the
+                        // width while that eases shut.
+                        d !== holder && "absolute inset-0",
                         leaving &&
                           cn(
                             "opacity-0",
