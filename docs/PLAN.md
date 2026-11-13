@@ -162,7 +162,7 @@ Deferred, or to watch:
 - `test:xsd`, `seed` and `restore-drill` point at scripts that later milestones write.
 - `index.html` has an inline script that applies the theme before first paint, using `ThemeProvider`'s `theme` storage key. Keep the two in step when Settings gets the appearance override (milestone 11). The page title is still a fixed "Shylog" until the server serves it from `SHYLOG_APP_NAME`.
 - Supply chain: `pnpm-workspace.yaml` refuses releases under three days old and trust downgrades (`semver@6.3.1` excluded, with the reason beside it), `packageManager` pins pnpm by hash, and every GitHub Action is pinned to a commit SHA. A brand-new release fails the install, so lower the range rather than excluding it. Raise `minimumReleaseAge` to seven days once that costs no downgrades.
-- CI runs `check`, `image` and Playwright in three shards (`e2e-shard`), with an `e2e` job that passes only when every shard did, as the main ruleset requires a check by that name.
+- CI runs typecheck, lint and build (`static`) beside the unit tests (`unit`), `image`, and Playwright in three shards (`e2e-shard`). A `check` job passes only when `static` and `unit` did, and an `e2e` job only when every shard did, as the main ruleset requires checks by those names.
 - CI reports Vitest coverage for `packages/core` and `apps/server` on the run's summary page (`vitest.config.ts`). Add a threshold for `core` once its calculation tests land (milestones 2 and 3), and add `apps/web` to the coverage `include` when it gets unit-tested code such as the Dexie mirror (milestone 8). Coverage runs only in CI; locally, pass `--coverage` to a scoped run.
 - The main JS chunk is about 450 kB (150 kB gzipped) with React, TanStack Router and Base UI. Revisit with the PWA work.
 
