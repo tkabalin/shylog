@@ -91,10 +91,15 @@ test.describe("at phone width", () => {
   test("shows the bottom nav's top line only while content is under it", async ({
     page,
   }) => {
-    // Stats is still empty, so the page starts too short to scroll.
     await page.goto("/stats")
     const nav = page.getByRole("navigation", { name: "Main" })
     const main = page.locator("main")
+    await expect(page.getByText("Most-dived sites").first()).toBeAttached()
+    // Hide the screen, so the page starts too short to scroll.
+    await main.evaluate((el) => {
+      for (const child of el.children)
+        (child as HTMLElement).style.display = "none"
+    })
     const line = () => nav.evaluate((el) => getComputedStyle(el).borderTopColor)
     // Any colour space, so long as the alpha is zero
     const none = /[/,] 0\)$/
@@ -170,10 +175,14 @@ test.describe("at phone width", () => {
   }) => {
     await page.goto("/")
     const nav = page.getByRole("navigation", { name: "Main" })
-    for (const tab of ["Stats", "You", "Log"]) {
+    for (const [tab, heading] of [
+      ["Stats", "Statistics"],
+      ["You", "You"],
+      ["Log", "Log"],
+    ]) {
       await nav.getByRole("link", { name: tab }).click()
       await expect(
-        page.getByRole("heading", { name: tab, exact: true })
+        page.getByRole("heading", { name: heading, exact: true })
       ).toBeAttached()
     }
     await page.goBack()
@@ -218,6 +227,15 @@ test.describe("at desktop width", () => {
     const current = nav.locator("[data-active]")
     await expect(current).toHaveText("Import")
     await expect(current).toHaveAttribute("aria-current", "page")
+  })
+
+  test("picks the Statistics year from a menu", async ({ page }) => {
+    await page.goto("/stats")
+    await page.getByRole("combobox", { name: "Year, All time" }).click()
+    await page.getByRole("option", { name: "2025" }).click()
+    await expect(page).toHaveURL("/stats?year=2025")
+    await expect(page.locator("header").first()).toContainText("2dives in")
+    await expect(page.getByRole("dialog")).toHaveCount(0)
   })
 
   // On a stack of its own, as two detects at once would find the cable

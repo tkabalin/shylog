@@ -90,7 +90,7 @@ test("sends the Log link to a fresh Log when the dive was opened directly", asyn
   await page.goto("/stats")
   // On WebKit the router's own first navigation can still be running and
   // interrupt the next goto, so wait for the page it renders.
-  await expect(page.getByRole("heading", { name: "Stats" })).toBeAttached()
+  await expect(page.getByRole("heading", { name: "Statistics" })).toBeAttached()
   await page.goto(`/dive/${await diveId(request, 63)}`)
   await page
     .locator("header")

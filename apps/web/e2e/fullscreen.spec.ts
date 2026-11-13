@@ -94,7 +94,7 @@ test("opened directly, closes to the dive in its place", async ({
 }) => {
   const id = await diveId(request, 54)
   await page.goto("/stats")
-  await expect(page.getByRole("heading", { name: "Stats" })).toBeAttached()
+  await expect(page.getByRole("heading", { name: "Statistics" })).toBeAttached()
   await page.goto(`/dive/${id}/profile`)
   // On WebKit the router's first navigation can still be running and
   // swallow the next one, so wait for the page it renders.

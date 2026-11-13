@@ -27,8 +27,8 @@ const all = "all"
 type Option = { value: string; label: string }
 
 // As wide as its longest option, not the pill, so a long region name isn't
-// cut off; one wider than the screen wraps.
-function FilterMenu({ options }: { options: Option[] }) {
+// cut off; one wider than the screen wraps. Statistics' year uses it too.
+export function FilterMenu({ options }: { options: Option[] }) {
   return (
     <SelectContent
       alignItemWithTrigger={false}

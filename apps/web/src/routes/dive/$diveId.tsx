@@ -264,11 +264,13 @@ function DeskBar({
 const backLink =
   "inline-flex h-11 items-center gap-0.5 justify-self-start pr-2 pl-1 text-base font-medium text-primary transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
 
-// A screen inside You the dive was pushed from: Recently deleted, or an
-// entity's detail, which Back returns to; with nothing behind, a fresh
-// list or You takes the dive's place.
+// A screen the dive was pushed from: Recently deleted, an entity's detail
+// or Statistics, which Back returns to; with nothing behind, a fresh list,
+// You or Statistics takes the dive's place.
 function useParent() {
-  const { fromDeleted, parent } = useRouter().state.location.state
+  const { fromDeleted, parent, fromStats } = useRouter().state.location.state
+  if (fromStats)
+    return { label: "Stats", desk: "Statistics", to: "/stats" as const }
   if (fromDeleted)
     return {
       label: "Deleted",

@@ -41,6 +41,8 @@ declare module "@tanstack/react-router" {
     fromDeleted?: true
     // A dive opened from an entity's detail, whose name its Back link says.
     parent?: string
+    // A record's dive, opened from Statistics, which is behind it.
+    fromStats?: true
   }
 }
 
@@ -74,24 +76,47 @@ export function closeToLog(router: AnyRouter) {
   else void router.navigate({ to: "/", replace: true })
 }
 
+function backFromStats(router: AnyRouter, event: MouseEvent) {
+  if (
+    plainClick(event) &&
+    router.state.location.state.pushed &&
+    router.history.canGoBack()
+  ) {
+    event.preventDefault()
+    router.history.back()
+  }
+}
+
 // A dive's detail is pushed from the Log, so the Log stays the current tab
 // there and tapping it goes back. One opened from Recently deleted or an
-// entity keeps You current instead.
+// entity keeps You current instead, and a record's keeps Stats.
 function useLogTab() {
   const router = useRouter()
   // Its form and a new one too, opened from it.
   const onDive = !!useMatchRoute()({ to: "/dive/$diveId", fuzzy: true })
-  // Opened from a screen inside You, which is behind it.
-  const fromYou = useRouterState({
-    select: ({ location: { state } }) => !!(state.fromDeleted || state.parent),
+  // Opened from a screen inside You, or from Statistics, which is behind it.
+  const from = useRouterState({
+    select: ({ location: { state } }) =>
+      state.fromDeleted || state.parent
+        ? "/you"
+        : state.fromStats
+          ? "/stats"
+          : null,
   })
   const active = { "data-status": "active", "aria-current": "page" as const }
   return (
     to: string
   ): Partial<typeof active> & { onClick?: (event: MouseEvent) => void } =>
-    onDive && fromYou
-      ? to === "/you"
-        ? active
+    onDive && from
+      ? to === from
+        ? {
+            ...active,
+            // Statistics is right behind a record's dive, so its tab goes
+            // back there, keeping the year, as the Log's does.
+            ...(from === "/stats" && {
+              onClick: (event: MouseEvent) => backFromStats(router, event),
+            }),
+          }
         : {}
       : to === "/" && onDive
         ? {
