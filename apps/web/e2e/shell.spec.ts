@@ -66,6 +66,9 @@ test.describe("at phone width", () => {
   }) => {
     await page.goto("/")
     const main = page.locator("main")
+    // A fresh browser shows the Log's skeleton until the first sync, and
+    // WebKit drops the scroll as the dives replace it.
+    await expect(main.locator("a[href^='/dive/dive-']").first()).toBeVisible()
     await main.evaluate((el) => {
       el.append(
         Object.assign(document.createElement("div"), {
