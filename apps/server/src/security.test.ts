@@ -45,6 +45,17 @@ describe("every API request", () => {
     expect(res.status).toBe(403)
   })
 
+  // Before Hono 4.13.16, RegExpRouter ran no wildcard middleware for these
+  // paths (GHSA-h7mg-cq63-vhpq). The app's routes get TrieRouter today, but
+  // a route change could move it onto RegExpRouter.
+  it("is checked with an encoded line terminator in its path", async () => {
+    const app = testApp()
+    for (const end of ["%0A", "%0D", "%E2%80%A8", "%E2%80%A9"]) {
+      const path = `/api/version${end}`
+      expect((await app.request(path)).status, path).toBe(403)
+    }
+  })
+
   it("takes the dev login in place of the header", async () => {
     const res = await testApp({ env: { SHYLOG_DEV_LOGIN: login } }).request(
       "/api/version",
