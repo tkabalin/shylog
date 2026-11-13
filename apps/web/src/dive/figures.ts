@@ -8,7 +8,8 @@ const waterOf = (dive: Dive, log: LogView): Water => ({
     log.sites.get(dive.siteId)?.waterType === "fresh" ? "fresh" : "salt",
 })
 
-function diveSac(dive: Dive, log: LogView, water = waterOf(dive, log)) {
+// A dive's SAC rate with its hand values winning, for the detail and Statistics.
+export function diveSac(dive: Dive, log: LogView, water = waterOf(dive, log)) {
   const meta = log.fieldMeta.get(dive.id)
   const hand = (field: string) => meta?.get(field)?.source === "hand"
   return diveSacRate(
