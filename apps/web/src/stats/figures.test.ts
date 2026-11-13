@@ -6,7 +6,7 @@ import type { Dive } from "@/data/db"
 import type { LogView } from "@/data/log"
 
 import { cachedStatistics } from "./cache"
-import { countedDives, statistics, statsYears } from "./figures"
+import { countedDives, sacSpread, statistics, statsYears } from "./figures"
 import { seededLog } from "./seeded-log"
 import { dive, syntheticLog } from "./synthetic"
 
@@ -75,12 +75,8 @@ describe("statistics on the seeded fixture", () => {
     expect(all.timeOfDay.map((part) => part.count)).toEqual([18, 18, 3, 3])
   })
 
-  it("runs the water range from the lowest minimum to the highest maximum", () => {
-    expect(all.water).toEqual({ min: 12, max: 29 })
-  })
-
   it("gives the nitrox share and its average oxygen", () => {
-    expect(all.gas).toEqual({ air: 38, nitrox: 4, averageOxygen: 322.5 })
+    expect(all.gas).toEqual({ air: 38, nitrox: 4 })
   })
 
   it("leaves an ignored dive out of every figure and chart", () => {
@@ -234,9 +230,9 @@ describe("statistics on hand-built dives", () => {
       ["Sam Naidoo", 2],
       ["Anna Keller", 1],
     ])
+    // A site with no region stays out, rather than counting as its country.
     expect(stats.regions.map((r) => [r.name, r.country, r.count])).toEqual([
       ["Simon's Town", "South Africa", 2],
-      ["South Africa", null, 1],
     ])
     expect(stats.tags.map((t) => [t.key, t.count])).toEqual([
       ["night", 2],
@@ -258,7 +254,30 @@ describe("statistics on hand-built dives", () => {
     expect(stats.count).toBe(0)
     expect(stats.records.deepest).toBeNull()
     expect(stats.records.descended).toBeNull()
-    expect(stats.water).toBeNull()
+    expect(stats.sac.median).toBeNull()
     expect(stats.averageMaxDepth).toBeNull()
+  })
+})
+
+describe("sacSpread", () => {
+  const rated = (...rates: number[]) =>
+    rates.map((sac) => ({ dive: dive(), sac }))
+
+  it("takes the middle two for an even count, and the sample deviation", () => {
+    const spread = sacSpread(rated(10, 14, 12, 20))
+    expect(spread.median).toBe(13)
+    expect(spread.mean).toBe(14)
+    expect(spread.deviation).toBeCloseTo(Math.sqrt(56 / 3), 10)
+  })
+
+  it("gives the earlier dive on a tie for best and worst", () => {
+    const tied = rated(12, 12, 9, 9)
+    const spread = sacSpread(tied)
+    expect(spread.best).toBe(tied[2])
+    expect(spread.worst).toBe(tied[0])
+  })
+
+  it("has no deviation for one dive", () => {
+    expect(sacSpread(rated(12))).toMatchObject({ median: 12, deviation: null })
   })
 })

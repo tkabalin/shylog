@@ -82,6 +82,8 @@ export function Strip({
           dives(segment.count),
           percent(segment.count, total),
         ])}
+        // A strip only shows once its row is opened, after the screen.
+        now
       />
     </div>
   )

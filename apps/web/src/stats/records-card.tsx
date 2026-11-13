@@ -1,17 +1,16 @@
 import type { ComponentType, ReactNode } from "react"
 import {
   IconArrowBarToDown,
-  IconCake,
+  IconChevronRight,
   IconClock,
-  IconFlame,
   IconMountain,
-  IconTemperature,
   IconTemperatureMinus,
   IconTemperaturePlus,
 } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { Progress } from "@/components/progress"
 import { Card } from "@/components/ui/card"
 import type { Dive } from "@/data/db"
 import type { LogView } from "@/data/log"
@@ -19,51 +18,62 @@ import { months } from "@/format/dates"
 import { depth, minutes, temperature } from "@/format/figures"
 
 import type { Statistics } from "./figures"
-import { fullMonths } from "./charts/parts"
 import type { Streak } from "./records"
 
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>
 
 // A figure as StatsHifi's .fig sets it: a small label over the value, its
 // unit muted, and a caption under it.
-function Figure({
+export function Figure({
   term,
   icon: Icon,
+  quiet,
   value,
   unit,
   caption,
   dive,
   wide,
+  className,
 }: {
-  term: string
-  icon: Icon
+  term: ReactNode
+  icon?: Icon
+  // The label for screen readers only, where the unit already says it.
+  quiet?: boolean
   value: ReactNode
   unit?: string
   caption?: ReactNode
   // The record's dive, which the whole cell opens.
   dive?: Dive
   wide?: boolean
+  className?: string
 }) {
   return (
     <div
       className={cn(
         "flex min-w-0 flex-col gap-0.5 bg-card px-4 py-3.5",
         wide && "col-span-2",
+        className,
         // The caption's link covers the cell, so the whole figure opens
         // the dive and the cell tints while it is held, with no link menu.
         dive &&
           "relative transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 has-focus-visible:ring-3 has-focus-visible:ring-ring/50 has-focus-visible:ring-inset has-data-press:bg-muted has-data-press:duration-0"
       )}
     >
-      <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon aria-hidden className="size-[1.15em] shrink-0" />
+      <dt
+        className={cn(
+          "flex items-center gap-1.5 text-xs text-muted-foreground",
+          quiet && "sr-only"
+        )}
+      >
+        {Icon && <Icon aria-hidden className="size-[1.15em] shrink-0" />}
         {term}
       </dt>
-      {/* Over its label, as the board sets it, while dt comes first. */}
-      <dd className="order-first text-lg leading-[22px] font-semibold tracking-[-0.02em] tabular-nums">
+      {/* Over its label, as the board sets it, while dt comes first. The
+          unit drops under the value when a narrow cell can't fit both. */}
+      <dd className="order-first flex flex-wrap items-baseline gap-x-0.5 text-lg leading-[22px] font-semibold tracking-[-0.02em] tabular-nums">
         {value}
         {unit && (
-          <span className="ml-0.5 text-[13px] font-medium tracking-normal text-muted-foreground">
+          <span className="text-[13px] font-medium tracking-normal text-muted-foreground">
             {unit}
           </span>
         )}
@@ -71,22 +81,28 @@ function Figure({
       {caption && (
         <dd
           className={cn(
-            "mt-1 min-w-0 text-xs text-muted-foreground/80",
-            // A dive's name is cut short; a date range wraps, so a running
+            "min-w-0 text-xs text-muted-foreground",
+            // A site's name is cut short; a date range wraps, so a running
             // streak always says so.
-            dive ? "truncate" : "text-pretty"
+            dive ? "mt-1.5 flex items-center gap-0.5" : "mt-1 text-pretty"
           )}
         >
           {dive ? (
-            // One level deeper, with Statistics behind it for Back.
-            <Link
-              to="/dive/$diveId"
-              params={{ diveId: dive.id }}
-              state={{ pushed: true, fromStats: true }}
-              className="outline-none after:absolute after:inset-0"
-            >
-              {caption}
-            </Link>
+            <>
+              {/* One level deeper, with Statistics behind it for Back. */}
+              <Link
+                to="/dive/$diveId"
+                params={{ diveId: dive.id }}
+                state={{ pushed: true, fromStats: true }}
+                className="min-w-0 truncate outline-none after:absolute after:inset-0"
+              >
+                {caption}
+              </Link>
+              <IconChevronRight
+                aria-hidden
+                className="size-3 shrink-0 stroke-[2.25]"
+              />
+            </>
           ) : (
             caption
           )}
@@ -110,11 +126,9 @@ export function dateRange(first: string, last: string) {
   return `${shortDate(first)} ${first.slice(0, 4)} – ${shortDate(last)} ${year}`
 }
 
-const longDay = (date: string) =>
-  `${Number(date.slice(8, 10))} ${fullMonths[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`
+export const plural = (n: number, word: string) => (n === 1 ? word : `${word}s`)
 
-const plural = (n: number, word: string) => (n === 1 ? word : `${word}s`)
-
+// "6 days in a row" says what it is, so the label is for screen readers.
 function streakFigures(days: Streak | null, weeks: Streak | null) {
   const shown = [
     { streak: days, term: "Days in a row", unit: "day" },
@@ -128,9 +142,9 @@ function streakFigures(days: Streak | null, weeks: Streak | null) {
       key={term}
       wide={shown.length === 1}
       term={term}
-      icon={IconFlame}
+      quiet
       value={streak.length}
-      unit={plural(streak.length, unit)}
+      unit={`${plural(streak.length, unit)} in a row`}
       caption={streakCaption(streak)}
     />
   ))
@@ -141,18 +155,47 @@ function streakCaption(streak: Streak) {
   return streak.running ? `${range}, running` : range
 }
 
-// "Long Beach · Dive 70": the site, and the number once the server has
-// given one.
-function where(dive: Dive, log: LogView) {
-  const site = log.sites.get(dive.siteId)?.name
-  return [site, dive.number != null && `Dive ${dive.number}`]
-    .filter(Boolean)
-    .join(" · ")
+// The record's site, or its number when it has none.
+export function where(dive: Dive, log: LogView) {
+  return (
+    log.sites.get(dive.siteId)?.name ??
+    (dive.number != null ? `Dive ${dive.number}` : "Dive")
+  )
+}
+
+// The landmark leads, as the sentence is the delight; the total and the
+// way to the next rung follow, with a bar for how far.
+function Descended({
+  descended,
+}: {
+  descended: NonNullable<Statistics["records"]["descended"]>
+}) {
+  const { metres, headline, progress, fraction } = descended
+  return (
+    <div className="col-span-2 flex min-w-0 flex-col gap-1 bg-card px-4 pt-3.5 pb-4">
+      <dt className="flex items-center gap-1.75 text-base leading-[22px] font-semibold tracking-[-0.015em]">
+        <IconMountain aria-hidden className="size-4.5 shrink-0 text-primary" />
+        {headline}
+      </dt>
+      <dd className="text-[13px] leading-[18px] text-muted-foreground tabular-nums">
+        <span className="font-semibold text-foreground">
+          {Math.round(metres).toLocaleString("en-GB")} m
+        </span>{" "}
+        cumulative{progress && `: ${progress}`}
+      </dd>
+      <dd className="mt-2">
+        <Progress
+          label="Depth descended towards the next landmark"
+          value={fraction}
+        />
+      </dd>
+    </div>
+  )
 }
 
 // StatsHifi's Records and averages card, with the spec's further records in
-// the same figures: coldest and warmest, depth descended, streaks and the
-// anniversary.
+// the same figures: the records, the averages, coldest and warmest, the
+// streaks and depth descended.
 export function RecordsCard({
   stats,
   log,
@@ -160,9 +203,8 @@ export function RecordsCard({
   stats: Statistics
   log: LogView
 }) {
-  const { records, water } = stats
-  const { deepest, longest, coldest, warmest, descended, anniversary } = records
-  const range = water && temperatureScale(water.min, water.max)
+  const { records } = stats
+  const { deepest, longest, coldest, warmest, descended } = records
   return (
     <Card className="py-0">
       {/* Hairlines from the gap, whatever spans two columns. */}
@@ -187,6 +229,22 @@ export function RecordsCard({
             dive={longest.dive}
           />
         )}
+        {stats.averageMaxDepth != null && stats.averageDuration != null && (
+          <>
+            <Figure
+              term="Average max depth"
+              icon={IconArrowBarToDown}
+              value={depth(stats.averageMaxDepth)}
+              unit="m"
+            />
+            <Figure
+              term="Average duration"
+              icon={IconClock}
+              value={minutes(stats.averageDuration)}
+              unit="min"
+            />
+          </>
+        )}
         {coldest && warmest && (
           <>
             <Figure
@@ -207,114 +265,11 @@ export function RecordsCard({
             />
           </>
         )}
-        {stats.averageMaxDepth != null && stats.averageDuration != null && (
-          <>
-            <Figure
-              term="Average max depth"
-              icon={IconArrowBarToDown}
-              value={depth(stats.averageMaxDepth)}
-              unit="m"
-            />
-            <Figure
-              term="Average duration"
-              icon={IconClock}
-              value={minutes(stats.averageDuration)}
-              unit="min"
-            />
-          </>
-        )}
-        {water && range && (
-          <div className="col-span-2 flex min-w-0 flex-col gap-0.5 bg-card px-4 py-3.5">
-            <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <IconTemperature aria-hidden className="size-[1.15em] shrink-0" />
-              Water temperature, lowest to highest reading
-            </dt>
-            <dd className="order-first text-lg leading-[22px] font-semibold tracking-[-0.02em] tabular-nums">
-              {water.min === water.max
-                ? temperature(water.min)
-                : // Spaced when a minus sign would run into the dash.
-                  `${temperature(water.min)}${water.min < 0 ? " – " : "–"}${temperature(water.max)}`}
-              <span className="ml-0.5 text-[13px] font-medium tracking-normal text-muted-foreground">
-                °C
-              </span>
-            </dd>
-            <dd
-              aria-hidden
-              className="relative mt-2.5 block h-1.5 rounded-[3px] bg-muted"
-            >
-              <span
-                className="absolute inset-y-0 rounded-[3px] bg-linear-to-r from-(--stats-very-cold) to-(--stats-hot)"
-                style={{ left: range.left, width: range.width }}
-              />
-            </dd>
-          </div>
-        )}
-        {descended && (
-          <Figure
-            wide
-            term="Cumulative depth descended"
-            icon={IconMountain}
-            value={Math.round(descended.metres).toLocaleString("en-GB")}
-            unit="m"
-            caption={
-              <>
-                <span className="block truncate text-[13px] text-foreground">
-                  {descended.headline}
-                </span>
-                {descended.progress && (
-                  <span className="block truncate">{descended.progress}</span>
-                )}
-              </>
-            }
-          />
-        )}
         {/* One day or week in a row isn't a streak yet, and a streak shown
             alone takes the whole row. */}
         {streakFigures(records.days, records.weeks)}
-        {anniversary && (
-          <Figure
-            wide
-            term="Diving anniversary"
-            icon={IconCake}
-            {...anniversaryFigure(anniversary)}
-          />
-        )}
+        {descended && <Descended descended={descended} />}
       </dl>
     </Card>
   )
-}
-
-// "7 years diving, since 10 February 2019", "… today" on the day itself,
-// months under a year, and under a month before the first one.
-function anniversaryFigure(
-  anniversary: NonNullable<Statistics["records"]["anniversary"]>
-) {
-  const { years, months: count, onTheDay, first } = anniversary
-  const since = `since ${longDay(first)}`
-  if (years)
-    return {
-      value: years,
-      unit: `${plural(years, "year")} diving${onTheDay ? " today" : ""}`,
-      caption: since,
-    }
-  if (count)
-    return {
-      value: count,
-      unit: `${plural(count, "month")} diving`,
-      caption: since,
-    }
-  return { value: "Under a month", unit: "diving", caption: since }
-}
-
-// The range's place on a 0 to 30 °C track, widened for colder or warmer
-// water so the bar always fits.
-function temperatureScale(min: number, max: number) {
-  const low = Math.min(0, min)
-  const high = Math.max(30, max)
-  const at = (t: number) => ((t - low) / (high - low)) * 100
-  return {
-    left: `${at(min)}%`,
-    // A single reading still shows as a sliver.
-    width: `${Math.max(2, at(max) - at(min))}%`,
-  }
 }

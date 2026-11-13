@@ -1,4 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react"
+import { useRouterState } from "@tanstack/react-router"
+
+import { FormShown, Reveal } from "@/dive/form/rows"
 
 // The accent mixed into the card, as the boards tint their bars: 100 is the
 // accent itself.
@@ -62,20 +65,86 @@ export function usePainted() {
   return painted
 }
 
+// What a section has open, kept for its history entry: Back from a site
+// found Show all and the rows it had opened closed again.
+const kept = new Map<string, unknown>()
+
+const useEntry = () =>
+  useRouterState({ select: ({ location }) => location.state.__TSR_key ?? "" })
+
+export function useKept<T>(name: string, initial: T) {
+  const id = `${useEntry()} ${name}`
+  const [value, setValue] = useState<T>(() =>
+    kept.has(id) ? (kept.get(id) as T) : initial
+  )
+  const set = (next: T) => {
+    kept.set(id, next)
+    setValue(next)
+  }
+  return [value, set] as const
+}
+
+// Opens as the form's revealed rows do on a tap, but at once until the first
+// tap, so rows Back restores don't grow under the kept scroll.
+const restored = { current: false }
+const tapped = { current: true }
+
+export function Opening({
+  instant,
+  className,
+  children,
+}: {
+  instant: boolean
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <FormShown.Provider value={instant ? restored : tapped}>
+      <Reveal className={className}>{children}</Reveal>
+    </FormShown.Provider>
+  )
+}
+
+// The router restores Back's scroll before the sections below the records
+// render, so the page is too short to land on and stops near the top: the
+// position is kept here too, and set again once they have.
+const scrolls = new Map<string, number>()
+
+export function useKeptScroll(painted: boolean) {
+  const entry = useEntry()
+  // Removed as the screen goes, before the router scrolls to the next one's
+  // top, which would be kept as this one's.
+  useLayoutEffect(() => {
+    const main = document.getElementById("main")
+    if (!main) return
+    const save = () => scrolls.set(entry, main.scrollTop)
+    main.addEventListener("scroll", save, { passive: true })
+    return () => main.removeEventListener("scroll", save)
+  }, [entry])
+  useLayoutEffect(() => {
+    const top = scrolls.get(entry)
+    if (painted && top != null) document.getElementById("main")!.scrollTop = top
+  }, [painted, entry])
+}
+
 // A chart's table alternative, read by screen readers in place of the
 // drawing, which is hidden from them.
 export function SrTable({
   caption,
   head,
   rows,
+  now = false,
 }: {
   caption: string
   head: string[]
   rows: (string | number)[][]
+  // Mounted by a tap after the screen has painted, so with nothing to wait
+  // for: separate deferrals landed as separate commits mid-reveal.
+  now?: boolean
 }) {
   // Its rows come a painted frame after the screen: unseen, they were most
   // of a big log's first frame (the SAC table has a row per dive).
-  const painted = usePainted()
+  const painted = usePainted() || now
   // A table ignores the height sr-only gives it, so a long log's stretched
   // the page; the wrapper clips it.
   return (
@@ -115,20 +184,26 @@ export function SrTable({
 export function Section({
   id,
   title,
+  action,
   children,
 }: {
   id: string
   title: string
+  // A button for the whole section, at the heading's end.
+  action?: ReactNode
   children: ReactNode
 }) {
   return (
     <section aria-labelledby={`stats-${id}`}>
-      <h2
-        id={`stats-${id}`}
-        className="mb-2 px-1 text-[13px] font-semibold text-muted-foreground"
-      >
-        {title}
-      </h2>
+      <div className="mb-2 flex items-center justify-between gap-3 px-1">
+        <h2
+          id={`stats-${id}`}
+          className="text-[13px] font-semibold text-muted-foreground"
+        >
+          {title}
+        </h2>
+        {action}
+      </div>
       {children}
     </section>
   )

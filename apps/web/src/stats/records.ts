@@ -40,6 +40,7 @@ const share = (part: number, whole: number) =>
 // Total depth descended in metres, worded against the ladder: the tallest
 // rung passed in whole times, then progress to the next. Past the last rung
 // the progress is to its next whole time, so something is always ahead.
+// fraction is that progress for a bar, below 1 as the share is.
 export function descended(metres: number) {
   const passed = landmarks.findLast((rung) => metres >= rung.height)
   if (!passed) {
@@ -47,15 +48,20 @@ export function descended(metres: number) {
     return {
       headline: `You've descended ${share(metres, first.height)} of ${first.name}`,
       progress: null,
+      fraction: Math.min(0.99, metres / first.height),
     }
   }
   const times = Math.floor(metres / passed.height)
   const next = landmarks[landmarks.indexOf(passed) + 1]
+  const [part, whole] = next
+    ? [metres, next.height]
+    : [metres - times * passed.height, passed.height]
   return {
     headline: `You've descended ${passed.name}${timesText(times)}`,
     progress: next
-      ? `${share(metres, next.height)} of the way to ${next.name}`
-      : `${share(metres - times * passed.height, passed.height)} of the way to${timesText(times + 1)}`,
+      ? `${share(part, whole)} of the way to ${next.name}`
+      : `${share(part, whole)} of the way to${timesText(times + 1)}`,
+    fraction: Math.min(0.99, part / whole),
   }
 }
 

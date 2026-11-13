@@ -41,7 +41,8 @@ declare module "@tanstack/react-router" {
     fromDeleted?: true
     // A dive opened from an entity's detail, whose name its Back link says.
     parent?: string
-    // A record's dive, opened from Statistics, which is behind it.
+    // A record's dive, or a site, buddy or region, opened from Statistics,
+    // which is behind it (behind the entity, for one of its dives).
     fromStats?: true
   }
 }
@@ -92,38 +93,52 @@ function backFromStats(router: AnyRouter, event: MouseEvent) {
 // entity keeps You current instead, and a record's keeps Stats.
 function useLogTab() {
   const router = useRouter()
+  const match = useMatchRoute()
   // Its form and a new one too, opened from it.
-  const onDive = !!useMatchRoute()({ to: "/dive/$diveId", fuzzy: true })
-  // Opened from a screen inside You, or from Statistics, which is behind it.
+  const onDive = !!match({ to: "/dive/$diveId", fuzzy: true })
+  // A site, buddy or region opened from Statistics keeps Stats current too,
+  // though its screen is inside You.
+  const onEntity = !!match({ to: "/you/entities/$kind/$id" })
+  // Opened from Statistics, perhaps through a site of it, or from a screen
+  // inside You.
   const from = useRouterState({
     select: ({ location: { state } }) =>
-      state.fromDeleted || state.parent
-        ? "/you"
-        : state.fromStats
-          ? "/stats"
+      state.fromStats
+        ? "/stats"
+        : state.fromDeleted || state.parent
+          ? "/you"
           : null,
   })
+  // A dive opened from an entity's detail, which is between it and its tab.
+  const nested = useRouterState({
+    select: ({ location: { state } }) => !!state.parent,
+  })
   const active = { "data-status": "active", "aria-current": "page" as const }
+  const back = (event: MouseEvent) => backFromStats(router, event)
   return (
     to: string
-  ): Partial<typeof active> & { onClick?: (event: MouseEvent) => void } =>
-    onDive && from
-      ? to === from
-        ? {
-            ...active,
-            // Statistics is right behind a record's dive, so its tab goes
-            // back there, keeping the year, as the Log's does.
-            ...(from === "/stats" && {
-              onClick: (event: MouseEvent) => backFromStats(router, event),
-            }),
-          }
-        : {}
-      : to === "/" && onDive
-        ? {
-            ...active,
-            onClick: (event: MouseEvent) => backToLog(router, event),
-          }
-        : {}
+  ): Partial<typeof active> & {
+    onClick?: (event: MouseEvent) => void
+    activeOptions?: { exact: boolean }
+  } => {
+    if (onEntity && from === "/stats") {
+      if (to === "/stats") return { ...active, onClick: back }
+      // Not You, whose path this screen is under.
+      return to === "/you" ? { activeOptions: { exact: true } } : {}
+    }
+    if (!onDive) return {}
+    if (from) {
+      if (to !== from) return {}
+      // Statistics right behind a record's dive: its tab goes back there,
+      // keeping the year, as the Log's does.
+      return from === "/stats" && !nested
+        ? { ...active, onClick: back }
+        : active
+    }
+    return to === "/"
+      ? { ...active, onClick: (event: MouseEvent) => backToLog(router, event) }
+      : {}
+  }
 }
 
 // Phones get a bottom bar, as on the Log board. The dive form covers it,
@@ -191,27 +206,29 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <nav aria-label="Main">
               <SidebarMenu>
-                {destinations.map(({ to, label, icon: Icon }) => (
-                  <SidebarMenuItem key={to}>
-                    {/* Link decides what is active, as in the bottom nav, and
-                        sets the data-active the sidebar styles use. */}
-                    <SidebarMenuButton
-                      render={
-                        <Link
-                          to={to}
-                          replace
-                          activeProps={{ "data-active": "" }}
-                          {...(logTab(to)["data-status"]
-                            ? { ...logTab(to), "data-active": "" }
-                            : {})}
-                        />
-                      }
-                    >
-                      <Icon aria-hidden />
-                      <span>{label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {destinations.map(({ to, label, icon: Icon }) => {
+                  const tab = logTab(to)
+                  return (
+                    <SidebarMenuItem key={to}>
+                      {/* Link decides what is active, as in the bottom nav,
+                          and sets the data-active the sidebar styles use. */}
+                      <SidebarMenuButton
+                        render={
+                          <Link
+                            to={to}
+                            replace
+                            activeProps={{ "data-active": "" }}
+                            {...tab}
+                            {...(tab["data-status"] && { "data-active": "" })}
+                          />
+                        }
+                      >
+                        <Icon aria-hidden />
+                        <span>{label}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
               </SidebarMenu>
             </nav>
           </SidebarGroupContent>

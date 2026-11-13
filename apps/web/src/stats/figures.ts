@@ -1,7 +1,6 @@
 import {
   countryName,
   currents,
-  diveOxygen,
   entries,
   surfaces,
   surges,
@@ -125,15 +124,50 @@ export const timesOfDay = [
   { key: "night", label: "Night", below: 24 },
 ] as const
 
+// Every one, most dives first: the screen shows the top three and the rest
+// on a tap. A tie goes by name, numbers in order ("Reef 2" before "Reef 10").
 function ranked<T>(
   counts: Map<string, number>,
-  name: (key: string) => T & { name: string },
-  limit = 5
+  name: (key: string) => T & { name: string }
 ) {
   return [...counts]
     .map(([key, count]) => ({ key, count, ...name(key) }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-    .slice(0, limit)
+    .sort(
+      (a, b) =>
+        b.count - a.count ||
+        a.name.localeCompare(b.name, "en-GB", { numeric: true })
+    )
+}
+
+// How the rated dives' SAC rates spread: the plain mean, median and sample
+// standard deviation, and the best and worst dive (the earlier on a tie).
+export function sacSpread(rated: readonly { dive: Dive; sac: number }[]) {
+  const sorted = rated.map((r) => r.sac).sort((a, b) => a - b)
+  const n = sorted.length
+  const middle = Math.floor(n / 2)
+  const average = mean(sorted)
+  let best: (typeof rated)[number] | null = null
+  let worst: (typeof rated)[number] | null = null
+  for (const r of rated) {
+    if (!best || r.sac < best.sac) best = r
+    if (!worst || r.sac > worst.sac) worst = r
+  }
+  return {
+    mean: average,
+    median: !n
+      ? null
+      : n % 2
+        ? sorted[middle]!
+        : (sorted[middle - 1]! + sorted[middle]!) / 2,
+    deviation:
+      n > 1
+        ? Math.sqrt(
+            sorted.reduce((sum, v) => sum + (v - average!) ** 2, 0) / (n - 1)
+          )
+        : null,
+    best,
+    worst,
+  }
 }
 
 function tally(keys: Iterable<string>, counts = new Map<string, number>()) {
@@ -182,31 +216,19 @@ export function statistics(
     ? rated.reduce((sum, r) => sum + r.sac * r.dive.duration, 0) / ratedSeconds
     : null
 
-  const temperatures = dives.flatMap((dive) => {
-    const low = dive.minTemperature ?? dive.maxTemperature
-    const high = dive.maxTemperature ?? dive.minTemperature
-    return low == null || high == null ? [] : [{ low, high }]
-  })
-
   const nitrox = dives.filter((dive) => dive.nitrox)
-  const nitroxOxygen = mean(
-    nitrox.flatMap((dive) => {
-      const oxygen = diveOxygen(dive)
-      return oxygen == null ? [] : [oxygen]
-    })
-  )
 
   const entryCounts = breakdown(dives, entries, (dive) => dive.entry)
   const siteCounts = tally(dives.map((dive) => dive.siteId))
   const buddyCounts = tally(
     dives.flatMap((dive) => log.links.get(dive.id)?.buddies ?? [])
   )
-  // A site with no region counts under its country, as a card's place does.
+  // A site with no region stays out: its country among the regions read as
+  // a duplicate of the regions in it.
   const regionCounts = tally(
     dives.flatMap((dive) => {
-      const site = log.sites.get(dive.siteId)
-      if (!site) return []
-      return [site.regionId ?? `country:${site.countryCode}`]
+      const regionId = log.sites.get(dive.siteId)?.regionId
+      return regionId ? [regionId] : []
     })
   )
   const tagCounts = tally(
@@ -252,15 +274,10 @@ export function statistics(
     },
     averageMaxDepth: mean(dives.map((dive) => dive.maxDepth)),
     averageDuration: mean(dives.map((dive) => dive.duration)),
-    water: temperatures.length
-      ? {
-          min: Math.min(...temperatures.map((t) => t.low)),
-          max: Math.max(...temperatures.map((t) => t.high)),
-        }
-      : null,
     sac: {
       average: averageSac,
       trend: sacTrend(rated),
+      ...sacSpread(rated),
     },
     depthBands: depthBands.map((band, i) => ({
       label: band.label,
@@ -311,8 +328,6 @@ export function statistics(
     gas: {
       air: dives.length - nitrox.length,
       nitrox: nitrox.length,
-      // Tenths of a per cent, as the database stores a mix.
-      averageOxygen: nitroxOxygen,
     },
     // Most dives first, the form's order on a tie.
     entry: {
@@ -333,8 +348,6 @@ export function statistics(
       name: log.people.get(id)?.name ?? "",
     })),
     regions: ranked(regionCounts, (key) => {
-      if (key.startsWith("country:"))
-        return { name: countryName(key.slice(8)), country: null }
       const region = log.regions.get(key)
       return {
         name: region?.name ?? "",

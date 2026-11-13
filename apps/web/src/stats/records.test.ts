@@ -34,6 +34,7 @@ describe("records on the seeded fixture, all time", () => {
       metres: 735.87,
       headline: "You've descended Lion's Head",
       progress: "89% of the way to the Burj Khalifa",
+      fraction: 735.87 / 828,
     })
   })
 
@@ -66,6 +67,7 @@ describe("descended", () => {
     expect(descended(28)).toEqual({
       headline: "You've descended 50% of the Leaning Tower of Pisa",
       progress: null,
+      fraction: 0.5,
     })
   })
 
@@ -77,6 +79,7 @@ describe("descended", () => {
     expect(descended(50_000)).toEqual({
       headline: "You've descended Olympus Mons twice",
       progress: "50% of the way to the Kármán line",
+      fraction: 0.5,
     })
     expect(descended(70_000).headline).toBe(
       "You've descended Olympus Mons 3 times"
@@ -87,11 +90,13 @@ describe("descended", () => {
     expect(descended(250_000)).toEqual({
       headline: "You've descended the Kármán line twice",
       progress: "50% of the way to 3 times",
+      fraction: 0.5,
     })
   })
 
   it("never says 100 % before the rung", () => {
     expect(descended(827.9).progress).toBe("99% of the way to the Burj Khalifa")
+    expect(descended(827.9).fraction).toBeLessThan(1)
   })
 
   it("has a strictly ascending ladder", () => {

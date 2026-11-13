@@ -182,7 +182,13 @@ export function DiveRow({
     <Link
       to="/dive/$diveId"
       params={{ diveId: dive.id }}
-      state={{ pushed: true, parent }}
+      // An entity opened from Statistics passes that on, so Stats stays
+      // the current tab on its dives too.
+      state={(prev) => ({
+        pushed: true,
+        parent,
+        ...(prev.fromStats && { fromStats: true as const }),
+      })}
       className="flex min-h-14 items-center gap-3 py-2.5 pr-3 pl-4 transition-colors duration-150 select-none [-webkit-touch-callout:none] hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
     >
       {content}
