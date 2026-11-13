@@ -126,7 +126,8 @@ export function LogHeader({
           <span className="inline-flex items-center gap-1.5">
             <IconClock aria-hidden className="size-[1.15em]" />
             <span>
-              <span className="font-semibold">{h} h</span> underwater
+              <span className="font-semibold text-foreground">{h} h</span>{" "}
+              underwater
             </span>
           </span>
           {figures.deepest != null && (
@@ -134,7 +135,7 @@ export function LogHeader({
               <IconArrowBarToDown aria-hidden className="size-[1.15em]" />
               <span>
                 deepest{" "}
-                <span className="font-semibold">
+                <span className="font-semibold text-foreground">
                   {depth(figures.deepest)} m
                 </span>
               </span>
