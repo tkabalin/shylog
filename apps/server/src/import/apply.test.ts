@@ -1,8 +1,7 @@
 import type { ImportApplyRequest, ImportPreview } from "@shylog/core"
-import Database from "better-sqlite3"
 import { describe, expect, it } from "vitest"
 
-import { testDb } from "../../test/db.ts"
+import { copyOf, testDb } from "../../test/db.ts"
 import { logByHand } from "../../test/hand.ts"
 import {
   byFixtureNumber,
@@ -70,13 +69,6 @@ const printed = (db: Db, n: number) =>
     )
     .get(fingerprint(fixture(n))) as
     { diveId: string | null; reason: string } | undefined
-
-// An in-memory copy, as a nightly snapshot would hold.
-const copyOf = (db: Db) => {
-  const copy = new Database(db.serialize())
-  copy.pragma("foreign_keys = ON")
-  return copy
-}
 
 // Dive 63 logged by hand with every compared figure a little off the
 // computer's, and Ignore this dive on; dive 62 with only what the form
