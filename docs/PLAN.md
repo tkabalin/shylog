@@ -1295,12 +1295,35 @@ The figures below were worked out before the Import milestones. Milestone 14 gro
 
 **Not in this milestone**: patterns (milestone 23).
 
-- [ ] Figures with the Subsurface averaging rules
-- [ ] Records and milestones: coldest and warmest, depth descended against the landmark ladder, day and week streaks, anniversary (D24)
-- [ ] Charts: dives per month or year, SAC trend, depth bands, conditions bars, weather and surface, time of day, gas, entry, sites, buddies, regions, tags
-- [ ] Early-days and empty states
-- [ ] Cache keyed by version and year
-- [ ] Tests and screenshots listed above
+- [x] Figures with the Subsurface averaging rules
+- [x] Records and milestones: coldest and warmest, depth descended against the landmark ladder, day and week streaks, anniversary (D24)
+- [x] Charts: dives per month or year, SAC trend, depth bands, conditions bars, weather and surface, time of day, gas, entry, sites, buddies, regions, tags
+- [x] Early-days and empty states
+- [x] Cache keyed by the in-memory log, year and day
+- [x] Tests and screenshots listed above
+- [x] Tap-to-content under the performance target on a production build
+- [ ] Tap-to-content timed on the owner's phone
+
+**Notes for the next session** (written 13 November 2026, branch `feat/statistics`, draft PR #95)
+
+Decisions taken while building (D60 has the owner's):
+
+- The seeded figures matched this milestone's acceptance as written (42 dives, deepest 42.3 m, 72 min, 12 and 25 °C, 735.9 m and "89% of the way to the Burj Khalifa", 6 days and 4 weeks, 7 years). Landmark progress rounds to the nearest per cent, capped at 99 %; past the last rung it counts towards the next whole time.
+- A day streak runs if its last day is today or yesterday, a week streak if its last week is this week or last; a streak of one day or week isn't shown, and one shown alone takes the row. Ties keep the earlier record or streak.
+- Visibility in metres joins the rating as Patterns groups it (under 5 m low, 5 to 10 m average, over 10 m high), with the board's info line saying so. Rates of 0.1 L/min or less leave the trend as well as the average. Conditions are shares of every dive, with a hatched Not logged; weather and surface tiles shares of the dives that logged them; a section with nothing logged is hidden.
+- Most-dived sites, buddies (not dive professionals) and regions list their top five, every row tied for the most in the accent; a site with no region counts under its country.
+- Thermal comfort and the water range use StatsHifi's own muted colours as `--stats-*` tokens in `index.css`, light and dark, as no Tailwind colour matches them. In dark mode Very cold stays the deeper blue and Cold the paler, as in light (the owner's request; the board swaps them). Gas uses Tailwind's sky-300 for air and lime-400 for nitrox (the owner's choice over the board's muted pair). The rest are accent tints.
+- A record opens its dive with a `fromStats` history state: its Back link says Stats and the Stats tab returns to the year. A tag opens the Log filtered by tag and year, replacing Statistics. The year chip uses the Log's year menu (`FilterMenu`), and the year follows a painted frame after the pick, so the menu closes first.
+- Statistics shows the Log's Update Shylog and Can't reach screens before there is a log (`components/no-log.tsx`). The copy no longer mentions patterns until milestone 23 builds them; it should say so again then.
+- The figures' unit tests sync a server seeded with the D4i fixture through the app's own sync (`stats/seeded-log.ts`, Vitest's node environment).
+
+Deferred, or to watch:
+
+- **Load time:** opening Statistics took about 550 ms with 42 dives and 2.5 s with 630 (production build, full CPU). Recharts' `CartesianGrid` laid out an X tick per dive to place vertical lines it doesn't draw, measuring each label in the DOM, and every measure was a whole-document restyle through the root `:has()` rules in `index.css`. An empty `verticalCoordinatesGenerator`, plain `<text>` ticks and `interval={0}` on the Y axis took it to no measuring at all. The tables' rows and everything below the records now render a painted frame after the screen, behind placeholder cards: first open about 100 ms and a re-open under 60 ms at full CPU on either log; at 4x CPU 257 ms and 63 ms with 42 dives, 1 s and 113 ms with 630. Precomputing the figures while the Log is idle would cut a big log's first open further, if the phone needs it. The root `:has()` rules still restyle the whole page on any DOM change elsewhere (a held press too).
+- On the phone (the owner): the year menu, a record's Back, the tag link, the chip's touch area, long presses on records and tags, the Visibility info line, the count's roll, and tap-to-content timings, first visit and cached.
+- The owner's: whether the Log and Statistics tabs keep their filters when tapped again or left and come back to (both drop them now).
+- A tag's count leaves out ignored dives, which the Log it opens still lists. The desktop sidebar lights Log on the edit form of a record's dive, as it already does for dives from You. Every held press restyles the whole document in Chromium through the same root `:has()` rules; whether WebKit pays it needs the phone.
+- Carried over from milestone 21: the README's cable steps followed on the home server, the Import screen's states and Forget's sheet on the phone, whether Last downloaded moves on a read with nothing new; and from milestone 20 and earlier as listed there.
 
 ## Milestone 23: Statistics, patterns
 
