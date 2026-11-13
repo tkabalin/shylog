@@ -21,6 +21,7 @@ import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 
 import { halo } from "./format"
 import { plotTop, timeAxisHeight } from "./layout"
+import { iconSize, placeIcons } from "./markers"
 import { stopTone, type ProfileModel } from "./model"
 
 const config = {
@@ -32,39 +33,11 @@ const bandColour = (band: SpeedBand) => `var(--speed-${band})`
 // Tabler's alert-triangle, drawn 14 px wide over each event's band.
 const warnPath =
   "M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"
-const iconSize = 14
-// Centre to centre, so two icons side by side keep 2 px between them.
-const iconGap = iconSize + 2
 // Tabler's stairs-up, for the safety stop.
 const stairsPath = "M22 6h-5v5h-5v5h-5v5h-5 M6 10v-7 M3 6l3 -3l3 3"
 // Tabler's hand-stop, for a mandatory stop.
 const handPath =
   "M8 13v-7.5a1.5 1.5 0 0 1 3 0v6.5 M11 5.5v-2a1.5 1.5 0 1 1 3 0v8.5 M14 5.5a1.5 1.5 0 0 1 3 0v6.5 M17 7.5a1.5 1.5 0 0 1 3 0v8.5a6 6 0 0 1 -6 6h-2h.208a6 6 0 0 1 -5.012 -2.7a69.74 69.74 0 0 1 -.196 -.3c-.312 -.479 -1.407 -2.388 -3.286 -5.728a1.5 1.5 0 0 1 .536 -2.022a1.867 1.867 0 0 1 2.28 .28l1.47 1.47"
-
-// An icon's centre moved clear of those already placed: stepped past each
-// it would touch, later first, then earlier if that runs off the plot.
-function clearOf(
-  centre: number,
-  taken: readonly number[],
-  left: number,
-  right: number
-) {
-  const clear = (step: number) => {
-    let at = centre
-    for (let moved = true; moved;) {
-      moved = false
-      for (const other of taken) {
-        if (Math.abs(at - other) < iconGap) {
-          at = other + step
-          moved = true
-        }
-      }
-      if (at < left || at > right) return null
-    }
-    return at
-  }
-  return clear(iconGap) ?? clear(-iconGap) ?? centre
-}
 
 let canvas: CanvasRenderingContext2D | null | undefined
 // A time label's width from the font itself, to keep it inside the chart.
@@ -285,20 +258,20 @@ function Annotations({ model }: { model: ProfileModel }) {
 
   const left = plot.x
   const right = plot.x + plot.width
-  // Icons are kept whole inside the plot. A hand sits on its red line, so
-  // an alarm's triangle at the same moment, as a stop often begins at
-  // one, steps aside for it.
-  const clamp = (centre: number) =>
-    Math.min(Math.max(centre, left + 7), right - 7)
-  const hands = model.mandatoryStops.map((stop) => clamp(x(stop.event.start)!))
-  const alarms = model.events.map((event) =>
-    clearOf(
-      clamp(x((event.start + model.eventEnd(event)) / 2)!),
-      hands,
-      left + 7,
-      right - 7
-    )
-  )
+  const stop = model.safetyStop
+  const icons = placeIcons({
+    hands: model.mandatoryStops.map(({ event }) => ({
+      time: event.start,
+      x: x(event.start)!,
+    })),
+    alarms: model.events.map((event) => ({
+      time: event.start,
+      x: x((event.start + model.eventEnd(event)) / 2)!,
+    })),
+    stop: stop && (x(stop.start)! + x(stop.end)!) / 2,
+    left,
+    right,
+  })
   const iconAt = (centre: number) =>
     `translate(${centre - iconSize / 2} ${top - iconSize - 3}) scale(${iconSize / 24})`
   return (
@@ -348,14 +321,25 @@ function Annotations({ model }: { model: ProfileModel }) {
           </text>
         )
       })}
-      {model.safetyStop && (
-        <StopMarker model={model} taken={[...alarms, ...hands]} />
+      {/* The safety stop's stairs over its band. Green when held in full. */}
+      {stop && icons.stop != null && (
+        <g className={stopTone(stop)}>
+          <path
+            d={stairsPath}
+            transform={iconAt(icons.stop)}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
       )}
       {model.mandatoryStops.map((stop, i) => (
         <path
           key={stop.event.start}
           d={handPath}
-          transform={iconAt(hands[i])}
+          transform={iconAt(icons.hands[i])}
           className="text-mandatory"
           fill="none"
           stroke="currentColor"
@@ -366,58 +350,26 @@ function Annotations({ model }: { model: ProfileModel }) {
       ))}
       {/* An icon over each event's band; the events list and the readout
           name them. */}
-      {model.events.map((event, i) => (
-        <g
-          key={`${event.type} ${event.start}`}
-          // Clear of the plot's top, where the line starts at the surface.
-          transform={iconAt(alarms[i])}
-          className="text-warn"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d={warnPath} className="fill-card" />
-          <path d="M12 9v4 M12 16h.01" />
-        </g>
-      ))}
-    </g>
-  )
-}
-
-// The safety stop's stairs icon over its band, moved clear of the other
-// icons so their filled triangles never hide it. Green when held in full.
-function StopMarker({
-  model,
-  taken,
-}: {
-  model: ProfileModel
-  taken: readonly number[]
-}) {
-  const x = useXAxisScale()
-  const plot = usePlotArea()
-  const stop = model.safetyStop
-  if (!x || !plot || !stop) return null
-  const left = plot.x + 7
-  const right = plot.x + plot.width - 7
-  const centre = clearOf(
-    Math.min(Math.max((x(stop.start)! + x(stop.end)!) / 2, left), right),
-    taken,
-    left,
-    right
-  )
-  return (
-    <g className={stopTone(stop)}>
-      <path
-        d={stairsPath}
-        transform={`translate(${centre - iconSize / 2} ${plot.y - iconSize - 3}) scale(${iconSize / 24})`}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      {model.events.map((event, i) => {
+        const centre = icons.alarms[i]
+        if (centre == null) return null
+        return (
+          <g
+            key={`${event.type} ${event.start}`}
+            // Clear of the plot's top, where the line starts at the surface.
+            transform={iconAt(centre)}
+            className="text-warn"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d={warnPath} className="fill-card" />
+            <path d="M12 9v4 M12 16h.01" />
+          </g>
+        )
+      })}
     </g>
   )
 }
