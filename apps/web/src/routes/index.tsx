@@ -165,8 +165,9 @@ function LogPage() {
                 state={{ fromLog: true }}
                 className={cn(
                   buttonVariants({ size: "lg" }),
-                  // The board's primary action: 48 px, rounder, semibold.
-                  "h-12 w-full rounded-[14px] text-base font-semibold"
+                  // The board's primary action: 48 px, rounder, semibold,
+                  // with no link menu on a long press.
+                  "h-12 w-full rounded-[14px] text-base font-semibold select-none [-webkit-touch-callout:none]"
                 )}
               >
                 <IconPlus data-icon="inline-start" />
