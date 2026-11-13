@@ -1,5 +1,5 @@
 import { entityKinds, type EntityKind } from "@shylog/core"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, useRouterState } from "@tanstack/react-router"
 
 import { entitiesOf } from "@/data/entities"
 import { useLog } from "@/data/log"
@@ -14,6 +14,9 @@ export const Route = createFileRoute("/you/entities/$kind/$id")({
 function EntityPage() {
   const { kind, id } = Route.useParams()
   const { log, loaded } = useLog()
+  const fromStats = useRouterState({
+    select: ({ location }) => !!location.state.fromStats,
+  })
   if (!loaded) return null
   const known = entityKinds.includes(kind as EntityKind)
   const entity =
@@ -25,11 +28,16 @@ function EntityPage() {
     return (
       <div className="flex flex-col">
         <PageBar
-          back={{
-            label: kindLabels[back].title,
-            to: "/you/entities",
-            search: { kind: back },
-          }}
+          back={
+            // Opened from Statistics, Back goes there, as the detail's does.
+            fromStats
+              ? { label: "Stats", to: "/stats" }
+              : {
+                  label: kindLabels[back].title,
+                  to: "/you/entities",
+                  search: { kind: back },
+                }
+          }
         />
         {/* Before the first sync fills the log, the bar alone: "Not found"
             would be wrong. */}

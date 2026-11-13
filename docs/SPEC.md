@@ -545,22 +545,21 @@ The chart library is the heavy part, not the maths, so the dive detail's profile
 | Diving anniversary | Start time of the first dive |
 | Average max depth and average duration | Max depths, durations |
 | Dives per year and per month | Start times |
-| Most-dived sites | Site references |
-| Water temperature range | Minimum and maximum temperatures |
-| Average SAC rate | Start and end pressure, tank size, average depth, duration (single-cylinder dives with all of these) |
+| Dives per site | Site references |
+| Average SAC rate, with its median, standard deviation, best and worst dive, and spread | Start and end pressure, tank size, average depth, duration (single-cylinder dives with all of these) |
 | Number of dives per tag | Tags on each dive (all tags in the fixed list) |
 | Dives per buddy | Buddies on each dive |
-| Dives per region | Site regions and countries |
+| Dives per region | Site regions (a site with no region is left out) |
 | Depth bands (0 to 10, 10 to 18, 18 to 30, and over 30 m) | Max depths |
 | Conditions: current, surge, visibility, workload, and thermal comfort, each with its most common value | Those fields |
 | Weather and surface | Those fields |
 | Time of day (morning before 11:00, midday 11:00 to 14:00, afternoon 14:00 to 18:00, night after 18:00, by local start time) | Start times |
-| Gas: share of nitrox dives and average nitrox oxygen | Gas fields |
+| Gas: share of nitrox dives | Gas fields |
 | Entry | Entry field |
 
 **Early days**: below five dives in the whole log, the screen shows the totals and records it has, with a note that charts and patterns follow from five dives. There is no year filter then. A year with fewer than five dives in a bigger log still shows its charts. From five on, each pattern still needs the minimums under The bar a pattern must clear.
 
-**Records and milestones**: these sit in the Records and averages card and count as records for Early days, so they show from the first dive.
+**Records and milestones**: these sit in the Records and averages card, except the anniversary, which sits under the dives per year or month (under the hours in Early days). They count as records for Early days, so they show from the first dive.
 
 - **Records** each name and link to their dive. Coldest and warmest use the dive's water temperature, the same effective minimum the patterns use (hand value where set, otherwise the computer's), so warmest is the warmest water you dived in, not the warmest reading. The maximum would make a short shallow dive the warmest, because the computer's first samples read near-surface or air temperature; in the first real export that is a 3-minute, 3.9 m dive peaking at 34 °C. A dive with no water temperature drops out of those two. On a tie the earlier dive holds the record.
 - **Total depth descended** is the sum of every dive's max depth, measured against a ladder of landmarks. The figure names the tallest landmark the total has passed, in whole times rounded down ("You've descended Lion's Head", then "… twice", "… 3 times"), and a second line gives progress to the next rung ("92% of the way to the Burj Khalifa"). Below the first rung it is a share of that one alone. A single landmark gives either a figure that sits on "0.7 times" for a year or one that runs into the dozens, so the ladder is spaced to pass a new rung every few dozen dives early on and keep something ahead however big the log gets. It mixes Cape Town, Western Cape and South African landmarks with world ones, and descending to the bottom of the Mariana Trench is a deliberate rung for a diving app. Heights are fixed in one list in the code, ascending, so a rung can be added without touching the logic:
@@ -597,9 +596,9 @@ The chart library is the heavy part, not the maths, so the dive detail's profile
 
 Ignored dives are left out of all of these, including the first dive the anniversary counts from. Freedives and dives under five minutes left out at import are not dives, so they never count; an included one counts like any other dive.
 
-**Averages** follow Subsurface's statistics (`process_dive` in `core/statistics.cpp`). Average SAC rate is weighted by each dive's duration and leaves out rates of 0.1 L/min or less as bogus. Average duration and average max depth are plain means over the dives. The water temperature range runs from the lowest dive minimum to the highest dive maximum.
+**Averages** follow Subsurface's statistics (`process_dive` in `core/statistics.cpp`). Average SAC rate is weighted by each dive's duration and leaves out rates of 0.1 L/min or less as bogus. Average duration and average max depth are plain means over the dives. There is no water temperature range: beside coldest and warmest it read as a contradiction, since it runs to the highest reading rather than the warmest water.
 
-**SAC rate trend (core feature)**: a chart of SAC rate per dive over time, with a rolling average of the last five dives, so improvement in air consumption is visible at a glance. Only dives with a calculated SAC rate appear. It lives on the Statistics screen and loads lazily with the other charts.
+**SAC rate trend (core feature)**: a chart of SAC rate per dive over time, with a rolling average of the last five dives, so improvement in air consumption is visible at a glance. Only dives with a calculated SAC rate appear. It lives on the Statistics screen and loads lazily with the other charts. It leads the screen, titled by how far the five-dive average has moved since the first full window ("1.5 L/min since Dec 2025, now 12.2"), or by the latest average until a sixth rated dive. The time axis runs from the first rated dive's month to the end of the last's, in a year as for all time. The rate axis has round ticks and always fits the average, and a rate more than three interquartile ranges above the upper quartile (and more than twice the median) is pinned to the top edge as a caret with its value, rather than stretching the scale. Under it, behind a tap, the distribution: the duration-weighted average again, the plain median and sample standard deviation, the best and worst dive linked as records are (from two rated dives), and from five rated dives a histogram of the rates in 1 L/min bins, a pinned rate in a last "30+" bin, with the normal curve for their plain mean and standard deviation.
 
 ### Patterns
 

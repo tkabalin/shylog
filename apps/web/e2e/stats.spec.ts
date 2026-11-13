@@ -8,6 +8,14 @@ const statsTab = (page: Page) =>
   page.getByRole("navigation", { name: "Main" }).getByRole("link", {
     name: "Stats",
   })
+// A record's link names its site; the deepest comes first.
+const record = (page: Page, site: string) =>
+  page.getByRole("link", { name: site, exact: true }).first()
+// A row of the Sites list, which opens the site.
+const siteRow = (page: Page, site: string) =>
+  page
+    .getByRole("list", { name: "Sites" })
+    .getByRole("link", { name: new RegExp(`^${site}`) })
 
 // The server's log changed before the phone gets it, so the early-days,
 // empty and tag states need no writes.
@@ -39,7 +47,7 @@ test("opens on all time, and the year chip switches every figure without a histo
   await expect(
     page.getByRole("heading", { name: "Dives per year" })
   ).toBeVisible()
-  await expect(page.getByText("736m")).toBeVisible()
+  await expect(page.getByText("736 m", { exact: true })).toBeVisible()
   const entries = await page.evaluate(() => history.length)
 
   // The Log's year menu, on a phone too.
@@ -59,7 +67,7 @@ test("opens on all time, and the year chip switches every figure without a histo
   await expect(
     page.getByRole("heading", { name: "Dives per month" })
   ).toBeVisible()
-  await expect(page.getByText("609m")).toBeVisible()
+  await expect(page.getByText("609 m", { exact: true })).toBeVisible()
   expect(await page.evaluate(() => history.length)).toBe(entries)
 })
 
@@ -69,7 +77,7 @@ test("a record opens its dive, and Back returns to the same year", async ({
 }) => {
   const id = await diveId(request, 54)
   await page.goto("/stats?year=2026")
-  await page.getByRole("link", { name: "Sodwana · Dive 24" }).click()
+  await record(page, "Sodwana").click()
   await expect(page).toHaveURL(`/dive/${id}`)
   // Statistics stays the current tab under its dive.
   await expect(statsTab(page)).toHaveAttribute("aria-current", "page")
@@ -81,8 +89,37 @@ test("a record opens its dive, and Back returns to the same year", async ({
   await expect(page).toHaveURL("/stats?year=2026")
   await expect(header(page)).toContainText("35dives in")
   // The record's dive was pushed, so the browser's Back pops it too.
-  await page.getByRole("link", { name: "Sodwana · Dive 24" }).click()
+  await record(page, "Sodwana").click()
   await expect(page).toHaveURL(`/dive/${id}`)
+  await page.goBack()
+  await expect(page).toHaveURL("/stats?year=2026")
+})
+
+test("a site opens its screen over Statistics, and Back returns to the same year", async ({
+  page,
+}) => {
+  await page.goto("/stats?year=2026")
+  await siteRow(page, "Sodwana").click()
+  await expect(page).toHaveURL(/\/you\/entities\/site\/site-/)
+  // Stats stays the current tab, though the screen is inside You.
+  await expect(statsTab(page)).toHaveAttribute("aria-current", "page")
+  await page
+    .locator("#main")
+    .getByRole("link", { name: "Stats", exact: true })
+    .click()
+  await expect(page).toHaveURL("/stats?year=2026")
+  // Pushed, so the browser's Back pops it too.
+  await siteRow(page, "Sodwana").click()
+  await expect(page).toHaveURL(/\/you\/entities\/site\/site-/)
+  // One of its dives keeps Stats current, and Back names the site.
+  await page.locator("#main a[href^='/dive/dive-']").first().click()
+  await expect(page).toHaveURL(/\/dive\/dive-/)
+  await expect(statsTab(page)).toHaveAttribute("aria-current", "page")
+  await expect(
+    page.locator("#main").getByRole("link", { name: "Sodwana", exact: true })
+  ).toBeVisible()
+  await page.goBack()
+  await expect(page).toHaveURL(/\/you\/entities\/site\/site-/)
   await page.goBack()
   await expect(page).toHaveURL("/stats?year=2026")
 })
@@ -121,8 +158,11 @@ test("a tag opens the Log filtered by it and the year", async ({
 test("each chart has a table alternative", async ({ page }) => {
   await page.goto("/stats")
   await expect(header(page)).toContainText("42dives")
-  for (const caption of ["Dives per year", "Dives by maximum depth", "Gas"])
+  for (const caption of ["Dives per year", "Dives by maximum depth"])
     await expect(page.getByRole("table", { name: caption })).toBeAttached()
+  // A habit's strip, and its table, are behind its row.
+  await page.getByRole("button", { name: /^Gas/ }).click()
+  await expect(page.getByRole("table", { name: "Gas" })).toBeAttached()
   await expect(
     page.getByRole("table", { name: "Dives per year" }).getByRole("row")
   ).toHaveCount(9)
@@ -137,9 +177,7 @@ test("below five dives shows the totals, records and how far off the rest is", a
   await expect(header(page)).toContainText("2dives logged")
   // No year to choose until the charts come.
   await expect(page.getByRole("combobox", { name: /^Year,/ })).toHaveCount(0)
-  await expect(
-    page.getByRole("link", { name: "Unnamed site · Dive 1" }).first()
-  ).toBeVisible()
+  await expect(record(page, "Unnamed site")).toBeVisible()
   const progress = page.getByRole("progressbar", {
     name: "Dives logged towards more stats",
   })
@@ -229,7 +267,5 @@ test("statistics open with no signal on a phone that never opened them @built", 
   await statsTab(page).click()
   await expect(page).toHaveURL("/stats")
   await expect(header(page)).toContainText("42dives")
-  await expect(
-    page.getByRole("link", { name: "Sodwana · Dive 24" })
-  ).toBeVisible()
+  await expect(record(page, "Sodwana")).toBeVisible()
 })

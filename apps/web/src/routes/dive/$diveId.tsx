@@ -269,6 +269,8 @@ const backLink =
 // You or Statistics takes the dive's place.
 function useParent() {
   const { fromDeleted, parent, fromStats } = useRouter().state.location.state
+  // An entity first, which may itself have been opened from Statistics.
+  if (parent) return { label: parent, desk: parent, to: "/you" as const }
   if (fromStats)
     return { label: "Stats", desk: "Statistics", to: "/stats" as const }
   if (fromDeleted)
@@ -277,7 +279,6 @@ function useParent() {
       desk: "Recently deleted",
       to: "/you/deleted" as const,
     }
-  if (parent) return { label: parent, desk: parent, to: "/you" as const }
   return null
 }
 

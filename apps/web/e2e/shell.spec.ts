@@ -97,7 +97,9 @@ test.describe("at phone width", () => {
     await page.goto("/stats")
     const nav = page.getByRole("navigation", { name: "Main" })
     const main = page.locator("main")
-    await expect(page.getByText("Most-dived sites").first()).toBeAttached()
+    await expect(
+      page.getByRole("heading", { name: "Sites", exact: true })
+    ).toBeAttached()
     // Hide the screen, so the page starts too short to scroll.
     await main.evaluate((el) => {
       for (const child of el.children)

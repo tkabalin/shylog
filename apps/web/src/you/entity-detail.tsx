@@ -449,7 +449,12 @@ export function EntityDetail({
   return (
     <div className="flex flex-col">
       <PageBar
-        back={{ label: label.title, to: "/you/entities", search: { kind } }}
+        back={
+          // A site, buddy or region opened from Statistics goes back there.
+          router.state.location.state.fromStats
+            ? { label: "Stats", to: "/stats" }
+            : { label: label.title, to: "/you/entities", search: { kind } }
+        }
         crumb={saved.name}
         end={
           !locked && (
