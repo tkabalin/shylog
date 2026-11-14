@@ -15,3 +15,40 @@ const milestones = [
 
 export const milestoneFor = (number: number | null | undefined) =>
   milestones.find((milestone) => milestone.number === number) ?? null
+
+interface Numbered {
+  id: string
+  number: number | null
+  provisional?: number | null
+  startTime: string
+}
+
+// Where the log stands: the milestones its numbered dives have passed, each
+// with the dive that reached it, and the next with how far off it is, as a
+// share of the way from the last one passed (or the first dive).
+export function milestoneProgress(dives: readonly Numbered[]) {
+  const byNumber = new Map<number, Numbered>()
+  let highest = 0
+  for (const dive of dives) {
+    // A queued draft counts by the number it will get, as the Log shows it.
+    const number = dive.number ?? dive.provisional
+    if (number == null) continue
+    byNumber.set(number, dive)
+    highest = Math.max(highest, number)
+  }
+  const passed = milestones.flatMap((milestone) => {
+    const dive = byNumber.get(milestone.number)
+    return dive ? [{ ...milestone, dive }] : []
+  })
+  const next = milestones.find((milestone) => milestone.number > highest)
+  if (!next) return { passed, next: null }
+  const from = milestones.findLast((m) => m.number <= highest)?.number ?? 0
+  return {
+    passed,
+    next: {
+      ...next,
+      toGo: next.number - highest,
+      fraction: (highest - from) / (next.number - from),
+    },
+  }
+}

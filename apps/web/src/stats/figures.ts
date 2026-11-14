@@ -17,6 +17,7 @@ import type { Dive } from "@/data/db"
 import type { LogView } from "@/data/log"
 import { year as yearOf } from "@/format/dates"
 import { diveSac } from "@/dive/figures"
+import { milestoneProgress } from "@/dive/milestones"
 
 import { anniversary, depthDescended, descended, streaks } from "./records"
 import { sacTrend } from "./trend"
@@ -285,6 +286,10 @@ export function statistics(
       ...streaks(dives, today),
       // The whole log's, whatever the year.
       anniversary: anniversary(all, today),
+      // The whole log's too, so only where the log is now: under an earlier
+      // year the next milestone read as that year's.
+      milestones:
+        !year || year === today.slice(0, 4) ? milestoneProgress(all) : null,
     },
     averageMaxDepth: mean(dives.map((dive) => dive.maxDepth)),
     averageDuration: mean(dives.map((dive) => dive.duration)),

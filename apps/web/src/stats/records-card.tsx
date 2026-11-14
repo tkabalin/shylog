@@ -1,6 +1,8 @@
-import type { ComponentType, ReactNode } from "react"
+import { useState, type ComponentType, type ReactNode } from "react"
 import {
   IconArrowBarToDown,
+  IconAward,
+  IconChevronDown,
   IconChevronRight,
   IconClock,
   IconMountain,
@@ -16,6 +18,9 @@ import type { Dive } from "@/data/db"
 import type { LogView } from "@/data/log"
 import { months } from "@/format/dates"
 import { depth, minutes, temperature } from "@/format/figures"
+import { listRow, pressable } from "@/you/parts"
+
+import { Opening, useKept } from "./charts/parts"
 
 import type { Statistics } from "./figures"
 import type { Streak } from "./records"
@@ -126,6 +131,10 @@ export function dateRange(first: string, last: string) {
   return `${shortDate(first)} ${first.slice(0, 4)} – ${shortDate(last)} ${year}`
 }
 
+// "22 Aug 2026", for a dive's local start.
+const day = (startTime: string) =>
+  `${shortDate(startTime)} ${startTime.slice(0, 4)}`
+
 export const plural = (n: number, word: string) => (n === 1 ? word : `${word}s`)
 
 // "6 days in a row" says what it is, so the label is for screen readers.
@@ -189,6 +198,113 @@ function Descended({
           value={fraction}
         />
       </dd>
+    </div>
+  )
+}
+
+// The next dive-number milestone as Depth descended sets its landmark: what
+// it is and how far off, what it means, and a bar for the way from the last
+// one. The milestones passed open under it, each opening its dive.
+function Milestones({
+  milestones,
+}: {
+  milestones: NonNullable<Statistics["records"]["milestones"]>
+}) {
+  const { next, passed } = milestones
+  const last = passed.at(-1)
+  const [open, setOpen] = useKept("milestones", false)
+  // Back restores the list open at once; a tap eases it open.
+  const [still, setStill] = useState(true)
+  return (
+    // Padded item by item rather than in an inner box, so the term and its
+    // details stay the div's own children, as a dl's groups need.
+    <div className="col-span-2 flex min-w-0 flex-col bg-card">
+      <dt className="flex items-center gap-1.75 px-4 pt-3.5 text-base leading-[22px] font-semibold tracking-[-0.015em] tabular-nums">
+        <IconAward aria-hidden className="size-4.5 shrink-0 text-primary" />
+        {next
+          ? `${next.toGo} ${plural(next.toGo, "dive")} to dive ${next.number}`
+          : "Every milestone passed"}
+      </dt>
+      {/* Past the last, the line says which it was and when. */}
+      {!next && last && (
+        <dd className="mt-1 px-4 pb-4 text-[13px] leading-[18px] text-pretty text-muted-foreground tabular-nums">
+          {last.line}, dive {last.number} on {day(last.dive.startTime)}
+        </dd>
+      )}
+      {next && (
+        <>
+          <dd className="mt-1 px-4 text-[13px] leading-[18px] text-pretty text-muted-foreground">
+            {next.line}
+          </dd>
+          <dd className="mt-3 px-4 pb-4">
+            <Progress
+              label={`Dives towards dive ${next.number}`}
+              value={next.fraction}
+            />
+          </dd>
+        </>
+      )}
+      {passed.length > 0 && (
+        <dd className="border-t">
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => {
+              setStill(false)
+              setOpen(!open)
+            }}
+            className={cn(listRow, pressable, "font-medium text-primary")}
+          >
+            <span className="flex-1">Milestones passed</span>
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {passed.length}
+            </span>
+            <IconChevronDown
+              aria-hidden
+              className={cn(
+                "size-4 shrink-0 transition-transform duration-200 ease-out",
+                open && "rotate-180"
+              )}
+            />
+          </button>
+          {open && (
+            <Opening instant={still}>
+              {/* Newest first, as the log lists dives. */}
+              <ol aria-label="Milestones passed" className="divide-y border-t">
+                {passed.toReversed().map(({ number, line, dive }) => (
+                  <li key={number}>
+                    {/* One level deeper, with Statistics behind it for Back. */}
+                    <Link
+                      to="/dive/$diveId"
+                      params={{ diveId: dive.id }}
+                      state={{ pushed: true, fromStats: true }}
+                      className={cn(listRow, pressable, "gap-3 py-3 pr-3.5")}
+                    >
+                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="font-medium tabular-nums">
+                          Dive {number}
+                        </span>
+                        <span className="text-[13px] leading-[18px] text-pretty text-muted-foreground">
+                          {line}
+                        </span>
+                      </span>
+                      {/* With the chevron, centred on the row, as the ranked
+                          lists set a count. */}
+                      <span className="inline-flex shrink-0 items-center gap-1.5 text-[13px] text-muted-foreground tabular-nums">
+                        {day(dive.startTime)}
+                        <IconChevronRight
+                          aria-hidden
+                          className="size-3.5 stroke-[2.25]"
+                        />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ol>
+            </Opening>
+          )}
+        </dd>
+      )}
     </div>
   )
 }
@@ -269,6 +385,7 @@ export function RecordsCard({
             alone takes the whole row. */}
         {streakFigures(records.days, records.weeks)}
         {descended && <Descended descended={descended} />}
+        {records.milestones && <Milestones milestones={records.milestones} />}
       </dl>
     </Card>
   )
