@@ -6,9 +6,6 @@ import type { Dive } from "@/data/db"
 import { useSaveCelebration } from "./celebration"
 import { render, testDive } from "./form/testing"
 
-// One milestone, so the burst has a number to play for.
-vi.mock("./milestones", () => ({ milestones: [48] }))
-
 let reduce = false
 beforeEach(() => {
   reduce = false
@@ -38,15 +35,28 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
-function Page({ dive, saved }: { dive: Dive; saved: boolean }) {
+function Page({
+  dive,
+  saved,
+  newest = true,
+}: {
+  dive: Dive
+  saved: boolean
+  newest?: boolean
+}) {
   const headline = useRef<HTMLDListElement>(null)
-  useSaveCelebration(dive, saved, headline)
+  const milestone = useSaveCelebration(dive, saved, headline, newest)
   return (
-    <dl ref={headline}>
-      <dd>14.2</dd>
-    </dl>
+    <>
+      <dl ref={headline}>
+        <dd>14.2</dd>
+      </dl>
+      <p id="line">{milestone?.line}</p>
+    </>
   )
 }
+
+const line = () => document.getElementById("line")?.textContent
 
 // Each layer of bubbles, by how many it holds.
 const layers = () =>
@@ -62,6 +72,7 @@ test("streams bubbles off the max depth figure at once, and no burst for an ordi
 
   page.rerender(<Page dive={testDive({ id: "dive-a", number: 47 })} saved />)
   expect(layers()).toEqual([7])
+  expect(line()).toBe("")
 
   // Leaving the page takes the bubbles with it.
   page.unmount()
@@ -90,20 +101,54 @@ test("plays nothing for a dive that wasn't just saved", () => {
   page.unmount()
 })
 
-test("adds the burst when the number is a milestone", () => {
+test("adds the burst and the line once the server gives a milestone number", () => {
   const page = render(
     <Page dive={testDive({ id: "dive-d", number: null })} saved />
   )
-  page.rerender(<Page dive={testDive({ id: "dive-d", number: 48 })} saved />)
+  expect(line()).toBe("")
+  page.rerender(<Page dive={testDive({ id: "dive-d", number: 40 })} saved />)
   expect(layers()).toEqual([7, 12])
+  expect(line()).toBe("Can start Divemaster training")
   page.unmount()
 })
 
-test("plays nothing under reduced motion", () => {
+test("a milestone save plays its burst alone, without the stream", () => {
+  const page = render(
+    <Page
+      dive={testDive({ id: "dive-milestone", number: null, provisional: 40 })}
+      saved
+    />
+  )
+  // The draft's provisional number says it's a milestone: no stream while
+  // the server numbers it, then the burst.
+  expect(layers()).toEqual([])
+  page.rerender(
+    <Page dive={testDive({ id: "dive-milestone", number: 40 })} saved />
+  )
+  expect(layers()).toEqual([12])
+  expect(line()).toBe("Can start Divemaster training")
+  page.unmount()
+})
+
+test("a back-dated dive numbered as a milestone gets no burst or line", () => {
+  const page = render(
+    <Page
+      dive={testDive({ id: "dive-back-dated", number: 40 })}
+      saved
+      newest={false}
+    />
+  )
+  expect(layers()).toEqual([7])
+  expect(line()).toBe("")
+  page.unmount()
+})
+
+test("plays nothing under reduced motion, but still gives the line", () => {
   reduce = true
   const page = render(
-    <Page dive={testDive({ id: "dive-e", number: 48 })} saved />
+    <Page dive={testDive({ id: "dive-e", number: 40 })} saved />
   )
   expect(layers()).toEqual([])
+  expect(line()).toBe("Can start Divemaster training")
   page.unmount()
 })

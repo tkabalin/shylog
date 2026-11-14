@@ -1,6 +1,6 @@
 import { expect, type Page } from "@playwright/test"
 
-import { deleteDive, diveId, getLog, patchDive, test } from "./api"
+import { deleteDive, diveId, getLog, patchDive, test, uploadDive } from "./api"
 import { still } from "./ui"
 
 const sheet = (page: Page) => page.getByRole("dialog")
@@ -79,6 +79,51 @@ test("adds a dive with a new site and buddy, which uploads and gets its number @
   await expect(number).toBeVisible()
   await frames()
   expect(await bubbles.count()).toBe(0)
+})
+
+test("saving a milestone dive bursts and says what the number means @writes", async ({
+  page,
+  restore,
+}) => {
+  // Hand-logged dives before today bring the log to 49, so the save is 50.
+  const log = await getLog(page.request)
+  const highest = Math.max(...log.dives.map((dive) => dive.number ?? 0))
+  const siteId = log.dives[0]!.siteId
+  for (let day = 1; day < 50 - highest; day++) {
+    const id = `dive-e2e-milestone-${day}-${Date.now()}`
+    await uploadDive(page.request, id, {
+      // A day apart from 1 October, valid however many the seed needs.
+      startTime: `${new Date(Date.UTC(2026, 9, day)).toISOString().slice(0, 10)}T09:30:00`,
+      siteId,
+      duration: 2700,
+      maxDepth: 16,
+    })
+    restore((request) => deleteDive(request, id))
+  }
+
+  const name = `E2E Milestone Reef ${Date.now()}`
+  await page.goto("/")
+  await page.getByRole("link", { name: "Log a dive" }).click()
+  await openSheet(page, /^Site,/)
+  await sheet(page).getByRole("button", { name: "New site" }).click()
+  await sheet(page).getByLabel("Name").fill(name)
+  await sheet(page).getByRole("button", { name: "Add", exact: true }).click()
+  await page.locator("#field-time").fill("09:00")
+  await page.getByLabel("Duration").fill("40")
+  await page.getByLabel("Max depth").fill("18")
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  await expect(page).toHaveURL(/\/dive\/dive-[\w-]+$/)
+  const id = page.url().split("/").pop()!
+  restore((request) => deleteDive(request, id))
+
+  // Once the server numbers it, the line unfolds under the number (the
+  // burst beside it is timed in celebration.test.tsx).
+  await expect(page.getByText("Dive 50", { exact: true })).toBeVisible()
+  await expect(page.getByText("Master Diver", { exact: true })).toBeVisible()
+  // A reload isn't a save, so the line goes with the bubbles.
+  await page.reload()
+  await expect(page.getByText("Dive 50", { exact: true })).toBeVisible()
+  await expect(page.getByText("Master Diver", { exact: true })).toHaveCount(0)
 })
 
 test("uploads a dive saved offline once the server answers again @writes", async ({

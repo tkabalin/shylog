@@ -364,7 +364,21 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
   const desk = useDesk()
   const saved = useLocation({ select: (location) => !!location.state.saved })
   const headline = useRef<HTMLDListElement>(null)
-  useSaveCelebration(dive, saved, headline)
+  // A later draft still queued counts by the number it will get.
+  const newest = !log.dives.some(
+    (other) =>
+      (other.number ?? other.provisional ?? 0) >
+      (dive.number ?? dive.provisional ?? 0)
+  )
+  const milestone = useSaveCelebration(dive, saved, headline, newest)
+  // Kept once shown, so a renumber while the page is open folds the line
+  // away rather than the title jumping up under it.
+  const [line, setLine] = useState<string | null>(null)
+  if (milestone && milestone.line !== line) setLine(milestone.line)
+  // Fold opens only as it mounts, so a renumber back remounts it to unfold.
+  const [shown, setShown] = useState({ open: false, times: 0 })
+  if (!!milestone !== shown.open)
+    setShown({ open: !!milestone, times: shown.times + (milestone ? 1 : 0) })
   // A reload keeps history state, so the entry drops saved once read, or
   // every refresh of the dive would celebrate it again.
   const router = useRouter()
@@ -473,6 +487,15 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
                 )
               )}
             </p>
+          )}
+          {/* What the number means, unfolding with the burst once the
+              server has numbered the dive, so the page never jumps. */}
+          {line && (
+            <Fold key={shown.times} open={!!milestone} appear gap="-0.25rem">
+              <p className="pt-0.5 text-sm font-medium text-pretty text-primary">
+                {line}
+              </p>
+            </Fold>
           )}
           <h1
             ref={title}
