@@ -95,6 +95,39 @@ test("a record opens its dive, and Back returns to the same year", async ({
   await expect(page).toHaveURL("/stats?year=2026")
 })
 
+test("shows the next milestone, and the ones passed open their dives", async ({
+  page,
+  request,
+}) => {
+  const log = await getLog(request)
+  const fortieth = log.dives.find((dive) => dive.number === 40)!
+  await page.goto("/stats")
+  await expect(page.getByText("8 dives to dive 50")).toBeVisible()
+  await expect(page.getByText("Master Diver", { exact: true })).toBeVisible()
+  await expect(
+    page.getByRole("progressbar", { name: "Dives towards dive 50" })
+  ).toHaveAttribute("aria-valuenow", "20")
+
+  await page.getByRole("button", { name: /^Milestones passed/ }).click()
+  const passed = page.getByRole("list", { name: "Milestones passed" })
+  await expect(passed.getByRole("link")).toHaveCount(1)
+  await expect(passed.getByRole("link")).toContainText(
+    "Can start Divemaster training"
+  )
+  await passed.getByRole("link").click()
+  await expect(page).toHaveURL(`/dive/${fortieth.id}`)
+  // Pushed over Statistics, which Back returns to with the list open.
+  await page.goBack()
+  await expect(page).toHaveURL("/stats")
+  await expect(passed.getByRole("link")).toHaveCount(1)
+
+  // The whole log's, so an earlier year leaves it out.
+  await page.getByRole("combobox", { name: "Year, All time" }).click()
+  await page.getByRole("option", { name: "2019" }).click()
+  await expect(header(page)).toContainText("5dives in")
+  await expect(page.getByText(/dives? to dive/)).toHaveCount(0)
+})
+
 test("a site opens its screen over Statistics, and Back returns to the same year", async ({
   page,
 }) => {

@@ -100,6 +100,18 @@ describe("statistics on the seeded fixture", () => {
     )
   })
 
+  it("shows the next milestone on all time and this year only", () => {
+    expect(all.records.milestones?.next).toMatchObject({
+      number: 50,
+      toGo: 8,
+    })
+    expect(all.records.milestones?.passed.map((m) => m.number)).toEqual([40])
+    expect(statistics(log, "2026", today).records.milestones).toEqual(
+      all.records.milestones
+    )
+    expect(statistics(log, "2025", today).records.milestones).toBeNull()
+  })
+
   it("caches per log and year, and recomputes for a new log", () => {
     const a = cachedStatistics(log, "2026", today)
     expect(cachedStatistics(log, "2026", today)).toBe(a)
