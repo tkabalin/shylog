@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { rateScale, sacTrend, timeAxis, trendChange } from "./trend"
+import { boxPlot, rateScale, sacTrend, timeAxis, trendChange } from "./trend"
 import { dive } from "./synthetic"
 
 const rated = (...rates: number[]) =>
@@ -68,6 +68,37 @@ describe("rateScale", () => {
     // A mis-entered 40 among rates near 12 lifts five averages to 17.6.
     const scale = rateScale([12, 12, 12, 12, 12, 12, 40], [12, 17.6])
     expect(scale.high).toBe(19)
+  })
+})
+
+describe("boxPlot", () => {
+  it("ends the whiskers at the last rates within reach of the box", () => {
+    // The demo log's rates again: the box is 10.5 to 15.4, so the upper
+    // whisker reaches 22.75 at most and stops at the 18.2 below it.
+    const box = boxPlot([
+      13.7, 10.5, 11.6, 17.4, 15.3, 33.2, 15.7, 23.6, 17.9, 23.5, 10.4, 16.9,
+      13.6, 9, 12.8, 18.2, 8.9, 14.6, 15.4, 11.5, 8.7, 10.7, 10.6, 11.1, 10.3,
+      9.6, 10.6, 11.5, 13.5, 8.6, 14.7, 11.3, 12, 16.7, 11.7, 10.3, 10.4,
+    ])
+    expect(box).toEqual({
+      q1: 10.5,
+      median: 11.7,
+      q3: 15.4,
+      low: 8.6,
+      high: 18.2,
+      outliers: [23.5, 23.6, 33.2],
+    })
+  })
+
+  it("marks any other rate an outlier when the box has no width", () => {
+    expect(boxPlot([10, 10, 10, 10, 15])).toEqual({
+      q1: 10,
+      median: 10,
+      q3: 10,
+      low: 10,
+      high: 10,
+      outliers: [15],
+    })
   })
 })
 

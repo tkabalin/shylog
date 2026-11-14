@@ -1,4 +1,4 @@
-import { rateScale, roundTicks } from "@/stats/trend"
+import { boxPlot, rateScale, roundTicks } from "@/stats/trend"
 
 import { dives, rate, SrTable, tint } from "./parts"
 
@@ -81,6 +81,7 @@ export function Spread({
     Math.max(low, mean - deviation),
     Math.min(high, mean + deviation),
   ]
+  const box = boxPlot(rates)
   const x = (v: number) => `${((v - low) / (high - low)) * 100}%`
   const y = (count: number) => `${(1 - count / top) * 100}%`
 
@@ -98,7 +99,7 @@ export function Spread({
             </span>
           ))}
         </div>
-        <div className="relative flex-1 pb-4">
+        <div className="relative flex-1">
           <svg
             viewBox={`${low} 0 ${high - low} ${top}`}
             preserveAspectRatio="none"
@@ -153,23 +154,91 @@ export function Spread({
               vectorEffect="non-scaling-stroke"
             />
           </svg>
-          {rateTicks.map((tick) => (
-            <span
-              key={tick}
-              className="absolute bottom-0 -translate-x-1/2 text-[11px] leading-3.5 text-muted-foreground tabular-nums"
-              style={{ left: x(tick) }}
+          <div className="relative h-4">
+            {rateTicks.map((tick) => (
+              <span
+                key={tick}
+                className="absolute bottom-0 -translate-x-1/2 text-[11px] leading-3.5 text-muted-foreground tabular-nums"
+                style={{ left: x(tick) }}
+              >
+                {tick}
+              </span>
+            ))}
+            {pinned && (
+              <span
+                className="absolute bottom-0 -translate-x-1/2 text-[11px] leading-3.5 text-muted-foreground tabular-nums"
+                style={{ left: x(cap + 0.5) }}
+              >
+                {binLabel(cap)}
+              </span>
+            )}
+          </div>
+          {/* On the histogram's axis, under its numbers, so the box lines up
+              with the bars it sums up. */}
+          <div className="relative mt-2 h-4">
+            <svg
+              viewBox={`${low} 0 ${high - low} 16`}
+              preserveAspectRatio="none"
+              className="block size-full overflow-visible"
             >
-              {tick}
-            </span>
-          ))}
-          {pinned && (
-            <span
-              className="absolute bottom-0 -translate-x-1/2 text-[11px] leading-3.5 text-muted-foreground tabular-nums"
-              style={{ left: x(cap + 0.5) }}
-            >
-              {binLabel(cap)}
-            </span>
-          )}
+              <g stroke="var(--muted-foreground)">
+                <line
+                  x1={box.low}
+                  x2={box.q1}
+                  y1={8}
+                  y2={8}
+                  vectorEffect="non-scaling-stroke"
+                />
+                <line
+                  x1={box.q3}
+                  x2={box.high}
+                  y1={8}
+                  y2={8}
+                  vectorEffect="non-scaling-stroke"
+                />
+                <line
+                  x1={box.low}
+                  x2={box.low}
+                  y1={4}
+                  y2={12}
+                  vectorEffect="non-scaling-stroke"
+                />
+                <line
+                  x1={box.high}
+                  x2={box.high}
+                  y1={4}
+                  y2={12}
+                  vectorEffect="non-scaling-stroke"
+                />
+                <rect
+                  x={box.q1}
+                  y={1}
+                  width={box.q3 - box.q1}
+                  height={14}
+                  fill={tint(42)}
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
+              <line
+                x1={box.median}
+                x2={box.median}
+                y1={1}
+                y2={15}
+                stroke="var(--foreground)"
+                strokeWidth={2}
+                vectorEffect="non-scaling-stroke"
+              />
+            </svg>
+            {/* Dots, which the stretched drawing would make ovals. A rate
+                past the axis sits in its far-off bin, as in the histogram. */}
+            {box.outliers.map((outlier, i) => (
+              <span
+                key={i}
+                className="absolute top-1/2 size-1.5 -translate-1/2 rounded-full border border-muted-foreground"
+                style={{ left: x(Math.min(outlier, cap + 0.5)) }}
+              />
+            ))}
+          </div>
         </div>
       </div>
       <div
@@ -210,6 +279,24 @@ export function Spread({
           />
           ±1 std dev
         </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            className="h-2.5 w-3.5 rounded-[1px] border border-muted-foreground"
+            style={{ background: tint(42) }}
+          />
+          Middle 50%
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-3 w-0.5 bg-foreground" />
+          Median
+        </span>
+        {/* Only when there are dots to explain. */}
+        {box.outliers.length > 0 && (
+          <span className="inline-flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full border border-muted-foreground" />
+            Outliers
+          </span>
+        )}
       </div>
       <SrTable
         caption={`Spread of SAC rates: mean ${rate(mean)}, standard deviation ${rate(deviation)} L/min`}
@@ -218,6 +305,21 @@ export function Spread({
           .sort(([a], [b]) => a - b)
           .map(([bin, count]) => [`${binLabel(bin)} L/min`, dives(count)])}
         // Opened by a tap on Distribution, after the screen.
+        now
+      />
+      <SrTable
+        caption="Box plot of SAC rates"
+        head={["", "L/min"]}
+        rows={[
+          ["Lowest within the whiskers", rate(box.low)],
+          ["Lower quartile", rate(box.q1)],
+          ["Median", rate(box.median)],
+          ["Upper quartile", rate(box.q3)],
+          ["Highest within the whiskers", rate(box.high)],
+          ...(box.outliers.length
+            ? [["Outliers", box.outliers.map(rate).join(", ")]]
+            : []),
+        ]}
         now
       />
     </div>
