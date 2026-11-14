@@ -2,8 +2,9 @@ import { useId, useState, type ComponentType, type ReactNode } from "react"
 import { IconChevronDown } from "@tabler/icons-react"
 import { cn } from "cn"
 
+import { Info } from "@/components/info"
 import { Card } from "@/components/ui/card"
-import { listRow, pressable } from "@/you/parts"
+import { listRow } from "@/you/parts"
 
 import { Opening, Section, useKept } from "./parts"
 import { Strip, type Segment } from "./strip"
@@ -16,7 +17,8 @@ export interface Answer {
   answer: string
   segments: Segment[]
   unlogged?: number
-  note?: ReactNode
+  // What the levels mean, behind an icon beside the label.
+  info?: { title: string; body: ReactNode }
 }
 
 // A section of one-line answers, each with its proportion strip behind a
@@ -86,23 +88,42 @@ function AnswerRow({
   still: boolean
   onToggle: () => void
 }) {
-  const panel = useId()
+  const id = useId()
   const Icon = row.icon
   return (
     <div>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={open ? panel : undefined}
-        onClick={onToggle}
-        className={cn(listRow, pressable, "min-h-13 gap-2.5")}
+      {/* The button's box covers the row, so all of it toggles, and the
+          info icon sits above it rather than as a button inside a button.
+          Only the toggle tints the row: the icon has its own press. */}
+      <div
+        className={cn(
+          listRow,
+          "relative min-h-13 gap-2.5 hover:bg-muted/60 has-[>button:focus-visible]:ring-3 has-[>button:focus-visible]:ring-ring/50 has-[>button:focus-visible]:ring-inset has-[>button[data-press]]:bg-muted has-[>button[data-press]]:duration-0"
+        )}
       >
         <Icon aria-hidden className="size-4.5 shrink-0 text-muted-foreground" />
         {/* The label stays whole; a long answer wraps on the right. */}
-        <span className="shrink-0 text-sm whitespace-nowrap text-muted-foreground">
-          {row.label}
-        </span>
-        <span className="min-w-0 flex-1 text-right font-medium text-pretty">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={open ? `${id}-panel` : undefined}
+          aria-labelledby={`${id}-label ${id}-answer`}
+          onClick={onToggle}
+          className="shrink-0 text-sm whitespace-nowrap text-muted-foreground outline-none after:absolute after:inset-0"
+        >
+          <span id={`${id}-label`}>{row.label}</span>
+        </button>
+        {row.info && (
+          <span className="-ml-1.5 flex text-muted-foreground">
+            <Info term={row.label.toLowerCase()} title={row.info.title}>
+              {row.info.body}
+            </Info>
+          </span>
+        )}
+        <span
+          id={`${id}-answer`}
+          className="min-w-0 flex-1 text-right font-medium text-pretty"
+        >
           {row.answer}
         </span>
         <IconChevronDown
@@ -112,22 +133,17 @@ function AnswerRow({
             open && "rotate-180"
           )}
         />
-      </button>
+      </div>
       {/* Eases open on the tap, as the import's Left out row does, rather
           than pushing the rows below down at once. */}
       {open && (
         <Opening instant={still}>
-          <div id={panel} className="flex flex-col gap-2 pr-4 pb-4 pl-11">
+          <div id={`${id}-panel`} className="pr-4 pb-4 pl-11">
             <Strip
               caption={row.label}
               segments={row.segments}
               unlogged={row.unlogged}
             />
-            {row.note && (
-              <p className="text-xs/[1.45] text-pretty text-muted-foreground">
-                {row.note}
-              </p>
-            )}
           </div>
         </Opening>
       )}
