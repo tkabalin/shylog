@@ -114,6 +114,17 @@ describe("wording", () => {
     )
   })
 
+  it("puts a trip in the past tense", () => {
+    const trip: Named = {
+      label: "On Sodwana 2026",
+      phrase: "on Sodwana 2026",
+      past: true,
+    }
+    expect(text(differenceWords("maxDepth", [30.5, 16], trip))).toBe(
+      "You dived 14.5 m deeper on Sodwana 2026."
+    )
+  })
+
   it("says the difference between the figures it shows", () => {
     // 20.44 and 16.06 show as 20.4 and 16.1, 4.3 apart, though 4.38 apart.
     expect(text(differenceWords("maxDepth", [20.44, 16.06], current))).toBe(

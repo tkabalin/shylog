@@ -57,11 +57,12 @@ const amount = (measure: Averaged, difference: number) =>
     ? `${Math.round(difference)} min`
     : `${difference.toFixed(1)} ${figure(measure, 1).unit}`
 
-const compared: Record<Averaged, [string, string, string]> = {
-  sac: ["Your SAC rate is ", "higher", "lower"],
-  maxDepth: ["You dive ", "deeper", "shallower"],
-  duration: ["Your dives are ", "longer", "shorter"],
-  ascentAlarms: ["You get ", "more", "fewer"],
+// Each measure's subject, then in the past tense, then its two directions.
+const compared: Record<Averaged, [string, string, string, string]> = {
+  sac: ["Your SAC rate is ", "Your SAC rate was ", "higher", "lower"],
+  maxDepth: ["You dive ", "You dived ", "deeper", "shallower"],
+  duration: ["Your dives are ", "Your dives were ", "longer", "shorter"],
+  ascentAlarms: ["You get ", "You got ", "more", "fewer"],
 }
 
 // "Your SAC rate is 3.9 L/min higher in moderate or stronger current."
@@ -71,7 +72,8 @@ export function differenceWords(
   group: Named
 ): Words {
   const difference = shown(measure, a) - shown(measure, b)
-  const [subject, more, less] = compared[measure]
+  const [now, then, more, less] = compared[measure]
+  const subject = group.past ? then : now
   const size =
     measure === "ascentAlarms"
       ? `${Math.abs(difference).toFixed(1)} ${difference > 0 ? more : less} ascent alarms a dive`
