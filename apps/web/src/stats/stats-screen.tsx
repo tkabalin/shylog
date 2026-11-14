@@ -612,14 +612,19 @@ function conditionRows(stats: Statistics): Answer[] {
           colour: colours[i],
         })),
         unlogged: condition.notLogged,
-        note:
-          condition.key === "visibility" ? (
-            <>
-              Dives logged in metres are grouped: under 5&nbsp;m low,{" "}
-              <span className="whitespace-nowrap">5–10&nbsp;m</span> average,
-              over 10&nbsp;m high.
-            </>
-          ) : undefined,
+        info:
+          condition.key === "visibility"
+            ? {
+                title: "Visibility levels",
+                body: (
+                  <>
+                    Dives logged in metres are grouped: under 5&nbsp;m low,{" "}
+                    <span className="whitespace-nowrap">5–10&nbsp;m</span>{" "}
+                    average, over 10&nbsp;m high.
+                  </>
+                ),
+              }
+            : undefined,
       },
     ]
   })
