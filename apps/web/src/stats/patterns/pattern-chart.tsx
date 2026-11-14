@@ -160,8 +160,9 @@ const tick = (value: number) =>
   Number.isInteger(value) ? String(value) : value.toFixed(1)
 
 // Each group's dives along one axis, a lane a group, with its average as a
-// tick above: the sentence gives two averages, the dots whether six steady
-// dives or one bad one made them. Dives close together stack in their lane.
+// line through it: the sentence gives two averages, the dots whether six
+// steady dives or one bad one made them. Dives close together stack in their
+// lane.
 function Lanes({
   chart,
   labels,
@@ -197,14 +198,15 @@ function Lanes({
             <span className="text-[11px] text-muted-foreground">
               {labels[i]}
             </span>
-            {/* The average's tick sits above the dots rather than over
-                them, where a column at the average hid behind it. */}
+            {/* The average runs through the lane behind the dots, so a
+                column at it stays whole, and rises above the stacks so it
+                always shows; a tick above the dots read as a stray mark. */}
             <div
               className="relative"
               style={{ height: (high - 1) * rise + dot + 8 }}
             >
               <span
-                className="absolute top-0 h-1.5 w-0.5 -translate-x-1/2 rounded-full bg-foreground"
+                className="absolute top-0 -bottom-0.5 w-0.5 -translate-x-1/2 rounded-full bg-foreground"
                 style={{ left: at(lane.average) }}
               />
               {placed.map(({ value, level }, j) => (
