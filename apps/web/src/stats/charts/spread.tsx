@@ -74,8 +74,13 @@ export function Spread({
     .find((s) => Math.floor(top / s) <= 2)!
   const counts = [step, step * 2].filter((c) => c < top)
   // Inside the ends, where a label would hang off the plot, and clear of the
-  // far-off bin's own label.
-  const rateTicks = roundTicks(low + 1, pinned ? cap - 3 : high - 1, [10, 5, 2])
+  // far-off bin's own label: the finest round step up to six labels, as the
+  // widest that gave two read as sparse.
+  const tickSteps = [2, 5, 10, 20, 50, 100].map((s) =>
+    roundTicks(low + 1, pinned ? cap - 3 : high - 1, [s])
+  )
+  const rateTicks =
+    tickSteps.find((ticks) => ticks.length <= 6) ?? tickSteps.at(-1)!
   // The band stays on the plot when a deviation runs past its ends.
   const band = [
     Math.max(low, mean - deviation),
