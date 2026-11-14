@@ -13,8 +13,9 @@ import {
 import { useSize } from "@/chart/size"
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 import { dayMonth } from "@/format/dates"
+import type { Dive } from "@/data/db"
 import type { Statistics } from "@/stats/figures"
-import { rateScale, timeAxis } from "@/stats/trend"
+import { numberAxis, rateScale, timeAxis } from "@/stats/trend"
 
 import { rate, SrTable } from "./parts"
 
@@ -44,9 +45,13 @@ const tickText = "fill-muted-foreground text-[11px]"
 export function SacTrend({
   trend,
   year,
+  byNumber,
 }: {
   trend: Statistics["sac"]["trend"]
   year: string | undefined
+  // Along the dive numbers rather than the calendar, so a busy week and a
+  // quiet year take the same room per dive.
+  byNumber: boolean
 }) {
   const box = useRef<HTMLDivElement>(null)
   const { width, height } = useSize(box)
@@ -60,18 +65,18 @@ export function SacTrend({
   )
   // A rate off the top sits on the edge, drawn as a caret pointing up; the
   // averages always fit.
+  // A draft has no number until it syncs, only the one it will get.
+  const number = (dive: Dive) => dive.number ?? dive.provisional ?? 0
   const data = trend.map((point) => ({
-    x: day(point.dive.startTime),
+    x: byNumber ? number(point.dive) : day(point.dive.startTime),
     sac: Math.min(point.sac, high),
     clamped: point.sac > high,
     rate: point.sac,
     average: point.average,
   }))
-  const axis = timeAxis(
-    trend[0]!.dive.startTime,
-    trend.at(-1)!.dive.startTime,
-    !!year
-  )
+  const axis = byNumber
+    ? numberAxis(number(trend[0]!.dive), number(trend.at(-1)!.dive))
+    : timeAxis(trend[0]!.dive.startTime, trend.at(-1)!.dive.startTime, !!year)
   const ticks = axis.ticks.map((tick) => tick.value)
   const tickLabel = (value: number) =>
     axis.ticks.find((tick) => tick.value === value)?.label ?? ""

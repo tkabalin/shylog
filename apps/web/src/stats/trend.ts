@@ -111,6 +111,20 @@ export function timeAxis(first: string, last: string, oneYear = false) {
   }
 }
 
+// The dive number axis, as the time axis is shaped: at most five labels on
+// round numbers inside the ends, and a little room so the end dots aren't
+// halved by the plot's edges.
+export function numberAxis(first: number, last: number) {
+  const span = last - first
+  const step =
+    [1, 2, 5, 10, 20, 50, 100, 200, 500].find((s) => span / s <= 5) ?? 1000
+  const pad = Math.max(0.5, span * 0.02)
+  const ticks: { value: number; label: string }[] = []
+  for (let n = Math.ceil(first / step) * step; n <= last; n += step)
+    ticks.push({ value: n, label: String(n) })
+  return { domain: [first - pad, last + pad] as const, ticks }
+}
+
 // How far the five-dive average moved from its first full window to the
 // latest, or null until there is a sixth dive to move it.
 export function trendChange(trend: ReturnType<typeof sacTrend>) {

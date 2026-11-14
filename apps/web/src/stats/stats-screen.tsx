@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useLog, type LogView } from "@/data/log"
+import { Segmented } from "@/dive/form/rows"
 import { today } from "@/dive/form/values"
 import { months } from "@/format/dates"
 import { hours } from "@/format/figures"
@@ -348,6 +349,7 @@ function AirConsumption({
   painted: boolean
 }) {
   const [open, setOpen] = useKept("distribution", false)
+  const [axis, setAxis] = useKept<"date" | "number">("sac-axis", "number")
   // Back restores it open at once; a tap eases it open.
   const [still, setStill] = useState(true)
   const { average, trend } = stats.sac
@@ -417,22 +419,42 @@ function AirConsumption({
         {/* A painted frame later, as the sections below the records are:
             the chart was most of a big log's first frame. */}
         {painted ? (
-          <SacTrend trend={trend} year={year} />
+          <SacTrend trend={trend} year={year} byNumber={axis === "number"} />
         ) : (
           <Skeleton aria-hidden className="h-42 w-full" />
         )}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <span
-              aria-hidden
-              className="size-1.5 rounded-full bg-muted-foreground opacity-40"
-            />
-            Each dive
+        <div className="flex items-center gap-3">
+          {/* Each key whole on its line, beside the axis switch. */}
+          <div className="flex flex-1 flex-wrap items-center gap-x-4 gap-y-1.5 text-xs whitespace-nowrap text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="size-1.5 rounded-full bg-muted-foreground opacity-40"
+              />
+              Each dive
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className="h-0.5 w-3.5 rounded-full bg-primary"
+              />
+              Average of last 5
+            </span>
+          </div>
+          <span id="sac-axis" className="sr-only">
+            Chart along
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span aria-hidden className="h-0.5 w-3.5 rounded-full bg-primary" />
-            Average of last 5
-          </span>
+          <Segmented
+            labelledBy="sac-axis"
+            small
+            className="w-auto shrink-0"
+            value={axis}
+            onChange={(next) => next && setAxis(next)}
+            options={[
+              { value: "number", label: "Dive no." },
+              { value: "date", label: "Date" },
+            ]}
+          />
         </div>
         <div className="-mx-4 border-t">
           <button

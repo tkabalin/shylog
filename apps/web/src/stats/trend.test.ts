@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest"
 
-import { boxPlot, rateScale, sacTrend, timeAxis, trendChange } from "./trend"
+import {
+  boxPlot,
+  numberAxis,
+  rateScale,
+  sacTrend,
+  timeAxis,
+  trendChange,
+} from "./trend"
 import { dive } from "./synthetic"
 
 const rated = (...rates: number[]) =>
@@ -98,6 +105,27 @@ describe("boxPlot", () => {
       low: 10,
       high: 10,
       outliers: [15],
+    })
+  })
+})
+
+describe("numberAxis", () => {
+  it("labels round dive numbers, at most five", () => {
+    const axis = numberAxis(1, 42)
+    expect(axis.ticks.map((tick) => tick.label)).toEqual([
+      "10",
+      "20",
+      "30",
+      "40",
+    ])
+    expect(axis.domain[0]).toBeCloseTo(0.18)
+    expect(axis.domain[1]).toBeCloseTo(42.82)
+  })
+
+  it("labels a single dive's number", () => {
+    expect(numberAxis(7, 7)).toEqual({
+      domain: [6.5, 7.5],
+      ticks: [{ value: 7, label: "7" }],
     })
   })
 })
