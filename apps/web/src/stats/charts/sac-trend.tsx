@@ -200,8 +200,10 @@ export function SacTrend({
               {trend.length > 1 && (
                 <Line
                   dataKey="average"
-                  // Straight between dives, as an average of discrete dives is.
-                  type="linear"
+                  // Curved, as a rolling average stands for a gradual trend.
+                  // Monotone passes through every average without overshooting,
+                  // so it never draws a peak or dip the dives don't have.
+                  type="monotone"
                   stroke="var(--color-average)"
                   strokeWidth={2}
                   dot={false}
