@@ -1,7 +1,6 @@
 import { IconBulb } from "@tabler/icons-react"
 
 import { NoLog } from "@/components/no-log"
-import { Card } from "@/components/ui/card"
 import {
   Empty,
   EmptyHeader,
@@ -13,9 +12,8 @@ import { useLog } from "@/data/log"
 import { PageBar } from "@/you/bar"
 
 import { cachedPatterns } from "../cache"
-import { Section } from "../charts/parts"
 import { countedDives, shownYear } from "../figures"
-import { PatternRow } from "./pattern-detail"
+import { PatternSection } from "./pattern-detail"
 
 // What each group of All patterns is about.
 const titles: Record<string, string> = {
@@ -83,17 +81,12 @@ export function AllPatterns({ year }: { year: string | undefined }) {
           </Empty>
         )}
         {groups.map(({ measure, patterns }) => (
-          <Section
+          <PatternSection
             key={measure}
             id={`patterns-${measure}`}
             title={titles[measure] ?? measure}
-          >
-            <Card className="gap-0 divide-y py-0">
-              {patterns.map((pattern) => (
-                <PatternRow key={pattern.id} pattern={pattern} />
-              ))}
-            </Card>
-          </Section>
+            patterns={patterns}
+          />
         ))}
       </div>
     </div>

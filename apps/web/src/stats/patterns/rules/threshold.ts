@@ -83,7 +83,8 @@ export function threshold(rows: readonly Row[]): Pattern | null {
     field: "waterTemperatureBand",
     score: score(effect, minimum, Math.min(below.total, above.total)),
     words: thresholdWords(below, above, low, high),
-    strip: {
+    chart: {
+      kind: "threshold",
       dives: points.map((point) => ({
         tenths: point.tenths,
         hit: point.cold === 1,

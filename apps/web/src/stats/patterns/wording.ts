@@ -42,6 +42,14 @@ const shown = (measure: MeasureKey, value: number) =>
         : value.toFixed(1)
   )
 
+// A dive's value in the unit a chart's axis shows: minutes, not seconds.
+export const inUnits = (measure: MeasureKey, value: number) =>
+  measure === "duration" ? value / 60 : value
+
+// The unit under a chart's axis.
+export const axisUnit = (measure: Averaged) =>
+  measure === "ascentAlarms" ? "alarms a dive" : figure(measure, 1).unit!
+
 // A difference between two shown figures, in their units: minutes are
 // already whole minutes here.
 const amount = (measure: Averaged, difference: number) =>

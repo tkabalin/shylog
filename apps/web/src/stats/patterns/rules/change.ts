@@ -9,7 +9,15 @@ import {
   type Row,
 } from "../catalogue"
 import { score } from "../score"
-import { changeWords, figure, groupRow, type Periods } from "../wording"
+import {
+  axisUnit,
+  changeWords,
+  figure,
+  groupRow,
+  inUnits,
+  type Averaged,
+  type Periods,
+} from "../wording"
 
 export interface Period {
   label: string
@@ -86,6 +94,20 @@ export function change(
       periods,
       "share" in measure ? [share(later), share(earlier)] : undefined
     ),
+    // Each period's dives along the measure, later first as the groups are.
+    chart:
+      "share" in measure
+        ? undefined
+        : {
+            kind: "lanes",
+            unit: axisUnit(key as Averaged),
+            lanes: [later, earlier].map((period) => ({
+              values: period.rows.map((row) =>
+                inUnits(key, measure.value(row)!)
+              ),
+              average: inUnits(key, average(measure, period.rows)!),
+            })),
+          },
     groups: [later, earlier].map((period) => {
       if ("share" in measure) {
         const { count, total } = share(period)

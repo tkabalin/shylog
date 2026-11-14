@@ -181,6 +181,27 @@ export function SrTable({
   )
 }
 
+// A section's heading button that opens or closes every row in it.
+export function ExpandAll({
+  every,
+  onClick,
+}: {
+  every: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      // About 44 px tall to the finger, while the heading keeps its line;
+      // grown more upwards, so it stays off the first row 8 px below.
+      className="relative -mr-1 px-1 text-[13px] font-medium text-primary transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-top-4 after:-bottom-2 active:opacity-60 active:duration-0"
+    >
+      {every ? "Collapse all" : "Expand all"}
+    </button>
+  )
+}
+
 export function Section({
   id,
   title,

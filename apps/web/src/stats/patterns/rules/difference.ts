@@ -14,6 +14,8 @@ import {
   figure,
   groupRow,
   shareWords,
+  axisUnit,
+  inUnits,
   type Averaged,
 } from "../wording"
 
@@ -106,6 +108,19 @@ export function difference(
       "share" in measure
         ? shareWords(key, shares, names)
         : differenceWords(key as Averaged, means, names[0]),
+    // Each group's dives along the measure, so a difference six steady
+    // dives make reads apart from one a single bad dive makes.
+    chart:
+      "share" in measure
+        ? undefined
+        : {
+            kind: "lanes",
+            unit: axisUnit(key as Averaged),
+            lanes: sides.map((side, i) => ({
+              values: side.map((row) => inUnits(key, measure.value(row)!)),
+              average: inUnits(key, means[i]!),
+            })),
+          },
     groups: shares.map(({ count, total }, i) => {
       if ("share" in measure)
         return groupRow(names[i]!.label, total, percent(count, total))

@@ -6,7 +6,7 @@ import { Info } from "@/components/info"
 import { Card } from "@/components/ui/card"
 import { listRow } from "@/you/parts"
 
-import { Opening, Section, useKept } from "./parts"
+import { ExpandAll, Opening, Section, useKept } from "./parts"
 import { Strip, type Segment } from "./strip"
 
 export interface Answer {
@@ -51,15 +51,10 @@ export function Answers({
       id={id}
       title={title}
       action={
-        <button
-          type="button"
+        <ExpandAll
+          every={every}
           onClick={() => open(every ? [] : rows.map((row) => row.key))}
-          // About 44 px tall to the finger, while the heading keeps its line;
-          // grown more upwards, so it stays off the first row 8 px below.
-          className="relative -mr-1 px-1 text-[13px] font-medium text-primary transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-top-4 after:-bottom-2 active:opacity-60 active:duration-0"
-        >
-          {every ? "Collapse all" : "Expand all"}
-        </button>
+        />
       }
     >
       <Card className="gap-0 divide-y py-0">
