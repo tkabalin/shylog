@@ -32,6 +32,18 @@ export function roundTicks(low: number, high: number, steps: number[]) {
   return steps.map(ticksOf).find((ticks) => ticks.length >= 2) ?? ticksOf(1)
 }
 
+// Linear between the two nearest sorted rates, so the median agrees with the
+// figure above the chart.
+function quantiles(rates: readonly number[]) {
+  const sorted = [...rates].sort((a, b) => a - b)
+  const quantile = (p: number) => {
+    const at = (sorted.length - 1) * p
+    const below = sorted[Math.floor(at)]!
+    return below + (sorted[Math.ceil(at)]! - below) * (at - Math.floor(at))
+  }
+  return { sorted, quantile }
+}
+
 // The rate axis, its top above the averages but not a far-off rate, which is
 // pinned to it: Tukey's "far out" (three interquartile ranges over the upper
 // quartile), never under twice the median, as equal rates have no spread.
@@ -39,12 +51,7 @@ export function rateScale(
   rates: readonly number[],
   averages: readonly number[] = []
 ) {
-  const sorted = [...rates].sort((a, b) => a - b)
-  const quantile = (p: number) => {
-    const at = (sorted.length - 1) * p
-    const below = sorted[Math.floor(at)]!
-    return below + (sorted[Math.ceil(at)]! - below) * (at - Math.floor(at))
-  }
+  const { sorted, quantile } = quantiles(rates)
   const q3 = quantile(0.75)
   const fence = Math.max(q3 + 3 * (q3 - quantile(0.25)), 2 * quantile(0.5))
   const shown = sorted.filter((rate) => rate <= fence)
@@ -52,6 +59,25 @@ export function rateScale(
   const low = Math.max(0, Math.floor(shown[0]!) - 1)
   const high = Math.ceil(Math.max(shown.at(-1)!, ...averages)) + 1
   return { low, high, ticks: roundTicks(low, high, [20, 10, 5, 2]) }
+}
+
+// Tukey's box plot: the quartiles, whiskers to the furthest rates within one
+// and a half interquartile ranges of the box, and the rates past them.
+export function boxPlot(rates: readonly number[]) {
+  const { sorted, quantile } = quantiles(rates)
+  const q1 = quantile(0.25)
+  const q3 = quantile(0.75)
+  const reach = 1.5 * (q3 - q1)
+  const inside = (rate: number) => rate >= q1 - reach && rate <= q3 + reach
+  const whiskers = sorted.filter(inside)
+  return {
+    q1,
+    median: quantile(0.5),
+    q3,
+    low: whiskers[0]!,
+    high: whiskers.at(-1)!,
+    outliers: sorted.filter((rate) => !inside(rate)),
+  }
 }
 
 // The time axis, from the first rated dive's month to the end of the last's,
