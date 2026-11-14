@@ -188,7 +188,19 @@ export function Spread({
           Bell curve
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-3 border-l-[1.5px] border-dashed border-primary" />
+          {/* Drawn as the chart's line is: a 1.5px dashed border showed as
+              one dot on an iPhone. */}
+          <svg viewBox="0 0 2 12" className="h-3 w-0.5 overflow-visible">
+            <line
+              x1={1}
+              x2={1}
+              y1={0}
+              y2={12}
+              stroke="var(--primary)"
+              strokeWidth={1.25}
+              strokeDasharray="3 3"
+            />
+          </svg>
           Mean
         </span>
         <span className="inline-flex items-center gap-1.5">
