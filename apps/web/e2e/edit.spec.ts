@@ -16,6 +16,9 @@ test("adds a dive with a new site and buddy, which uploads and gets its number @
   restore,
 }) => {
   const name = `E2E Reef ${Date.now()}`
+  // A new name each run too: undoing deletes the dive but not the person,
+  // so a repeat would find the buddy already there and offer no Add.
+  const buddy = `E2E Buddy ${Date.now()}`
   await page.goto("/")
   await page.getByRole("link", { name: "Log a dive" }).click()
   await expect(page.getByRole("heading", { name: "New dive" })).toBeVisible()
@@ -33,12 +36,14 @@ test("adds a dive with a new site and buddy, which uploads and gets its number @
   await page.getByLabel("Max depth").fill("18,5")
 
   await openSheet(page, /^Buddies,/)
-  await page.getByRole("textbox", { name: "Buddies" }).fill("E2E Buddy")
-  await sheet(page).getByRole("button", { name: "Add “E2E Buddy”" }).click()
+  await page.getByRole("textbox", { name: "Buddies" }).fill(buddy)
+  await sheet(page)
+    .getByRole("button", { name: `Add “${buddy}”` })
+    .click()
   await sheet(page).getByRole("button", { name: "Done" }).click()
   await expect(
     page.getByRole("button", { name: /^Buddies,/ })
-  ).toHaveAccessibleName("Buddies, E2E Buddy")
+  ).toHaveAccessibleName(`Buddies, ${buddy}`)
 
   await page.getByRole("button", { name: "Save", exact: true }).click()
   // The detail takes the form's place.
@@ -65,7 +70,7 @@ test("adds a dive with a new site and buddy, which uploads and gets its number @
   await expect(number).toBeVisible()
   await frames()
   expect(await bubbles.count()).toBe(0)
-  await expect(page.getByText("E2E Buddy")).toBeVisible()
+  await expect(page.getByText(buddy)).toBeVisible()
   const log = await getLog(page.request)
   expect(log.dives.find((dive) => dive.id === id)?.maxDepth).toBe(18.5)
 
