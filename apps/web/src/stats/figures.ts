@@ -73,7 +73,7 @@ function breakdown(
 // Visibility in metres joins the rough rating, grouped as the Patterns
 // section of the spec groups it: under 5 m low, 5 to 10 m average, over
 // 10 m high. Compared in whole mm, never as floats.
-function visibilityLevel(dive: Dive) {
+export function visibilityLevel(dive: Dive) {
   if (dive.visibilityRating) return dive.visibilityRating
   if (dive.visibility == null) return null
   const mm = toMillimetres(dive.visibility)

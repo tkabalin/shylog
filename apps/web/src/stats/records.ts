@@ -70,7 +70,7 @@ export const depthDescended = (dives: readonly Dive[]) =>
   dives.reduce((sum, dive) => sum + toMillimetres(dive.maxDepth), 0) / 1000
 
 // Days since 1970-01-01 for a local date, with no time zone involved.
-const dayNumber = (date: string) =>
+export const dayNumber = (date: string) =>
   Date.UTC(
     Number(date.slice(0, 4)),
     Number(date.slice(5, 7)) - 1,
