@@ -184,6 +184,9 @@ export interface Named {
   // The dives themselves, where the group is a kind of dive: a share reads
   // "70% of dry suit dives", not "70% of dives on dry suit dives".
   dives?: string
+  // A trip's dives are behind you, even mid-trip, so its sentence reads
+  // "You dived" rather than "You dive".
+  past?: boolean
 }
 
 // Levels with an order split at a boundary into those below and above it.
@@ -572,7 +575,11 @@ export function fieldsOf(log: LogView) {
       value: (row) => (row.dive.tripId ? [row.dive.tripId] : []),
       order: byName(tripName),
       names: (id) => [
-        { label: `On ${tripName(id)}`, phrase: `on ${tripName(id)}` },
+        {
+          label: `On ${tripName(id)}`,
+          phrase: `on ${tripName(id)}`,
+          past: true,
+        },
         { label: "Other dives", phrase: "on other dives" },
       ],
     } satisfies ManyField,
