@@ -1345,11 +1345,30 @@ Deferred, or to watch:
 
 **Not in this milestone**: new rules beyond the catalogue; this closes the Statistics step and v1.
 
-- [ ] Rule types
-- [ ] Catalogue of measures and fields
-- [ ] Bar, scoring, selection
-- [ ] Wording, All patterns, the groups behind each pattern
-- [ ] Tests listed above
+- [x] Rule types
+- [x] Catalogue of measures and fields
+- [x] Bar, scoring, selection
+- [x] Wording, All patterns, the groups behind each pattern
+- [x] Tests listed above
+
+**Notes for the next session** (written 14 November 2026, branch `feat/patterns`)
+
+Decisions taken while building (D61 has the owner's):
+
+- The spec's catalogue left the other rule types' inputs, the choice measures' outcomes and the fields' splits open; they are now under Catalogue in the spec. Ordered fields split at each boundary of the levels the dives have, others set one value against the rest, people, centres, trips and tags compare the dives with them against those without. The Unknown site is never a group or a habit, but its dives count.
+- Pattern averages of SAC rate are weighted by duration, as Air consumption's is, so the figures agree. A sentence's figure is the difference between the rounded figures shown under it, never the raw one (it said 4.4 where the rows showed 20.4 and 16.1).
+- Trends fit along the dives in order, as the SAC chart's Dive no. axis spaces them: against dates, the D4i log's 6-year gap made a 4-minute change a 26-minute climb. Their ends are kept at nothing or more and the bar is judged on the change between those ends.
+- A threshold's cleanest split ranks on its weaker side's share, then its other side's, then the gap, then the dive count.
+- Patterns are cached apart from the figures, by log and year (not day), and render a painted frame after the screen like everything below the records. Timed on a 630-dive log in Node: 7 ms all time, 1 ms a year.
+- Pressing or hovering an expanding row tints the whole open item, on Statistics' Conditions, Habits and Distribution too; Distribution's opaque figure cells take the tint themselves.
+- File names follow the app's kebab case (`patterns-card.tsx`, `all-patterns.tsx`, `pattern-detail.tsx`, `pattern-chart.tsx`) rather than the plan's PascalCase.
+
+Deferred, or to watch:
+
+- On the phone (the owner): the pattern rows' tap and press tint, Expand all, whether the lanes, the threshold strip and the month bars read at arm's length, All patterns' length with everything open, and the time to open Statistics now patterns join the deferred frame.
+- Near-duplicate differences (two splits of the same dives, such as mild or stronger current and surge on the same days) are left as they are (the owner's choice). The design critique also noted that "since Feb 2019" covers a 6-year gap on the D4i log; with SAC over time out of the top three it matters less.
+- `capital()` in `catalogue.ts` repeats the import review's, and `/stats/patterns` repeats Statistics' year parser: sharing either would pull import or route code into the stats chunk.
+- Carried over from milestone 22: tap-to-content for Statistics timed on the owner's phone; the year menu, a record's Back, the tag link, the expanding rows and the count's roll on the phone; whether the Log and Statistics tabs keep their filters; a tag's count leaving out ignored dives the Log lists; the desktop sidebar lighting Log on a record's dive's edit form; the root `:has()` restyles on a held press in WebKit; and from milestone 21 the README's cable steps on the home server, the Import screen's states and Forget's sheet on the phone, and whether Last downloaded moves on a read with nothing new.
 
 ## Milestone 24: Dive-number milestones
 
