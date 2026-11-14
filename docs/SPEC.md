@@ -621,7 +621,7 @@ The Statistics screen shows plain-language findings about your own diving, such 
 | Change | A share or average compared with the previous year, or the first half of the log against the second for all time | Nitrox on 52% of dives, up from 10% |
 | Trend | The direction of a measure over time, from a simple linear fit | SAC rate down 2.9 L/min since January |
 | Habit | A strong concentration in one value | 70% of dives are in the morning; Sam is on 60% of your dives |
-| Season | A measure that varies by month within a region | Simon's Town is warmest in March and clearest in April |
+| Season | A measure that varies by month within a region | Simon's Town is warmest in March and coldest in August |
 | Record | Personal bests and streaks | Deepest, longest, coldest, most dives in a month, longest gap between dives, most consecutive diving days |
 
 #### Catalogue
@@ -640,29 +640,49 @@ The Difference rule runs on each measure against each field in its row.
 | Workload | Current, surge, depth band, gas |
 | Water temperature | Region and month (season) |
 
+The other rule types run on these:
+
+- **Change**: the averages of SAC rate, max depth, duration and ascent alarms per dive, and the share of dives on nitrox.
+- **Trend**: SAC rate, max depth, duration and ascent alarms per dive, each only where no change of it qualifies, as both say which way it went.
+- **Habit**: site, region, dive centre and buddy. Time of day, entry and gas are left to the Habits answers, which already say them.
+- **Season**: water temperature, in each region.
+- **Record**: the most dives in a calendar month and the longest gap between two dives (by local date, in days up to two months, then years and months). The deepest, longest and coldest dive and the longest streaks are on the Records and averages card already.
+
+What each measure takes from a dive:
+
+- SAC rate is the dive's rate as Averages takes it (over 0.1 L/min), and a group's or period's average of it is weighted by duration, as Averages weights it, so the two agree; max depth and duration are the dive's own; ascent alarms per dive count only dives with a computer profile, as a hand-logged dive can't have had one.
+- The choice measures are the share of dives with an outcome: thermal comfort is the share where you felt cold (cold or very cold); visibility has two, the share with low visibility and the share with high; current and surge are the share of moderate or stronger; workload is the share of moderate or harder.
+
+How each field forms its groups:
+
+- Fields with an order (current, surge, workload, thermal comfort from very cold to hot, visibility, weather, surface, depth band, water temperature band, time of day, cylinder volume) split into the levels below a boundary and the levels above it, tried at every boundary: "moderate or stronger" against "none to mild".
+- Fields with no order (entry, gas, cylinder material, region, site, month) set one value against all the others: "in March" against every other month. Months are taken across years, so March is every March.
+- People, dive centres, trips and tags set the dives with that one against the dives without it, so "with Sam" counts every dive Sam was on, whoever else came. A site with no region has none, so it drops out of the region rule.
+
 #### The bar a pattern must clear
 
-- Difference rules need at least 5 dives in each group compared. Groups can be single values or adjacent levels combined, such as "moderate or stronger" against "none to mild"; whichever split gives the biggest qualifying difference is used.
+- Difference rules need at least 5 dives in each group compared. Groups can be single values or adjacent levels combined, such as "moderate or stronger" against "none to mild"; whichever split gives the biggest qualifying difference is used, the first in the field's order on a tie.
 - Minimum effect sizes:
-  - SAC rate: 1.5 L/min and 10%
+  - SAC rate: 1.5 L/min and 10% of the lower group's average
   - depth: 3 m
   - duration: 5 minutes
   - temperature: 2 °C
   - ascent alarms: 0.5 per dive
   - shares: 20 percentage points
-- Threshold rules need at least 4 dives on each side, with at least 80% of each side matching. Unless every dive on a side matches, the wording gives the count ("4 of 5 dives").
-- Change and trend rules need at least 8 dives in each period.
-- Habit rules need a share of at least 60% across at least 10 dives.
+- Threshold rules need at least 4 dives on each side, with at least 80% of each side matching. Unless every dive on a side matches, the wording gives the count ("4 of 5 dives"). The two cut-offs are whole degrees, the lower at most the upper: dives below the lower one are one side and dives above the upper the other, and dives between them are left out. The cleanest split has the highest matching share on its weaker side, then on its other side, then the narrowest gap, then the most dives. Its effect is the difference between the two sides' shares.
+- Change and trend rules need at least 8 dives in each period. A year is compared with the year before it; for all time, the dives with the measure split into an earlier and a later half by start time (the later half takes the middle dive of an odd count). A trend fits a straight line to the measure against the dives in order, spaced evenly as the SAC trend's Dive no. axis spaces them (against dates, a gap of years turned a small change either side of it into a steep climb); its groups are the line's ends at the first dive and the last, never below nothing, as none of these measures can be, and its effect is the change between them.
+- Habit rules need a share of at least 60% across at least 10 dives: the dives that logged the field, or every dive for site, region, dive centre and buddy. The Unknown site is never a habit or a group, as it is where an import leaves dives, not a place; its dives still count. A habit's score counts its own dives rather than the smaller group's, which can be none; it only orders All patterns, as habits never reach the top three.
+- A season needs at least 5 dives with a water temperature in each of two months in the region, and compares its warmest month with its coldest.
 - Records always qualify.
 
 #### Choosing and showing
 
-- Each qualifying pattern is scored on effect size divided by its minimum, multiplied by the square root of the smallest group's dive count.
-- The Statistics screen shows the top three. There is at most one per measure and one per field, and records are never in the top three. "All patterns" opens the full ranked list, grouped by measure.
+- Each qualifying pattern is scored on effect size divided by its minimum, multiplied by the square root of the smallest group's dive count. The SAC rate's minimum here is the 1.5 L/min.
+- The Statistics screen shows the top three in a Patterns section under Records and averages. There is at most one per measure and one per field (a change counts the year as its field, a trend time, a season the month), and records, habits and SAC rate over time (its change and trend) are never in the top three: records repeat the Records and averages card, habits the Habits answers and the ranked lists, and Air consumption leads the screen with SAC rate over time by its own five-dive average, so a second figure for it read as a contradiction. SAC rate against everything else (current, workload and the rest) can lead. "All patterns" opens the full ranked list as its own screen, grouped by measure (habits and records last, as groups of their own), each group led by its best pattern.
 - Ties are broken by rule id, so the selection only changes when the data does.
-- Wording describes rather than explains: "is higher in", never "because of". Numbers are rounded to the precision shown elsewhere in the app.
-- Tapping a pattern shows the groups behind it, for example "6 dives in moderate or stronger current averaged 17.2 L/min; 12 in none to mild averaged 13.3", and offers to open those dives in the Log.
-- If no pattern qualifies, the section is hidden.
+- Wording describes rather than explains: "is higher in", never "because of". Numbers are rounded to the precision shown elsewhere in the app, and a figure in a sentence is the difference between the rounded figures shown under it. The bold part reads on its own: the difference ("3.9 L/min higher"), the outcome with its share or cut-off ("cold on all 11 dives below 16 °C"), both ends of a change ("rose from 0.5 to 2.3 a dive"). A share of every or no dive says "all" or "none", and no ascent alarms reads "none".
+- Each pattern shows the icon of what it compares across (the current for "higher in moderate or stronger current", a rising or falling line for a trend), in an accent circle as the board draws it, on Statistics and All patterns alike. Tapping a pattern opens it in place to show the groups behind it, each with its number of dives and its figure, for example "Moderate or stronger, 6 dives, 17.2 L/min" and "None to mild, 12 dives, 13.3 L/min". A threshold says how many felt cold on each side ("11 cold", "none cold"), lists the dives between its cut-offs as left out so the rows add up, and draws every dive along the water temperature over them, cold ones filled. A difference or change between averages draws each group's dives in a lane along the measure with its average marked, so a difference six steady dives make reads apart from one a single bad dive makes. A season draws the region's twelve months, each month's average water temperature as a bar, the two compared in the accent and months under five dives faded. Each section has Expand all in its heading, as Conditions and Habits do. A group with no dives isn't listed, and a record, which its sentence says in full, doesn't open. It doesn't list the dives or open the Log.
+- If no pattern can be in the top three, the section is hidden.
 
 ## UI and mobile design
 
