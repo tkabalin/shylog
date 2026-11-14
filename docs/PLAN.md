@@ -1397,10 +1397,25 @@ Deferred, or to watch:
 - Left out: SSI's Specialty Diver (12) and Advanced Specialty Diver (24); PADI Tec 40, 45 and 50 at 30, 50 and 100 dives and Self-Reliant Diver at 100, from dive-shop pages only.
 - The code: `apps/web/src/dive/celebration.ts` already plays the burst for `milestones.includes(dive.number)`, and `milestones.ts` is empty.
 
-- [ ] Wording and look agreed
-- [ ] Milestone numbers and their lines on the save
-- [ ] Next milestone on Statistics
-- [ ] Tests and screenshots listed above
+- [x] Wording and look agreed
+- [x] Milestone numbers and their lines on the save
+- [x] Next milestone on Statistics
+- [x] Tests and screenshots listed above
+
+**Notes for the next session** (written 14 November 2026, branch `feat/dive-milestones`, PR #102)
+
+Decisions taken while building (D62 has the owner's):
+
+- Only the log's newest numbered dive celebrates, a queued draft counting by its provisional number, so back-filling an old dive the server numbers 40 says nothing. Statistics counts drafts the same way, so its next milestone agrees with the Log.
+- The save's line is kept once shown and folds away if a sync renumbers the dive while its page is open, unfolding again (a remounted Fold) if it comes back.
+- The depth bubbles start about 22 px above the figure on a milestone save, as the line pushes the figures down under bubbles already rising; holding back the stream that answers the tap would be worse.
+- The new-dive e2e test's buddy now gets a fresh name each run: its undo deletes the dive but not the person, so CI's repeats of a changed `edit.spec.ts` failed on every run after the first.
+
+Deferred, or to watch:
+
+- On the phone (the owner): the line unfolding with the burst after saving a milestone dive, the Statistics row's press tint and expansion, and whether "Century diver (can qualify as an instructor)" wraps at 320 px in iOS's font (harmless if it does).
+- Carried over from milestone 23: the pattern rows' tap and press tint, Expand all, whether the lanes, the threshold strip and the month bars read at arm's length, All patterns' length with everything open, and the time to open Statistics; near-duplicate differences left as they are; `capital()` in `catalogue.ts` and `/stats/patterns`' year parser repeated rather than shared.
+- Carried over from milestone 22: tap-to-content for Statistics timed on the owner's phone; the year menu, a record's Back, the tag link, the expanding rows and the count's roll on the phone; whether the Log and Statistics tabs keep their filters; a tag's count leaving out ignored dives the Log lists; the desktop sidebar lighting Log on a record's dive's edit form; the root `:has()` restyles on a held press in WebKit; and from milestone 21 the README's cable steps on the home server, the Import screen's states and Forget's sheet on the phone, and whether Last downloaded moves on a read with nothing new.
 
 ## Milestone 25: Packing checklist
 
