@@ -2,7 +2,7 @@ import { useEffect, useState, type RefObject } from "react"
 
 import type { Dive } from "@/data/db"
 
-import { milestones } from "./milestones"
+import { milestoneFor } from "./milestones"
 
 declare module "@tanstack/react-router" {
   interface HistoryState {
@@ -146,22 +146,31 @@ const reducedMotion = () =>
 
 // Once per save: the dive opened again, or returned to from its form, is
 // plain. Bubbles come off the max depth figure as the page appears, so the
-// save answers at once even offline; a milestone's burst follows once the
-// server has numbered the dive.
+// save answers at once even offline; a milestone's burst plays instead, once
+// the server has numbered the dive.
 const celebrated = new Set<string>()
 
-// Headline is the page's headline figures, max depth first.
+// Headline is the page's headline figures, max depth first. Returns the
+// milestone the save reached, once the server has numbered it, for its line.
+// Newest is whether no dive in the log has a higher number: a back-dated dive
+// numbered 40 in a log of 120 hasn't reached anything.
 export function useSaveCelebration(
   dive: Dive,
   saved: boolean,
-  headline: RefObject<HTMLElement | null>
+  headline: RefObject<HTMLElement | null>,
+  newest: boolean
 ) {
   const [on] = useState(() => saved && !celebrated.has(dive.id))
+  // A draft knows the number the server will give it, so a milestone save
+  // leaves the stream to its burst rather than playing both.
+  const [stream] = useState(
+    () => !(newest && milestoneFor(dive.number ?? dive.provisional))
+  )
 
   useEffect(() => {
     if (!on) return
     celebrated.add(dive.id)
-    if (reducedMotion()) return
+    if (!stream || reducedMotion()) return
     let stop: (() => void) | undefined
     // Measured a frame on, once the router has scrolled the page back to
     // its top; the form left it scrolled, which put the figure above it.
@@ -177,12 +186,12 @@ export function useSaveCelebration(
       cancelAnimationFrame(frame)
       stop?.()
     }
-  }, [on, dive.id, headline])
+  }, [on, stream, dive.id, headline])
 
-  const milestone =
-    on && dive.number != null && milestones.includes(dive.number)
+  const milestone = on && newest ? milestoneFor(dive.number) : null
   useEffect(() => {
     if (!milestone || !headline.current || reducedMotion()) return
     return play(fromBottom(headline.current.getBoundingClientRect()))
   }, [milestone, headline])
+  return milestone
 }
