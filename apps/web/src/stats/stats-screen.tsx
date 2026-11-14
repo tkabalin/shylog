@@ -304,28 +304,32 @@ function PerPeriod({
   )
 }
 
-const longDay = (date: string) =>
-  `${Number(date.slice(8, 10))} ${fullMonths[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`
+// The month short, so the line fits a phone with years and months both.
+const shortDay = (date: string) =>
+  `${Number(date.slice(8, 10))} ${months[Number(date.slice(5, 7)) - 1]} ${date.slice(0, 4)}`
 
-// "7 years diving, since 10 February 2019", "… today" on the day itself,
-// months under a year, and under a month before the first one. The whole
-// log's, whatever the year.
+// "7 years 3 months diving, since 10 Feb 2019", "… today" on the day
+// itself, and under a month before the first one. The whole log's,
+// whatever the year.
 function Anniversary({
   anniversary,
 }: {
   anniversary: NonNullable<Statistics["records"]["anniversary"]>
 }) {
   const { years, months: count, onTheDay, first } = anniversary
-  const length = years
-    ? `${years} ${plural(years, "year")}`
-    : count
-      ? `${count} ${plural(count, "month")}`
-      : "Under a month"
+  const left = count % 12
+  const length =
+    [
+      years && `${years} ${plural(years, "year")}`,
+      left && `${left} ${plural(left, "month")}`,
+    ]
+      .filter(Boolean)
+      .join(" ") || "Under a month"
   return (
     <p className="text-[15px] leading-[22px] text-pretty text-muted-foreground tabular-nums">
       <span className="font-semibold text-foreground">{length}</span> diving
       {onTheDay ? " today" : ""}, since{" "}
-      <span className="whitespace-nowrap">{longDay(first)}</span>
+      <span className="whitespace-nowrap">{shortDay(first)}</span>
     </p>
   )
 }
