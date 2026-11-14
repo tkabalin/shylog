@@ -364,6 +364,7 @@ export function Segmented<V extends string>({
   options,
   className,
   compact,
+  small,
 }: {
   labelledBy: string
   value: V | null
@@ -372,6 +373,9 @@ export function Segmented<V extends string>({
   className?: string
   // Four options with icons need the board's smaller 13 px text to fit.
   compact?: boolean
+  // Beside a chart's legend, in its 12 px text; the hit area still
+  // reaches about 44 px.
+  small?: boolean
 }) {
   const index = options.findIndex((option) => option.value === value)
   const count = options.length
@@ -422,6 +426,10 @@ export function Segmented<V extends string>({
             compact && "gap-1 px-0.5 text-[13px]",
             // Below 375 px the words need the icons' room to fit.
             "max-[374px]:text-[13px] max-[374px]:[&_svg]:hidden",
+            // The haptic overlay grows past the small button, so every tap
+            // in its taller hit area also ticks.
+            small &&
+              "h-7 px-2.5 text-xs max-[374px]:text-xs [&>label]:-inset-y-2",
             // The label turns with the thumb, and dims on touch-down, before
             // the tap lands.
             "cursor-pointer text-muted-foreground transition-[color,opacity] duration-300 ease-drawer hover:bg-transparent hover:text-muted-foreground active:opacity-50 active:duration-0 aria-pressed:bg-transparent aria-pressed:text-foreground data-pressed:bg-transparent"
