@@ -91,14 +91,16 @@ function AnswerRow({
   const id = useId()
   const Icon = row.icon
   return (
-    <div>
+    // Hovering or pressing the row tints its strip open under it too, so the
+    // open item reads as one rather than a tinted strip over a plain block.
+    <div className="transition-colors duration-150 has-[>div>button[data-press]]:bg-muted has-[>div>button[data-press]]:duration-0 control-hover:bg-muted/60">
       {/* The button's box covers the row, so all of it toggles, and the
           info icon sits above it rather than as a button inside a button.
           Only the toggle tints the row: the icon has its own press. */}
       <div
         className={cn(
           listRow,
-          "relative min-h-13 gap-2.5 hover:bg-muted/60 has-[>button:focus-visible]:ring-3 has-[>button:focus-visible]:ring-ring/50 has-[>button:focus-visible]:ring-inset has-[>button[data-press]]:bg-muted has-[>button[data-press]]:duration-0"
+          "relative min-h-13 gap-2.5 has-[>button:focus-visible]:ring-3 has-[>button:focus-visible]:ring-ring/50 has-[>button:focus-visible]:ring-inset"
         )}
       >
         <Icon aria-hidden className="size-4.5 shrink-0 text-muted-foreground" />
