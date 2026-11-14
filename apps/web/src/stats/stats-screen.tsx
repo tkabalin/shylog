@@ -64,13 +64,17 @@ import { Ranked } from "./charts/ranked"
 import { SacTrend } from "./charts/sac-trend"
 import { Spread } from "./charts/spread"
 import type { Segment } from "./charts/strip"
-import { countedDives, statsYears, type Statistics } from "./figures"
+import {
+  countedDives,
+  earlyDays,
+  shownYear,
+  statsYears,
+  type Statistics,
+} from "./figures"
+import { PatternsCard } from "./patterns/patterns-card"
 import { Figure, plural, RecordsCard, where } from "./records-card"
 import { trendChange } from "./trend"
 import { YearChip } from "./year-chip"
-
-// The charts need this many dives in the whole log.
-const earlyDays = 5
 
 // StatsHifi, and StatsEmptyHifi below five dives in the whole log.
 export function StatsScreen({
@@ -111,12 +115,7 @@ export function StatsScreen({
   const counted = countedDives(log)
   if (!counted.length) return <NoStats />
   const years = statsYears(counted)
-  // A year from an old link with no dives left shows all time, as does
-  // any year in early days, which has no year chip to clear it with.
-  const shown =
-    counted.length >= earlyDays && year && years.includes(year)
-      ? year
-      : undefined
+  const shown = shownYear(counted, year)
   const stats = cachedStatistics(log, shown, today())
   if (counted.length < earlyDays) return <EarlyDays stats={stats} log={log} />
   return (
@@ -141,6 +140,7 @@ export function StatsScreen({
         </Section>
         {painted ? (
           <>
+            <PatternsCard log={log} year={shown} />
             <PerPeriod stats={stats} year={shown} />
             <Section id="depth" title="Depth">
               <Card className="px-4 py-4">
@@ -804,8 +804,8 @@ function EarlyDays({ stats, log }: { stats: Statistics; log: LogView }) {
               value={stats.count / earlyDays}
             />
             <p className="text-sm/normal text-muted-foreground">
-              SAC trend, conditions and time of day need a few more dives to say
-              anything useful.
+              SAC trend, conditions, time of day and patterns need a few more
+              dives to say anything useful.
             </p>
           </Card>
         </section>
@@ -835,7 +835,8 @@ function NoStats() {
             No stats yet
           </EmptyTitle>
           <EmptyDescription>
-            Records show up after your first dive. Charts follow from five.
+            Records show up after your first dive. Charts and patterns follow
+            from five.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>

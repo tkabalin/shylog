@@ -99,6 +99,8 @@ function useLogTab() {
   // A site, buddy or region opened from Statistics keeps Stats current too,
   // though its screen is inside You.
   const onEntity = !!match({ to: "/you/entities/$kind/$id" })
+  // All patterns is pushed over Statistics, whose tab goes back to it.
+  const onPatterns = !!match({ to: "/stats/patterns" })
   // Opened from Statistics, perhaps through a site of it, or from a screen
   // inside You.
   const from = useRouterState({
@@ -121,6 +123,7 @@ function useLogTab() {
     onClick?: (event: MouseEvent) => void
     activeOptions?: { exact: boolean }
   } => {
+    if (onPatterns) return to === "/stats" ? { ...active, onClick: back } : {}
     if (onEntity && from === "/stats") {
       if (to === "/stats") return { ...active, onClick: back }
       // Not You, whose path this screen is under.

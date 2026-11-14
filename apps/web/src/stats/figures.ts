@@ -31,6 +31,20 @@ export const countedDives = (log: LogView) =>
 export const statsYears = (dives: readonly Dive[]) =>
   [...new Set(dives.map((dive) => yearOf(dive.startTime)))].sort().reverse()
 
+// The charts and patterns need this many dives in the whole log.
+export const earlyDays = 5
+
+// The year a screen shows: a year from an old link with no dives left
+// shows all time, as does any year in early days, which has no year chip
+// to clear it with.
+export const shownYear = (
+  counted: readonly Dive[],
+  year: string | undefined
+) =>
+  counted.length >= earlyDays && year && statsYears(counted).includes(year)
+    ? year
+    : undefined
+
 export interface Share {
   key: string
   label: string
