@@ -1,4 +1,10 @@
-import { createElement, useId, useState, type ComponentType } from "react"
+import {
+  createElement,
+  useId,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react"
 import {
   IconArrowBarToDown,
   IconArrowsHorizontal,
@@ -30,9 +36,11 @@ import {
 } from "@tabler/icons-react"
 import { cn } from "cn"
 
-import { Opening, useKept } from "../charts/parts"
+import { Card } from "@/components/ui/card"
+
+import { ExpandAll, Opening, Section, useKept } from "../charts/parts"
 import type { Pattern } from "./catalogue"
-import { ThresholdStrip } from "./threshold-strip"
+import { PatternChart } from "./pattern-chart"
 
 type Icon = ComponentType<{ className?: string }>
 
@@ -92,7 +100,7 @@ const fieldIcons: Record<string, Icon> = {
 function iconOf(pattern: Pattern, className: string) {
   const icon =
     pattern.type === "trend"
-      ? pattern.words[1].startsWith("up")
+      ? pattern.rising
         ? IconTrendingUp
         : IconTrendingDown
       : pattern.type === "season"
@@ -103,13 +111,80 @@ function iconOf(pattern: Pattern, className: string) {
   return createElement(icon, { className })
 }
 
-// StatsHifi's finding: an icon in an accent circle and the sentence beside
-// it, its figure in bold. A tap opens the groups behind it in place, kept
-// open for Back; a record has none.
-export function PatternRow({ pattern }: { pattern: Pattern }) {
-  const [open, setOpen] = useKept(`pattern ${pattern.id}`, false)
-  // Back restores it open at once; a tap eases it open.
+// A section of patterns in a card, with Expand all in its heading as the
+// Conditions and Habits sections have, what is open kept for Back.
+export function PatternSection({
+  id,
+  title,
+  patterns,
+  children,
+}: {
+  id: string
+  title: string
+  patterns: Pattern[]
+  // A row after the patterns, such as All patterns.
+  children?: ReactNode
+}) {
+  const [shown, setShown] = useKept<ReadonlySet<string>>(
+    `patterns ${id}`,
+    new Set()
+  )
+  // Rows Back restores open at once; a tap eases them open.
   const [still, setStill] = useState(true)
+  // Records say it all in their sentence and don't open.
+  const openable = patterns.filter((p) => p.groups.length).map((p) => p.id)
+  const open = (ids: Iterable<string>) => {
+    setStill(false)
+    setShown(new Set(ids))
+  }
+  const every = openable.length > 0 && openable.every((one) => shown.has(one))
+  return (
+    <Section
+      id={id}
+      title={title}
+      action={
+        openable.length > 0 && (
+          <ExpandAll
+            every={every}
+            onClick={() => open(every ? [] : openable)}
+          />
+        )
+      }
+    >
+      <Card className="gap-0 divide-y py-0">
+        {patterns.map((pattern) => (
+          <PatternRow
+            key={pattern.id}
+            pattern={pattern}
+            open={shown.has(pattern.id)}
+            still={still}
+            onToggle={() => {
+              const next = new Set(shown)
+              if (!next.delete(pattern.id)) next.add(pattern.id)
+              open(next)
+            }}
+          />
+        ))}
+        {children}
+      </Card>
+    </Section>
+  )
+}
+
+// StatsHifi's finding: an icon in an accent circle and the sentence beside
+// it, its figure in bold. A tap opens the groups behind it in place, with
+// the dives drawn over them where there is a chart; a record has none.
+function PatternRow({
+  pattern,
+  open,
+  still,
+  onToggle,
+}: {
+  pattern: Pattern
+  open: boolean
+  still: boolean
+  onToggle: () => void
+}) {
   const id = useId()
   const [before, figure, after] = pattern.words
   const content = (
@@ -134,20 +209,17 @@ export function PatternRow({ pattern }: { pattern: Pattern }) {
   const row = "flex w-full items-center gap-3 py-3.5 pr-3 pl-4 text-left"
   if (!pattern.groups.length) return <div className={row}>{content}</div>
   return (
-    // Hovering the sentence tints the groups open under it too, so the open
-    // item reads as one rather than a tinted strip over a plain block.
-    <div className="transition-colors duration-150 control-hover:bg-muted/60">
+    // Hovering or pressing the sentence tints the groups open under it too,
+    // so the open item reads as one rather than a strip over a plain block.
+    <div className="transition-colors duration-150 has-[>button[data-press]]:bg-muted has-[>button[data-press]]:duration-0 control-hover:bg-muted/60">
       <button
         type="button"
         aria-expanded={open}
         aria-controls={open ? `${id}-groups` : undefined}
-        onClick={() => {
-          setStill(false)
-          setOpen(!open)
-        }}
+        onClick={onToggle}
         className={cn(
           row,
-          "transition-colors duration-150 outline-none select-none [-webkit-touch-callout:none] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset data-press:bg-muted data-press:duration-0"
+          "transition-colors duration-150 outline-none select-none [-webkit-touch-callout:none] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset"
         )}
       >
         {content}
@@ -161,9 +233,12 @@ export function PatternRow({ pattern }: { pattern: Pattern }) {
       </button>
       {open && (
         <Opening instant={still}>
-          {pattern.strip && (
+          {pattern.chart && (
             <div className="pt-1 pr-4 pb-3.5 pl-15">
-              <ThresholdStrip strip={pattern.strip} />
+              <PatternChart
+                chart={pattern.chart}
+                labels={pattern.groups.map((group) => group.label)}
+              />
             </div>
           )}
           <Groups id={`${id}-groups`} pattern={pattern} />

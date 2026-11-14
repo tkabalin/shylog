@@ -17,18 +17,25 @@ export function seasons(rows: readonly Row[], log: LogView): Pattern[] {
     const months = byRegion.get(row.regionId) ?? new Map<number, number[]>()
     byRegion.set(row.regionId, months)
     const month = Number(row.dive.startTime.slice(5, 7))
-    months.set(month, [...(months.get(month) ?? []), row.temperature])
+    const temps = months.get(month)
+    if (temps) temps.push(row.temperature)
+    else months.set(month, [row.temperature])
   }
   return [...byRegion].flatMap(([regionId, months]) => {
-    const means = [...months]
-      .filter(([, temps]) => temps.length >= 5)
-      .sort(([a], [b]) => a - b)
-      .map(([month, temps]) => ({
-        month,
+    // January first, each month's average in degrees from its tenths.
+    const year = Array.from({ length: 12 }, (_, i) => {
+      const temps = months.get(i + 1) ?? []
+      return {
+        month: i + 1,
         count: temps.length,
-        // Tenths back to degrees.
-        mean: temps.reduce((a, b) => a + b, 0) / temps.length / 10,
-      }))
+        mean: temps.length
+          ? temps.reduce((a, b) => a + b, 0) / temps.length / 10
+          : null,
+      }
+    })
+    const means = year.flatMap((m) =>
+      m.count >= 5 ? [{ ...m, mean: m.mean! }] : []
+    )
     if (means.length < 2) return []
     // The earlier month on a tie.
     const warm = means.reduce((a, b) => (b.mean > a.mean ? b : a))
@@ -45,6 +52,16 @@ export function seasons(rows: readonly Row[], log: LogView): Pattern[] {
         field: "month",
         score: score(effect, minimum, Math.min(warm.count, cold.count)),
         words: seasonWords(region, [warm.mean, cold.mean], hot!, chill!),
+        // Every month the region has a reading in, so the two compared sit
+        // in its year; months under five dives are drawn but can't count.
+        chart: {
+          kind: "months",
+          months: year.map((m) => ({
+            average: m.mean,
+            count: m.count,
+            marked: m.month === warm.month || m.month === cold.month,
+          })),
+        },
         groups: [
           groupRow(hot!, warm.count, temperature(warm.mean), "°C"),
           groupRow(chill!, cold.count, temperature(cold.mean), "°C"),

@@ -679,7 +679,29 @@ export interface Pattern {
   score: number
   words: Words
   groups: Group[]
-  // A threshold's dives along the measurement, drawn over its groups:
-  // each dive's value in tenths and whether it had the outcome.
-  strip?: { dives: { tenths: number; hit: boolean }[]; cuts: [number, number] }
+  // The dives behind it, drawn over its groups where the numbers alone
+  // can't show how they spread.
+  chart?: Chart
 }
+
+export type Chart =
+  // A threshold's dives along the water temperature, in tenths, and
+  // whether each felt cold.
+  | {
+      kind: "threshold"
+      dives: { tenths: number; hit: boolean }[]
+      cuts: [number, number]
+    }
+  // A difference's or change's groups, each dive's value in the unit shown,
+  // with the group's average.
+  | {
+      kind: "lanes"
+      unit: string
+      lanes: { values: number[]; average: number }[]
+    }
+  // A season's region month by month, January first: the average water
+  // temperature and how many dives it is from, the two compared marked.
+  | {
+      kind: "months"
+      months: { average: number | null; count: number; marked: boolean }[]
+    }

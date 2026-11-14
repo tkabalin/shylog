@@ -4,7 +4,13 @@ import type { Dive, Region, Site } from "@/data/db"
 import type { DiveLinks } from "@/data/log"
 
 import { dive, syntheticLog } from "../synthetic"
-import { fieldsOf, rowsOf, type Pattern, type Row } from "./catalogue"
+import {
+  fieldsOf,
+  rowsOf,
+  type Chart,
+  type Pattern,
+  type Row,
+} from "./catalogue"
 import { findPatterns } from "./patterns"
 import { change } from "./rules/change"
 import { difference } from "./rules/difference"
@@ -192,6 +198,33 @@ describe("difference", () => {
     expect(sentence(coldBy(2))).toBe(
       "You felt cold on 20% of dives on nitrox, against none on air."
     )
+  })
+
+  it("draws each group's dives in a lane, but not a share's", () => {
+    const { rows, fields } = setup(
+      days([
+        ...times(5, { nitrox: true, oxygen: 320, duration: 3000 }),
+        ...times(5, { duration: 2400 }),
+      ] as Partial<Dive>[])
+    )
+    // In minutes, as the axis shows them.
+    expect(difference(rows, "duration", fields.gas)!.chart).toEqual({
+      kind: "lanes",
+      unit: "min",
+      lanes: [
+        { values: times(5, 50), average: 50 },
+        { values: times(5, 40), average: 40 },
+      ],
+    })
+    const cold = setup(
+      days([
+        ...times(5, { nitrox: true, thermalComfort: "cold" }),
+        ...times(5, { thermalComfort: "comfortable" }),
+      ] as Partial<Dive>[])
+    )
+    expect(
+      difference(cold.rows, "cold", cold.fields.gas)!.chart
+    ).toBeUndefined()
   })
 
   it("holds SAC rate to 1.5 L/min and 10% of the lower group", () => {
@@ -475,6 +508,19 @@ describe("season", () => {
       "Simon's Town is 5 °C warmer in March than in August."
     )
     expect(season!.groups.map((g) => g.label)).toEqual(["March", "August"])
+    // Every month with a reading, July's too, the compared two marked.
+    const chart = season!.chart as Extract<Chart, { kind: "months" }>
+    expect(chart.months.map((m) => [m.average, m.count, m.marked])).toEqual(
+      Array.from({ length: 12 }, (_, i) =>
+        i === 2
+          ? [18, 5, true]
+          : i === 6
+            ? [10, 4, false]
+            : i === 7
+              ? [13, 5, true]
+              : [null, 0, false]
+      )
+    )
   })
 
   it("needs a region", () => {

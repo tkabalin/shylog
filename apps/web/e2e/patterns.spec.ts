@@ -14,7 +14,8 @@ test("shows the patterns the year supports, each opening its groups in place", a
   page,
 }) => {
   await page.goto("/stats?year=2026")
-  const rows = patterns(page).getByRole("button")
+  // The rows, not the heading's Expand all.
+  const rows = patterns(page).locator("button[aria-expanded]")
   await expect(rows).toHaveText([
     "Ascent alarms are up 2.2 a dive since January.",
     "Your dives are 17 min shorter when you go 30 m or deeper.",
@@ -31,6 +32,20 @@ test("shows the patterns the year supports, each opening its groups in place", a
   await expect(groups).toHaveText(["37 min", "54 min"])
   // Groups only: nothing in them opens a dive or the Log.
   await expect(patterns(page).getByRole("link")).toHaveText([/^All patterns/])
+})
+
+test("Expand all opens every pattern in the section, and Collapse all closes them", async ({
+  page,
+}) => {
+  await page.goto("/stats?year=2026")
+  const rows = patterns(page).locator("button[aria-expanded]")
+  await expect(rows).toHaveCount(2)
+  await patterns(page).getByRole("button", { name: "Expand all" }).click()
+  await expect(rows.nth(0)).toHaveAttribute("aria-expanded", "true")
+  await expect(rows.nth(1)).toHaveAttribute("aria-expanded", "true")
+  await patterns(page).getByRole("button", { name: "Collapse all" }).click()
+  await expect(rows.nth(0)).toHaveAttribute("aria-expanded", "false")
+  await expect(rows.nth(1)).toHaveAttribute("aria-expanded", "false")
 })
 
 test("All patterns lists every pattern by measure, and Back returns to the year", async ({
