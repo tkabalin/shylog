@@ -17,10 +17,10 @@
   }
 }
 /* A form row tints while the control in it is hovered, not its label,
-   which a click does nothing on. */
+   which a click does nothing on, nor a disabled control (offline). */
 @custom-variant control-hover {
   @media (hover: hover) and (pointer: fine) {
-    &:has(:is(button, input, textarea):hover) {
+    &:has(:is(button, input, textarea):not(:disabled):hover) {
       @slot;
     }
   }
