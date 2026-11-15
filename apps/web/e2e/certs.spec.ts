@@ -40,10 +40,15 @@ async function pick(page: Page, files: typeof shots) {
   return sheet
 }
 
-// A finger's drag across the page, from one point to another, a frame a
-// step, as a finger moves: all at once, a drag can end before Motion has
-// seen it move.
-async function drag(page: Page, from: [number, number], to: [number, number]) {
+// A finger's drag across the page, a real frame a step, as WebKit's frames
+// on a busy runner outlast a timeout. `held` keeps the finger down until it
+// passes, so the release can't land before Motion has taken the last move.
+async function drag(
+  page: Page,
+  from: [number, number],
+  to: [number, number],
+  held?: () => Promise<void>
+) {
   await page.mouse.move(...from)
   await page.mouse.down()
   for (let i = 1; i <= 8; i++) {
@@ -51,8 +56,9 @@ async function drag(page: Page, from: [number, number], to: [number, number]) {
       from[0] + ((to[0] - from[0]) * i) / 8,
       from[1] + ((to[1] - from[1]) * i) / 8
     )
-    await page.waitForTimeout(16)
+    await page.evaluate(() => new Promise(requestAnimationFrame))
   }
+  await held?.()
   await page.mouse.up()
 }
 
@@ -307,12 +313,20 @@ test("puts a new card first and moves one by dragging it @writes", async ({
   await page.goto("/you/certifications")
   const row = (name: string) =>
     page.getByRole("link", { name: new RegExp(`^${name}`) })
+  // The rows as drawn, which Motion reorders mid-drag.
+  const shown = () =>
+    expect.poll(async () =>
+      (await row(prefix).allTextContents()).map((text) =>
+        [first, second, third].find((name) => text.startsWith(name))
+      )
+    )
   const from = (await row(second).boundingBox())!
   const to = (await row(first).boundingBox())!
   await drag(
     page,
     [from.x + from.width / 2, from.y + from.height / 2],
-    [from.x + from.width / 2, to.y + to.height * 0.9]
+    [from.x + from.width / 2, to.y + to.height * 0.9],
+    () => shown().toEqual([first, second, third])
   )
   await expect.poll(ours).toEqual([first, second, third])
   // A row's grip lifts it at once and drags it, here the last to the top,
@@ -324,7 +338,8 @@ test("puts a new card first and moves one by dragging it @writes", async ({
   await drag(
     page,
     [grip.x + grip.width / 2, grip.y + grip.height / 2],
-    [grip.x + grip.width / 2, top.y + top.height * 0.1]
+    [grip.x + grip.width / 2, top.y + top.height * 0.1],
+    () => shown().toEqual([third, first, second])
   )
   await expect.poll(ours).toEqual([third, first, second])
   // Neither drag opened a card, and a plain click still does.
