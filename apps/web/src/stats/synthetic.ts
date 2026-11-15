@@ -47,8 +47,13 @@ export function syntheticLog(
   return {
     version: "1",
     settings: { diverName: "", maxPo2: 1.4, newDiveDefaults: {} },
-    // Newest first, as the mirror keeps them.
-    dives: [...dives].sort((a, b) => b.startTime.localeCompare(a.startTime)),
+    // Newest first, as the mirror keeps them, ties by number (readLog).
+    dives: [...dives].sort(
+      (a, b) =>
+        b.startTime.localeCompare(a.startTime) ||
+        (b.number ?? 0) - (a.number ?? 0) ||
+        b.id.localeCompare(a.id)
+    ),
     dive: byId(dives),
     sites: byId(sites),
     regions: byId(extras.regions ?? []),
