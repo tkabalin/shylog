@@ -4,6 +4,7 @@ import type {
   DiveSetKind,
   EntityKind,
   Op,
+  Packing,
   PatchDiveRequest,
   SetEntityDivesParsed,
   Settings,
@@ -20,6 +21,7 @@ import {
 } from "../apply/entity.ts"
 import { setEntityDives } from "../apply/entity-dives.ts"
 import { mergeEntity } from "../apply/merge.ts"
+import { putPacking } from "../apply/packing.ts"
 import { putSettings } from "../apply/settings.ts"
 import {
   removeCard,
@@ -146,6 +148,10 @@ const entries: Record<
   },
   putSettings: {
     apply: (db, request: Partial<Settings>) => putSettings(db, request),
+    derived: false,
+  },
+  putPacking: {
+    apply: (db, packing: Packing) => putPacking(db, packing),
     derived: false,
   },
   putCard: {

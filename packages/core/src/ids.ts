@@ -11,6 +11,8 @@ export const idPrefixes = {
   diveCentre: "centre",
   trip: "trip",
   card: "card",
+  packingSection: "section",
+  packingItem: "item",
   op: "op",
   device: "device",
   // Server-made, for an import preview.

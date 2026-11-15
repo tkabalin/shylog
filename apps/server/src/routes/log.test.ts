@@ -38,6 +38,7 @@ describe("GET /api/log", () => {
       "fieldMeta",
       "settings",
       "cards",
+      "packing",
     ])
     expect(log.schemaVersion).toBe(migrations.length)
     expect(log.dives).toHaveLength(42)

@@ -4,6 +4,7 @@ import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
 import { factory } from "../factory.ts"
 import { currentVersion } from "../journal.ts"
+import { readPacking } from "../apply/packing.ts"
 import { readSettings } from "../apply/settings.ts"
 
 // Columns under the names core's schemas use. Choice fields stay as core's
@@ -193,6 +194,8 @@ function readLog(db: Db) {
       ).map((row) => ({ ...row, dismissed: row.dismissed === 1 })),
       settings: readSettings(db),
       cards: readCards(db),
+      // Added by migration 11, so an unmigrated database has no list.
+      packing: schema >= 11 ? readPacking(db) : { sections: [] },
     }
   })()
 }

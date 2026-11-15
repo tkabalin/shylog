@@ -26,6 +26,7 @@ erDiagram
   dives ||--o{ events : "has"
   dives ||--o| import_raw : "imported from"
   certifications ||--o{ certification_images : "has"
+  packing_sections ||--o{ packing_items : "holds"
 
   countries {
     TEXT code PK "ISO 3166 alpha-2, seeded"
@@ -166,6 +167,17 @@ erDiagram
     INTEGER n PK
     TEXT content_type
     TEXT hash "16 hex chars, file at cards/card-id/hash"
+  }
+  packing_sections {
+    TEXT id PK
+    INTEGER position UK
+    TEXT name
+  }
+  packing_items {
+    TEXT id PK
+    TEXT section_id FK "UK with position"
+    INTEGER position
+    TEXT name
   }
 ```
 

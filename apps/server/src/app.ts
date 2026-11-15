@@ -16,6 +16,7 @@ import { imports } from "./routes/import.ts"
 import { log } from "./routes/log.ts"
 import { ops } from "./routes/ops.ts"
 import { samples } from "./routes/samples.ts"
+import { packing } from "./routes/packing.ts"
 import { settings } from "./routes/settings.ts"
 import { version } from "./routes/version.ts"
 import { readOnly, security } from "./security.ts"
@@ -68,6 +69,7 @@ export function createApp(deps: Deps) {
       .route("/api", dives)
       .route("/api", entities)
       .route("/api", settings)
+      .route("/api", packing)
       .route("/api", cards)
       .route("/api", exports)
       .route("/api", imports)
