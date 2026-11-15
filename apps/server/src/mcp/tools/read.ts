@@ -38,7 +38,7 @@ const read = {
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
 
-const searchInput = z.object({
+const searchInput = z.strictObject({
   from: date.optional().describe("First day, YYYY-MM-DD, included"),
   to: date.optional().describe("Last day, YYYY-MM-DD, included"),
   numberFrom: z.int().positive().optional().describe("Lowest dive number"),
@@ -247,7 +247,7 @@ export function readTools(server: McpServer, deps: Deps) {
     title: "Get a dive",
     description:
       "One dive in full, by its number as the app shows it (dive 42) or by its id: every field in the app's units, who entered each value (the diver by hand, or the dive computer), the site, people, centre, trip and tags with their ids, and the figures (SAC, MOD, max PO₂, CNS, OTU, safety stop, alarms). Use the id it returns to change the dive.",
-    input: z.object({
+    input: z.strictObject({
       number: z.int().positive().optional().describe("The dive's number"),
       id: z.string().optional().describe("The dive's id"),
       includeProfile: z
@@ -324,7 +324,7 @@ export function readTools(server: McpServer, deps: Deps) {
     title: "List sites, people, centres, trips or regions",
     description:
       "Sites, regions, people, dive centres or trips: one kind, optionally narrowed by a name it contains (ignoring case and accents). Each row has the id the other tools take and how many dives it is on (leaving out ignored and deleted dives). Look an entity up here before writing, to use the one that exists.",
-    input: z.object({
+    input: z.strictObject({
       kind: z.enum(entityKinds),
       name: z.string().optional(),
     }),

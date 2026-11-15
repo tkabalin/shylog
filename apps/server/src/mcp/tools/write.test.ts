@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 
 import { send, testApp, testEnv, testWebRoot } from "../../../test/app.ts"
 import { copyOf, testDb } from "../../../test/db.ts"
+import { captureLog } from "../../../test/log.ts"
 import { diveId, seededDb } from "../../../test/fixture.ts"
 import {
   callTool,
@@ -245,6 +246,27 @@ describe("log_dive", () => {
     )
   })
 
+  // The refusal names the other dive's site for Claude, and logs never hold
+  // what a diver wrote.
+  it("logs an overlap without the other dive's site or time", async () => {
+    await phoneDive()
+    const lines = captureLog()
+    await logDive({ startTime: "2026-03-01T09:30" })
+    expect(lines.find((line) => line.event === "mcp_tool")).toMatchObject({
+      outcome: "refused",
+      reason: "This overlaps another dive",
+    })
+    expect(JSON.stringify(lines)).not.toContain("Long Beach")
+  })
+
+  // A stripped parameter would log the dive without it and report success.
+  it("refuses a parameter it doesn't know rather than dropping it", async () => {
+    const reply = await logDive({ buddy: [{ new: { name: "Sam" } }] })
+    expect(reply.isError).toBe(true)
+    expect(reply.text).toContain("buddy")
+    expect(row("SELECT count(*) AS n FROM dives")).toEqual({ n: 0 })
+  })
+
   it("counts an ignored dive and a dive crossing midnight, not a deleted one", async () => {
     await phoneDive({ startTime: "2026-03-01T23:40:00", ignored: true })
     const after = await logDive({ startTime: "2026-03-02T00:10" })
@@ -476,6 +498,51 @@ describe("edit_dive on a computer's dive", () => {
     db = seededDb()
     app = testApp({ db })
     client = await mcpClient(app)
+  })
+
+  // Recorded as the diver's, it would stop following the samples and a
+  // later import would keep it over the computer's.
+  it("leaves an average depth the samples gave alone when it is sent back", async () => {
+    const id = diveId(db, 63)
+    const meta = () =>
+      db
+        .prepare(
+          "SELECT source FROM field_meta WHERE dive_id = ? AND field = 'averageDepth'"
+        )
+        .get(id)
+    // As for a computer that gives samples but no average of its own; the
+    // first edit has the derived pass work it out.
+    db.prepare(
+      "DELETE FROM field_meta WHERE dive_id = ? AND field = 'averageDepth'"
+    ).run(id)
+    await callTool(client, "edit_dive", { id, notes: "Kelp" })
+    const shown = (await callTool(client, "get_dive", { id })).json()
+      .averageDepthM
+    expect(shown).toBeTypeOf("number")
+    const reply = await callTool(client, "edit_dive", {
+      id,
+      averageDepthM: shown,
+      notes: "Seals",
+    })
+    expect(Object.keys(reply.json().changes as object)).toEqual(["notes"])
+    expect(meta()).toBeUndefined()
+  })
+
+  it("refuses to adopt a computer's time that overlaps another dive", async () => {
+    const id = diveId(db, 63)
+    const start = () =>
+      row("SELECT start_time FROM dives WHERE id = ?", id).start_time as string
+    const computer = start()
+    await callTool(client, "edit_dive", { id, startTime: "2001-01-01T10:00" })
+    const other = await logDive({ startTime: computer.slice(0, 16) })
+    expect(other.isError).toBe(false)
+    const reply = await callTool(client, "edit_dive", {
+      id,
+      adopt: ["startTime"],
+    })
+    expect(reply.isError).toBe(true)
+    expect(reply.text).toMatch(/^startTime: This overlaps dive /)
+    expect(start()).toBe("2001-01-01T10:00:00")
   })
 
   // Shown to 0.01 min, which converts back to the same second, so the
@@ -736,6 +803,17 @@ describe("assign_dives", () => {
     })
     expect(reply.json()).toMatchObject({ dives: 0 })
     expect(row("SELECT count(*) AS n FROM trips")).toEqual({ n: 1 })
+  })
+
+  it("says when the dives were on it already", async () => {
+    const assign = () =>
+      callTool(client, "assign_dives", {
+        kind: "trip",
+        target: { new: { name: "Weekend" } },
+        add: ["dive-phone"],
+      })
+    await assign()
+    expect((await assign()).text).toBe("No change")
   })
 
   it("won't make a trip, centre or person without a dive", async () => {

@@ -20,9 +20,10 @@ import { z } from "zod"
 import { applyDraft } from "../../apply/draft.ts"
 import {
   feedsDiveFigures,
+  has,
   missing,
+  regionCountry,
   resolve,
-  tables,
 } from "../../apply/entity.ts"
 import { Rejected } from "../../apply/rejected.ts"
 import { readSettings } from "../../apply/settings.ts"
@@ -66,7 +67,7 @@ const comparedInput = z.array(
   z.enum(Object.keys(compared) as (keyof typeof compared)[])
 )
 
-const idRef = z.object({ id: z.string() })
+const idRef = z.strictObject({ id: z.string() })
 
 // Core drops training details from any other dive without a word, so
 // Claude is told instead.
@@ -122,7 +123,10 @@ function refuseOverlap(
   throw new Rejected(
     `This overlaps ${which} (${clash.site}, ${clash.startTime} for ${minutes(clash.duration)} min, id ${clash.id}). If it is the same dive, change that one with edit_dive.`,
     409,
-    ["startTime"]
+    ["startTime"],
+    undefined,
+    // The message names the other dive's site, which logs never hold.
+    "This overlaps another dive"
   )
 }
 
@@ -219,13 +223,15 @@ function differences(
 
 export function writeTools(server: McpServer, deps: Deps) {
   const { db } = deps
-  // Whether a write changed anything: one that doesn't journals nothing,
-  // so the version stays.
-  const wrote = (write: () => unknown) => {
-    const before = currentVersion(db)
-    write()
-    return currentVersion(db) !== before
+  // One change, and whether its steps changed anything, which changeBy's
+  // reply to the API leaves out.
+  const change = (apply: (journal: Journal) => boolean, derived?: boolean) => {
+    let changed = false
+    changeBy(db, (journal) => (changed = apply(journal)), derived)
+    return changed
   }
+  // Lets a failure after the commit say the change was saved (see tool.ts).
+  const version = () => currentVersion(db)
   const writable = () => {
     if (deps.state.integrity === "failed") throw new Rejected(savingPaused, 503)
   }
@@ -241,6 +247,7 @@ export function writeTools(server: McpServer, deps: Deps) {
     description:
       "Log a new dive the diver describes, as the app's New dive form does. startTime, site, durationMin and maxDepthM are required. The site, buddies, professionals, dive centre and trip are each an existing { id } from list_entities, or { new: … }, which is matched by name to one that exists before anything is made. The log's new-dive defaults (cylinder, weight, dive type) fill what is left out; null leaves one empty. A dive that overlaps one already logged is refused. Returns the dive's number and id.",
     input: newDiveInput,
+    version,
     hints: {
       readOnlyHint: false,
       destructiveHint: false,
@@ -324,36 +331,29 @@ export function writeTools(server: McpServer, deps: Deps) {
       adopt: comparedInput.optional(),
       dismiss: comparedInput.optional(),
     }),
+    version,
     hints: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
-    run({ id, adopt, dismiss, ...input }) {
+    run({ id, adopt, dismiss, ...all }) {
       writable()
       const before = detail(id)
-      const stored = prepared<
-        [string],
-        {
-          startTime: string
-          duration: number
-          surfaceInterval: number | null
-          override: number
-        }
-      >(
-        db,
-        "SELECT start_time AS startTime, duration, surface_interval AS surfaceInterval, surface_interval_override AS override FROM dives WHERE id = ?"
-      ).get(id)!
-      refuseTraining(input, input.diveType ?? (before.diveType as string))
+      const times = () =>
+        prepared<[string], { startTime: string; duration: number }>(
+          db,
+          "SELECT start_time AS startTime, duration FROM dives WHERE id = ?"
+        ).get(id)!
+      const stored = times()
+      refuseTraining(all, all.diveType ?? (before.diveType as string))
+      // A value sent back as get_dive showed it changes nothing. Otherwise
+      // the calculated interval, or an average depth the samples gave,
+      // would become the diver's own and stop following the dive.
+      const input: DiveChangesInput = Object.fromEntries(
+        Object.entries(all).filter(
+          ([param, value]) =>
+            value === null ||
+            JSON.stringify(value) !== JSON.stringify(before[param])
+        )
+      )
       const fields: Record<string, unknown> = storedFields(input)
-      // The calculated interval sent back as get_dive showed it changes
-      // nothing, rather than fixing it by hand.
-      if (
-        !stored.override &&
-        fields.surfaceInterval !== undefined &&
-        fields.surfaceInterval !== null &&
-        (fields.surfaceInterval === "none"
-          ? stored.surfaceInterval === null
-          : fields.surfaceInterval === stored.surfaceInterval)
-      ) {
-        delete fields.surfaceInterval
-      }
       // A dive has a visibility in metres or a rating, never both, so
       // setting one clears the other rather than being refused.
       if (input.visibilityM != null && input.visibilityRating === undefined) {
@@ -365,7 +365,7 @@ export function writeTools(server: McpServer, deps: Deps) {
       const refs = entityRefs(db)
       Object.assign(fields, linkFields(refs, input))
       // Everything sent was as stored, such as the calculated interval.
-      const sent = Object.values(input).some((value) => value !== undefined)
+      const sent = Object.values(all).some((value) => value !== undefined)
       if (sent && !Object.keys(fields).length && !adopt && !dismiss) {
         return "No change"
       }
@@ -376,24 +376,22 @@ export function writeTools(server: McpServer, deps: Deps) {
           ? { dismiss: dismiss.map((f) => compared[f]) }
           : {}),
       })
-      // Once the time is known to be real, as in log_dive, and only for a
-      // time that moves, so a dive already overlapping one can still be
-      // edited with its time sent back as get_dive showed it.
-      const startTime =
-        (fields.startTime as string | undefined) ?? stored.startTime
-      const duration =
-        (fields.duration as number | undefined) ?? stored.duration
-      if (startTime !== stored.startTime || duration !== stored.duration) {
-        refuseOverlap(db, startTime, duration, id)
-      }
       const others = numbers(db)
-      const changed = wrote(() =>
-        changeBy(
-          db,
-          steps(db, refs.created(), (journal) =>
-            applyDiveEdit(db, journal, id, request)
-          )
-        )
+      const changed = change(
+        steps(db, refs.created(), (journal) => {
+          const edited = applyDiveEdit(db, journal, id, request)
+          // Checked on the dive as saved, so a time adopted from the
+          // computer counts too, and the refusal rolls the edit back. Only
+          // a time that moved: a dive already overlapping one stays editable.
+          const now = times()
+          if (
+            now.startTime !== stored.startTime ||
+            now.duration !== stored.duration
+          ) {
+            refuseOverlap(db, now.startTime, now.duration, id)
+          }
+          return edited
+        })
       )
       if (!changed) return "No change"
       const after = numbers(db)
@@ -417,7 +415,7 @@ export function writeTools(server: McpServer, deps: Deps) {
     title: "Edit a site, person, centre, trip or region",
     description:
       "Change an existing site, region, person, dive centre or trip, by its id from list_entities: rename it, or change a site's country, region, body of water or water type, or a centre's region. It never makes a new one. A name another one already has is refused, naming it, so the two can be joined with merge_entities.",
-    input: z.object({
+    input: z.strictObject({
       kind: z.enum(entityKinds),
       id: z.string(),
       name: z.string().optional(),
@@ -434,27 +432,20 @@ export function writeTools(server: McpServer, deps: Deps) {
         .describe("Sites"),
       waterType: z.enum(keysOf(waterTypes)).optional().describe("Sites"),
     }),
+    version,
     hints: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     run({ kind, id, ...changes }) {
       writable()
       // putEntity makes an entity under a new id, which only a dive may do.
-      const known = prepared(db, `SELECT 1 FROM ${tables[kind]} WHERE id = ?`)
-      if (known.get(id) === undefined) throw missing(db, kind, id)
+      if (!has(db, kind, id)) throw missing(db, kind, id)
       const sent = Object.fromEntries(
         Object.entries(changes).filter(([, value]) => value !== undefined)
       )
-      const countryOf = () =>
-        kind === "region" &&
-        prepared(db, "SELECT country_code FROM regions WHERE id = ?")
-          .pluck()
-          .get(id)
+      const countryOf = () => kind === "region" && regionCountry(db, id)
       const country = countryOf()
-      const changed = wrote(() =>
-        changeBy(
-          db,
-          (journal) => applyEntityPut(db, journal, kind, id, sent),
-          feedsDiveFigures(kind)
-        )
+      const changed = change(
+        (journal) => applyEntityPut(db, journal, kind, id, sent),
+        feedsDiveFigures(kind)
       )
       if (!changed) return "No change"
       // Its sites move with a region's country, as on You.
@@ -480,11 +471,12 @@ export function writeTools(server: McpServer, deps: Deps) {
     title: "Merge two sites, people, centres, trips or regions",
     description:
       "Merge one site, region, person, dive centre or trip (id) into another (into): every dive, and for a region every site and centre, moves to the one kept, and the merged one's name is gone. It can't be undone. Regions merge only within one country.",
-    input: z.object({
+    input: z.strictObject({
       kind: z.enum(entityKinds),
       id: z.string().describe("The one that goes"),
       into: z.string().describe("The one kept"),
     }),
+    version,
     hints: {
       readOnlyHint: false,
       destructiveHint: true,
@@ -493,12 +485,9 @@ export function writeTools(server: McpServer, deps: Deps) {
     run({ kind, id, into }) {
       writable()
       parse(mergeEntityRequests[kind], { into })
-      const merged = wrote(() =>
-        changeBy(
-          db,
-          (journal) => applyEntityMerge(db, journal, kind, id, into),
-          feedsDiveFigures(kind)
-        )
+      const merged = change(
+        (journal) => applyEntityMerge(db, journal, kind, id, into),
+        feedsDiveFigures(kind)
       )
       if (!merged) return "Already merged"
       const kept = resolve(db, kind, into) ?? into
@@ -510,13 +499,13 @@ export function writeTools(server: McpServer, deps: Deps) {
     title: "Put dives on a trip, centre or person",
     description:
       "Put dives on a trip, a dive centre or a person (as buddy or professional), or take them off, in one change. Dives not named stay as they are, so this is also how to add one buddy to a dive without replacing the others. The trip, centre or person is an existing { id } or { new: { name } }, made with its first dives; it is never deleted when its last dive comes off.",
-    input: z.object({
+    input: z.strictObject({
       kind: z.enum(["trip", "diveCentre", "person"]),
       target: z
         .union([
           idRef,
-          z.object({
-            new: z.object({
+          z.strictObject({
+            new: z.strictObject({
               name: z.string().min(1),
               region: idRef.optional().describe("Dive centres"),
             }),
@@ -535,6 +524,7 @@ export function writeTools(server: McpServer, deps: Deps) {
           "A person's role on the dives added, needed for a person; one already on a dive takes this role there"
         ),
     }),
+    version,
     hints: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
     run({ kind, target, add, remove, role }) {
       writable()
@@ -570,9 +560,10 @@ export function writeTools(server: McpServer, deps: Deps) {
             : add,
         remove,
       })
-      changeBy(db, (journal) =>
+      const changed = change((journal) =>
         applyEntityDives(db, journal, setKind, id, request)
       )
+      if (!changed) return "No change"
       // Dives put on a merged-away id land on the one kept, so report that.
       const kept = resolve(db, kind, id) ?? id
       const on = prepared(db, divesOn[kind]).pluck().get({ id: kept }) as number

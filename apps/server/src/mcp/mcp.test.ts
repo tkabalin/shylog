@@ -1,9 +1,12 @@
+import type { CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { describe, expect, it } from "vitest"
+import { z } from "zod"
 
-import { testApp } from "../../test/app.ts"
+import { login, testApp } from "../../test/app.ts"
 import { testDb } from "../../test/db.ts"
 import { captureLog } from "../../test/log.ts"
 import { callTool, mcpClient, mcpRequest } from "../../test/mcp.ts"
+import { addTool } from "./tool.ts"
 
 const ping = { jsonrpc: "2.0", id: 1, method: "ping" }
 
@@ -91,6 +94,31 @@ describe("every MCP request", () => {
     }
   })
 
+  // Such as a URL added with a trailing slash, which would otherwise get
+  // the app's page on GET and an unlogged 404 on POST.
+  it("answers anything under /mcp itself, with a log line", async () => {
+    const app = testApp()
+    const lines = captureLog()
+    for (const [method, path] of [
+      ["GET", "/mcp/"],
+      ["POST", "/mcp/"],
+      ["GET", "/mcp/x"],
+    ]) {
+      const response = await app.request(path, {
+        method,
+        headers: {
+          "Tailscale-User-Login": login,
+          "Content-Type": "application/json",
+        },
+      })
+      expect(response.status).toBe(404)
+      expect(await response.json()).toEqual({ error: "Not found" })
+    }
+    expect(
+      lines.filter((line) => line.event === "request" && line.status === 404)
+    ).toHaveLength(3)
+  })
+
   it("logs a line without the arguments", async () => {
     const lines = captureLog()
     const client = await mcpClient(testApp())
@@ -113,6 +141,50 @@ describe("every MCP request", () => {
     expect(reply).toMatchObject({ isError: true, text: "Shylog hit an error." })
     const error = lines.find((entry) => entry.event === "error")
     expect(error?.err).toHaveProperty("stack")
+  })
+})
+
+// Claude repeats a write it is told didn't save, so the reply has to know
+// whether the failure came before or after the commit.
+describe("a write tool that fails", () => {
+  const failing = (run: (bump: () => void) => void) => {
+    let version = 1
+    let call!: (args: object) => CallToolResult
+    const server = {
+      registerTool: (_name: string, _config: unknown, callback: typeof call) =>
+        (call = callback),
+    } as unknown as McpServer
+    captureLog()
+    addTool(server, "write", {
+      title: "Write",
+      description: "Writes",
+      input: z.strictObject({}),
+      hints: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+      },
+      version: () => version,
+      run: () => run(() => version++),
+    })
+    return (call({}).content[0] as { text: string }).text
+  }
+
+  it("says nothing was saved when the write rolled back", () => {
+    expect(
+      failing(() => {
+        throw new Error("before")
+      })
+    ).toBe("Shylog hit an error; nothing was saved.")
+  })
+
+  it("says the change was saved when it failed after the commit", () => {
+    expect(
+      failing((commit) => {
+        commit()
+        throw new Error("after")
+      })
+    ).toMatch(/^The change was saved/)
   })
 })
 

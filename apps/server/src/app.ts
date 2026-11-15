@@ -41,7 +41,7 @@ export function createApp(deps: Deps) {
       })
       // First, so refusals by the checks below are logged too.
       .use("/api/*", requestLog)
-      .use("/mcp", requestLog)
+      .use("/mcp/*", requestLog)
       // Gzip for clients that accept it, skipping non-text types such as
       // card images and bodies under 1 KB. Tailscale Serve passes it through.
       .use(compress())

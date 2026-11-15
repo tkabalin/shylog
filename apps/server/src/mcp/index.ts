@@ -36,9 +36,11 @@ export function mcp(deps: Deps) {
     }
   )
   // GET and DELETE reach the handler, which refuses them, rather than the
-  // app's catch-all, which would answer with its page.
+  // app's catch-all, which would answer with its page, and nothing else
+  // under /mcp, such as a URL added with a trailing slash, falls through.
   return factory
     .createApp()
     .use(guard(deps.env))
     .on(["POST", "GET", "DELETE"], "/", (c) => handler.fetch(c.req.raw))
+    .all("*", (c) => c.json({ error: "Not found" }, 404))
 }
