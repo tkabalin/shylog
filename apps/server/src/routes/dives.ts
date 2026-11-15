@@ -1,9 +1,10 @@
 import { patchDiveRequest } from "@shylog/core"
 
-import { editDive, setDeleted } from "../apply/dive.ts"
+import { setDeleted } from "../apply/dive.ts"
+import { applyDiveEdit } from "../edits.ts"
 import { factory } from "../factory.ts"
 import { json } from "../validate.ts"
-import { change } from "./change.ts"
+import { change, changeBy } from "./change.ts"
 
 export const dives = factory
   .createApp()
@@ -12,10 +13,7 @@ export const dives = factory
     const diveId = c.req.param("id")
     const request = c.req.valid("json")
     return c.json(
-      change(db, () => editDive(db, diveId, request), {
-        type: "editDive",
-        payload: { diveId, ...request },
-      })
+      changeBy(db, (journal) => applyDiveEdit(db, journal, diveId, request))
     )
   })
   .delete("/dives/:id", (c) => {
