@@ -1,11 +1,17 @@
+import { cn } from "cn"
+
 // A share done when it is known (a watch read, dives towards more stats);
 // otherwise, while waiting on the server, a third of the track sweeping.
 export function Progress({
   label,
   value = null,
+  tap = false,
 }: {
   label: string
   value?: number | null
+  // Moved by a tap, so it eases as the app's sliding thumbs do: moving on
+  // the first frame, where a linear glide read as lag and 200 ms as a snap.
+  tap?: boolean
 }) {
   return (
     <span
@@ -22,7 +28,12 @@ export function Progress({
         // Slid rather than scaled, which would squash its round end, and
         // linear across the server's answers, a few times a second.
         <span
-          className="absolute inset-0 rounded-full bg-primary transition-transform duration-300 ease-linear"
+          className={cn(
+            "absolute inset-0 rounded-full bg-primary transition-transform",
+            tap
+              ? "duration-300 ease-drawer motion-reduce:transition-none"
+              : "duration-300 ease-linear"
+          )}
           style={{ transform: `translateX(${(value - 1) * 100}%)` }}
         />
       )}

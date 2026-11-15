@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react"
 import { entityKinds, type Settings } from "@shylog/core"
 import {
   IconAlertTriangle,
+  IconBackpack,
   IconCertificate,
   IconServer,
   IconUser,
@@ -360,8 +361,8 @@ function ExportFailed({
   )
 }
 
-// The diver's name and the first certification cards, under the sync
-// card with no heading of their own.
+// The diver's name, the first certification cards and the packing list,
+// under the sync card with no heading of their own.
 function DiverCard({
   settings,
   cards,
@@ -466,6 +467,13 @@ function DiverCard({
             value={cards != null ? countText(cards.length) : null}
             chevron
           />
+        </Link>
+        <Link
+          to="/you/packing"
+          state={{ pushed: true }}
+          className={cn(listRow, pressable)}
+        >
+          <RowContent icon={IconBackpack} label="Packing list" chevron />
         </Link>
       </Card>
       <SaveFailure error={failure} />
