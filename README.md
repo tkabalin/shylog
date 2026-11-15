@@ -16,6 +16,9 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 - **Private by design**: no accounts or passwords. The app is reachable only over Tailscale and trusts its identity header for an allow-listed login.
 - **Designed for wet hands**: phone first, with 44 px touch targets, bottom navigation, 16 px inputs so iOS doesn't zoom, and native date and number keyboards.
 
+> [!NOTE]
+> Shylog is built around its author's own diving rather than as a general-purpose dive log. Downloading from a dive computer and importing Subsurface exports are written and tested only for the Suunto D4i and Zoop Novo, and the app's choices follow the diving it was made for, around Cape Town. If you would like to run Shylog yourself, consider forking it and adapting it to your own dive computer and diving.
+
 ## What it does
 
 - Log, edit and delete dives from a phone, with new dives saved offline as drafts that sync when there is signal.
