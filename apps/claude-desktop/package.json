@@ -1,0 +1,22 @@
+{
+  "name": "@shylog/claude-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "tsup",
+    "extension": "tsup && node scripts/pack.ts",
+    "icon": "node scripts/icon.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --root ../.. --project claude-desktop"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "tsup": "^9.0.0"
+  }
+}
