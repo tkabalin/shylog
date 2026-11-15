@@ -3,8 +3,46 @@ import { z } from "zod"
 import { idSchema } from "../ids.ts"
 import { name } from "./common.ts"
 
+// Thumbnails show a card's first page at a bank card's shape, which an
+// eCard keeps.
+export const cardAspect = 1.586
+// Far enough to cut a small card out of a whole phone screenshot.
+export const cardCropMaxScale = 8
+
+// Where a thumbnail looks: the centre as fractions of the image's width and
+// height, and a zoom where 1 just fills the card's shape. With the page's
+// width over its height, so a thumbnail is placed before its image loads.
+export const cardCropSchema = z.strictObject({
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+  scale: z.number().min(1).max(cardCropMaxScale),
+  // Wide enough for a long scroll capture, which can be 100 times taller.
+  aspect: z.number().min(0.0001).max(10000),
+})
+export type CardCrop = z.output<typeof cardCropSchema>
+
+// As stored, with the hash of the page it was made on.
+export type CardThumb = CardCrop & { hash: string }
+
+// A card's crop, or null once another page has become first (a reorder or
+// a delete since), so it never frames the wrong image.
+export function cardCrop(card: {
+  images: readonly string[]
+  thumb: CardThumb | null
+}): CardCrop | null {
+  if (!card.thumb || card.thumb.hash !== card.images[0]) return null
+  const { x, y, scale, aspect } = card.thumb
+  return { x, y, scale, aspect }
+}
+
 // The images travel as multipart files beside these fields, in page order.
-export const cardFieldsSchema = z.strictObject({ name })
+// The crop is the first page's as sent, which the server keys to that page:
+// null clears it, and none keeps the stored one while that page stays first,
+// so a save from an app that never touched the crop can't drop it.
+export const cardFieldsSchema = z.strictObject({
+  name,
+  thumb: cardCropSchema.nullable().optional(),
+})
 export type CardFields = z.output<typeof cardFieldsSchema>
 
 // Every card's id in the owner's order; the first are the ones You shows.
