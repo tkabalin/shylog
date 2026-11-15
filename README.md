@@ -27,6 +27,19 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 - Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
 - Install to the home screen, with one instance per diver.
 
+## Screenshots
+
+<p>
+  <img src="docs/screenshots/log.png" width="250" alt="The Log: 51 dives logged, 42 hours underwater, and a card per dive with its site, region, depth, time and a sparkline of its profile">
+  <img src="docs/screenshots/dive.png" width="250" alt="A 30.9 m dive at Roonies, Sodwana, with its profile chart, the water temperature, the computer's ascent alarms and the safety stop">
+  <img src="docs/screenshots/dive-edit.png" width="250" alt="Editing the same dive, with a bar beside the surface interval marking a value worked out by Shylog">
+</p>
+<p>
+  <img src="docs/screenshots/stats.png" width="250" alt="Air consumption on Statistics: the trend across the log, then its spread opened below, with the average, median, best and worst dives and a histogram with a bell curve and box plot">
+  <img src="docs/screenshots/stats-sections.png" width="250" alt="Statistics further down: dives by depth band, the surface conditions opened to show their split, and habits">
+  <img src="docs/screenshots/import.png" width="250" alt="Import: download from the Suunto D4i on the server's cable, or import a Subsurface file, with the last import's counts">
+</p>
+
 ## Tech stack
 
 | Area    | Tools                                                                                           |
