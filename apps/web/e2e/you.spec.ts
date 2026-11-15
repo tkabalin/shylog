@@ -336,7 +336,10 @@ test("says why a download failed under its rows", async ({ page }) => {
 })
 
 // The night's failure as /api/health reports it, until an export succeeds.
+// One time throughout, as the server's: a new one is a new night's failure,
+// whose alert replaces this one (and its error) after a sync.
 async function failedNight(page: Page) {
+  const failedAt = new Date().toISOString()
   let failed = true
   await page.route("**/api/health", async (route) => {
     const res = await route.fetch()
@@ -344,7 +347,7 @@ async function failedNight(page: Page) {
       response: res,
       json: {
         ...(await res.json()),
-        exportFailedAt: failed ? new Date().toISOString() : null,
+        exportFailedAt: failed ? failedAt : null,
       },
     })
   })
