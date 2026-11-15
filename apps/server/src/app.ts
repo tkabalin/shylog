@@ -4,7 +4,9 @@ import { HTTPException } from "hono/http-exception"
 
 import { Rejected } from "./apply/rejected.ts"
 import { factory, type Deps } from "./factory.ts"
+import { savingPaused } from "./integrity.ts"
 import { logger } from "./log.ts"
+import { mcp } from "./mcp/index.ts"
 import { requestLog } from "./request-log.ts"
 import { cards } from "./routes/cards.ts"
 import { clientLog } from "./routes/client-log.ts"
@@ -39,6 +41,7 @@ export function createApp(deps: Deps) {
       })
       // First, so refusals by the checks below are logged too.
       .use("/api/*", requestLog)
+      .use("/mcp", requestLog)
       // Gzip for clients that accept it, skipping non-text types such as
       // card images and bodies under 1 KB. Tailscale Serve passes it through.
       .use(compress())
@@ -74,9 +77,8 @@ export function createApp(deps: Deps) {
       // A failed integrity check stops every write until a restore.
       .use("/api/*", async (c, next) => {
         if (deps.state.integrity === "failed" && !readOnly.has(c.req.method)) {
-          const error = "Saving is paused: the database failed its check"
-          c.set("refusal", error)
-          return c.json({ error }, 503)
+          c.set("refusal", savingPaused)
+          return c.json({ error: savingPaused }, 503)
         }
         await next()
       })
@@ -93,6 +95,8 @@ export function createApp(deps: Deps) {
       .route("/api", imports)
       .route("/api", diveComputer)
       .route("/api", health)
+      // Ahead of the app's pages, whose catch-all answers any GET.
+      .route("/mcp", mcp(deps))
       .route("/", web(deps.webRoot, deps.env.SHYLOG_APP_NAME))
       // A refused write has rolled back; the reason goes to the draft's
       // card or the form.

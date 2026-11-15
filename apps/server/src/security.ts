@@ -44,12 +44,23 @@ const bodyTypes: { method: string; path: RegExp; types: string[] }[] = [
 
 export const readOnly = new Set(["GET", "HEAD", "OPTIONS"])
 
+// Whether a request comes from an allowed person: the login Tailscale Serve
+// vouches for, or in development the dev login standing in for it. Tagged
+// devices send no login.
+export function loginCheck(env: Env) {
+  const allowed = new Set(env.SHYLOG_ALLOWED_LOGINS)
+  return (header: string | undefined) => {
+    const login = header ? decodeLogin(header) : env.SHYLOG_DEV_LOGIN
+    return login !== undefined && allowed.has(login)
+  }
+}
+
 // The checks every /api request passes (see Security in the spec). The
 // custom header makes a browser preflight any cross-site request, the
 // Origin and content type catch the ones that slip through, and the login
-// is the person Tailscale Serve vouches for. Tagged devices send no login.
+// is the person Tailscale Serve vouches for.
 export function security(env: Env) {
-  const allowed = new Set(env.SHYLOG_ALLOWED_LOGINS)
+  const allowed = loginCheck(env)
   return factory.createMiddleware(async (c, next) => {
     const refuse = (error: string) => {
       c.set("refusal", error)
@@ -59,9 +70,9 @@ export function security(env: Env) {
     if (c.req.header("X-Shylog") === undefined)
       return refuse("Missing X-Shylog")
 
-    const header = c.req.header("Tailscale-User-Login")
-    const login = header ? decodeLogin(header) : env.SHYLOG_DEV_LOGIN
-    if (!login || !allowed.has(login)) return refuse("Login not allowed")
+    if (!allowed(c.req.header("Tailscale-User-Login"))) {
+      return refuse("Login not allowed")
+    }
 
     if (!readOnly.has(c.req.method)) {
       if (c.req.header("Origin") !== env.SHYLOG_ORIGIN) {
