@@ -112,6 +112,7 @@ erDiagram
     INTEGER safety_stop_end "s, at least the start"
     INTEGER safety_stop_held "s in the band, at least 60"
     INTEGER safety_stop_depth "mm, mean in the band, 0 to 10000"
+    INTEGER mandatory_stop_events "Events rows its mandatory stops take"
   }
   dive_buddies {
     TEXT dive_id PK, FK
@@ -219,5 +220,12 @@ erDiagram
     TEXT created_at
     TEXT expires_at "seven days on"
     TEXT preview "JSON"
+  }
+  dive_computer {
+    INTEGER id PK "always 1, at most one watch"
+    TEXT serial
+    TEXT model
+    TEXT marker "newest applied dive's start, watch clock"
+    TEXT last_download_at
   }
 ```
