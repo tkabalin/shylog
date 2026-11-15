@@ -69,8 +69,9 @@ export function PageBar({
   return (
     // Wide screens line the bar up with the screen's centred column. On a
     // desktop the breadcrumb and buttons carry the column's own inset, so a
-    // column narrower than 36rem leaves the bar no padding of its own.
-    <header className="sticky top-0 z-30 grid h-[calc(3.25rem+env(safe-area-inset-top))] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center bg-background px-2 pt-[env(safe-area-inset-top)] md:px-[max(0.5rem,calc((100%-36rem)/2))] desk:grid-cols-[minmax(0,1fr)_auto] desk:gap-x-4 desk:px-[max(0rem,calc((100%-36rem)/2))]">
+    // column narrower than 36rem leaves the bar no padding of its own. It
+    // never shrinks, as a column filled below it squeezed it shorter.
+    <header className="sticky top-0 z-30 grid h-[calc(3.25rem+env(safe-area-inset-top))] shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center bg-background px-2 pt-[env(safe-area-inset-top)] md:px-[max(0.5rem,calc((100%-36rem)/2))] desk:grid-cols-[minmax(0,1fr)_auto] desk:gap-x-4 desk:px-[max(0rem,calc((100%-36rem)/2))]">
       {desk ? (
         <>
           <Breadcrumb className="min-w-0 pl-4">

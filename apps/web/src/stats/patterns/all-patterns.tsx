@@ -43,11 +43,13 @@ export function AllPatterns({ year }: { year: string | undefined }) {
       <div className="flex min-h-full flex-col">
         <Bar year={year} />
         <NoLog
-          title="All patterns"
+          // The rest of the screen, under a bar that already clears the
+          // status bar: a full screen of its own ran past the screen's end.
+          className="min-h-0 flex-1 pt-0"
           skeleton={
             // The period line, a section heading and its card, where they
             // will sit, so nothing moves down when the log arrives.
-            <div className="flex flex-col px-4 pt-3">
+            <div className="flex flex-col px-4 pt-3 md:mx-auto md:w-full md:max-w-xl">
               <Skeleton className="mx-1 h-5.5 w-20" />
               <Skeleton className="mx-1 mt-4 mb-2.5 h-4 w-32" />
               <Skeleton className="h-96 w-full rounded-xl" />

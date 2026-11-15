@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import { IconCloudOff, IconRefresh, IconServerBolt } from "@tabler/icons-react"
+import { cn } from "cn"
 
 import { reloadApp } from "@/pwa"
 
@@ -17,17 +18,25 @@ import { syncNow, useLog } from "@/data/log"
 // A tab with no log yet: the skeleton while the mirror is read or a first
 // sync fills it, and if that sync fails, why, with another try. A newer
 // server's offer to reload is a toast once there is a log (UpdateToast).
+// Under a page bar, which names the screen, it takes no title of its own.
 export function NoLog({
   title,
   skeleton,
+  className,
 }: {
-  title: string
+  title?: string
   skeleton: ReactNode
+  className?: string
 }) {
   const { loaded, blocked, reach } = useLog()
   return (
-    <div className="flex min-h-full flex-col pt-[env(safe-area-inset-top)]">
-      <h1 className="sr-only">{title}</h1>
+    <div
+      className={cn(
+        "flex min-h-full flex-col pt-[env(safe-area-inset-top)]",
+        className
+      )}
+    >
+      {title && <h1 className="sr-only">{title}</h1>}
       {blocked && (
         <Empty className="flex-1">
           <EmptyHeader>
