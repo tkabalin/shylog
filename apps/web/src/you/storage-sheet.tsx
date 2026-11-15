@@ -8,13 +8,11 @@ import {
   Drawer,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
 import { protect, useProtection } from "@/data/storage"
 import { useSyncStatus } from "@/data/sync-status"
-import { useDesk } from "@/hooks/use-desk"
 import { listRow, pressable, RowContent } from "@/you/parts"
 
 // SettingsHifi's Offline storage row under This device: whether the
@@ -46,13 +44,13 @@ export function StorageRow() {
           sub={
             ok ? (
               n ? (
-                `${diveCount(n)} only on this phone, safe until they sync`
+                `${diveCount(n)} only on this device, safe until they sync`
               ) : (
-                "Dives saved on this phone won’t be cleared"
+                "Dives saved on this device won’t be cleared"
               )
             ) : bad ? (
               <span className="text-warn">
-                Your browser may clear dives saved on this phone
+                Your browser may clear dives saved on this device
                 {n ? `, including ${n} not synced yet` : ""}
               </span>
             ) : null
@@ -90,7 +88,6 @@ function StorageSheet({
   onOpenChange: (open: boolean) => void
   ok: boolean
 }) {
-  const desk = useDesk()
   const keep = async () => {
     await protect()
     onOpenChange(false)
@@ -127,66 +124,43 @@ function StorageSheet({
       {ok && (
         <p className="-mt-1 flex items-center gap-1.5 px-1 text-[13px] text-muted-foreground">
           <IconShieldCheck aria-hidden className="size-4 text-primary" />
-          Protected on this phone.
+          Protected on this device.
         </p>
       )}
     </>
   )
   const body =
-    "Dives you log without signal are saved on this phone until they sync. Browsers can clear a website’s saved data when the phone runs low on space. Protected storage asks the browser to keep Shylog’s data."
+    "Dives you log without signal are saved on this device until they sync. Browsers can clear a website’s saved data when the device runs low on space. Protected storage asks the browser to keep Shylog’s data."
   return (
     <Drawer showSwipeHandle open={open} onOpenChange={onOpenChange}>
-      {desk ? (
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Offline storage</DrawerTitle>
-            {/* Filling the width, as the table below does, not balanced. */}
-            <DrawerDescription className="text-pretty">
-              {body}
-            </DrawerDescription>
-          </DrawerHeader>
-          <div className="flex flex-col gap-4 px-4 pt-2">{help}</div>
-          <DrawerFooter>
-            {ok ? (
-              <Button onClick={() => onOpenChange(false)}>Done</Button>
-            ) : (
-              <>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
-                  Not now
-                </Button>
-                <Button onClick={() => void keep()}>Keep them safe</Button>
-              </>
-            )}
-          </DrawerFooter>
-        </DrawerContent>
-      ) : (
-        <DrawerContent>
-          <DrawerHeader className="pb-4">
-            <DrawerTitle>Offline storage</DrawerTitle>
-            <DrawerDescription>{body}</DrawerDescription>
-          </DrawerHeader>
-          <div className="flex flex-col gap-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            {help}
-            <div className="flex flex-col gap-2">
-              {!ok && (
-                <Button
-                  className="h-12 rounded-[14px] text-base font-semibold"
-                  onClick={() => void keep()}
-                >
-                  Keep them safe
-                </Button>
-              )}
+      {/* Phones only (You leaves the row out on a desk), so its iOS layout
+          has no desk version. */}
+      <DrawerContent>
+        <DrawerHeader className="pb-4">
+          <DrawerTitle>Offline storage</DrawerTitle>
+          <DrawerDescription>{body}</DrawerDescription>
+        </DrawerHeader>
+        <div className="flex flex-col gap-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          {help}
+          <div className="flex flex-col gap-2">
+            {!ok && (
               <Button
-                variant="ghost"
-                className="h-12 rounded-[14px] text-base font-semibold text-primary"
-                onClick={() => onOpenChange(false)}
+                className="h-12 rounded-[14px] text-base font-semibold"
+                onClick={() => void keep()}
               >
-                {ok ? "Done" : "Not now"}
+                Keep them safe
               </Button>
-            </div>
+            )}
+            <Button
+              variant="ghost"
+              className="h-12 rounded-[14px] text-base font-semibold text-primary"
+              onClick={() => onOpenChange(false)}
+            >
+              {ok ? "Done" : "Not now"}
+            </Button>
           </div>
-        </DrawerContent>
-      )}
+        </div>
+      </DrawerContent>
     </Drawer>
   )
 }

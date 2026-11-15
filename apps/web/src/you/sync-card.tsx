@@ -174,7 +174,7 @@ function SaveWaiting() {
       >
         <RowContent
           label="Save waiting dives to a file"
-          sub="A backup in case this phone clears its storage"
+          sub="A backup in case this device clears its storage"
         />
         <IconDownload
           aria-hidden

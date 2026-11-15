@@ -688,7 +688,7 @@ export function EntityDetail({
             {(pending || used) && (
               <Note>
                 {pending
-                  ? `This ${label.one} is on this phone only until its dive uploads, so it can’t be changed yet.`
+                  ? `This ${label.one} is on this device only until its dive uploads, so it can’t be changed yet.`
                   : `Used by ${used}, so it can’t be deleted. Merge it into the one to keep instead.`}
               </Note>
             )}

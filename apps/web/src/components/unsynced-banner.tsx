@@ -49,7 +49,7 @@ export function UnsyncedBanner({ dive }: { dive: Dive }) {
       />
       <span className="flex min-w-0 flex-1 flex-col gap-px">
         <span>
-          {refused ? "The server refused this dive" : "Saved on this phone"}
+          {refused ? "The server refused this dive" : "Saved on this device"}
         </span>
         {/* Darker than muted, which falls short of 4.5:1 on the tint. */}
         <span className="text-[13px] [overflow-wrap:anywhere] text-foreground/60">

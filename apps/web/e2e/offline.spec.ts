@@ -121,7 +121,7 @@ test("a dive saved offline waits on the phone with a provisional number, then up
   restore((request) => deleteDive(request, id))
 
   // The detail says where it is and numbers it provisionally.
-  await expect(page.getByText("Saved on this phone")).toBeVisible()
+  await expect(page.getByText("Saved on this device")).toBeVisible()
   await expect(page.getByText("Syncs when you’re back online")).toBeVisible()
   await expect(page.getByText(`Dive ${next}, provisional`)).toBeVisible()
 

@@ -590,7 +590,7 @@ function DeleteCardSheet({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string>()
   const body =
-    "It goes from Shylog on every phone. Your agency’s app still has the card."
+    "It goes from Shylog on every device. Your agency’s app still has the card."
 
   const connected = useConnected()
   const confirm = async () => {

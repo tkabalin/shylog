@@ -388,7 +388,7 @@ describe("You's sync card", () => {
       card("offline", [draft("dive-c", "2026-11-09T11:15:00.000Z")])
     ).toMatchObject({
       title: "1 dive waiting to upload",
-      sub: "Saved on this phone 45 min ago · it uploads when you’re back online",
+      sub: "Saved on this device 45 min ago · it uploads when you’re back online",
     })
   })
 
@@ -398,7 +398,7 @@ describe("You's sync card", () => {
     ).toMatchObject({
       look: "stuck",
       title: "Couldn’t upload 1 dive",
-      sub: "The server couldn’t save it. It’s safe on this phone.",
+      sub: "The server couldn’t save it. It’s safe on this device.",
       warn: true,
       retry: true,
     }) // A refused one besides, which the badge counts under Not synced.
@@ -408,7 +408,7 @@ describe("You's sync card", () => {
         draft("dive-b", "2026-11-09T10:00:00.000Z", "Missing its site"),
       ]).sub
     ).toBe(
-      "The server couldn’t save it. It’s safe on this phone. 1 more was refused."
+      "The server couldn’t save it. It’s safe on this device. 1 more was refused."
     )
   })
 
@@ -422,7 +422,7 @@ describe("You's sync card", () => {
     })
     expect(
       card("fault", [draft("dive-a", "2026-11-09T11:00:00.000Z")]).sub
-    ).toBe("1 dive waiting on this phone · it tries again in a few minutes")
+    ).toBe("1 dive waiting on this device · it tries again in a few minutes")
   })
 
   it("asks for a reload when the server is newer", () => {
@@ -453,7 +453,7 @@ describe("You's sync card", () => {
     })
     expect(card("offline", [])).toMatchObject({
       title: "Offline",
-      sub: "Last sync 3 h ago · new dives save on this phone",
+      sub: "Last sync 3 h ago · new dives save on this device",
       warn: false,
     })
     expect(card("unreachable", [])).toMatchObject({

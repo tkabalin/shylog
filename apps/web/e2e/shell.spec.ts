@@ -19,6 +19,13 @@ async function height(locator: Locator) {
 }
 
 test.describe("at phone width", () => {
+  test("keeps Offline storage on You", async ({ page }) => {
+    await page.goto("/you")
+    await expect(
+      page.getByRole("button", { name: /^Offline storage/ })
+    ).toBeVisible()
+  })
+
   test("shows the four tabs in a bottom nav and no sidebar", async ({
     page,
   }) => {
@@ -321,6 +328,17 @@ test.describe("at desktop width", () => {
     await expect(
       page.getByRole("button", { name: "Collapse sidebar" })
     ).toBeVisible()
+  })
+
+  test("leaves Offline storage to phones", async ({ page }) => {
+    await page.goto("/you")
+    // This device is there, with its other rows, but no Offline storage.
+    await expect(
+      page.getByText("Smooth water temperature", { exact: true })
+    ).toBeVisible()
+    await expect(
+      page.getByRole("button", { name: /^Offline storage/ })
+    ).toHaveCount(0)
   })
 
   test("starts a trip from a bar button and picks its dives in a dialog", async ({
