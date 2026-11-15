@@ -75,7 +75,7 @@ const unknown = {
   trip: "The trip isn't on the server",
 } satisfies Record<EntityKind, string>
 
-const has = (db: Db, kind: EntityKind, id: string) =>
+export const has = (db: Db, kind: EntityKind, id: string) =>
   prepared(db, `SELECT 1 FROM ${tables[kind]} WHERE id = ?`).get(id) !==
   undefined
 
@@ -160,7 +160,7 @@ export const regionCountry = (db: Db, id: string) =>
     .pluck()
     .get(id) as string | undefined
 
-const keyOf = (kind: EntityKind, fields: Fields) =>
+export const keyOf = (kind: EntityKind, fields: Fields) =>
   kind === "site" || kind === "region"
     ? placeKey(fields.name, fields.countryCode)
     : normaliseName(fields.name)

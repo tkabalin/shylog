@@ -2,13 +2,11 @@ import {
   entityCreateOrder,
   isUnknownSite,
   newId,
-  normaliseName,
-  placeKey,
   unknownSite,
   type EntityKind,
 } from "@shylog/core"
 
-import { matching, resolve, tables } from "../apply/entity.ts"
+import { keyOf, matching, resolve, tables } from "../apply/entity.ts"
 import { Rejected } from "../apply/rejected.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
@@ -65,11 +63,7 @@ export function entityRefs(db: Db) {
       return match
     }
     // The same new name twice in one call is one entity.
-    const key = `${kind}:${
-      kind === "site" || kind === "region"
-        ? placeKey(fields.name, fields.countryCode)
-        : normaliseName(fields.name)
-    }`
+    const key = `${kind}:${keyOf(kind, fields)}`
     const made = created.get(key)
     if (made) return made.id
     const id = newId(kind)

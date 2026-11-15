@@ -1,4 +1,9 @@
-import { computerAir, isFullStop } from "@shylog/core"
+import {
+  computerAir,
+  isFullStop,
+  millilitresToLitres,
+  tenthsToPercent,
+} from "@shylog/core"
 
 import type { Db } from "../db/open.ts"
 import { gasFigures } from "../figures.ts"
@@ -50,7 +55,9 @@ export const minutes = (seconds: number) => Math.round(seconds / 6) / 10
 const exactMinutes = (seconds: number) => Math.round(seconds / 0.6) / 100
 
 const oxygenPercent = (dive: Pick<Dive, "nitrox" | "oxygen">) =>
-  dive.nitrox && dive.oxygen != null ? dive.oxygen / 10 : ("air" as const)
+  dive.nitrox && dive.oxygen != null
+    ? tenthsToPercent(dive.oxygen)
+    : ("air" as const)
 
 export const gasName = (dive: Pick<Dive, "nitrox" | "oxygen">) => {
   const oxygen = oxygenPercent(dive)
@@ -117,7 +124,9 @@ export function diveRow(index: LogIndex, dive: Dive) {
 function reading(field: string, value: string | number | null) {
   if (value == null || typeof value === "string") return value
   if (field === "duration") return exactMinutes(value)
-  if (field === "oxygen") return value === computerAir ? "air" : value / 10
+  if (field === "oxygen") {
+    return value === computerAir ? "air" : tenthsToPercent(value)
+  }
   return value
 }
 
@@ -176,7 +185,9 @@ export function diveDetail(index: LogIndex, dive: Dive) {
     weightKg: dive.weight,
     cylinderMaterial: dive.cylinderMaterial,
     cylinderVolumeL:
-      dive.cylinderVolume == null ? null : dive.cylinderVolume / 1000,
+      dive.cylinderVolume == null
+        ? null
+        : millilitresToLitres(dive.cylinderVolume),
     oxygenPercent: oxygenPercent(dive),
     startPressureBar: dive.startPressure,
     endPressureBar: dive.endPressure,
