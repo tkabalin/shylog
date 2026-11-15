@@ -42,12 +42,15 @@ export function PageBar({
   back,
   title,
   crumb,
+  start,
   end,
 }: {
   back: { label: string } & Pick<LinkProps, "to" | "search" | "params">
   title?: ReactNode
   // This screen in the breadcrumb, where the phone's bar has no title.
   crumb?: string
+  // In the phone's back button's place, such as an edit mode's Cancel.
+  start?: ReactNode
   end?: ReactNode
 }) {
   const goBack = useBack()
@@ -97,11 +100,15 @@ export function PageBar({
         </>
       ) : (
         <>
-          <BackLink
-            to={to as LinkProps}
-            label={label}
-            onClick={(event) => void goBack(event)}
-          />
+          {start ? (
+            <span className="flex justify-self-start">{start}</span>
+          ) : (
+            <BackLink
+              to={to as LinkProps}
+              label={label}
+              onClick={(event) => void goBack(event)}
+            />
+          )}
           {typeof title === "string" ? (
             <h1 className="max-w-50 truncate text-base font-semibold tracking-[-0.015em]">
               {title}

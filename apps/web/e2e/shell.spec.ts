@@ -250,6 +250,22 @@ test.describe("at desktop width", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0)
   })
 
+  test("edits the packing list from header buttons, asking before leaving with changes", async ({
+    page,
+  }) => {
+    await page.goto("/you/packing")
+    await page.getByRole("button", { name: "Edit", exact: true }).click()
+    await expect(page.getByRole("button", { name: "Done" })).toBeVisible()
+    await page.getByRole("button", { name: "Delete BCD" }).click()
+    const nav = page.getByRole("navigation", { name: "Main" })
+    await nav.getByRole("link", { name: "Log" }).click()
+    await expect(page.getByText("Discard changes?")).toBeVisible()
+    await page.getByRole("button", { name: "Keep editing" }).click()
+    await expect(page).toHaveURL("/you/packing")
+    await page.getByRole("button", { name: "Cancel" }).click()
+    await expect(page.getByRole("checkbox", { name: "BCD" })).toBeVisible()
+  })
+
   // On a stack of its own, as two detects at once would find the cable
   // busy.
   test("detects the dive computer on Import @writes", async ({ page }) => {
