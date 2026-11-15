@@ -5,6 +5,7 @@ import { logger } from "../log.ts"
 import { guard } from "./guard.ts"
 import { instructions } from "./instructions.ts"
 import { readTools } from "./tools/read.ts"
+import { writeTools } from "./tools/write.ts"
 
 // Claude's way into the log (see MCP server in the spec), kept apart from
 // the API it reuses the rules of. Stateless: each request gets a fresh
@@ -22,6 +23,7 @@ export function mcp(deps: Deps) {
         { instructions: instructions(deps.db, deps.env) }
       )
       readTools(server, deps)
+      writeTools(server, deps)
       return server
     },
     {
