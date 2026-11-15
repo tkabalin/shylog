@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 
 import type {
+  CardThumb,
   DiveSetKind,
   EntityKind,
   Op,
@@ -162,8 +163,17 @@ const entries: Record<
         name,
         images,
         first = false,
-      }: { id: string; name: string; images: Image[]; first?: boolean }
-    ) => writeCard(db, id, name, images, first),
+        // Every replayed entry has it: the replay refuses entries written
+        // under an older schema than the crop's.
+        thumb,
+      }: {
+        id: string
+        name: string
+        images: Image[]
+        first?: boolean
+        thumb: CardThumb | null
+      }
+    ) => writeCard(db, id, name, images, first, thumb),
     derived: false,
   },
   deleteCard: {

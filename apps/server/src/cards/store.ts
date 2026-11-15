@@ -9,9 +9,15 @@ import {
 } from "node:fs"
 import { dirname, join } from "node:path"
 
-import { cardHash, cardMaxPages } from "@shylog/core"
+import {
+  cardHash,
+  cardMaxPages,
+  type CardCrop,
+  type CardThumb,
+} from "@shylog/core"
 
 import { Rejected } from "../apply/rejected.ts"
+import { schemaVersion } from "../db/migrate.ts"
 import type { Db } from "../db/open.ts"
 import { prepared } from "../db/prepared.ts"
 import { syncDir } from "../fs.ts"
@@ -29,14 +35,34 @@ export type Page = string | { bytes: Uint8Array; contentType: string }
 export const cardsDir = (dataDir: string) => join(dataDir, "cards")
 
 export function readCards(db: Db) {
-  return prepared<[], { id: string; name: string; images: string }>(
+  // Added by migration 12. A database that failed its check isn't migrated
+  // but the log is still served from it, so it may not have the column yet.
+  const thumb = schemaVersion(db) >= 12 ? "thumb" : "NULL AS thumb"
+  return prepared<
+    [],
+    { id: string; name: string; images: string; thumb: string | null }
+  >(
     db,
     `SELECT id, name, (SELECT json_group_array(hash ORDER BY n)
-       FROM certification_images WHERE card_id = id) AS images
+       FROM certification_images WHERE card_id = id) AS images, ${thumb}
      FROM certifications ORDER BY position`
   )
     .all()
-    .map((card) => ({ ...card, images: JSON.parse(card.images) as string[] }))
+    .map((card) => ({
+      ...card,
+      images: JSON.parse(card.images) as string[],
+      thumb: card.thumb === null ? null : (JSON.parse(card.thumb) as CardThumb),
+    }))
+}
+
+function readThumb(db: Db, id: string) {
+  const json = prepared<[string], string | null>(
+    db,
+    "SELECT thumb FROM certifications WHERE id = ?"
+  )
+    .pluck()
+    .get(id)
+  return json ? (JSON.parse(json) as CardThumb) : null
 }
 
 export const imagesOf = (db: Db, id: string) =>
@@ -59,6 +85,9 @@ export function saveCard<T>(
   id: string,
   name: string,
   pages: Page[],
+  // The crop of the first page as sent, null to clear it, or none to keep
+  // the stored one.
+  crop: CardCrop | null | undefined,
   commit: Commit<T>
 ): T {
   if (pages.length === 0 || pages.length > cardMaxPages) {
@@ -98,11 +127,22 @@ export function saveCard<T>(
       if (newCardsDir) syncDir(dirname(dir))
     }
     const images = next.map(({ hash, contentType }) => ({ hash, contentType }))
+    const first = images[0]!.hash
+    // Keyed here, so the phone needs no hash of a page it is still sending.
+    // Left out, the stored crop stays while its page is first, so an app
+    // that never touched it (an older one, a stale sheet) doesn't drop it.
+    const stored = readThumb(db, id)
+    const thumb =
+      crop === undefined
+        ? stored?.hash === first
+          ? stored
+          : null
+        : crop && { hash: first, ...crop }
     return commit(
-      () => writeCard(db, id, name, images, true),
+      () => writeCard(db, id, name, images, true, thumb),
       // With their types, so a replay can rebuild the rows, and where a new
       // card goes, as entries from before new cards went first put it last.
-      { type: "putCard", payload: { id, name, images, first: true } }
+      { type: "putCard", payload: { id, name, images, first: true, thumb } }
     )
   } finally {
     prune(db, folder, id)
@@ -116,24 +156,31 @@ export function writeCard(
   id: string,
   name: string,
   images: Image[],
-  first: boolean
+  first: boolean,
+  thumb: CardThumb | null
 ): boolean {
-  const stored = prepared(db, "SELECT name FROM certifications WHERE id = ?")
-    .pluck()
-    .get(id)
+  const stored = prepared<[string], { name: string; thumb: string | null }>(
+    db,
+    "SELECT name, thumb FROM certifications WHERE id = ?"
+  ).get(id)
   const hashes = (list: Image[]) => list.map((image) => image.hash).join()
-  if (stored === name && hashes(imagesOf(db, id)) === hashes(images)) {
+  const json = thumb && JSON.stringify(thumb)
+  if (
+    stored?.name === name &&
+    stored.thumb === json &&
+    hashes(imagesOf(db, id)) === hashes(images)
+  ) {
     return false
   }
   // A new card goes first in the list, as the latest earned is likeliest
   // the one a dive centre asks for.
   prepared(
     db,
-    `INSERT INTO certifications (id, name, position)
+    `INSERT INTO certifications (id, name, position, thumb)
      VALUES (?, ?, (SELECT CASE WHEN ? THEN coalesce(min(position), 1) - 1
-       ELSE coalesce(max(position), -1) + 1 END FROM certifications))
-     ON CONFLICT (id) DO UPDATE SET name = excluded.name`
-  ).run(id, name, first ? 1 : 0)
+       ELSE coalesce(max(position), -1) + 1 END FROM certifications), ?)
+     ON CONFLICT (id) DO UPDATE SET name = excluded.name, thumb = excluded.thumb`
+  ).run(id, name, first ? 1 : 0, json)
   prepared(db, "DELETE FROM certification_images WHERE card_id = ?").run(id)
   images.forEach((image, n) =>
     prepared(

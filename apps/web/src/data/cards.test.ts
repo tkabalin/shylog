@@ -28,6 +28,7 @@ const card = (id: string, images: string[], name = "Open Water") => ({
   id,
   name,
   images,
+  thumb: null,
 })
 
 const log = (version: string, cards: Log["cards"]): Log => ({

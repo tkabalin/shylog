@@ -162,6 +162,7 @@ erDiagram
     TEXT id PK
     TEXT name
     INTEGER position
+    TEXT thumb "JSON crop of the first page, nullable"
   }
   certification_images {
     TEXT card_id PK, FK
