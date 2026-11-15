@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { normaliseName, placeKey } from "./normalise.ts"
+import { matchesLogSearch, normaliseName, placeKey } from "./normalise.ts"
 
 describe("normaliseName", () => {
   it("ignores case, trailing and repeated spaces, and accents", () => {
@@ -45,6 +45,29 @@ describe("normaliseName", () => {
     expect(normaliseName("Two-Mile Reef")).not.toBe(
       normaliseName("Two Mile Reef")
     )
+  })
+})
+
+describe("matchesLogSearch", () => {
+  const dive = {
+    site: "Two Mile Reef",
+    buddies: ["Lerato", undefined],
+    notableAnimals: "Potato bass",
+    notes: null,
+  }
+
+  it("finds the site, a buddy and the animals, ignoring case and accents", () => {
+    expect(matchesLogSearch("two  MILE", dive)).toBe(true)
+    expect(matchesLogSearch("léra", dive)).toBe(true)
+    expect(matchesLogSearch("POTATO", dive)).toBe(true)
+    expect(matchesLogSearch("turtle", dive)).toBe(false)
+  })
+
+  it("finds the notes, and anything for an empty query", () => {
+    expect(matchesLogSearch("drift", { buddies: [], notes: "A drift" })).toBe(
+      true
+    )
+    expect(matchesLogSearch("  ", { buddies: [] })).toBe(true)
   })
 })
 

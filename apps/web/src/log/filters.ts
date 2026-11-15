@@ -1,4 +1,4 @@
-import { normaliseName, toMillimetres, type Tag } from "@shylog/core"
+import { matchesLogSearch, toMillimetres, type Tag } from "@shylog/core"
 
 import type { Dive } from "@/data/db"
 import type { LogView } from "@/data/log"
@@ -63,15 +63,14 @@ export function matchesFilters(dive: Dive, filters: Filters, log: LogView) {
 
 // Site, buddies, animals and notes, ignoring case, spacing and accents.
 export function matchesSearch(dive: Dive, query: string, log: LogView) {
-  const needle = normaliseName(query)
-  if (!needle) return true
-  const buddies = log.links.get(dive.id)?.buddies ?? []
-  return [
-    log.sites.get(dive.siteId)?.name,
-    ...buddies.map((id) => log.people.get(id)?.name),
-    dive.notableAnimals,
-    dive.notes,
-  ].some((text) => text && normaliseName(text).includes(needle))
+  return matchesLogSearch(query, {
+    site: log.sites.get(dive.siteId)?.name,
+    buddies: (log.links.get(dive.id)?.buddies ?? []).map(
+      (id) => log.people.get(id)?.name
+    ),
+    notableAnimals: dive.notableAnimals,
+    notes: dive.notes,
+  })
 }
 
 // The header's figures, leaving out ignored dives and drafts the server
