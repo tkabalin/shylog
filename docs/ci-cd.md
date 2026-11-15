@@ -69,6 +69,7 @@ The `image` job runs on every pull request, so a broken Dockerfile fails the pul
 - Every log line is JSON naming the instance, and the startup line carries the commit the image was built from.
 - The web app is served with its title and manifest from `SHYLOG_APP_NAME`, its assets load, and the service worker precaches them.
 - The commit reached the bundle, so You's About doesn't say `dev`.
+- The MCP endpoint answers a tool call, which proves the MCP SDK resolves in the production install.
 - The time zone works from Node's own ICU data, as the slim image has no `tzdata`.
 - The snapshot and restore drill commands run.
 - `dctool` turns a raw download from each supported watch into exactly the committed XML, including the mandatory stops only Shylog's patched parser reports, and the libdivecomputer licence, source and patch the LGPL requires are in the image.
