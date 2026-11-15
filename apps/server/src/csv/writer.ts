@@ -3,14 +3,10 @@ import {
   countryName,
   currents,
   cylinderMaterials,
-  diveOxygen,
-  diveSacRate,
   diveTypes,
   entries,
   keysOf,
-  maxPo2,
   millilitresToLitres,
-  mod,
   secondsToMinutes,
   surfaces,
   surges,
@@ -27,6 +23,7 @@ import {
 import { readSettings } from "../apply/settings.ts"
 import { byDive } from "../db/by-dive.ts"
 import type { Db } from "../db/open.ts"
+import { gasFigures } from "../figures.ts"
 import { selectEvents, selectSamples } from "../profile.ts"
 import { decimal } from "../uddf/xml.ts"
 
@@ -278,10 +275,16 @@ function build(db: Db) {
 
   const dives = all<DiveRow>(diveQuery)
   const rows = dives.map((dive) => {
-    const water = { waterType: dive.waterType }
-    const oxygen = diveOxygen({ nitrox: !!dive.nitrox, oxygen: dive.oxygen })
     const handFields = hand.get(dive.id) ?? []
-    const modDepth = oxygen == null ? null : mod(oxygen, limit, water)
+    const figures = gasFigures(
+      { ...dive, nitrox: !!dive.nitrox },
+      {
+        duration: handFields.includes("duration"),
+        averageDepth: handFields.includes("averageDepth"),
+      },
+      dive.waterType,
+      limit
+    )
     const tagKeys = tagsOf.get(dive.id)
     const profileJson = profile(dive.id)
     const extra: Extra = {
@@ -293,18 +296,7 @@ function build(db: Db) {
       ),
       buddies: joined(buddies.get(dive.id)),
       professionals: joined(professionals.get(dive.id)),
-      oxygen,
-      sac: diveSacRate(
-        { ...dive, nitrox: !!dive.nitrox },
-        {
-          duration: handFields.includes("duration"),
-          averageDepth: handFields.includes("averageDepth"),
-        },
-        water
-      ),
-      // A limit at or below the surface PO₂ gives no depth (-0 too).
-      mod: modDepth != null && modDepth > 0 ? modDepth : null,
-      maxPo2: oxygen == null ? null : maxPo2(oxygen, dive.maxDepth, water),
+      ...figures,
       profile: profileJson,
       // Only a computer's samples carry alarms, so a hand-logged dive has no
       // count rather than none.

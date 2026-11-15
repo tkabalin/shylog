@@ -123,7 +123,7 @@ const all = <T>(db: Db, sql: string) => prepared<[], T>(db, sql).all()
 
 // The whole log but samples, read in one transaction so it matches the
 // version it is tagged with.
-function readLog(db: Db) {
+export function readLog(db: Db) {
   return db.transaction(() => {
     // The database's own, which lags the code's if a failed check stopped
     // the migration.

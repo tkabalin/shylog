@@ -12,16 +12,13 @@ import { z } from "zod"
 import {
   deleteEntity,
   feedsDiveFigures,
-  keepUnknownSite,
-  putEntity,
   refuseUnknownSite,
 } from "../apply/entity.ts"
-import { setEntityDives } from "../apply/entity-dives.ts"
-import { mergeEntity } from "../apply/merge.ts"
 import { Rejected } from "../apply/rejected.ts"
+import { applyEntityDives, applyEntityMerge, applyEntityPut } from "../edits.ts"
 import { factory } from "../factory.ts"
 import { json, parse } from "../validate.ts"
-import { change } from "./change.ts"
+import { change, changeBy } from "./change.ts"
 
 // The kind and an id of that kind, which the prefix makes checkable.
 const target = validator("param", (value: Record<string, string>) => {
@@ -44,13 +41,9 @@ export const entities = factory
     const { kind, id } = c.req.valid("param")
     const fields = c.req.valid("json")
     return c.json(
-      change(
+      changeBy(
         db,
-        () => {
-          refuseUnknownSite(db, kind, [id])
-          return putEntity(db, kind, id, fields, keepUnknownSite(db, kind, id))
-        },
-        { type: "putEntity", payload: { kind, id, fields } },
+        (journal) => applyEntityPut(db, journal, kind, id, fields),
         feedsDiveFigures(kind)
       )
     )
@@ -60,13 +53,9 @@ export const entities = factory
     const { kind, id } = c.req.valid("param")
     const { into } = parse(mergeEntityRequests[kind], c.req.valid("json"))
     return c.json(
-      change(
+      changeBy(
         db,
-        () => {
-          refuseUnknownSite(db, kind, [id, into])
-          return mergeEntity(db, kind, id, into)
-        },
-        { type: "mergeEntity", payload: { kind, id, into } },
+        (journal) => applyEntityMerge(db, journal, kind, id, into),
         feedsDiveFigures(kind)
       )
     )
@@ -79,13 +68,11 @@ export const entities = factory
     }
     const setKind = kind as DiveSetKind
     const request = parse(setEntityDivesRequests[setKind], c.req.valid("json"))
+    // Always the derived pass, as for any dive edit: saving a dive leaves
+    // its calculated surface interval to it.
     return c.json(
-      change(
-        db,
-        () => setEntityDives(db, setKind, id, request),
-        // Always the derived pass, as for any dive edit: saving a dive
-        // leaves its calculated surface interval to it.
-        { type: "setEntityDives", payload: { kind, id, ...request } }
+      changeBy(db, (journal) =>
+        applyEntityDives(db, journal, setKind, id, request)
       )
     )
   })
