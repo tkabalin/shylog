@@ -1487,12 +1487,25 @@ Deferred, or to watch:
 - `/mcp` refuses a login that isn't allowed, any request with an `Origin`, and a body that isn't JSON, with 403 or 415 and never 401; GET is refused rather than answered with the app's page, and `/.well-known/` is a 404.
 - `get_dive` finds a dive by its number or id, in app units, with each value's source and the figures the dive's detail shows; `search_dives` filters, totals and pages as the Log counts; `list_entities` gives ids and counts.
 - The Claude Desktop extension passes a 2025 and a 2026-07-28 client's calls through, says why when the instance can't be reached, answers no notification, and stops when Desktop closes its input; packed per instance, it installs and answers "what was dive 42?" in Claude Desktop on Windows (the owner's check).
-- Tests: `src/mcp/mcp.test.ts`, `src/mcp/tools/read.test.ts`, `apps/claude-desktop/src/bridge.test.ts`.
+- `log_dive` writes a dive in database units with the log's kit defaults, as a draft the journal replays, matches entities by name, refuses an overlapping dive and a gas that is neither air nor nitrox; `edit_dive` reports each change and keeps a computer's reading beside a hand value; `edit_entity`, `merge_entities` and `assign_dives` follow You's rules; each call is one transaction, and replaying the journal after a run of them gives the same database.
+- Tests: `src/mcp/mcp.test.ts`, `src/mcp/tools/read.test.ts`, `src/mcp/tools/write.test.ts`, `apps/claude-desktop/src/bridge.test.ts`.
 
 - [x] Endpoint, guard and read tools
 - [x] Claude Desktop extension
 - [x] The extension checked in Claude Desktop by the owner (15 November 2026: installed from Settings > Extensions, answered "what was dive 42?" and a search for dives deeper than 30 m)
-- [ ] Write tools
+- [x] Write tools
+
+**Notes** (written 15 November 2026, branch `feat/mcp-server`)
+
+Decisions taken while building (D65 has the owner's):
+
+- The extension is zipped by `scripts/pack.ts` with Node's zlib rather than Anthropic's `mcpb` CLI, whose dependencies (`undici-types@6.21.0` through `@types/node@22`) fail the workspace's trust policy; Python's `zipfile` and Desktop both read the result. The bundle is one file (tsup without splitting), as the pack takes only it.
+- Vite's dev server proxies `/mcp` as it does `/api`, and a dev pack may point at `http://localhost`, so Desktop on Windows reaches a WSL dev server through Vite's `--host` without changing Tailscale Serve.
+- Windows doesn't open a `.mcpb` with Claude Desktop on a double-click, so the README installs it from Settings > Extensions.
+- A refusal leads with the tool's parameter (`maxDepthM: Up to 350 m`), the stored field's name mapped back where the rule names one.
+- From review: durations and surface intervals show to 0.01 minute, so one sent back unchanged is the same second (0.1 turned a computer's 3700 s into a hand 3702 s); `assign_dives` makes a new entity through the batch's own `create`, one journal entry as on You, and asks a person's role rather than defaulting to buddy; a matched site doesn't make the new region named with it; `edit_dive` refuses an overlapping time and says when others were renumbered; oxygen under 20 % is refused, not saved as air; the SDK's own error log keeps only the error's name, as a malformed body's message can quote it.
+- From the second review: the Log's text search is one rule in core (`matchesLogSearch`), used by the app and `search_dives`; search filters follow merged-away ids; `edit_dive` checks overlaps only for a moved time, after the time is validated; `list_entities` groups dives in one pass and `assign_dives` counts with one query; the image smoke check has a timeout and sends the protocol version; the nightly soak skips changes to the extension alone; the zip writer has a read-back test.
+- CI: the extension's bridge tests run in-process for each failure message (refused, down, silent, unreachable) and spawn both the source and a freshly built bundle under both protocols; `pnpm build` bundles it; the image smoke test makes a real tool call. The SDKs are the extension's dev dependencies, as the bundle carries them, and both `@modelcontextprotocol` packages pin one `core`, so they are bumped together. The extension says Node 22 or later, the oldest it has run on.
 
 ---
 

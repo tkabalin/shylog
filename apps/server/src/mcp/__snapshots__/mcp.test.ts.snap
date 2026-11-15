@@ -2,6 +2,27 @@
 
 exports[`the MCP endpoint > sets a title and every hint on each tool 1`] = `
 {
+  "assign_dives": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": false,
+    "title": "Put dives on a trip, centre or person",
+  },
+  "edit_dive": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": false,
+    "title": "Edit a dive",
+  },
+  "edit_entity": {
+    "destructiveHint": true,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": false,
+    "title": "Edit a site, person, centre, trip or region",
+  },
   "get_dive": {
     "destructiveHint": false,
     "idempotentHint": true,
@@ -15,6 +36,20 @@ exports[`the MCP endpoint > sets a title and every hint on each tool 1`] = `
     "openWorldHint": false,
     "readOnlyHint": true,
     "title": "List sites, people, centres, trips or regions",
+  },
+  "log_dive": {
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false,
+    "readOnlyHint": false,
+    "title": "Log a dive",
+  },
+  "merge_entities": {
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false,
+    "readOnlyHint": false,
+    "title": "Merge two sites, people, centres, trips or regions",
   },
   "search_dives": {
     "destructiveHint": false,
