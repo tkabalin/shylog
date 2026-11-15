@@ -28,12 +28,28 @@ export interface Row {
   visibility: string | null
   regionId: string | null
   links: DiveLinks
+  // Its place among the day's dives by local date, 0 for the first.
+  ofDay: number
 }
 
 const noLinks: DiveLinks = { buddies: [], professionals: [], tags: [] }
 
 // Oldest first, as Statistics counts them, so ties go to the earlier dive.
 export function rowsOf(dives: readonly Dive[], log: LogView): Row[] {
+  // Over every logged dive, as an ignored dive was still the day's first,
+  // but not refused drafts, which the log doesn't number either. Oldest
+  // first in the log's own order, so dives at the same minute go as listed.
+  const ofDay = new Map<string, number>()
+  let day = ""
+  let place = 0
+  for (let i = log.dives.length - 1; i >= 0; i--) {
+    const dive = log.dives[i]!
+    if (dive.rejected) continue
+    const date = dive.startTime.slice(0, 10)
+    place = date === day ? place + 1 : 0
+    day = date
+    ofDay.set(dive.id, place)
+  }
   return dives.map((dive) => {
     const sac = diveSac(dive, log)
     return {
@@ -47,6 +63,7 @@ export function rowsOf(dives: readonly Dive[], log: LogView): Row[] {
       visibility: visibilityLevel(dive),
       regionId: log.sites.get(dive.siteId)?.regionId ?? null,
       links: log.links.get(dive.id) ?? noLinks,
+      ofDay: ofDay.get(dive.id) ?? 0,
     }
   })
 }
@@ -437,6 +454,28 @@ export function fieldsOf(log: LogView) {
       (i) => (i === 1 ? "16 °C or warmer" : "over 20 °C"),
       (name) => `in water ${name}`
     ),
+    // First dives against the day's later ones, a third dive or more
+    // counted together, as so few days have one. Named from both ends of
+    // the lower side, so second dives alone aren't called first and second.
+    diveOfDay: {
+      key: "diveOfDay",
+      kind: "ordered",
+      value: (row) => String(Math.min(row.ofDay, 2)),
+      order: (keys) => ["0", "1", "2"].filter((key) => keys.includes(key)),
+      names: (lower, upper) => {
+        const a =
+          lower[0] === "1"
+            ? "second dives of the day"
+            : lower.at(-1) === "0"
+              ? "first dives of the day"
+              : "first and second dives of the day"
+        const b =
+          upper[0] === "1"
+            ? "later dives of the day"
+            : "third or later dives of the day"
+        return [named(a, `on ${a}`), named(b, `on ${b}`)]
+      },
+    } satisfies OrderedField,
     timeOfDay: bands(
       "timeOfDay",
       timesOfDay.length,
@@ -603,10 +642,12 @@ export const differences: [MeasureKey, FieldKey[]][] = [
       "workload",
       "thermalComfort",
       "depthBand",
+      "waterTemperatureBand",
       "gas",
       "cylinderMaterial",
       "cylinderVolume",
       "timeOfDay",
+      "diveOfDay",
       "entry",
       "region",
       "diveCentre",

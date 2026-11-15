@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import type { Dive, Region, Site } from "@/data/db"
 import type { DiveLinks } from "@/data/log"
 
+import { countedDives } from "../figures"
 import { dive, syntheticLog } from "../synthetic"
 import {
   fieldsOf,
@@ -243,6 +244,89 @@ describe("difference", () => {
     // 1.5 L/min, but under 10% of 20.
     expect(sacBy(21.5, 20)).toBeNull()
     expect(sacBy(22, 20)).not.toBeNull()
+  })
+
+  it("compares SAC rate on the day's first dives with its later ones", () => {
+    // Two dives a day for six days, the first at 9:00 and the second later.
+    const list = days(times(6, {})).flatMap((first) => [
+      first,
+      dive({ startTime: first.startTime.replace("09:00", "11:30") }),
+    ])
+    const { rows, fields } = setup(list, {}, (d) =>
+      d.startTime.endsWith("09:00:00") ? 18 : 15
+    )
+    expect(rows.map((row) => row.ofDay).slice(0, 4)).toEqual([0, 1, 0, 1])
+    const pattern = difference(rows, "sac", fields.diveOfDay)
+    expect(sentence(pattern)).toBe(
+      "Your SAC rate is 3.0 L/min lower on later dives of the day."
+    )
+    expect(pattern!.groups.map((group) => group.label)).toEqual([
+      "Later dives of the day",
+      "First dives of the day",
+    ])
+  })
+
+  it("counts an ignored dive in its day's order, but not a refused draft", () => {
+    const at = (time: string, fields: Partial<Dive> = {}) =>
+      dive({ startTime: `2026-07-01T${time}:00`, ...fields })
+    const list = [
+      at("08:00", { ignored: true }),
+      at("09:00", { draft: true, rejected: "Missing its site" } as never),
+      at("10:00"),
+    ]
+    const log = syntheticLog(list, { sites, regions })
+    const rows = rowsOf(countedDives(log), log)
+    expect(rows.map((row) => row.ofDay)).toEqual([1])
+  })
+
+  it("orders dives starting at the same minute by their numbers", () => {
+    const list = [
+      dive({ id: "dive-z", startTime: "2026-07-01T09:00:00", number: 12 }),
+      dive({ id: "dive-a", startTime: "2026-07-01T09:00:00", number: 13 }),
+    ]
+    const log = syntheticLog(list, { sites, regions })
+    expect(rowsOf(list, log).map((row) => row.ofDay)).toEqual([0, 1])
+  })
+
+  it("names the split at the third dive, and second dives alone", () => {
+    // Two dives a day with a steady rate, and a third, much faster, on six.
+    const list = days(times(6, {})).flatMap((first) => [
+      first,
+      dive({ startTime: first.startTime.replace("09:00", "11:00") }),
+      dive({ startTime: first.startTime.replace("09:00", "14:00") }),
+    ])
+    const third = (d: Dive) => d.startTime.endsWith("14:00:00")
+    const { rows, fields } = setup(list, {}, (d) => (third(d) ? 20 : 15))
+    const pattern = difference(rows, "sac", fields.diveOfDay)
+    expect(sentence(pattern)).toBe(
+      "Your SAC rate is 5.0 L/min higher on third or later dives of the day."
+    )
+    expect(pattern!.groups.map((group) => group.label)).toEqual([
+      "Third or later dives of the day",
+      "First and second dives of the day",
+    ])
+    // Without a rate on any first dive, the lower side is second dives only.
+    const later = setup(list, {}, (d) =>
+      d.startTime.endsWith("09:00:00") ? null : third(d) ? 20 : 15
+    )
+    expect(
+      difference(later.rows, "sac", later.fields.diveOfDay)!.groups.map(
+        (group) => group.label
+      )
+    ).toEqual(["Third or later dives of the day", "Second dives of the day"])
+  })
+
+  it("compares SAC rate across water temperature", () => {
+    const list = days([
+      ...times(5, { minTemperature: 14 }),
+      ...times(5, { minTemperature: 21 }),
+    ] as Partial<Dive>[])
+    const { rows, fields } = setup(list, {}, (d) =>
+      d.minTemperature! < 16 ? 18 : 15
+    )
+    expect(sentence(difference(rows, "sac", fields.waterTemperatureBand))).toBe(
+      "Your SAC rate is 3.0 L/min lower in water over 20 °C."
+    )
   })
 
   it("counts ascent alarms only on dives with a profile", () => {

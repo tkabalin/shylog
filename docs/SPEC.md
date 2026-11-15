@@ -643,7 +643,7 @@ The Difference rule runs on each measure against each field in its row.
 
 | Measure | Compared across |
 | --- | --- |
-| SAC rate | Current, surge, workload, thermal comfort, depth band, gas, cylinder material, cylinder volume, time of day, entry, region, dive centre, buddy, Dry suit / Night / Drift / Photo tags |
+| SAC rate | Current, surge, workload, thermal comfort, depth band, water temperature band, gas, cylinder material, cylinder volume, time of day, dive of the day, entry, region, dive centre, buddy, Dry suit / Night / Drift / Photo tags |
 | Max depth | Buddy, dive professional, dive centre, region, trip, gas, entry |
 | Duration | Depth band, gas, entry, region, current, water temperature band (under 16 °C, 16 to 20 °C, over 20 °C) |
 | Ascent alarms per dive | Depth band, current, surge, workload, buddy, gas, time of day |
@@ -668,7 +668,8 @@ What each measure takes from a dive:
 
 How each field forms its groups:
 
-- Fields with an order (current, surge, workload, thermal comfort from very cold to hot, visibility, weather, surface, depth band, water temperature band, time of day, cylinder volume) split into the levels below a boundary and the levels above it, tried at every boundary: "moderate or stronger" against "none to mild".
+- Fields with an order (current, surge, workload, thermal comfort from very cold to hot, visibility, weather, surface, depth band, water temperature band, time of day, dive of the day, cylinder volume) split into the levels below a boundary and the levels above it, tried at every boundary: "moderate or stronger" against "none to mild".
+- Dive of the day is a dive's place among that day's dives by local date: first, second, or third or later together, as few days have a third. Every logged dive counts for the place, ignored ones too, so a second dive stays second, but refused drafts don't, as they aren't numbered either; dives starting at the same minute keep the Log's order.
 - Fields with no order (entry, gas, cylinder material, region, site, month) set one value against all the others: "in March" against every other month. Months are taken across years, so March is every March.
 - People, dive centres, trips and tags set the dives with that one against the dives without it, so "with Sam" counts every dive Sam was on, whoever else came. A site with no region has none, so it drops out of the region rule.
 
