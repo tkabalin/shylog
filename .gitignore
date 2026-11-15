@@ -1,5 +1,5 @@
 # Private planning material; public-facing parts move into the repo as needed
-planning/
+/planning/
 
 # Dependencies
 node_modules/

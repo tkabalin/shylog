@@ -4,13 +4,15 @@
 
 ## General rules
 
-`docs/SPEC.md` is the source of truth for the **backend spec, implementation details, and tech stack**
+`docs/planning/SPEC.md` is the source of truth for the **backend spec, implementation details, and tech stack**
 
-The Claude Design hi-fi wireframes in `docs/design/hifi/` are the source of truth for the **UI/UX**. `docs/design/NOTES.md` lists where they contradict the spec
+The Claude Design hi-fi wireframes in `docs/planning/design/hifi/` are the source of truth for the **UI/UX**. `docs/planning/design/NOTES.md` lists where they contradict the spec
 
 - For example, if a field is not shown on the wireframes but is mention in the spec, presume the spec is outdated BUT flag this to the user
 
 - However, follow implementation details in the SPEC, such as to use shadcn components, rather than copying the code of components exactly from the wireframes
+
+The topic docs in `docs/` (and the README) are the public write-up for the owner's portfolio: selective, present tense, with the reasons. A change that alters something one of them describes updates it in the same commit; detail they leave out belongs only in the spec.
 
 **Subsurface as a reference**: Shylog is not a recreation of Subsurface, but Subsurface's open-source code ([subsurface/subsurface](https://github.com/subsurface/subsurface)) is a useful reference. The goal of this project is not to reinvent the wheel, but rather create a dive logging app that suits my needs with an attractive UI. When building Shylog, Claude can check it for ideas or advice on technical problems such as profile scaling, sample handling, UDDF, and dive computer data, so problems it has already solved are not solved again. The profile chart rules in the spec came from `core/profile.cpp` and `profile-widget/`.
 
@@ -53,7 +55,7 @@ The Claude Design hi-fi wireframes in `docs/design/hifi/` are the source of trut
 
 ## Workflow
 
-- A milestone is done only when typecheck, lint, and tests pass and its acceptance criteria in `docs/PLAN.md` are met. Show the evidence (test output, screenshots) rather than asserting it.
+- A milestone is done only when typecheck, lint, and tests pass and its acceptance criteria in `docs/planning/PLAN.md` are met. Show the evidence (test output, screenshots) rather than asserting it.
 - For UI work, run the app and take a Playwright screenshot at phone width (390px) to compare with the matching design screen.
 - Use conventional commits.
 - Do not push without asking.

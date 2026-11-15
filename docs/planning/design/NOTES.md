@@ -93,7 +93,7 @@ The hi-fi wireframes were drawn before some spec rules were settled, and their m
 
 ## Decisions taken after the boards
 
-These were settled while planning the build (see the decisions in `docs/PLAN.md`) and the boards have not been redrawn for them.
+These were settled while planning the build (see the decisions in `docs/planning/PLAN.md`) and the boards have not been redrawn for them.
 
 - Entity detail saves with an explicit Save action that appears when a field changes, as the Certifications edit screen does; You's sections save as you go. A colliding rename shows the error under the Details card, with the merge as a row of its own below it. The boards have bare inputs.
 - Every field whose hand value differs from the computer's gets the ✓ "Use D4i value" / ✕ "Keep mine" group (start time, max depth, average depth, duration, temperatures, gas). A field holding a computer or calculated value has a cyan bar down its row's left edge, keyed by a note under the card, rather than the board's icon beside each label; once edited, the bar gives way to "Reset to the D4i value". `EditDiveHifi` draws the group only for start time and duration.
