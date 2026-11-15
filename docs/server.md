@@ -89,11 +89,25 @@ The journal can't rebuild certification card images, which are files beside the 
 
 The rollback is safe because of the migration rule: a new server that has already migrated the database leaves a schema the old server refuses to start on, so the old image never writes to a database it doesn't understand. In that case the app is left stopped, and the script prints the restore command for the snapshot it took first. Its exit code says which of the three happened.
 
+## The MCP endpoint
+
+The same process serves an MCP server at `/mcp`, so Claude Code, and Claude Desktop through a small extension, can look a dive up, search the log, log and edit dives, and tidy sites, people, dive centres and trips from a chat. It is a second way in, not a second set of rules: reads come from the same log the app downloads, and each write goes through the same apply functions as a draft upload or an edit, in one journalled transaction. The derived pass and a restore's replay can't tell a dive Claude logged from one the app did.
+
+**Stateless.** Each request gets a fresh server through the MCP SDK's handler, so nothing is kept between calls and a restart loses nothing.
+
+**The app's units, named.** Tools take and give `durationMin`, `maxDepthM` and `oxygenPercent`, never the database's seconds and tenths of a per cent under bare names, where 47 minutes sent as 47 seconds would pass validation. A parameter a tool doesn't know is refused, so a misnamed one can't quietly save a dive without its value.
+
+**Hand beats computer, still.** Everything Claude enters is a hand value. A value sent back exactly as it was read is dropped first, so a figure the server worked out, such as the surface interval or an average depth from the samples, doesn't turn into the diver's own by being repeated.
+
+**No deleting.** There are no tools to delete or restore a dive or to delete a site or person. Those stay in the app, where the diver sees what goes.
+
+Who may call it is in [security.md](security.md#the-mcp-endpoint).
+
 ## Logging
 
 The server writes one JSON object per line to stdout with pino, so Docker collects it and any log shipper, such as Grafana Alloy into Loki, picks it up with no configuration in Shylog. Every line carries its level, an `event` name, the instance (its `TS_HOSTNAME`) and the version (the commit the image was built from), so lines from two instances in one log store are told apart.
 
-**Request ids from the phone.** The app sends an `X-Request-Id` with every API call. The server keeps it if it is well formed, makes one if not, echoes it on the response, and holds it in async context so code deep inside an import logs under the same id without being handed a logger. Each `/api` request logs one line with its method, route, status, duration and request id, and a refused request adds its reason.
+**Request ids from the phone.** The app sends an `X-Request-Id` with every API call. The server keeps it if it is well formed, makes one if not, echoes it on the response, and holds it in async context so code deep inside an import logs under the same id without being handed a logger. Each `/api` and `/mcp` request logs one line with its method, route, status, duration and request id, and a refused request adds its reason. Each MCP tool call adds a line with the tool, its outcome and its duration, never its arguments.
 
 **Errors from the phone.** The app reports its own failures (failed syncs, rejected drafts, code that failed to load, uncaught errors) to `POST /api/client-log`, which logs them beside the server's lines under the id of the call that failed, so one query finds both sides of a problem. Reports are capped in size and rate, never queued offline, and write nothing to the database.
 

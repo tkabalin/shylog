@@ -6,13 +6,14 @@ What Shylog is built with, layer by layer, and why each piece was chosen. How th
 
 Shylog is a progressive web app for one diver, served by a small Node server on a home server and reached only over Tailscale. The phone keeps a read-only copy of the log and any new dives not yet uploaded, so it opens and logs dives with no signal. The server owns the data: it is the only thing that writes the SQLite database, it journals every write, and it exports the whole log as UDDF and CSV each night. The [README](../README.md#architecture) has a diagram.
 
-Everything is TypeScript, in a pnpm workspace of three packages:
+Everything is TypeScript, in a pnpm workspace of four packages:
 
-| Package         | Holds                                                                                                     |
-| --------------- | --------------------------------------------------------------------------------------------------------- |
-| `apps/web`      | The React PWA                                                                                             |
-| `apps/server`   | The Hono server, the database, imports, exports, backups and the dive computer download                   |
-| `packages/core` | Zod schemas, name normalisation, unit conversion and every dive calculation, shared by the app and server |
+| Package               | Holds                                                                                                     |
+| --------------------- | --------------------------------------------------------------------------------------------------------- |
+| `apps/web`            | The React PWA                                                                                             |
+| `apps/server`         | The Hono server, the database, imports, exports, backups and the dive computer download                   |
+| `apps/claude-desktop` | The Claude Desktop extension, a small bridge from Desktop to an instance's MCP server                     |
+| `packages/core`       | Zod schemas, name normalisation, unit conversion and every dive calculation, shared by the app and server |
 
 **One language, one core.** A dive's SAC rate, CNS or surface interval has to come out the same on the phone as in the server's export and statistics. Writing those calculations once, in `packages/core`, and importing them on both sides is what guarantees it. The same goes for validation: a draft is checked against the same schema on the phone before it is queued and on the server before it is applied.
 
@@ -55,6 +56,7 @@ Everything is TypeScript, in a pnpm workspace of three packages:
 | UDDF          | @xmldom/xmldom 0.9                            |
 | CSV           | csv-parse 7, to check each export             |
 | Logging       | pino 10                                       |
+| MCP           | The MCP TypeScript SDK 2, stateless over HTTP |
 | Build         | tsup 9                                        |
 | Dive computer | `dctool` from libdivecomputer 0.9.0           |
 
