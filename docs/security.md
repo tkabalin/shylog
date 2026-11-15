@@ -11,6 +11,7 @@ An instance holds one diver's log: dates and places of dives, the names of buddi
 | Anyone on the internet                       | They can't: the app has no public address                     | Tailscale, and a container that listens only inside the sidecar's network          |
 | Other people on the tailnet                  | Through the tailnet, if the policy lets them                  | The tailnet policy, then the allow-list of logins                                  |
 | A website open in the diver's browser        | Through the diver's own browser, which can reach the tailnet  | The `X-Shylog` header, the `Origin` check and the content type check               |
+| A website aiming at the MCP endpoint         | Through the diver's own browser, as above                     | `/mcp` refuses any request with an `Origin`, and any body but JSON                 |
 | A crafted import file                        | Uploaded by the diver, believing it to be a Subsurface export | Size caps, a strict reader, and scrubbing of anything passed through to the export |
 | A bug or a compromised dependency in the app | Running inside the container                                  | A read-only, unprivileged container with no capabilities                           |
 
@@ -42,9 +43,17 @@ The tailnet keeps strangers out, but not the diver's own browser. Any website op
 
 None of this needs a token, a cookie or a session, which an app with no accounts doesn't have.
 
-## Checks apply to `/api/*` only
+## The MCP endpoint
 
-The checks run only on the API. The app's HTML, scripts, manifest and service worker are fetched by the browser itself, which can't add a custom header to them, and they hold no dive data: the app's code is public in the repo anyway. Everything with data in it, from the log to a certification card image, is under `/api` and passes every check. The health endpoint is no exception, so even the instance's dive count needs an allowed login.
+Claude Code and Claude Desktop reach the log through an MCP server at `/mcp` (see [server.md](server.md#the-mcp-endpoint)). It takes the same allowed login as the API, so it is open to the same people and no one else. It can't ask for `X-Shylog`, which an MCP client doesn't send, so it closes the browser route another way: only Claude's clients call it, and none of them is a browser, so any request carrying an `Origin` is refused, as every cross-site POST from a page does, along with any body that isn't JSON.
+
+Refusals are `403`, never `401`, and `/.well-known/` is a `404`. An MCP client takes a `401` or a discovery document as a cue to start a sign-in, and there is none to give it.
+
+The endpoint is as private as the app: Claude on the phone and claude.ai connect from Anthropic's cloud, which can't reach the tailnet, so only Claude running on a tailnet device can use it.
+
+## Static files need no checks
+
+The API's and the MCP endpoint's checks don't run on the app's own files. The app's HTML, scripts, manifest and service worker are fetched by the browser itself, which can't add a custom header to them, and they hold no dive data: the app's code is public in the repo anyway. Everything with data in it, from the log to a certification card image, is under `/api` or behind `/mcp`, and passes that side's checks. The health endpoint is no exception, so even the instance's dive count needs an allowed login.
 
 ## The development bypass
 

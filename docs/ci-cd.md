@@ -53,7 +53,7 @@ This works together with Playwright's settings for CI. A failed test is retried 
 
 Repeating only the changed specs leaves a gap: a change to the app can bring a race into a spec it didn't touch, which then fails at random on `main`. `soak.yml` closes it by running the whole browser suite five times over each night, in three shards. It is scheduled at 00:17 UTC, off the hour, as GitHub drops scheduled runs under load, and can be started by hand.
 
-A night with nothing new to find is skipped. If only docs, `.claude/` or Markdown files changed since the last soak that passed, the soak job doesn't run, and the skipped night counts as passing so the comparison carries forward. Anything that can't be checked, such as a failed fetch of the old commit, soaks anyway.
+A night with nothing new to find is skipped. If only docs, `.claude/`, Markdown files or the Claude Desktop extension, which no browser test touches, changed since the last soak that passed, the soak job doesn't run, and the skipped night counts as passing so the comparison carries forward. Anything that can't be checked, such as a failed fetch of the old commit, soaks anyway.
 
 When a soak on `main` fails, a report job reads each shard's JSON results and opens one issue per failing test, or comments on that test's existing issue, so each flake is fixed and closed on its own. More than five failing tests in a night is treated as something broken, not that many flakes, and gets a single issue for the night.
 
