@@ -89,14 +89,15 @@ describe("the Offline storage row and sheet", () => {
       "button[aria-label^='Offline storage']"
     )!
 
-  it("shows Protected once the browser keeps the data", async () => {
+  it("shows a shield once the browser keeps the data", async () => {
     await readProtection(browser())
     await protect(browser())
     render()
     expect(row().getAttribute("aria-label")).toBe(
       "Offline storage, protected. More about this"
     )
-    expect(row().textContent).toContain("Protected")
+    expect(row().textContent).not.toContain("Protected")
+    expect(row().querySelector(".tabler-icon-shield-check")).not.toBeNull()
     expect(row().textContent).toContain(
       "Dives saved on this device won’t be cleared"
     )
@@ -144,7 +145,9 @@ describe("the Offline storage row and sheet", () => {
     )!
     await act(async () => keep.click())
     expect(storage.persist).toHaveBeenCalledOnce()
-    expect(row().textContent).toContain("Protected")
+    expect(row().getAttribute("aria-label")).toBe(
+      "Offline storage, protected. More about this"
+    )
     vi.unstubAllGlobals()
   })
 

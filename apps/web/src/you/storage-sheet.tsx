@@ -58,16 +58,14 @@ export function StorageRow() {
           }
           // No Keep them safe pill when it isn't, as SettingsHifi draws one:
           // the warning and the chevron already say it, and on iOS the
-          // sheet has no such button.
+          // sheet has no such button. When it is, the shield alone, as the
+          // line under the label says what it means.
           value={
             ok ? (
-              <span className="inline-flex items-center gap-1.25">
-                <IconShieldCheck
-                  aria-hidden
-                  className="size-4 shrink-0 text-primary"
-                />
-                Protected
-              </span>
+              <IconShieldCheck
+                aria-hidden
+                className="size-4.5 shrink-0 text-primary"
+              />
             ) : null
           }
           chevron
