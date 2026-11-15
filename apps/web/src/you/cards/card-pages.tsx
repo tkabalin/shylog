@@ -357,10 +357,16 @@ export function CardPages({
       const inside = Math.min(limit, Math.max(-limit, scaled))
       if (momentum && inside === scaled && !reduce) {
         // Slowing as a scroll does, and springing back off an edge it
-        // runs into.
-        animate(value, scaled, {
+        // runs into. Aimed where it will rest: Motion skips an inertia whose
+        // only keyframe is where the value already is.
+        const velocity = value.getVelocity()
+        const end = Math.min(
+          limit,
+          Math.max(-limit, scaled + inertia.power * velocity)
+        )
+        animate(value, end, {
           ...inertia,
-          velocity: value.getVelocity(),
+          velocity,
           min: -limit,
           max: limit,
         })
