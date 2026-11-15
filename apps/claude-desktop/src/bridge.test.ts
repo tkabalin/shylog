@@ -69,6 +69,12 @@ beforeAll(async () => {
     }
     // Never answers, as an instance gone quiet.
     if (request.url === "/silent/mcp") return
+    // Starts a streamed reply, then stalls before any message.
+    if (request.url === "/stalled/mcp") {
+      response.writeHead(200, { "Content-Type": "text/event-stream" })
+      response.flushHeaders()
+      return
+    }
     const chunks: Buffer[] = []
     for await (const chunk of request) chunks.push(chunk as Buffer)
     const body = Buffer.concat(chunks)
@@ -145,12 +151,16 @@ describe("the bridge", () => {
     ],
     ["down", "Shylog at 127.0.0.1:\\d+ answered with an error"],
     ["silent", "didn't answer within 0.2 s; check that Tailscale is connected"],
+    [
+      "stalled",
+      "didn't answer within 0.2 s; check that Tailscale is connected",
+    ],
   ])("tells Claude when the instance is %s", async (path, message) => {
     // Short only where nothing answers, so a slow machine still sees the
     // other answers before it.
     const pipe = await inProcess(
       url(`/${path}`),
-      path === "silent" ? 200 : undefined
+      path === "silent" || path === "stalled" ? 200 : undefined
     )
     pipe.send(initialize)
     const answer = (await pipe.reply(1)) as { error: { message: string } }
