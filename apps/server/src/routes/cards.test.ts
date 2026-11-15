@@ -33,10 +33,16 @@ const files = (id = "card-padi") =>
 function put(
   name: string,
   images: (Uint8Array<ArrayBuffer> | string)[],
-  id = "card-padi"
+  id = "card-padi",
+  thumb?: unknown
 ) {
   const form = new FormData()
   form.append("name", name)
+  if (thumb !== undefined)
+    form.append(
+      "thumb",
+      typeof thumb === "string" ? thumb : JSON.stringify(thumb)
+    )
   for (const image of images) {
     if (typeof image === "string") form.append("images", image)
     else form.append("images", new Blob([image]), "card.png")
@@ -54,6 +60,7 @@ const listed = async () =>
     id: string
     name: string
     images: string[]
+    thumb: unknown
   }[]
 const version = async (res: Response) =>
   ((await res.json()) as { version: string }).version
@@ -65,7 +72,7 @@ describe("PUT /api/cards/:id", () => {
     const hashes = [hashOf(png(1)), hashOf(jpeg)]
     expect(files()).toEqual([...hashes].sort())
     expect(await listed()).toEqual([
-      { id: "card-padi", name: "PADI Open Water", images: hashes },
+      { id: "card-padi", name: "PADI Open Water", images: hashes, thumb: null },
     ])
     const log = (await (await get("/api/log")).json()) as { cards: unknown }
     expect(log.cards).toEqual(await listed())
@@ -81,8 +88,98 @@ describe("PUT /api/cards/:id", () => {
           { hash: hashes[1], contentType: "image/jpeg" },
         ],
         first: true,
+        thumb: null,
       }),
     })
+  })
+
+  it("keeps a crop under the hash of the first page as sent", async () => {
+    const crop = { x: 0.5, y: 0.3, scale: 2.5, aspect: 0.46 }
+    await put("PADI", [png(1), jpeg], "card-padi", crop)
+    const thumb = { hash: hashOf(png(1)), ...crop }
+    expect((await listed())[0].thumb).toEqual(thumb)
+    const log = (await (await get("/api/log")).json()) as {
+      cards: { thumb: unknown }[]
+    }
+    expect(log.cards[0].thumb).toEqual(thumb)
+    const op = db
+      .prepare("SELECT payload FROM ops ORDER BY seq DESC")
+      .pluck()
+      .get() as string
+    expect(JSON.parse(op).thumb).toEqual(thumb)
+
+    // Another page first, the crop sent is that page's.
+    await put("PADI", [hashOf(jpeg), hashOf(png(1))], "card-padi", crop)
+    expect((await listed())[0].thumb).toEqual({ hash: hashOf(jpeg), ...crop })
+  })
+
+  it("keeps the stored crop when none is sent, while its page stays first", async () => {
+    const crop = { x: 0.5, y: 0.3, scale: 2.5, aspect: 0.46 }
+    const [front, back] = [hashOf(png(1)), hashOf(jpeg)]
+    await put("PADI", [png(1), jpeg], "card-padi", crop)
+    // A rename from an app that never touched the crop.
+    await put("PADI Open Water", [front, back])
+    expect((await listed())[0].thumb).toEqual({ hash: front, ...crop })
+    // Journalled as stored, so a replay needn't know what was there.
+    const op = db
+      .prepare("SELECT payload FROM ops ORDER BY seq DESC")
+      .pluck()
+      .get() as string
+    expect(JSON.parse(op).thumb).toEqual({ hash: front, ...crop })
+    // Once another page is first it no longer fits, so it goes.
+    await put("PADI Open Water", [back, front])
+    expect((await listed())[0].thumb).toBeNull()
+  })
+
+  it("clears the crop when sent null", async () => {
+    const crop = { x: 0.5, y: 0.3, scale: 2.5, aspect: 0.46 }
+    await put("PADI", [png(1)], "card-padi", crop)
+    await put("PADI", [hashOf(png(1))], "card-padi", null)
+    expect((await listed())[0].thumb).toBeNull()
+  })
+
+  it("writes nothing for the same crop again, and a new version for a new one", async () => {
+    const crop = { x: 0.5, y: 0.3, scale: 2.5, aspect: 0.46 }
+    const first = await version(await put("PADI", [png(1)], "card-padi", crop))
+    const hash = hashOf(png(1))
+    expect(await version(await put("PADI", [hash], "card-padi", crop))).toBe(
+      first
+    )
+    expect(await version(await put("PADI", [hash]))).toBe(first)
+    const moved = { ...crop, x: 0.6 }
+    expect(
+      await version(await put("PADI", [hash], "card-padi", moved))
+    ).not.toBe(first)
+    expect((await listed())[0].thumb).toEqual({ hash, ...moved })
+  })
+
+  it("refuses a crop out of range, not JSON, or sent as a file", async () => {
+    const bad: unknown[] = [
+      { x: 1.2, y: 0.5, scale: 1, aspect: 1 },
+      { x: 0.5, y: 0.5, scale: 0.5, aspect: 1 },
+      { x: 0.5, y: 0.5, scale: 2 },
+      { x: 0.5, y: 0.5, scale: 2, aspect: 1, hash: "0123456789abcdef" },
+      "{",
+      "",
+    ]
+    for (const thumb of bad) {
+      expect((await put("PADI", [png(1)], "card-padi", thumb)).status).toBe(400)
+    }
+    expect(
+      await (await put("PADI", [png(1)], "card-padi", "{")).json()
+    ).toEqual({ error: "The thumbnail isn’t valid JSON", path: ["thumb"] })
+    const form = new FormData()
+    form.append("name", "PADI")
+    form.append("images", new Blob([png(1)]), "card.png")
+    form.append("thumb", new Blob(["{}"]), "thumb.json")
+    const res = await app.request("/api/cards/card-padi", {
+      method: "PUT",
+      headers: { ...apiHeaders, Origin: origin },
+      body: form,
+    })
+    expect(res.status).toBe(400)
+    expect(await listed()).toEqual([])
+    expect(files()).toEqual([])
   })
 
   it("reorders by hash without uploading, and replaces an image", async () => {

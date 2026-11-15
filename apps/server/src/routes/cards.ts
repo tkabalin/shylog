@@ -45,6 +45,17 @@ async function page(sent: string | File, i: number): Promise<Page> {
   return { bytes, contentType }
 }
 
+// The crop travels as one JSON field beside the files; anything else in its
+// place is left for the schema to refuse.
+function thumbField(sent: unknown) {
+  if (typeof sent !== "string") return sent
+  try {
+    return JSON.parse(sent) as unknown
+  } catch {
+    throw new Rejected("The thumbnail isn’t valid JSON", 400, ["thumb"])
+  }
+}
+
 export const cards = factory
   .createApp()
   .get("/cards", (c) => c.json(readCards(c.var.deps.db)))
@@ -74,7 +85,10 @@ export const cards = factory
       const { db, env } = c.var.deps
       const id = parse(idSchema("card"), c.req.param("id"))
       const form = await c.req.parseBody({ all: true })
-      const { name } = parse(cardFieldsSchema, { name: form.name })
+      const { name, thumb } = parse(cardFieldsSchema, {
+        name: form.name,
+        thumb: thumbField(form.thumb),
+      })
       const pages = await Promise.all(
         [form.images ?? []].flat().map((sent, i) => page(sent, i))
       )
@@ -85,6 +99,7 @@ export const cards = factory
           id,
           name,
           pages,
+          thumb,
           (apply, entry) => change(db, apply, entry, false)
         )
       )

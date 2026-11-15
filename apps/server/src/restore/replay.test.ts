@@ -16,6 +16,7 @@ import { copyOf, testDb } from "../../test/db.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
 import { applyDraft } from "../apply/draft.ts"
 import { putEntity } from "../apply/entity.ts"
+import { hashOf } from "../cards/store.ts"
 import { initial } from "../db/migrations/001-initial.ts"
 import { migrate, migrations } from "../db/migrate.ts"
 import { applyImport } from "../import/apply.ts"
@@ -35,10 +36,12 @@ function liveApp() {
   const putCard = (
     name: string,
     images: (Uint8Array<ArrayBuffer> | string)[],
-    id = "card-padi"
+    id = "card-padi",
+    thumb?: { x: number; y: number; scale: number; aspect: number }
   ) => {
     const form = new FormData()
     form.append("name", name)
+    if (thumb) form.append("thumb", JSON.stringify(thumb))
     for (const image of images) {
       form.append(
         "images",
@@ -152,8 +155,15 @@ describe("replay", () => {
     const second = cards[0].images[1]
     await ok(putCard("PADI Open Water Diver", [second]))
     await ok(putCard("PADI Open Water Diver", [second, png(3)]))
-    // New, so first, then put after the PADI card.
-    await ok(putCard("SSI Nitrox", [png(4)], "card-ssi"))
+    // New, so first, then put after the PADI card; its crop is replayed too.
+    await ok(
+      putCard("SSI Nitrox", [png(4)], "card-ssi", {
+        x: 0.4,
+        y: 0.2,
+        scale: 3,
+        aspect: 1,
+      })
+    )
     await ok(
       send(app, "PUT", "/api/cards/order", { ids: ["card-padi", "card-ssi"] })
     )
@@ -213,6 +223,20 @@ describe("replay", () => {
     )
     // Including the dive's deleted_at, from the time first applied.
     expect(compare(snapshot, db)).toEqual([])
+    expect(
+      snapshot
+        .prepare("SELECT thumb FROM certifications WHERE id = 'card-ssi'")
+        .pluck()
+        .get()
+    ).toEqual(
+      JSON.stringify({
+        hash: hashOf(png(4)),
+        x: 0.4,
+        y: 0.2,
+        scale: 3,
+        aspect: 1,
+      })
+    )
   })
 
   it("replays remembering a watch, its download's marker and forgetting it", async () => {
