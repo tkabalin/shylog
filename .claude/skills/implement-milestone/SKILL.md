@@ -1,13 +1,13 @@
 ---
 name: implement-milestone
-description: Implement one milestone from docs/PLAN.md end to end, from spec to a reviewed branch and a drafted PR.
+description: Implement one milestone from docs/planning/PLAN.md end to end, from spec to a reviewed branch and a drafted PR.
 argument-hint: <milestone number>
 disable-model-invocation: true
 ---
 
 # Implement a milestone
 
-Implement milestone `$ARGUMENTS` from `docs/PLAN.md`. If that isn't a milestone number in the plan, ask which one. The milestone is done when its acceptance criteria are met with evidence, the branch has passed two review rounds, and the user has a PR description to approve. Never push or open the PR without asking in that turn.
+Implement milestone `$ARGUMENTS` from `docs/planning/PLAN.md`. If that isn't a milestone number in the plan, ask which one. The milestone is done when its acceptance criteria are met with evidence, the branch has passed two review rounds, and the user has a PR description to approve. Never push or open the PR without asking in that turn.
 
 The word "milestone" stays out of code comments, commit messages, branch names, and the PR title and body. Describe the change itself.
 
@@ -15,8 +15,8 @@ Every shell needs `source ~/.nvm/nvm.sh; nvm use` first (`.nvmrc` pins Node 24).
 
 ## 1. Load context
 
-- Read `CLAUDE.md`, then from `docs/PLAN.md`: the conventions at the top, the decisions table, "Milestones at a glance", this milestone's section, and the previous milestone's **Notes for the next session**.
-- Read the `docs/SPEC.md` sections the milestone's **Implements** line names, the boards it names in `docs/design/hifi/`, and `docs/design/NOTES.md`.
+- Read `CLAUDE.md`, then from `docs/planning/PLAN.md`: the conventions at the top, the decisions table, "Milestones at a glance", this milestone's section, and the previous milestone's **Notes for the next session**.
+- Read the `docs/planning/SPEC.md` sections the milestone's **Implements** line names, the boards it names in `docs/planning/design/hifi/`, and `docs/planning/design/NOTES.md`.
 - Check the **Depends on** column in "Milestones at a glance" against the codebase, not the checklist ticks: for each milestone listed, the files its **Touches** line names exist and its acceptance criteria look met. Any other prerequisite there (a fixture, figures the owner records) must be met too. If something is missing, stop and say so.
 
 ## 2. Preflight
@@ -30,7 +30,7 @@ Collect anything the build would otherwise guess at: spec against board conflict
 
 ## 4. Docs first
 
-Decisions from step 3 that change `docs/SPEC.md`, `docs/PLAN.md` or `CLAUDE.md` go in a `docs:` commit before any code, so the spec stays the source of truth. Docs that describe new code follow that code in their own commit.
+Decisions from step 3 that change `docs/planning/SPEC.md`, `docs/planning/PLAN.md` or `CLAUDE.md` go in a `docs:` commit before any code, so the spec stays the source of truth. Docs that describe new code follow that code in their own commit.
 
 ## 5. Build
 
@@ -61,7 +61,7 @@ Round two reviews the branch after round one's fixes.
 
 ## 8. Wrap up
 
-- In `docs/PLAN.md`, tick the milestone's checklist and add **Notes for the next session** under it: decisions made, and anything deferred or to watch, carrying over whatever is still open from the previous notes. Commit them on the branch in a `docs:` commit, so they land with the PR.
+- In `docs/planning/PLAN.md`, tick the milestone's checklist and add **Notes for the next session** under it: decisions made, and anything deferred or to watch, carrying over whatever is still open from the previous notes. Commit them on the branch in a `docs:` commit, so they land with the PR.
 - Save new gotchas or decisions to project memory.
 - Draft the PR description in the scratchpad with these sections: Summary, Decisions to review, Versions (table with reasons), Review (fixed / left as is), Test plan. End it with `🤖 Generated with [Claude Code](https://claude.com/claude-code)`. No "milestone" in the title or body.
 - Report to the user: the check output, the screenshot and comparison paths, the PR description path, and what needs their decision. Then ask permission to push and open the PR (`gh.exe pr create`).

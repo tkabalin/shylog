@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Restores one instance from a nightly snapshot (see Restores in
-# docs/SPEC.md and the README). With --replay-to, the moved-aside journal is
+# docs/planning/SPEC.md and the README). With --replay-to, the moved-aside journal is
 # replayed up to that sequence number, or all of it.
 # Usage: scripts/restore.sh <instance> <snapshot> [--replay-to <seq>|all]
 set -euo pipefail

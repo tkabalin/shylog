@@ -211,7 +211,7 @@ describe("the calculated block", () => {
       { waterType: "salt" }
     )
     expect(typed.sac).toBe(expected)
-    // About 11.2 to 11.3 L/min, as docs/design/NOTES.md works it out.
+    // About 11.2 to 11.3 L/min, as docs/planning/design/NOTES.md works it out.
     expect(typed.sac!.toFixed(1)).toBe("11.3")
   })
 

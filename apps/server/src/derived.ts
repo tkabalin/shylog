@@ -45,7 +45,7 @@ export function sampleTemperatures(samples: readonly Sample[]) {
 
 // Recalculates every dive's number, surface interval, average depth,
 // temperatures, CNS and OTU in one pass, inside the caller's write. Fine at
-// hundreds of dives; see docs/PLAN.md before reaching for anything finer.
+// hundreds of dives; see docs/planning/PLAN.md before reaching for anything finer.
 export function recalculate(db: Db) {
   const rows = prepared<[], Row>(
     db,

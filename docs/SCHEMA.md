@@ -1,6 +1,6 @@
 # Database schema
 
-The SQLite schema as built by the migrations in `apps/server/src/db/migrations/`. Columns are in database units (see Units in [SPEC.md](SPEC.md)): metres, seconds, °C, bar, millilitres, and oxygen in tenths of a per cent. Times are local wall-clock strings with no zone.
+The SQLite schema as built by the migrations in `apps/server/src/db/migrations/`. Columns are in database units (see Units in [SPEC.md](planning/SPEC.md)): metres, seconds, °C, bar, millilitres, and oxygen in tenths of a per cent. Times are local wall-clock strings with no zone.
 
 ## Logbook
 

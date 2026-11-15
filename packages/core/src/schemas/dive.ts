@@ -261,7 +261,7 @@ export type DraftDiveFields = z.output<typeof draftDiveFieldsSchema>
 
 // Rules that span fields apply when the patch holds both. The server checks
 // the rest against the saved dive, and clears stored training details or
-// oxygen when the dive stops being Training or nitrox (see docs/PLAN.md).
+// oxygen when the dive stops being Training or nitrox (see docs/planning/PLAN.md).
 export const diveFieldsPatch = z
   .strictObject(
     patchShape({ ...required, ...defaultedDiveFields }, optionalDiveFields)

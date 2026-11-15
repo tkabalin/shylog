@@ -21,7 +21,7 @@ Each patch must apply to the commit's own version of the file. If `git apply` fa
 
 ## Putting the app next to a board
 
-The boards in `docs/design/hifi/` need Claude Design's runtime (`support.js`) to render, so they can't be opened directly.
+The boards in `docs/planning/design/hifi/` need Claude Design's runtime (`support.js`) to render, so they can't be opened directly.
 
 1. From the board, copy the `<style>` block inside `<helmet>` and the markup for the part being compared. Replace `{{...}}` bindings with the board's default values, which are in its `data-props` and `renderVals()`. Drop `<sc-if>`/`<sc-for>` wrappers, keeping the branch the board shows by default.
 2. Wrap it in a page whose root element has the classes the board's root class expression produces for its defaults (for `LogHifi2`, `xiess sl cyan`, adding `dark` for dark mode). Load Geist from Google Fonts.
