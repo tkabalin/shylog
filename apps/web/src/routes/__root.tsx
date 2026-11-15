@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { createRootRoute, Outlet } from "@tanstack/react-router"
 
 import { cn } from "cn"
@@ -8,7 +9,11 @@ import {
   useImportStep,
   useOnForm,
 } from "@/components/app-nav"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import {
+  SidebarInset,
+  SidebarProvider,
+  sidebarFold,
+} from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { UpdateToast } from "@/update"
 
@@ -16,11 +21,17 @@ export const Route = createRootRoute({
   component: RootLayout,
 })
 
+// shadcn's sidebar cookie, which a server render would read and pass in as
+// defaultOpen; Shylog has none, so the first render reads it here.
+const sidebarOpen = () =>
+  !/(?:^|; )sidebar_state=false(?:;|$)/.test(document.cookie)
+
 function RootLayout() {
   const onForm = useOnForm()
   const step = useImportStep()
+  const [defaultOpen] = useState(sidebarOpen)
   return (
-    <SidebarProvider className="h-full">
+    <SidebarProvider defaultOpen={defaultOpen} className="h-full">
       <AppSidebar />
       {/* viewport-fit=cover lets the page run under the notch. Each page
           keeps its own top to the safe area, so its sticky bars cover the
@@ -44,10 +55,14 @@ function RootLayout() {
       </SidebarInset>
       {/* Opaque over the status bar, so iOS never draws its top edge blur:
           WebKit drops it only for a fixed or sticky opaque full-width box at
-          the top, so this stays mounted. Pages' top bars sit above it (z-30). */}
+          the top, so this stays mounted. Pages' top bars sit above it (z-30).
+          It follows the sidebar's width as the sidebar folds, in step. */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-x-0 top-0 z-20 h-[max(0.75rem,env(safe-area-inset-top))] bg-background desk:left-(--sidebar-width)"
+        className={cn(
+          "pointer-events-none fixed inset-x-0 top-0 z-20 h-[max(0.75rem,env(safe-area-inset-top))] bg-background transition-[left] desk:left-(--sidebar-offset)",
+          sidebarFold
+        )}
       />
       <BottomNav />
       <Toaster />

@@ -283,6 +283,46 @@ test.describe("at desktop width", () => {
     await expect(dialog).toBeHidden()
   })
 
+  test("folds the sidebar to a rail of icons, and keeps it folded", async ({
+    page,
+    browserName,
+  }) => {
+    await page.goto("/dive/new")
+    const sidebar = page.locator("[data-slot=sidebar-container]")
+    await expect(sidebar).toHaveCSS("width", "256px")
+    await page.getByRole("button", { name: "Collapse sidebar" }).click()
+    await expect(sidebar).toHaveCSS("width", "48px")
+    // Each icon is named in a tooltip beside it.
+    const nav = page.getByRole("navigation", { name: "Main" })
+    await nav.getByRole("link", { name: "Stats" }).hover()
+    await expect(page.locator("[data-slot=tooltip-content]")).toHaveText(
+      "Stats"
+    )
+    // A dialog centres beside the rail, over the form.
+    await page.getByRole("button", { name: /^Surface interval/ }).click()
+    const dialog = page.getByRole("dialog", { name: "Surface interval" })
+    await still(dialog)
+    const box = (await dialog.boundingBox())!
+    const main = (await page.locator("#main").boundingBox())!
+    expect(box.x + box.width / 2).toBeCloseTo(main.x + main.width / 2, 0)
+    // The shortcut leaves the sidebar alone under a dialog. WebKit runs as
+    // Safari on a Mac, which takes ⌘B; Chromium as Windows, Ctrl+B.
+    const shortcut = browserName === "webkit" ? "Meta+b" : "Control+b"
+    await page.keyboard.press(shortcut)
+    await expect(sidebar).toHaveCSS("width", "48px")
+    await page.keyboard.press("Escape")
+    await expect(dialog).toBeHidden()
+    await expect(sidebar).toHaveCSS("width", "48px")
+
+    await page.reload()
+    await expect(sidebar).toHaveCSS("width", "48px")
+    await page.keyboard.press(shortcut)
+    await expect(sidebar).toHaveCSS("width", "256px")
+    await expect(
+      page.getByRole("button", { name: "Collapse sidebar" })
+    ).toBeVisible()
+  })
+
   test("starts a trip from a bar button and picks its dives in a dialog", async ({
     page,
   }) => {

@@ -4,7 +4,7 @@ import { useRender } from "@base-ui/react/use-render"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useDesk } from "@/hooks/use-desk"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -24,13 +24,23 @@ import {
 import { IconLayoutSidebar } from "@tabler/icons-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
+// A year rather than shadcn's week, so a fortnight away doesn't reset it.
+const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+// ⌘B on Apple devices, where Ctrl+B moves a text cursor back a letter.
+export const appleKeys = /Mac|iPhone|iPad/.test(navigator.userAgent)
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
 
+// The fold's timing, shared with what moves beside the sidebar (the top
+// strip, the toasts), so they stay in step.
+export const sidebarFold = "duration-200 ease-out motion-reduce:transition-none"
+
 type SidebarContextProps = {
   state: "expanded" | "collapsed"
+  // What the sidebar takes up now, for what centres beside it.
+  offset: string
   open: boolean
   setOpen: (open: boolean) => void
   openMobile: boolean
@@ -63,7 +73,10 @@ function SidebarProvider({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
-  const isMobile = useIsMobile()
+  // Off the desk: query rather than shadcn's 768px width, which a smaller
+  // default font puts apart from it, leaving neither sidebar nor tab bar.
+  const desk = useDesk()
+  const isMobile = !desk
   const [openMobile, setOpenMobile] = React.useState(false)
 
   // This is the internal state of the sidebar.
@@ -90,16 +103,40 @@ function SidebarProvider({
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
   }, [isMobile, setOpen, setOpenMobile])
 
-  // Shylog's sidebar never collapses, so shadcn's Ctrl/Cmd+B toggle is
-  // left out: it would swallow the browser's shortcut for no visible effect.
+  // Only where the sidebar shows (desk:), so a phone with a keyboard never
+  // opens the sheet shadcn would give it; not from a dialog, which would
+  // jump sideways as the sidebar under it folds, nor a text field, whose
+  // own Ctrl+B it would take; once per press, not held.
+  React.useEffect(() => {
+    if (!desk) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        // Lower-cased, as Caps Lock makes it "B".
+        event.key.toLowerCase() === SIDEBAR_KEYBOARD_SHORTCUT &&
+        !event.repeat &&
+        (appleKeys ? event.metaKey : event.ctrlKey) &&
+        !(event.target as Element).closest?.(
+          "[role=dialog], [role=alertdialog], input, textarea, select, [contenteditable]"
+        )
+      ) {
+        event.preventDefault()
+        toggleSidebar()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [desk, toggleSidebar])
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed"
+  const offset = open ? SIDEBAR_WIDTH : SIDEBAR_WIDTH_ICON
 
   const contextValue = React.useMemo<SidebarContextProps>(
     () => ({
       state,
+      offset,
       open,
       setOpen,
       isMobile,
@@ -107,7 +144,16 @@ function SidebarProvider({
       setOpenMobile,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [
+      state,
+      offset,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+    ]
   )
 
   return (
@@ -118,6 +164,7 @@ function SidebarProvider({
           {
             "--sidebar-width": SIDEBAR_WIDTH,
             "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
+            "--sidebar-offset": offset,
             ...style,
           } as React.CSSProperties
         }
@@ -131,6 +178,12 @@ function SidebarProvider({
       </div>
     </SidebarContext.Provider>
   )
+}
+
+// The same for what is portalled out of the provider, which context still
+// reaches; outside one (a component test), the open sidebar's width.
+function useSidebarOffset() {
+  return React.useContext(SidebarContext)?.offset ?? SIDEBAR_WIDTH
 }
 
 function Sidebar({
@@ -202,7 +255,8 @@ function Sidebar({
       <div
         data-slot="sidebar-gap"
         className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+          "relative w-(--sidebar-width) bg-transparent transition-[width]",
+          sidebarFold,
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
@@ -214,7 +268,8 @@ function Sidebar({
         data-slot="sidebar-container"
         data-side={side}
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] desk:flex",
+          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] desk:flex",
+          sidebarFold,
           // Adjust the padding for floating and inset variants.
           variant === "floating" || variant === "inset"
             ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
@@ -459,7 +514,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
+  "peer/menu-button group/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] duration-200 ease-out group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 motion-reduce:transition-none data-open:hover:bg-sidebar-accent data-open:hover:text-sidebar-accent-foreground data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>span:last-child]:truncate",
   {
     variants: {
       variant: {
@@ -680,7 +735,6 @@ function SidebarMenuSubButton({
 }
 
 export {
-  SIDEBAR_WIDTH,
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -705,4 +759,5 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
+  useSidebarOffset,
 }
