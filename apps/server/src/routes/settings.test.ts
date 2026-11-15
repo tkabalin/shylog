@@ -1,7 +1,7 @@
 import type { Settings } from "@shylog/core"
 import { beforeEach, describe, expect, it } from "vitest"
 
-import { apiHeaders, send, testApp } from "../../test/app.ts"
+import { apiHeaders, origin, send, testApp } from "../../test/app.ts"
 import { testDb } from "../../test/db.ts"
 import type { Db } from "../db/open.ts"
 
@@ -84,5 +84,24 @@ describe("PUT /api/settings", () => {
       expect((await put(body)).status).toBe(400)
     }
     expect(await getSettings()).toMatchObject({ maxPo2: 1.4 })
+  })
+
+  // As every JSON write is, before its body is read.
+  it("refuses a body far larger than any JSON write", async () => {
+    const res = await put({ diverName: "x".repeat(6 * 1024 * 1024) })
+    expect(res.status).toBe(413)
+    expect(await res.json()).toEqual({ error: "The request is too large" })
+    expect(await getSettings()).toMatchObject({ diverName: "" })
+    // Whatever the case of its type, which the parser ignores.
+    const shouted = await app.request("/api/settings", {
+      method: "PUT",
+      headers: {
+        ...apiHeaders,
+        Origin: origin,
+        "Content-Type": "Application/JSON",
+      },
+      body: JSON.stringify({ diverName: "x".repeat(6 * 1024 * 1024) }),
+    })
+    expect(shouted.status).toBe(413)
   })
 })

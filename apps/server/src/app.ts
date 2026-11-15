@@ -1,3 +1,4 @@
+import { bodyLimit } from "hono/body-limit"
 import { compress } from "hono/compress"
 import { HTTPException } from "hono/http-exception"
 
@@ -21,6 +22,12 @@ import { settings } from "./routes/settings.ts"
 import { version } from "./routes/version.ts"
 import { readOnly, security } from "./security.ts"
 import { web } from "./static.ts"
+
+// Room for an import's apply over thousands of dives.
+const jsonLimit = bodyLimit({
+  maxSize: 5 * 1024 * 1024,
+  onError: (c) => c.json({ error: "The request is too large" }, 413),
+})
 
 export function createApp(deps: Deps) {
   return (
@@ -50,6 +57,17 @@ export function createApp(deps: Deps) {
         }
       })
       .use("/api/*", security(deps.env))
+      // A JSON body is a list or a few fields at most, so one far larger is
+      // refused before Node buffers and parses it; uploads set their own caps.
+      // Media types ignore case, as the security check and the parser do.
+      .use("/api/*", (c, next) =>
+        c.req
+          .header("Content-Type")
+          ?.toLowerCase()
+          .startsWith("application/json")
+          ? jsonLimit(c, next)
+          : next()
+      )
       // Ahead of the pause below: the phone's error reports write nothing,
       // and matter most once the database has failed its check.
       .route("/api", clientLog)
