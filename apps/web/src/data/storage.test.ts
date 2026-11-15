@@ -102,10 +102,11 @@ describe("the Offline storage row and sheet", () => {
     )
   })
 
-  it("offers Keep them safe, which asks the browser, when it doesn't", async () => {
+  it("warns, and offers Keep them safe in its sheet, when it doesn't", async () => {
     await readProtection(browser(false))
     render()
-    expect(row().textContent).toContain("Keep them safe")
+    // The warning and the chevron say it, with no pill beside them.
+    expect(row().textContent).not.toContain("Keep them safe")
     expect(row().textContent).toContain(
       "Your browser may clear dives saved on this device"
     )
@@ -117,13 +118,19 @@ describe("the Offline storage row and sheet", () => {
     expect(sheet.textContent).toContain(
       "Dives you log without signal are saved on this device until they sync. Browsers can clear a website’s saved data when the device runs low on space. Protected storage asks the browser to keep Shylog’s data."
     )
-    expect(sheet.textContent).toContain(
-      // The menu path is held together with no-break spaces.
-      "iPhoneOpen Shylog from your Home Screen. If it isn’t there, use Share\u00a0›\u00a0Add to Home Screen in Safari."
+    // Each phone's numbered steps, the numbers drawn as badges.
+    const steps = [...sheet.querySelectorAll("ol li")].map(
+      (step) => step.textContent
     )
-    expect(sheet.textContent).toContain(
-      "AndroidTap Keep them safe and allow it when the browser asks."
-    )
+    expect(steps.slice(0, 3)).toEqual([
+      "1In Safari, tap ⋯, then Share.",
+      "2Tap Add to Home Screen, turn on Open as Web App, then tap Add.",
+      "3Open Shylog from its Home Screen icon.",
+    ])
+    expect(steps.slice(3)).toEqual([
+      "1In your browser’s menu, tap Add to Home screen.",
+      "2Open Shylog from its Home Screen icon, then tap Keep them safe.",
+    ])
     const buttons = [...sheet.querySelectorAll("button")].map(
       (button) => button.textContent
     )
@@ -138,6 +145,53 @@ describe("the Offline storage row and sheet", () => {
     await act(async () => keep.click())
     expect(storage.persist).toHaveBeenCalledOnce()
     expect(row().textContent).toContain("Protected")
+    vi.unstubAllGlobals()
+  })
+
+  it("leaves Keep them safe out on an iPhone, where it would do nothing", async () => {
+    vi.stubGlobal("navigator", {
+      storage: browser(false),
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X)",
+      maxTouchPoints: 5,
+    })
+    await readProtection()
+    render()
+    await act(async () => row().click())
+    const sheet = document.querySelector("[role=dialog]")!
+    const buttons = [...sheet.querySelectorAll("button")].map(
+      (button) => button.textContent
+    )
+    expect(buttons).not.toContain("Keep them safe")
+    expect(buttons).toContain("Done")
+    // Only the iPhone's steps, without a label or the Android row, and no
+    // sentence about a button that isn't there.
+    expect(sheet.querySelectorAll("ol li")).toHaveLength(3)
+    expect(sheet.textContent).not.toContain("Android")
+    expect(sheet.textContent).not.toContain("iPhone")
+    expect(sheet.textContent).not.toContain("Protected storage asks")
+    vi.unstubAllGlobals()
+  })
+
+  it("shows an Android phone only its own steps, with the button", async () => {
+    vi.stubGlobal("navigator", {
+      storage: browser(false),
+      userAgent: "Mozilla/5.0 (Linux; Android 16; Pixel 9) Mobile",
+      maxTouchPoints: 5,
+    })
+    await readProtection()
+    render()
+    await act(async () => row().click())
+    const sheet = document.querySelector("[role=dialog]")!
+    expect(
+      [...sheet.querySelectorAll("ol li")].map((step) => step.textContent)
+    ).toEqual([
+      "1In your browser’s menu, tap Add to Home screen.",
+      "2Open Shylog from its Home Screen icon, then tap Keep them safe.",
+    ])
+    expect(sheet.textContent).not.toContain("Android")
+    expect(
+      [...sheet.querySelectorAll("button")].map((b) => b.textContent)
+    ).toContain("Keep them safe")
     vi.unstubAllGlobals()
   })
 })
