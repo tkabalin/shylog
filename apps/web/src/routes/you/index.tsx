@@ -219,9 +219,11 @@ function YouPage() {
 
         <Downloads />
 
-        {log && <Preferences settings={log.settings} />}
+        {/* Drawn before the first sync too, or their arrival pushed This
+            device down under a finger already on its switch. */}
+        <Preferences settings={log?.settings} />
 
-        {log && <DefaultsSection settings={log.settings} />}
+        <DefaultsSection settings={log?.settings} />
 
         <PlainLabels.Provider value>
           <Section title="This device">
@@ -481,8 +483,8 @@ function DiverCard({
 
 // Log-wide preferences, apart from the defaults below so neither save
 // puts back what another phone changed in the other.
-function Preferences({ settings }: { settings: Settings }) {
-  const stored = settings.maxPo2.toFixed(1)
+function Preferences({ settings }: { settings?: Settings }) {
+  const stored = settings?.maxPo2.toFixed(1) ?? ""
   const connected = useConnected()
   const [maxPo2, setMaxPo2] = useState(stored)
   const [base, setBase] = useState(stored)
@@ -532,8 +534,10 @@ function Preferences({ settings }: { settings: Settings }) {
                   setError(undefined)
                 }}
                 onBlur={() => void save()}
-                disabled={!connected}
-                placeholder="1.4"
+                disabled={!settings || !connected}
+                // A dash until the log is in, as a figure would read as the
+                // diver's own setting.
+                placeholder={settings ? "1.4" : "—"}
                 aria-invalid={!!error || undefined}
                 aria-describedby={error ? "error-maxPo2" : undefined}
               />

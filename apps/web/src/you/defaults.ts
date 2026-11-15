@@ -23,8 +23,9 @@ export type DefaultsErrors = Partial<Record<keyof DefaultsValues, string>>
 const exact = (value: number | null | undefined) =>
   value == null ? "" : String(value)
 
-export function defaultsValues(settings: Settings): DefaultsValues {
-  const defaults = settings.newDiveDefaults
+// Empty until the first sync brings the log.
+export function defaultsValues(settings: Settings | undefined): DefaultsValues {
+  const defaults: Settings["newDiveDefaults"] = settings?.newDiveDefaults ?? {}
   return {
     cylinderMaterial: defaults.cylinderMaterial ?? null,
     cylinderVolume: exact(

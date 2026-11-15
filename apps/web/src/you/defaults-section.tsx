@@ -31,7 +31,7 @@ import { SaveFailure } from "./parts"
 
 // The new-dive defaults, in the dive form's own controls rather than the
 // board's preset lists (NOTES), saved together as each one changes.
-export function DefaultsSection({ settings }: { settings: Settings }) {
+export function DefaultsSection({ settings }: { settings?: Settings }) {
   const desk = useDesk()
   const connected = useConnected()
   const saved = defaultsValues(settings)
@@ -106,8 +106,11 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
   return (
     <PlainLabels.Provider value>
       {/* Settings are saved on the server, so every control waits for a
-          connection. */}
-      <fieldset disabled={!connected} className="m-0 min-w-0 border-0 p-0">
+          connection, and for the log, as a save sends all four. */}
+      <fieldset
+        disabled={!settings || !connected}
+        className="m-0 min-w-0 border-0 p-0"
+      >
         <Section title="Defaults">
           <div className="flex flex-col gap-2 px-4 py-3 has-disabled:opacity-50">
             <Label id="you-cylinder">Cylinder</Label>
@@ -175,14 +178,14 @@ export function DefaultsSection({ settings }: { settings: Settings }) {
               label="Dive type"
               value={values.diveType}
               options={options(diveTypes)}
-              empty="Not set"
+              empty={settings ? "Not set" : "—"}
               onChange={(value) => pick("diveType", value)}
             />
           ) : (
             <PickRow
               label="Dive type"
               value={values.diveType && diveTypes[values.diveType].label}
-              empty="Not set"
+              empty={settings ? "Not set" : "—"}
               onClick={() => setTypeOpen(true)}
             />
           )}
