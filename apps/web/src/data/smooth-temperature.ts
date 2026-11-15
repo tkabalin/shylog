@@ -1,45 +1,21 @@
 import { useSyncExternalStore } from "react"
 
+import { localValue } from "@/lib/local-value"
+
 // Whether the profile's temperature lane draws the water as it was or every
 // reading as recorded. Kept per phone, as Appearance is, and on
 // unless turned off; one store, so You's switch redraws an open chart.
-const key = "smooth-temperature"
+const smooth = localValue(
+  "smooth-temperature",
+  (stored) => stored !== "off",
+  (on) => (on ? "on" : "off")
+)
 
-// Some privacy settings make localStorage throw; the app must still load.
-function read() {
-  try {
-    return localStorage.getItem(key) !== "off"
-  } catch {
-    return true
-  }
-}
+export const setSmoothTemperature = smooth.set
 
-let on = read()
-const listeners = new Set<() => void>()
+export const subscribeSmoothTemperature = smooth.subscribe
 
-export function setSmoothTemperature(next: boolean) {
-  on = next
-  try {
-    localStorage.setItem(key, next ? "on" : "off")
-  } catch {
-    // Kept for this visit only.
-  }
-  for (const listener of listeners) listener()
-}
-
-// Another window of the app changed it.
-window.addEventListener("storage", (event) => {
-  if (event.storageArea !== localStorage || event.key !== key) return
-  on = event.newValue !== "off"
-  for (const listener of listeners) listener()
-})
-
-export function subscribeSmoothTemperature(listener: () => void) {
-  listeners.add(listener)
-  return () => void listeners.delete(listener)
-}
-
-export const readSmoothTemperature = () => on
+export const readSmoothTemperature = smooth.get
 
 export const useSmoothTemperature = () =>
-  useSyncExternalStore(subscribeSmoothTemperature, readSmoothTemperature)
+  useSyncExternalStore(smooth.subscribe, smooth.get)
