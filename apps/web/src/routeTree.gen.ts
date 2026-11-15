@@ -24,6 +24,7 @@ import { Route as StatsPatternsRouteImport } from './routes/stats_.patterns'
 import { Route as YouIndexRouteImport } from './routes/you/index'
 import { Route as YouCertificationsRouteRouteImport } from './routes/you/certifications/route'
 import { Route as YouDeletedRouteImport } from './routes/you/deleted'
+import { Route as YouPackingRouteImport } from './routes/you/packing'
 import { Route as DiveDiveIdProfileRouteImport } from './routes/dive/$diveId.profile'
 import { Route as DiveDiveIdEditRouteImport } from './routes/dive/$diveId_.edit'
 import { Route as ImportReviewPairedRouteImport } from './routes/import/review_.paired'
@@ -109,6 +110,11 @@ const YouDeletedRoute = YouDeletedRouteImport.update({
   path: '/you/deleted',
   getParentRoute: () => rootRouteImport,
 } as any)
+const YouPackingRoute = YouPackingRouteImport.update({
+  id: '/you/packing',
+  path: '/you/packing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DiveDiveIdProfileRoute = DiveDiveIdProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/import/review': typeof ImportReviewRoute
   '/stats/patterns': typeof StatsPatternsRoute
   '/you/deleted': typeof YouDeletedRoute
+  '/you/packing': typeof YouPackingRoute
   '/import/': typeof ImportIndexRoute
   '/you/': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByTo {
   '/import/review': typeof ImportReviewRoute
   '/stats/patterns': typeof StatsPatternsRoute
   '/you/deleted': typeof YouDeletedRoute
+  '/you/packing': typeof YouPackingRoute
   '/import': typeof ImportIndexRoute
   '/you': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   '/import/review': typeof ImportReviewRoute
   '/stats_/patterns': typeof StatsPatternsRoute
   '/you/deleted': typeof YouDeletedRoute
+  '/you/packing': typeof YouPackingRoute
   '/import/': typeof ImportIndexRoute
   '/you/': typeof YouIndexRoute
   '/dive/$diveId/profile': typeof DiveDiveIdProfileRoute
@@ -250,6 +259,7 @@ export interface FileRouteTypes {
     | '/import/review'
     | '/stats/patterns'
     | '/you/deleted'
+    | '/you/packing'
     | '/import/'
     | '/you/'
     | '/dive/$diveId/profile'
@@ -276,6 +286,7 @@ export interface FileRouteTypes {
     | '/import/review'
     | '/stats/patterns'
     | '/you/deleted'
+    | '/you/packing'
     | '/import'
     | '/you'
     | '/dive/$diveId/profile'
@@ -302,6 +313,7 @@ export interface FileRouteTypes {
     | '/import/review'
     | '/stats_/patterns'
     | '/you/deleted'
+    | '/you/packing'
     | '/import/'
     | '/you/'
     | '/dive/$diveId/profile'
@@ -329,6 +341,7 @@ export interface RootRouteChildren {
   ImportReviewRoute: typeof ImportReviewRoute
   StatsPatternsRoute: typeof StatsPatternsRoute
   YouDeletedRoute: typeof YouDeletedRoute
+  YouPackingRoute: typeof YouPackingRoute
   ImportIndexRoute: typeof ImportIndexRoute
   YouIndexRoute: typeof YouIndexRoute
   DiveDiveIdEditRoute: typeof DiveDiveIdEditRoute
@@ -447,6 +460,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof YouDeletedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/you/packing': {
+      id: '/you/packing'
+      path: '/you/packing'
+      fullPath: '/you/packing'
+      preLoaderRoute: typeof YouPackingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dive/$diveId/profile': {
       id: '/dive/$diveId/profile'
       path: '/profile'
@@ -553,6 +573,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImportReviewRoute: ImportReviewRoute,
   StatsPatternsRoute: StatsPatternsRoute,
   YouDeletedRoute: YouDeletedRoute,
+  YouPackingRoute: YouPackingRoute,
   ImportIndexRoute: ImportIndexRoute,
   YouIndexRoute: YouIndexRoute,
   DiveDiveIdEditRoute: DiveDiveIdEditRoute,
