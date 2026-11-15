@@ -90,3 +90,14 @@ test("a disabled control is never marked", () => {
   pointer("pointerdown", button, { pointerType: "mouse" })
   expect(button.hasAttribute("data-press")).toBe(false)
 })
+
+test("a press on a row's drag grip never marks the row", () => {
+  const grip = document.createElement("span")
+  grip.setAttribute("data-grip", "")
+  row.append(grip)
+  pointer("pointerdown", grip, { pointerType: "mouse" })
+  expect(marked()).toBe(false)
+  pointer("pointerdown", grip)
+  vi.advanceTimersByTime(pressDelay)
+  expect(marked()).toBe(false)
+})

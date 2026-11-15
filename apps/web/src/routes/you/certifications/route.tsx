@@ -1,8 +1,9 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   IconCertificate,
   IconChevronRight,
   IconDeviceMobileCheck,
+  IconEqual,
   IconPhotoPlus,
   IconPlus,
 } from "@tabler/icons-react"
@@ -52,6 +53,12 @@ function CertificationsPage() {
   // the save leaves the order shown until a newer log arrives.
   const [savedAt, setSavedAt] = useState<string>()
   const [failure, setFailure] = useState<string>()
+  // Gone offline mid-drag, the order can't be saved, so the cards go back
+  // as the server has them, rather than failing once the card is put down.
+  if (held && !connected) {
+    setHeld(false)
+    setOrder(undefined)
+  }
   if (!loaded) return null
   const cards = log?.cards ?? []
   const ids = (list: Card[]) => list.map((card) => card.id).join()
@@ -80,6 +87,7 @@ function CertificationsPage() {
     setHeld(false)
     const sent = latest.current
     latest.current = undefined
+    if (!connected) return
     if (!sent || ids(sent) === ids(cards)) return
     const at = log?.version
     setFailure(undefined)
@@ -172,6 +180,7 @@ function CertificationsPage() {
                   onLift={lift}
                   onDrop={drop}
                   locked={!connected}
+                  grip={connected && shown.length > 1}
                 />
               ))}
             </Reorder.Group>
@@ -182,13 +191,8 @@ function CertificationsPage() {
               aria-hidden
               className="mt-[0.1em] size-[1.15em] shrink-0"
             />
-            <span>
-              {/* Moving a card is locked offline, so it isn't offered. */}
-              Stored offline.
-              {connected &&
-                cards.length > 1 &&
-                ` ${desk ? "Drag" : "Hold and drag"} to reorder.`}
-            </span>
+            {/* Each row's grip says it moves, so no hint about dragging. */}
+            <span>Stored offline.</span>
           </p>
         </div>
       ) : (
@@ -225,21 +229,29 @@ function CertificationsPage() {
   )
 }
 
-// A card's row, which opens its viewer, or lifted by a long press (a
-// drag with a mouse) to move it in the list.
+// A card's row, which opens its viewer, or lifted by its grip, a long
+// press or a drag with a mouse to move it in the list.
 function CardRow({
   card,
   onLift,
   onDrop,
   locked,
+  grip,
 }: {
   card: Card
   onLift: () => void
   onDrop: () => void
   // Offline the order can't be saved, so a press never lifts it.
   locked: boolean
+  // Shown only where the row can move: online, among other cards.
+  grip: boolean
 }) {
-  const { item, ref, lifted } = useLift()
+  const { item, ref, lifted, grab, drop } = useLift()
+  // Locked mid-drag, the row sets down rather than staying lifted.
+  useEffect(() => {
+    if (locked) drop()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- drop is new each render
+  }, [locked])
   return (
     <Reorder.Item
       as="li"
@@ -266,13 +278,25 @@ function CardRow({
         // as a dragged row does on iOS, as the pages in Edit card do: scale
         // and opacity, which the compositor draws.
         className={cn(
-          "relative flex w-full items-center gap-3 rounded-[inherit] bg-card py-2.5 pr-3 pl-4 transition-[background-color,scale] duration-150 ease-out after:pointer-events-none after:absolute after:inset-0 after:rounded-[14px] after:shadow-lg after:transition-opacity after:duration-200 after:ease-out motion-reduce:transition-none",
+          "relative flex w-full items-center gap-3 rounded-[inherit] bg-card py-2.5 pr-3 pl-4 transition-[background-color,scale] duration-150 ease-out after:pointer-events-none after:absolute after:inset-0 after:rounded-[14px] after:shadow-lg after:transition-opacity after:duration-200 after:ease-out has-data-grip:pl-0 motion-reduce:transition-none",
           pressable,
           lifted
             ? "scale-[1.02] rounded-[14px] after:opacity-100 motion-reduce:scale-100"
             : "after:opacity-0"
         )}
       >
+        {grip && (
+          // The row's full height and 46px wide, taking the gap after it, so
+          // a finger finds it; touch-none, so the browser never pans from it.
+          <span
+            data-grip=""
+            aria-hidden
+            onPointerDown={grab}
+            className="-my-2.5 -mr-3 flex cursor-grab touch-none items-center self-stretch pr-3 pl-3.5 text-muted-foreground/60 active:cursor-grabbing"
+          >
+            <IconEqual className="size-5" />
+          </span>
+        )}
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="truncate text-base leading-[1.4] font-medium tracking-[-0.015em]">
             {card.name}
