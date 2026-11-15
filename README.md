@@ -7,30 +7,7 @@
 
 A self-hosted, mobile-first web app for logging scuba dives. It runs on a home server, is reached only over Tailscale, and keeps its data in SQLite, with plain UDDF and CSV exports so the log is never locked in. Dive computer data arrives straight from the watch on a cable at the server, or as Subsurface UDDF exports, and is attached to the dives logged by hand.
 
-[Subsurface](https://github.com/subsurface/subsurface) is the open-source dive log many divers rely on for the numbers, but it is a desktop app. Shylog is built to be filled in on a phone on the boat, with wet hands and no signal, while giving the same figures Subsurface would.
-
-- **Calculations checked against Subsurface's own code**: Subsurface's functions are copied into [one small C++ program](packages/core/test/reference/subsurface.cpp) and run side by side with Shylog's TypeScript on thousands of random dives from [fast-check](https://fast-check.dev), aimed at the boundaries where bugs hide. Every rounded figure must match exactly, on every CI run.
-- **UDDF that other apps can open**: the UDDF Shylog writes is checked in CI against the official [UDDF 3.2.1 schema](fixtures/uddf/uddf_v321.xsd), with each departure from it listed in the spec. CI also opens it with Subsurface's own import and checks that each dive comes out the same, gas and cylinders included, so a log moved to Subsurface arrives intact.
-- **Built not to lose a dive**: SQLite in WAL mode with `STRICT` tables, every write one journalled transaction, a snapshot before each migration, and an integrity check that pauses writes if it fails.
-- **Hand beats computer**: each field records whether it was typed or read from the dive computer, so an import never overwrites a hand-entered value and keeps the computer's reading beside it.
-- **Private by design**: no accounts or passwords. The app is reachable only over Tailscale and trusts its identity header for an allow-listed login.
-- **Designed for wet hands**: phone first, with 44 px touch targets, bottom navigation, 16 px inputs so iOS doesn't zoom, and native date and number keyboards.
-
-> [!NOTE]
-> Shylog is built around its author's own diving rather than as a general-purpose dive log. Downloading from a dive computer and importing Subsurface exports are written and tested only for the Suunto D4i and Zoop Novo, and the app's choices follow the diving it was made for, around Cape Town. If you would like to run Shylog yourself, consider forking it and adapting it to your own dive computer and diving.
-
-## What it does
-
-- Log, edit and delete dives from a phone, with new dives saved offline as drafts that sync when there is signal.
-- Show the log, each dive's details and a profile chart of depth, temperature, vertical speed, the safety stop and the computer's alarms.
-- Download the dives from a Suunto D4i or Zoop Novo on a USB cable at the server, or import a Subsurface export, and pair each computer dive with the dive logged by hand.
-  - The import rules are written and tested for the Suunto D4i and Zoop Novo; other computers' exports go through generic rules that are untested.
-- Work out SAC rate, MOD, max PO₂, CNS and OTU, surface intervals and statistics across the whole log.
-- Export the whole log as UDDF and CSV each night, or download either from You.
-- Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
-- Install to the home screen, with one instance per diver.
-
-## Screenshots
+[Subsurface](https://github.com/subsurface/subsurface) is the open-source dive log many divers rely on for the numbers, but it is a desktop app. Shylog is built to be filled in on a phone soon after the dive, with wet hands and often no signal, while giving the same figures Subsurface would.
 
 <p>
   <img src="docs/screenshots/log.png" width="250" alt="The Log: 51 dives logged, 42 hours underwater, and a card per dive with its site, region, depth, time and a sparkline of its profile">
@@ -43,6 +20,56 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
   <img src="docs/screenshots/import.png" width="250" alt="Import: download from the Suunto D4i on the server's cable, or import a Subsurface file, with the last import's counts">
 </p>
 
+- **[Calculations checked against Subsurface's own code](docs/calculations.md)**: Subsurface's functions are copied into [one small C++ program](packages/core/test/reference/subsurface.cpp) and run side by side with Shylog's TypeScript on thousands of random dives from [fast-check](https://fast-check.dev), aimed at the boundaries where bugs hide. Every rounded figure must match exactly, on every CI run.
+- **[UDDF that other apps can open](docs/export.md)**: the UDDF Shylog writes is checked in CI against the official [UDDF 3.2.1 schema](fixtures/uddf/uddf_v321.xsd), with each departure from it listed in [export.md](docs/export.md). CI also opens it with Subsurface's own import and checks that each dive comes out the same, gas and cylinders included, so a log moved to Subsurface arrives intact.
+- **[Built not to lose a dive](docs/server.md)**: SQLite in WAL mode with `STRICT` tables, every write one journalled transaction, a snapshot before each migration, and an integrity check that pauses writes if it fails.
+- **[Hand beats computer](docs/import.md)**: each field records whether it was typed or read from the dive computer, so an import never overwrites a hand-entered value and keeps the computer's reading beside it.
+- **[Private by design](docs/security.md)**: no accounts or passwords. The app is reachable only over Tailscale and trusts its identity header for an allow-listed login.
+- **[Designed for wet hands](docs/ui.md)**: phone first, with 44 px touch targets, bottom navigation, 16 px inputs so iOS doesn't zoom, and native date and number keyboards.
+
+> [!NOTE]
+> Shylog is built around its author's own diving rather than as a general-purpose dive log. Downloading from a dive computer and importing Subsurface exports are written and tested only for the Suunto D4i and Zoop Novo, and the app's choices follow the diving it was made for, around Cape Town. If you would like to run Shylog yourself, consider forking it and adapting it to your own dive computer and diving.
+
+## What it does
+
+- Log, edit and delete dives from a phone, with new dives saved offline as drafts that sync when there is signal.
+- Show the log, each dive's details and a profile chart of depth, temperature, vertical speed, the safety stop and the computer's alarms.
+- Download the dives from a Suunto D4i or Zoop Novo on a USB cable at the server, or import a Subsurface export, and pair each computer dive with the dive logged by hand.
+  - The import rules are written and tested for the Suunto D4i and Zoop Novo; other computers' exports go through generic rules that are untested.
+- Work out SAC rate, MOD, max PO₂, CNS and OTU, surface intervals and statistics across the whole log, with the patterns worth knowing about picked out and a celebration at each dive-number milestone.
+- Export the whole log as UDDF and CSV each night, or download either from You.
+- Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
+- Keep a packing checklist to tick off before a dive.
+- Install to the home screen, with one instance per diver.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph phone["Diver's phone"]
+        pwa["React PWA<br/>app shell cached by a service worker"]
+        mirror[("IndexedDB: log mirror<br/>the whole log, for reading offline")]
+        queue[("IndexedDB: draft queue<br/>new dives saved offline")]
+        pwa <--> mirror
+        pwa <--> queue
+    end
+    subgraph server["Home server, one Compose project per diver"]
+        ts["Tailscale sidecar<br/>Serve: HTTPS and the caller's login"]
+        app["Node app<br/>Hono API and the built PWA"]
+        db[("SQLite<br/>WAL, every write journalled")]
+        files[("Data folder<br/>snapshots, UDDF and CSV export, card images")]
+        ts --> app --> db
+        app --> files
+    end
+    watch["Dive computer<br/>on a USB cable"]
+    pwa -- "HTTPS over the tailnet" --> ts
+    app -.-> watch
+```
+
+Solid arrows are the request path, from the phone through Tailscale to the database; the dotted arrow is the download from the dive computer through `dctool`; cylinders are data stores.
+
+The phone keeps a mirror of the whole log, so the app opens and reads without signal, and a separate queue for dives logged offline. A sync replaces the mirror but never touches the queue, so a dive saved without signal can't be lost to a refresh. Drafts upload when there is signal and the server applies each one whole or not at all; edits to dives already on the server are plain API calls. The app container shares the Tailscale sidecar's network and listens nowhere else, so the only way in is Tailscale Serve, which tells the app who is calling. See [docs/offline-sync.md](docs/offline-sync.md) for the sync rules and [docs/security.md](docs/security.md) for the identity checks.
+
 ## Tech stack
 
 | Area    | Tools                                                                                           |
@@ -52,6 +79,10 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 | Shared  | TypeScript, Zod schemas used by both the app and the server                                     |
 | Testing | Vitest, fast-check, Playwright on Chromium and WebKit, `xmllint` and `xsltproc` for UDDF checks |
 | Deploy  | Docker Compose with a Tailscale sidecar, HTTPS through Tailscale Serve                          |
+
+See [docs/tech-stack.md](docs/tech-stack.md) for versions and the reasons behind each choice.
+
+The design and engineering decisions are written up in [`docs/`](docs/): the [tech stack](docs/tech-stack.md), [data model](docs/data-model.md), [offline sync](docs/offline-sync.md), [server and durability](docs/server.md), [security](docs/security.md), [import](docs/import.md), [export](docs/export.md), [calculations and the profile chart](docs/calculations.md), [statistics](docs/statistics.md), [UI](docs/ui.md), [testing](docs/testing.md) and [CI](docs/ci-cd.md). The full spec, the build plan and the original wireframes are in [`docs/planning/`](docs/planning/).
 
 ## Development
 
@@ -109,7 +140,7 @@ If you set up an instance for another diver, share its node with their Tailscale
 
 ### Tailnet policy
 
-The app only answers logins in `SHYLOG_ALLOWED_LOGINS`, and the tailnet policy can keep everyone else from reaching the node at all. The default policy lets every device reach every other, so replace its allow-all grant with rules like these, plus whatever your other devices need. Each node is named by its Tailscale IP (`docker compose --env-file instances/<instance>.env exec tailscale tailscale ip -4`), which needs no tag on the auth key, and someone you shared a node with is named by their login:
+The app only answers logins in `SHYLOG_ALLOWED_LOGINS` (see [docs/security.md](docs/security.md) for the checks behind that), and the tailnet policy can keep everyone else from reaching the node at all. The default policy lets every device reach every other, so replace its allow-all grant with rules like these, plus whatever your other devices need. Each node is named by its Tailscale IP (`docker compose --env-file instances/<instance>.env exec tailscale tailscale ip -4`), which needs no tag on the auth key, and someone you shared a node with is named by their login:
 
 ```jsonc
 {
@@ -213,7 +244,7 @@ Some LogQL, with the shipper labelling each container:
 
 ## Backups and restores
 
-Each night at midnight in `TZ`, an instance writes `snapshots/shylog-<date>.db.gz` to its data folder, keeping dailies for 90 days, weeklies for two years and monthlies forever. The off-site backup must cover `/srv/shylog/`, which holds every instance's snapshots, card images and the nightly export (`export/dives.uddf` and `export/dives.csv`).
+Each night at midnight in `TZ`, an instance writes `snapshots/shylog-<date>.db.gz` to its data folder, keeping dailies for 90 days, weeklies for two years and monthlies forever. The off-site backup must cover `/srv/shylog/`, which holds every instance's snapshots, card images and the nightly export (`export/dives.uddf` and `export/dives.csv`). How the journal, snapshots and replay fit together is in [docs/server.md](docs/server.md).
 
 - `scripts/backup.sh <instance>` takes a snapshot now.
 - `scripts/restore-drill.sh <instance>` restores last night's snapshot to a scratch folder, replays the journal and reports any difference. It never writes to the live database.
