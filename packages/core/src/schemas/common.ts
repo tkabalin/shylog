@@ -13,8 +13,15 @@ export const choice = <O extends Record<string, { label: string }>>(
 // names already matched them as spaces.
 // eslint-disable-next-line no-control-regex
 const unwritable = /[\u0000-\u0008\u000E-\u001F\uFFFE\uFFFF]/g
+// Half a surrogate pair, which SQLite stores as U+FFFD, so a name holding one
+// never read back as saved and every repeat of a save wrote again.
+const lone =
+  /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g
 export const dropUnwritable = (text: string) =>
-  text.replace(/[\v\f]/g, " ").replace(unwritable, "")
+  text
+    .replace(/[\v\f]/g, " ")
+    .replace(unwritable, "")
+    .replace(lone, "")
 
 export const name = z.string().overwrite(dropUnwritable).trim().min(1).max(120)
 // An emptied text field is null, so a form can send what is in the box and an

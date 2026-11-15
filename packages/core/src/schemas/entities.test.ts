@@ -22,6 +22,10 @@ describe("entityFields", () => {
     expect(entityFields.person.parse({ name: "Sam\vNaidoo" })).toEqual({
       name: "Sam Naidoo",
     })
+    // Half a surrogate pair goes; a whole one, an emoji, stays.
+    expect(
+      entityFields.person.parse({ name: "Sam\uD83E \uDD3FNaidoo \uD83E\uDD3F" })
+    ).toEqual({ name: "Sam Naidoo \uD83E\uDD3F" })
   })
 
   it("defaults a site's water type from its body of water", () => {
