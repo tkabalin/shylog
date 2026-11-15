@@ -1,5 +1,5 @@
 # Source material that is not ours to reformat
-docs/
+docs/planning/
 fixtures/*
 !fixtures/synthetic/
 fixtures/synthetic/*.uddf
