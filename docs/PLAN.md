@@ -1440,10 +1440,29 @@ Deferred, or to watch:
 
 **Research notes** (8 November 2026): PADI's app has Checklists under Tools, with four lists, Dive Day, Dive Vacation, Save-a-Dive Kit and First Aid Kit ([PADI Pros blog](https://pros-blog.padi.com/?p=4587)); their items, and whether they can be edited, ticked or reset, weren't found. PADI's own packing list, sent by email, groups items as scuba gear, travel and dive documents, exposure protection, electronics, photo and video, and spares ([padi.com](https://www.padi.com/scuba-diving-packing-list)). The research's starting list (mask, snorkel, fins, wetsuit, hood, gloves, boots, BCD, regulator, dive computer, weights, SMB, torch, cutting tool, defog, save-a-dive kit, certification card, dive insurance details, sunscreen, towel, warm layer, seasickness tablets, water and snacks, dry bag) came from those groups and PADI's blog ([1](https://blog.padi.com/10-things-padi-pro-never-leaves-shore-without/), [2](https://blog.padi.com/essentials-next-dive-holiday/)).
 
-- [ ] Screen mocked up and defaults agreed
-- [ ] Stored list and its route
-- [ ] Screen, ticks and Reset
-- [ ] Tests and screenshots listed above
+- [x] Screen mocked up and defaults agreed
+- [x] Stored list and its route
+- [x] Screen, ticks and Reset
+- [x] Tests and screenshots listed above
+
+**Notes for the next session** (written 15 November 2026, branch `feat/packing-checklist`)
+
+Decisions taken while building (D63 has the owner's):
+
+- The list rides in the mirror's meta, as settings do, rather than a Dexie table of its own; Dexie v5 forces one full fetch, and `LogView.packing` stays unset until a sync brings it, so Edit can't save over the server's list from a mirror written before the list existed.
+- The last Done wins, as the whole list is sent. While nothing has been touched, a sync's newer list replaces the one in Edit mode and Done compares against it, so an untouched Done never undoes another device's change; after real edits the stale list does overwrite (no revision check, unlike the cards' order).
+- Edit mode guards leaving through a tab or the sidebar on phones too ("Discard changes?"), as it leaves the tabs in reach; Cancel discards without asking, as the owner chose.
+- The drag is hand-built rather than Motion's Reorder (which can't move a row between lists) or dnd-kit: a copy in a portal follows the pointer, the hidden row moves past neighbours' midpoints, Motion `layout` slides the rest, and the list captures the pointer so an item crossing sections (remounted there) can't drop the drag on iOS. The default list's ids are fixed in migration 11, so a journal replay matches.
+- On the way: lone surrogates are dropped from every name and text field (SQLite stored them as U+FFFD, so a repeated save always wrote); JSON bodies under `/api` stop at 5 MB; a desktop bar's actions line up with a column narrower than 36rem on every You screen; the offline storage row shows its shield without "Protected" (the owner's ask); `localValue` holds both localStorage-backed device settings.
+
+Deferred, or to watch:
+
+- On the phone (the owner): the grip drag under a finger (lift, auto-scroll near the bar and tabs, the drop settling, an item crossing sections in WebKit), the tick's haptic and press tint, the keyboard on Add item and Add section, the All packed pop, and frame rate while dragging a long list.
+- Whether a stale Done after real edits should be refused (409) instead, if two devices ever edit the list at once.
+- The animation-performance review (Chromium, 4× throttle, 60 rows): each Motion layout node now has its own dependency, so a swap measures only what it moves. Left: every DOM move restyles the whole document in Chromium because of the app's `group-has-*` rules (`ui/alert`, `ui/input-group`, `ui/item`, `ui/sidebar`, `dive/form/rows`, `stats/stats-screen`), which data attributes on the group would avoid; whether WebKit pays it too needs a Safari timeline on the phone. A fast flick still commits once per row passed, cheap now that a swap measures little.
+- The Discard changes sheet's tight gap above its buttons is the shared drawer's, left to the branch changing `drawer.tsx`.
+- Carried over from milestone 24: the milestone line unfolding with the burst, the Statistics row's press tint and expansion, and whether "Century diver (can qualify as an instructor)" wraps at 320 px in iOS's font.
+- Carried over from milestones 21 to 23: the pattern rows' tap and press tint, Expand all, the lanes, threshold strip and month bars at arm's length, All patterns' length, the time to open Statistics, the year menu, a record's Back, the tag link, the expanding rows and the count's roll on the phone; whether the Log and Statistics tabs keep their filters; a tag's count leaving out ignored dives the Log lists; the desktop sidebar lighting Log on a record's dive's edit form; the root `:has()` restyles on a held press in WebKit; `capital()` and `/stats/patterns`' year parser repeated; and the README's cable steps on the home server, the Import screen's states and Forget's sheet on the phone, and whether Last downloaded moves on a read with nothing new.
 
 ---
 
