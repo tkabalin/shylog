@@ -19,6 +19,9 @@ interface Tool<S extends z.ZodObject> {
   hints: Required<
     Pick<ToolAnnotations, "readOnlyHint" | "destructiveHint" | "idempotentHint">
   >
+  // The log's version, from a tool that writes, so a failure after its
+  // commit isn't reported as nothing saved, which would invite a repeat.
+  version?: () => unknown
   run: (args: z.output<S>) => unknown
 }
 
@@ -75,6 +78,7 @@ export function addTool<S extends z.ZodObject>(
         },
         `${name} ${outcome}`
       )
+    const before = tool.version?.()
     try {
       const reply = text(tool.run(args))
       done("ok")
@@ -86,10 +90,12 @@ export function addTool<S extends z.ZodObject>(
       }
       logger.error({ event: "error", tool: name, err: error })
       done("error")
-      // Every write is one transaction, rolled back by the throw.
-      const message = tool.hints.readOnlyHint
+      // Every write is one transaction, rolled back by a throw inside it.
+      const message = !tool.version
         ? "Shylog hit an error."
-        : "Shylog hit an error; nothing was saved."
+        : tool.version() === before
+          ? "Shylog hit an error; nothing was saved."
+          : "The change was saved, but Shylog hit an error replying. Read it back before sending anything again."
       return { ...text(message), isError: true }
     }
   }

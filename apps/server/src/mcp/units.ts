@@ -38,7 +38,7 @@ const options = <O extends Record<string, { label: string }>>(
   )
 
 const id = (what: string) =>
-  z.object({
+  z.strictObject({
     id: z.string().describe(`An existing ${what}'s id, from list_entities`),
   })
 const named = (what: string) =>
@@ -53,15 +53,15 @@ export const countryCode = z
 export const refs = {
   site: z.union([
     id("site"),
-    z.object({
-      new: z.object({
+    z.strictObject({
+      new: z.strictObject({
         name: named("site"),
         countryCode,
         bodyOfWater: options(bodiesOfWater, "Body of water").optional(),
         region: z
           .union([
             id("region"),
-            z.object({ new: z.object({ name: named("region") }) }),
+            z.strictObject({ new: z.strictObject({ name: named("region") }) }),
           ])
           .optional()
           .describe("The site's region, in the site's country"),
@@ -70,12 +70,12 @@ export const refs = {
   ]),
   person: z.union([
     id("person"),
-    z.object({ new: z.object({ name: named("person") }) }),
+    z.strictObject({ new: z.strictObject({ name: named("person") }) }),
   ]),
   diveCentre: z.union([
     id("dive centre"),
-    z.object({
-      new: z.object({
+    z.strictObject({
+      new: z.strictObject({
         name: named("dive centre"),
         region: id("region").optional(),
       }),
@@ -83,7 +83,7 @@ export const refs = {
   ]),
   trip: z.union([
     id("trip"),
-    z.object({ new: z.object({ name: named("trip") }) }),
+    z.strictObject({ new: z.strictObject({ name: named("trip") }) }),
   ]),
 }
 export type SiteRef = z.output<typeof refs.site>
@@ -169,9 +169,9 @@ const clearable = <S extends Record<string, z.ZodType>>(shape: S) =>
     ])
   ) as { [K in keyof S]: z.ZodOptional<z.ZodNullable<S[K]>> }
 
-export const newDiveInput = z.object({
+export const newDiveInput = z.strictObject({
   ...required,
-  ...z.object({ ...defaulted, ...optional }).partial().shape,
+  ...z.strictObject({ ...defaulted, ...optional }).partial().shape,
   // The log's new-dive defaults fill these when left out; null leaves one
   // empty, as clearing it on the form does.
   ...clearable({
@@ -182,8 +182,8 @@ export const newDiveInput = z.object({
 })
 export type NewDiveInput = z.output<typeof newDiveInput>
 
-export const diveChangesInput = z.object({
-  ...z.object({ ...required, ...defaulted }).partial().shape,
+export const diveChangesInput = z.strictObject({
+  ...z.strictObject({ ...required, ...defaulted }).partial().shape,
   ...clearable(optional),
 })
 export type DiveChangesInput = z.output<typeof diveChangesInput>
