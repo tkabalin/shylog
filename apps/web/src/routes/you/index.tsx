@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react"
-import { entityKinds, type Settings } from "@shylog/core"
+import { cardCrop, entityKinds, type Settings } from "@shylog/core"
 import {
   IconAlertTriangle,
   IconBackpack,
@@ -44,7 +44,7 @@ import { parseMaxPo2 } from "@/you/defaults"
 import { Switch } from "@/components/ui/switch"
 import { DefaultsSection } from "@/you/defaults-section"
 import { DiveComputerRow } from "@/you/dive-computer-row"
-import { CardImage } from "@/you/cards/card-image"
+import { CardThumb } from "@/you/cards/card-thumb"
 import { Downloads } from "@/you/downloads"
 import { Fold, foldMs } from "@/components/fold"
 import { StorageRow } from "@/you/storage-sheet"
@@ -441,12 +441,10 @@ function DiverCard({
                   state={{ pushed: true }}
                   className="flex flex-col gap-1.5 rounded-[7px] outline-offset-2 transition-opacity duration-150 select-none [-webkit-touch-callout:none] hover:opacity-70 active:opacity-50 active:duration-0"
                 >
-                  {/* A bank card's shape, which an eCard keeps. */}
-                  <CardImage
-                    cardId={card.id}
-                    n={0}
-                    hash={card.images[0]!}
-                    className="aspect-[1.586] w-full rounded-[7px] bg-muted object-cover ring-1 ring-foreground/10"
+                  <CardThumb
+                    source={{ cardId: card.id, n: 0, hash: card.images[0]! }}
+                    crop={cardCrop(card)}
+                    className="w-full rounded-[7px] bg-muted ring-1 ring-foreground/10"
                   />
                   <span className="line-clamp-2 text-[13px] leading-snug font-medium tracking-[-0.01em] break-words">
                     {card.name}
