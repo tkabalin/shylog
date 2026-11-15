@@ -40,9 +40,12 @@ export function CardImage({
   if (url.status === "rejected")
     return (
       <span
+        // Its own layout last: the image's `block` would put the icon in
+        // the top-left corner.
         className={cn(
-          "flex items-center justify-center text-muted-foreground/60",
-          className
+          "text-muted-foreground/60",
+          className,
+          "flex items-center justify-center"
         )}
       >
         <IconPhotoOff aria-hidden className="size-5" />
