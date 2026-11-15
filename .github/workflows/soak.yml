@@ -1,0 +1,123 @@
+name: Soak
+
+# The whole browser suite five times over each night, to find a race that
+# fails one run in hundreds before it fails someone's pull request. CI only
+# repeats the specs a pull request changes, so a race that a change to the
+# app brings into an untouched spec otherwise shows up at random on main.
+on:
+  schedule:
+    # Off the hour, when GitHub drops scheduled runs under load.
+    - cron: "17 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # A night that changed nothing but docs since the last soak that passed
+  # has nothing new to find, so a log in maintenance isn't soaked again and
+  # again. A night skipped this way passes too, which carries the base on.
+  changed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      soak: ${{ steps.changed.outputs.soak }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Anything that can't be asked or fetched soaks, rather than failing
+      # the night. The diff needs only the two commits' trees.
+      - id: changed
+        run: |
+          last=$(gh run list -R "$REPO" -w soak.yml -b main -e schedule -s success -L 1 --json headSha --jq '.[0].headSha // empty' || true)
+          if [ "$EVENT" = schedule ] && [ -n "$last" ] &&
+            git fetch -q --depth=1 origin "$last" &&
+            git diff --quiet "$last" HEAD -- . ':!docs' ':!.claude' ':!*.md'; then
+            echo soak=false >> "$GITHUB_OUTPUT"
+          else
+            echo soak=true >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+
+  soak:
+    needs: changed
+    if: needs.changed.outputs.soak == 'true'
+    runs-on: ubuntu-latest
+    # The serial write lane takes about three minutes a pass.
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    # CI's image: bump the two together, with @playwright/test.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The JSON report names each failing test for the report job. Each
+      # shard's has its own name, so the reports land side by side.
+      - id: e2e
+        run: pnpm test:e2e --repeat-each=5 --shard=${{ matrix.shard }}/3 --reporter=github,html,json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: soak-results/shard-${{ matrix.shard }}.json
+      - if: ${{ !cancelled() && steps.e2e.outcome != 'skipped' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-soak-${{ matrix.shard }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+      - if: ${{ !cancelled() && hashFiles('soak-results/*.json') != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: soak-results-${{ matrix.shard }}
+          path: soak-results/
+          retention-days: 14
+
+  # An issue per failing test, or one for the night when the run broke; a
+  # test that already has one gets a comment. Only for main: a run started
+  # by hand on a branch is watched by whoever started it. A failed changed
+  # job shows as a failed run, as there was no soak to report on.
+  report:
+    needs: soak
+    if: ${{ failure() && needs.soak.result == 'failure' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: soak-results-*
+          path: results
+          merge-multiple: true
+      # No reports at all leaves nothing to glob, which the script reports.
+      - run: |
+          shopt -s nullglob
+          node .github/scripts/soak-report.mjs "$RUN" results/*.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
