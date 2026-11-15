@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react"
+import { lazy, Suspense, useEffect, useState } from "react"
 import type { Packing } from "@shylog/core"
 import { IconCheck, IconRotate } from "@tabler/icons-react"
 import { createFileRoute } from "@tanstack/react-router"
 import { cn } from "cn"
 import { toast } from "sonner"
 
+import { OfflineMark } from "@/components/offline-mark"
 import { countText } from "@/components/pickers/match"
+import { BarButton } from "@/components/pickers/sheet"
 import { Progress } from "@/components/progress"
 import { RollingNumber } from "@/components/rolling-number"
+import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { currentLog, useLog } from "@/data/log"
 import {
@@ -19,9 +22,17 @@ import {
   toggleTick,
   usePackingTicks,
 } from "@/data/packing"
+import { useConnected } from "@/data/sync-status"
+import { useDesk } from "@/hooks/use-desk"
 import { Haptic } from "@/lib/haptic"
 import { PageBar } from "@/you/bar"
 import { listRow, pressable } from "@/you/parts"
+
+// Edit mode is opened now and then, so it loads when first wanted.
+const loadEditList = () => import("@/you/packing-edit")
+const EditList = lazy(() =>
+  loadEditList().then((module) => ({ default: module.EditList }))
+)
 
 export const Route = createFileRoute("/you/packing")({
   component: PackingPage,
@@ -30,19 +41,65 @@ export const Route = createFileRoute("/you/packing")({
 const back = { label: "You", to: "/you" } as const
 const empty: Packing = { sections: [] }
 
-// The packing checklist, ticked off on this phone.
+// The packing checklist, ticked off on this phone, and edited for every
+// device in Edit mode, which needs the server.
 function PackingPage() {
   const { log, loaded } = useLog()
+  const connected = useConnected()
+  const desk = useDesk()
   const ticked = usePackingTicks()
+  const [editing, setEditing] = useState(false)
   const packing = log?.packing
   // A tick on an item deleted here or on another phone goes with it.
   useEffect(() => {
     if (packing) pruneTicks(packing)
   }, [packing])
   if (!loaded) return null
+  if (editing && packing) {
+    return (
+      <Suspense
+        fallback={
+          <PageBar back={back} title="Edit list" crumb="Packing list" />
+        }
+      >
+        <EditList
+          packing={packing}
+          back={back}
+          onClose={() => setEditing(false)}
+        />
+      </Suspense>
+    )
+  }
+  const edit = desk ? (
+    <Button
+      variant="outline"
+      disabled={!connected || !packing}
+      onPointerDown={() => void loadEditList()}
+      onClick={() => setEditing(true)}
+    >
+      Edit
+    </Button>
+  ) : (
+    <BarButton
+      disabled={!connected || !packing}
+      onPointerDown={() => void loadEditList()}
+      onClick={() => setEditing(true)}
+    >
+      Edit
+    </BarButton>
+  )
   return (
     <div className="flex min-h-full flex-col">
-      <PageBar back={back} title="Packing list" />
+      <PageBar
+        back={back}
+        title="Packing list"
+        end={
+          <>
+            <OfflineMark show={!connected} className="mx-1" />
+            {edit}
+          </>
+        }
+      />
       {/* Nothing until the first sync has filled the log. */}
       {packing && <Checklist packing={packing} ticked={ticked} />}
     </div>

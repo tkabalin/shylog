@@ -260,3 +260,15 @@ export async function deleteCard(request: APIRequestContext, id: string) {
   const res = await request.delete(`/api/cards/${id}`, { headers: headers() })
   if (!res.ok()) throw new Error(`DELETE: ${res.status()}`)
 }
+
+// The whole packing list, as Edit's Done saves it.
+export async function putPacking(
+  request: APIRequestContext,
+  packing: Log["packing"]
+) {
+  const res = await request.put("/api/packing", {
+    headers: headers(),
+    data: packing,
+  })
+  if (!res.ok()) throw new Error(`PUT: ${res.status()} ${await res.text()}`)
+}

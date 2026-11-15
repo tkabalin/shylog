@@ -8,7 +8,7 @@ export interface Leave {
 
 // On a desktop the sidebar and Back stay in reach, where a phone's form
 // covers its tabs, so leaving with something typed asks first, as Cancel
-// does. Mounted only there, as it needs the router.
+// does. A phone screen that leaves its tabs in reach mounts it too.
 export function LeaveGuard({
   when,
   onBlock,
