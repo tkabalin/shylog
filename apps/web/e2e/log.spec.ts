@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test"
 
 import { diveId, getLog, patchDive, test } from "./api"
-import { tapCard } from "./ui"
+import { still, tapCard } from "./ui"
 
 const header = (page: Page) => page.locator("header").first()
 const cards = (page: Page) => page.locator("main a[href^='/dive/dive-']")
@@ -109,6 +109,10 @@ test("filters by several tags, keeping the menu still while picking @writes", as
   await page.goto("/")
   await page.getByRole("combobox", { name: "Tag, Any tag" }).click()
   const menu = page.getByRole("listbox")
+  // The menu scales in as it opens and boundingBox includes the transform,
+  // so a read mid-way is half a pixel off (WebKit, PR #112). Not after the
+  // pick below, where any movement is what this test is here to catch.
+  await still(menu)
   const left = (await menu.boundingBox())!.x
   await page.getByRole("option", { name: "Night" }).click()
   // Open for the next pick, and Clear waits to fold in until it closes, so
