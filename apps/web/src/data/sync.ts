@@ -88,6 +88,7 @@ export async function syncLog(
         schemaVersion: log.schemaVersion,
         serverTime: log.serverTime,
         settings: log.settings,
+        packing: log.packing,
       })
     }
   )

@@ -68,6 +68,7 @@ export function syntheticLog(
     ),
     fieldMeta: new Map(),
     cards: [],
+    packing: { sections: [] },
     pending: new Set(),
   } as LogView
 }

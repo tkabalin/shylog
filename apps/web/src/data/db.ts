@@ -22,15 +22,18 @@ export type Card = Log["cards"][number]
 // Kept with its place in the list, as the table orders rows by id.
 export type StoredCard = Card & { position: number }
 export type Settings = Log["settings"]
+export type Packing = Log["packing"]
 
 // What the mirror knows about itself: the version it holds (its ETag), the
-// server's schema version and time then, and the log-wide settings.
+// server's schema version and time then, the log-wide settings and the
+// packing checklist (missing from a mirror written before it existed).
 export interface Meta {
   key: "log"
   version: string
   schemaVersion: number
   serverTime: string
   settings: Settings
+  packing?: Packing
 }
 
 // A newer schemaVersion than this app understands stops syncing until the
@@ -107,6 +110,11 @@ export class LogDb extends Dexie {
     // server answers 304, so the next sync is made to fetch the whole log.
     this.version(4)
       .stores({ cardImages: "[cardId+hash], heldUntil" })
+      .upgrade((tx) => tx.table("meta").update("log", { version: "" }))
+    // Likewise for the packing checklist, which an unchanged log's 304
+    // would never bring.
+    this.version(5)
+      .stores({})
       .upgrade((tx) => tx.table("meta").update("log", { version: "" }))
   }
 }
