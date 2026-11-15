@@ -7,6 +7,7 @@ import {
   IconPhotoPlus,
   IconPlus,
 } from "@tabler/icons-react"
+import { cardCrop } from "@shylog/core"
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router"
 import { MotionConfig, Reorder } from "motion/react"
 import { cn } from "cn"
@@ -19,7 +20,7 @@ import { OfflineMark } from "@/components/offline-mark"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import { PageBar } from "@/you/bar"
-import { CardImage } from "@/you/cards/card-image"
+import { CardThumb } from "@/you/cards/card-thumb"
 import { accept, CardSheet, loadCardSheet } from "@/you/cards/load-sheet"
 import { useLift } from "@/you/cards/use-lift"
 import { pressable, SaveFailure } from "@/you/parts"
@@ -308,11 +309,11 @@ function CardRow({
             {pagesText(card.images.length)}
           </span>
         </span>
-        <CardImage
-          cardId={card.id}
-          n={0}
-          hash={card.images[0]!}
-          className="h-14 w-19 shrink-0 rounded-[9px] bg-muted object-cover ring-1 ring-foreground/10"
+        {/* At the tiles' shape, so a crop frames the same part in both. */}
+        <CardThumb
+          source={{ cardId: card.id, n: 0, hash: card.images[0]! }}
+          crop={cardCrop(card)}
+          className="w-19 rounded-[9px] bg-muted ring-1 ring-foreground/10"
         />
         <IconChevronRight
           aria-hidden
