@@ -77,9 +77,15 @@ export function web(root: string, appName: string) {
         }
       })
       .use("*", serveStatic({ root }))
-      // Client-side routes get the app; a missing file or API path doesn't.
+      // Client-side routes get the app; a missing file or API path doesn't,
+      // nor /.well-known/, where an MCP client that was refused looks for a
+      // sign-in the server doesn't have.
       .get("*", (c) => {
-        if (c.req.path.startsWith("/api/") || /\.[^/]*$/.test(c.req.path)) {
+        if (
+          c.req.path.startsWith("/api/") ||
+          c.req.path.startsWith("/.well-known/") ||
+          /\.[^/]*$/.test(c.req.path)
+        ) {
           return c.notFound()
         }
         c.header("Cache-Control", "no-cache")

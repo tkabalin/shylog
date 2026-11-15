@@ -41,6 +41,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 - Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
 - Keep a packing checklist to tick off before a dive.
 - Install to the home screen, with one instance per diver.
+- Answer questions about the log in Claude Code, through an MCP server on the tailnet: look a dive up by its number or search past dives.
 
 ## Architecture
 
@@ -175,6 +176,16 @@ curl -H 'X-Shylog: 1' https://<TS_HOSTNAME>.<tailnet>.ts.net/api/health
 
 If the host doesn't use MagicDNS, add `--resolve <TS_HOSTNAME>.<tailnet>.ts.net:443:<node IP>`, with the node IP from `docker compose --env-file instances/<instance>.env exec tailscale tailscale ip -4`. A request without the header gets `403 Missing X-Shylog`, and one from a login that isn't allowed gets `403 Login not allowed`. To check the refusal, take your login out of `SHYLOG_ALLOWED_LOGINS`, run `up -d --wait app`, repeat the request, then put it back. For the second diver, install the app on their phone through the shared node: the app sends the header on every call, so it loading proves their login passes.
 
+### Claude
+
+Each instance serves an MCP server at `/mcp`, so Claude Code on a device on the tailnet can look dives up by number and search the log. It takes the same allowed login as the app. Add it once per instance:
+
+```bash
+claude mcp add --transport http --scope user shylog-<instance> https://<TS_HOSTNAME>.<tailnet>.ts.net/mcp
+```
+
+Claude on the phone and claude.ai can't use it: they connect from Anthropic's cloud, which can't reach the tailnet. If Claude Code shows the server as needing authentication, the server refused the login, as it does for a login not in `SHYLOG_ALLOWED_LOGINS` or a tagged device; there is no sign-in to give it.
+
 ### Dive computer cable
 
 With the watch's USB cable plugged into the server, Import can download the dives itself. The image includes `dctool` for the Suunto D4i and Zoop Novo, and the cable needs no driver, as Linux's own `ftdi_sio` shows it as a serial port. Once per server, make a group for the cable and install the udev rule that names it `/dev/suunto` and gives it to that group:
@@ -227,7 +238,7 @@ If Docker restarts the sidecar on its own and the app stops answering, run `up -
 
 The app writes one JSON object per line to stdout, so `docker compose --env-file instances/<instance>.env logs app` shows them, and any Docker log shipper, such as Grafana Alloy into Loki, picks them up with no configuration here. Rotation is Docker's, set by `log-opts` in the daemon's `daemon.json`.
 
-Every line has `time`, `level`, `event`, `msg`, `instance` (the `TS_HOSTNAME`) and `version` (the commit the image was built from). Each `/api` request logs one `request` line with `method`, `route`, `path`, `status`, `durationMs` and `requestId`, the id the app sends with every call and gets back in `X-Request-Id`; a refused request adds its `reason`. The app's own errors arrive as `client_error` lines carrying the `failedRequestId` of the call that failed. Logs hold ids, counts and timings, never what a diver wrote.
+Every line has `time`, `level`, `event`, `msg`, `instance` (the `TS_HOSTNAME`) and `version` (the commit the image was built from). Each `/api` request logs one `request` line with `method`, `route`, `path`, `status`, `durationMs` and `requestId`, the id the app sends with every call and gets back in `X-Request-Id`; a refused request adds its `reason`. The app's own errors arrive as `client_error` lines carrying the `failedRequestId` of the call that failed, and each MCP tool call logs an `mcp_tool` line with the tool, its `outcome` and `durationMs`. Logs hold ids, counts and timings, never what a diver wrote.
 
 Some LogQL, with the shipper labelling each container:
 

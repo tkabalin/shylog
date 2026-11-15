@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Starts the built image as Compose runs it (read-only, as the node user, on
 # a bind-mounted data folder, with the host's /dev as the dive computer's
-# override mounts it) and checks the server,
+# override mounts it) and checks the server, its MCP endpoint,
 # the web app, the time zone, the backup CLI and dctool work inside it.
 # Usage: .github/scripts/smoke-image.sh <image> [commit]
 set -euo pipefail
@@ -28,6 +28,7 @@ get() {
   docker exec "$container" node -e "
     fetch('http://127.0.0.1:3000$1', {
       headers: { 'X-Shylog': '1', 'Tailscale-User-Login': 'ci@example.com' },
+      signal: AbortSignal.timeout(15000),
     }).then(async (res) => {
       if (!res.ok) process.exit(1)
       process.stdout.write(await res.text())
@@ -47,6 +48,31 @@ docker logs "$container" 2>/dev/null | jq -se --arg rev "${revision:-dev}" '
   (map(select(.event == "listening")) | length == 1 and .[0].version == $rev)
   and all(.[]; .instance == "shylog")'
 get /manifest.webmanifest | jq -e '.name == "Shylog CI"'
+# Claude's MCP endpoint answers a tool call from the built server, which
+# proves the SDK resolves in the production install. The reply may come as
+# one server-sent event.
+docker exec "$container" node -e "
+  fetch('http://127.0.0.1:3000/mcp', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json, text/event-stream',
+      'MCP-Protocol-Version': '2025-06-18',
+      'Tailscale-User-Login': 'ci@example.com',
+    },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call',
+      params: { name: 'search_dives', arguments: {} } }),
+    signal: AbortSignal.timeout(15000),
+  }).then(async (res) => {
+    if (!res.ok) {
+      console.error(res.status, await res.text())
+      process.exit(1)
+    }
+    const text = await res.text()
+    process.stdout.write(text.startsWith('{') ? text
+      : text.split('\\n').find((line) => line.startsWith('data: ')).slice(6))
+  }, () => process.exit(1))" |
+  jq -e '.result.content[0].text | fromjson | .showing == "0 of 0"'
 # The built web app, with its title from SHYLOG_APP_NAME and its assets.
 page=$(get /)
 grep -q '<title>Shylog CI</title>' <<<"$page"

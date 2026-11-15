@@ -3,6 +3,9 @@ import { logger } from "./log.ts"
 
 export type Integrity = "ok" | "failed"
 
+// Why a write is refused while the database has failed its check.
+export const savingPaused = "Saving is paused: the database failed its check"
+
 // A failure pauses writes until the database is restored, and Settings
 // shows the alert. A file corrupt enough makes the check itself throw.
 export function checkIntegrity(db: Db): Integrity {

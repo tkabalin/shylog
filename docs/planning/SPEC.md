@@ -19,13 +19,14 @@ A mobile-first PWA for logging dives, self-hosted on a home server and reachable
 - Managing sites, people, dive centres, and trips, including putting many dives on a trip, a dive centre, or a person at once
 - Certification cards, viewable offline
 - A packing checklist of things to take on a dive, in sections, editable, ticked off on the phone
+- An MCP server for Claude Code and Claude Desktop on a tailnet device: look a dive up by its number, search the log, log and edit dives, and tidy sites, people, dive centres, trips and regions
 - A second instance for a second diver
 - Installable on a phone home screen
 
 ### Not in v1
 
 - Bulk editing of other fields
-- MCP integration for logging dives with Claude
+- Claude on the phone or claude.ai through MCP, which would need a public endpoint and a sign-in (see Later)
 - Several divers in one instance, or public access (the second diver gets a separate instance; see Instance configuration)
 
 ## Stack and deployment
@@ -358,6 +359,7 @@ Editing, deleting, or restoring a synced dive; creating, renaming, merging, or d
 | POST | `/api/export/run` | Rewrite `export/dives.uddf` and `export/dives.csv` without downloading, for Export now after a failed night |
 | GET | `/api/health` | WAL size, integrity status, dive count, the times of the last snapshot and export, and the server's name (`TS_HOSTNAME`), for the You tab |
 | POST | `/api/client-log` | An error the app hit, for the server's log (see Logging under Server); writes nothing to the database |
+| POST | `/mcp` | The MCP server for Claude Code and Claude Desktop (see MCP server); GET and DELETE are refused |
 
 **Client data**: `/api/log` returns `{ schemaVersion, version, serverTime, dives, sites, countries, regions, people, diveCentres, trips, links, fieldMeta, settings, cards, packing }`. Each dive carries a 24-point downsampled depth profile for the Log's sparkline (the deepest sample in each of 24 equal slices of the dive's time, so the line always reaches the bottom), its count of ascent alarms, its safety stop (start, end, time held and mean depth, or null), and the samples' time under water and mean depth for SAC, all stored when its samples are written, so the list, the dive's figures and the statistics never need the samples themselves; deleted dives are included with `deletedAt`, so Recently deleted works from the copy. Each card carries its images as the list of their hashes in page order, so the phone fetches only pages it doesn't have, and its thumbnail crop, or null for none. Dexie keeps one table per collection, mirroring it, so the log can be read offline. After each sync the phone also downloads, in the background, the samples of every dive it doesn't have yet or whose profile has changed (but not those in Recently deleted) (by the digest of the figures the log carries from them), 25 dives a request, so every dive's chart opens at once and works offline. An app that receives a newer `schemaVersion` than it understands stops syncing, keeps its queue, and offers to update.
 
@@ -381,8 +383,27 @@ One Node process running Hono serves the app, hands out the log, and is the only
 - **Health**: `/api/health` reports WAL size, integrity status, whether writes are paused, the dive count, the times of the last snapshot and export, and whether the last nightly export failed.
 - **Logging**: the server writes one JSON line per event to stdout with pino (readable through pino-pretty in development), so any Docker log shipper, such as Grafana Alloy into Loki, picks it up with no configuration in Shylog. Every line carries its level, an `event` name, the instance (`TS_HOSTNAME`) and the version (the commit the image was built from). Each `/api` request logs its method, route, status, duration and request id: the app sends an `X-Request-Id` with every call, the server makes one when it is missing, and the response echoes it, so an error on the phone can be found in the server's log. `/api/version` and `/api/health`, which phones poll, log at debug level, as do an accepted error report (its own line says what matters) and a report refused by the rate limit; static files aren't logged. The nightly snapshot and export log what they wrote and how long it took, refused writes log their reason, and errors log their stack and cause. The phone reports its own errors (failed syncs, rejected drafts, code that failed to load, uncaught errors) to `POST /api/client-log`, errors only, capped in size and rate, never queued offline. Logs hold ids, counts and timings, never dive contents, names or request bodies.
 - **Network**: the app container uses the Tailscale sidecar's network (`network_mode: service:tailscale`), listens on 127.0.0.1 only, on `PORT` (default 3000), which the sidecar's Serve config (`TS_SERVE_CONFIG`) forwards to, and publishes no ports, so it can only be reached through Tailscale Serve.
-- **Security**: Tailscale keeps the network private, but any website open in the same browser could otherwise send requests. Checks apply to `/api/*` only, never to the app's static files, manifest, or service worker. Every API request needs an `X-Shylog` header. Requests that change data must also send an `Origin` matching the app and the right content type: JSON for draft uploads and edits, the UDDF file for imports. Serve adds a `Tailscale-User-Login` header and strips any copy a client sends, and the server checks it against the instance's allowed logins (see Instance configuration). Tagged devices get no identity header, so only personal devices can use the app. A development bypass (`SHYLOG_DEV_LOGIN`, see Instance configuration) exists, and the server refuses to start with it enabled in production. Tailnet ACLs restrict each node to its diver's devices (plus the owner's for support, where allowed); the owner's instance is never shared.
+- **Security**: Tailscale keeps the network private, but any website open in the same browser could otherwise send requests. Checks apply to `/api/*` only, never to the app's static files, manifest, or service worker. Every API request needs an `X-Shylog` header. Requests that change data must also send an `Origin` matching the app and the right content type: JSON for draft uploads and edits, the UDDF file for imports. Serve adds a `Tailscale-User-Login` header and strips any copy a client sends, and the server checks it against the instance's allowed logins (see Instance configuration). Tagged devices get no identity header, so only personal devices can use the app. A development bypass (`SHYLOG_DEV_LOGIN`, see Instance configuration) exists, and the server refuses to start with it enabled in production. Tailnet ACLs restrict each node to its diver's devices (plus the owner's for support, where allowed); the owner's instance is never shared. `/mcp` (see MCP server) takes the same allowed login but no `X-Shylog`: only Claude's clients call it, so it refuses any request carrying an `Origin`, which every browser POST does, and any body but JSON. It refuses with 403, never 401, and `/.well-known/` is a 404, so a refused client doesn't go looking for a sign-in.
 - **Serving**: Node serves the built PWA as well as the API. Alongside it runs a Tailscale sidecar for HTTPS, two containers in total.
+
+### MCP server
+
+Claude Code reaches the log through an MCP server at `/mcp` on the instance's own tailnet name, so a dive can be looked up from a chat on the laptop. Like the app, it is reachable only over the tailnet: Claude on the phone and claude.ai connect from Anthropic's cloud, which would need a public endpoint and a sign-in (see Later). The MCP layer is its own module in the server (`apps/server/src/mcp/`) and reuses the API's rules rather than its routes. Reads come from the same log the app downloads, and writes go through the same apply functions, transactions and journal entries as a draft upload or an edit, so the derived pass and a restore's replay cover them unchanged.
+
+- **Transport**: stateless Streamable HTTP through the MCP TypeScript SDK's `createMcpHandler`, serving the 2026-07-28 protocol and the 2025 one. Each request gets a fresh server, so nothing is kept between calls.
+- **Units**: tools speak the app's units with the unit in each name (`durationMin`, `maxDepthM`, `cylinderVolumeL`, `oxygenPercent`), since database units under bare names would pass validation when wrong, 47 minutes sent as 47 seconds. A duration or surface interval is shown to 0.01 minute, which converts back to the same second, so a value sent back unchanged changes nothing. Times are local wall-clock at the site, as everywhere.
+- **Dive numbers**: the diver names dives by number, so `get_dive` takes the number the app shows, or an id. Anything that follows up on a dive uses its id, as numbers move when an earlier dive is added.
+- **Instructions**: the server's instructions open with whose log it is, the diver's name and `SHYLOG_APP_NAME`, as the owner's login reaches every instance and a dive must land in the right one.
+- **Replies**: compact JSON with empty fields left out. A refusal by the log's rules returns its message, naming the tool's own parameter and any entity a name clashes with; anything else is logged with its stack and returns a plain failure.
+- **Logging**: one `mcp_tool` line per call with the tool, its outcome and its duration, never its arguments.
+
+Every tool sets a title and every annotation hint, as MCP takes a missing hint as destructive, and clients decide from them whether to ask before a call.
+
+| Tool | Kind | What it does |
+| --- | --- | --- |
+| `get_dive` | Read | One dive by its number or id: every field in app units, who entered each value (by hand or the dive computer, with a computer's reading kept beside a hand value), the site, people, centre, trip and tags with their ids, and the figures (SAC, MOD, max PO₂ against the log's setting, CNS, OTU, safety stop, ascent alarms, mandatory stops). It can add a minute-by-minute depth and temperature line and the computer's events. |
+| `search_dives` | Read | Dives by date, number, site, region, country, trip, dive centre, person (in either role), tags, type, gas, depth, duration and the Log search's text match (one rule in core, shared with the app), with totals that leave out ignored dives as the Log's do, and a short row per dive, paged. An entity id merged away since it was read finds the dives of the one kept. |
+| `list_entities` | Read | Sites, regions, people, dive centres or trips, one kind at a time and optionally by name, with ids and dive counts that leave out ignored and deleted dives. The Unknown site is listed only while a dive is on it, as on You. |
 
 ### Restores
 
@@ -885,6 +906,7 @@ Each step ends with something usable, and the core package comes first because e
 12. **Statistics** screen.
 13. **Dive-number milestones**: the save's milestone burst and the next milestone on Statistics (see Records and milestones).
 14. **Packing checklist**: the editable list and its ticks (see Screens).
+15. **MCP server**: Claude Code and Claude Desktop on the log (see MCP server under Server).
 
 ## Testing
 
@@ -911,7 +933,7 @@ The sync rules and the UDDF import and export carry most of the risk, so they ge
 
 - Consider Cloudflare Tunnel with Cloudflare Access on a subdomain of a personal domain, so the app works without the Tailscale app on the phone. This would need real app authentication, and a second origin would get its own offline queue and storage.
 - Bulk editing of other fields, including how mixed values show when selected dives disagree
-- MCP tools for logging with Claude. A tailnet-only server is reachable from Claude Desktop or Claude Code on a tailnet device, not from Claude on the web, unless the MCP endpoint is exposed through Tailscale Funnel with its own auth. Keep the MCP layer separate in the server.
+- The MCP server from Claude on the phone, on claude.ai, or through Claude Desktop's own connectors. Those connect from Anthropic's cloud, so each instance would need a public MCP hostname through Tailscale Funnel (a second node, as Funnel opens a whole port and the app holds 443) and an OAuth sign-in, which could keep Tailscale as the identity by serving the consent page on the tailnet name.
 - Continuous replication with Litestream to its own unlocked bucket, if losing up to a day of changes ever stops being acceptable. It would need `wal_autocheckpoint=0`, explicit 30-day retention, a stop-and-reset restore swap, and replication lag in the health checks.
 - A second download in Subsurface's own format (`.ssrf`), beside the UDDF export. Subsurface's UDDF import ignores `<shylog>` and fills its Extra Info only from file-wide facts (the generator, the computer's serial and firmware, the deco model), so tags, trips, dive professionals, the dive centre, surge, surface, weather, gear details and the maximum temperature never reach it from UDDF. Its own format has fields for tags, trips, the dive master and the suit, and per-dive key and value pairs for the rest, which Subsurface shows under Extra Info.
 - Share button on a dive, to copy the dive's public details as text to the clipboard or save them as an image. It covers details that are fine to show anyone, such as date and time, max depth, average depth, and visibility, and leaves out personal ones: cylinder, gas, gear details, and notes.

@@ -40,7 +40,7 @@ The topic docs in `docs/` (and the README) are the public write-up for the owner
 - **Offline**: only new dives (and any sites, regions, people, dive centres, or trips they create) can be created offline, as drafts. Edits to synced data are plain API calls that need a connection. Do not build a general offline op queue.
 - **Ids** are client-generated, start with a letter (e.g. `dive-<uuid>`), and are valid UDDF ids.
 - **Config**: nothing assumes a single instance. Logins, hostname, origin, data directory, and app name come from env (`SHYLOG_ALLOWED_LOGINS`, `TS_HOSTNAME`, `SHYLOG_ORIGIN`, `SHYLOG_DATA_DIR`, `SHYLOG_APP_NAME`). No hard-coded paths, ports, `container_name`, or named volumes.
-- **Security**: checks apply to `/api/*` only. The dev identity bypass must refuse to start in production.
+- **Security**: checks apply to `/api/*` and `/mcp` only (`/mcp` refuses any `Origin` instead of asking for `X-Shylog`). The dev identity bypass must refuse to start in production.
 - **Data safety**: every write is one transaction (an import, one per chunk of 50 dives) and journalled in `ops`, except import previews, which are scratch. Schema changes are numbered migrations preceded by a snapshot.
 
 ## UI conventions
