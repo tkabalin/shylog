@@ -5,7 +5,7 @@ import { test } from "./api"
 const patterns = (page: Page) => page.getByRole("region", { name: "Patterns" })
 const statsTab = (page: Page) =>
   page.getByRole("navigation", { name: "Main" }).getByRole("link", {
-    name: "Stats",
+    name: "Statistics",
   })
 
 // The seeded D4i log's 2026 supports two patterns that can lead; its
@@ -70,7 +70,7 @@ test("All patterns lists every pattern by measure, and Back returns to the year"
   )
   await expect(records.getByRole("button")).toHaveCount(0)
 
-  // Pushed over Statistics, so Back pops to it and the Stats tab goes back.
+  // Pushed over Statistics, so Back pops to it and the Statistics tab goes back.
   await page.goBack()
   await expect(page).toHaveURL("/stats?year=2026")
   await page.goForward()

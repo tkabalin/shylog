@@ -11,7 +11,7 @@ import {
 import { png } from "./png"
 import { still } from "./ui"
 
-const tabs = ["Log", "Stats", "Import", "You"]
+const tabs = ["Log", "Statistics", "Import", "You"]
 
 async function height(locator: Locator) {
   const box = await locator.boundingBox()
@@ -46,9 +46,9 @@ test.describe("at phone width", () => {
     const box = await nav.boundingBox()
     expect(box!.y + box!.height).toBeCloseTo(844, 0)
 
-    await nav.getByRole("link", { name: "Stats" }).click()
+    await nav.getByRole("link", { name: "Statistics" }).click()
     await expect(page).toHaveURL("/stats")
-    await expect(nav.getByRole("link", { name: "Stats" })).toHaveAttribute(
+    await expect(nav.getByRole("link", { name: "Statistics" })).toHaveAttribute(
       "aria-current",
       "page"
     )
@@ -93,7 +93,7 @@ test.describe("at phone width", () => {
     const box = await nav.boundingBox()
     expect(box!.y + box!.height).toBeCloseTo(844, 0)
 
-    await nav.getByRole("link", { name: "Stats" }).click()
+    await nav.getByRole("link", { name: "Statistics" }).click()
     await expect(page).toHaveURL("/stats")
     await expect.poll(() => main.evaluate((el) => el.scrollTop)).toBe(0)
   })
@@ -188,7 +188,7 @@ test.describe("at phone width", () => {
     await page.goto("/")
     const nav = page.getByRole("navigation", { name: "Main" })
     for (const [tab, heading] of [
-      ["Stats", "Statistics"],
+      ["Statistics", "Statistics"],
       ["You", "You"],
       ["Log", "Log"],
     ]) {
@@ -317,9 +317,9 @@ test.describe("at desktop width", () => {
     await expect(sidebar).toHaveCSS("width", "48px")
     // Each icon is named in a tooltip beside it.
     const nav = page.getByRole("navigation", { name: "Main" })
-    await nav.getByRole("link", { name: "Stats" }).hover()
+    await nav.getByRole("link", { name: "Statistics" }).hover()
     await expect(page.locator("[data-slot=tooltip-content]")).toHaveText(
-      "Stats"
+      "Statistics"
     )
     // A dialog centres beside the rail, over the form.
     await page.getByRole("button", { name: /^Surface interval/ }).click()
