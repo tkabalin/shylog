@@ -12,9 +12,11 @@ export default defineConfig({
       include: [
         "packages/*/src/**",
         "apps/server/src/**",
+        "apps/claude-desktop/src/**",
         "apps/web/src/{data,format,log,dive}/**",
       ],
-      exclude: ["**/*.test.{ts,tsx}"],
+      // The extension's entry runs only in a child process, out of sight.
+      exclude: ["**/*.test.{ts,tsx}", "apps/claude-desktop/src/index.ts"],
       reporter: [
         ["text", { file: "coverage.txt", skipFull: false }],
         "text-summary",
@@ -61,6 +63,16 @@ export default defineConfig({
           // The UDDF tests run xmllint and xsltproc alongside every other
           // file, and under that load whichever database test is slowest at
           // the time (replay, nightly) went past the 5 s default.
+          testTimeout: 20_000,
+        },
+      },
+      {
+        test: {
+          name: "claude-desktop",
+          root: "apps/claude-desktop",
+          environment: "node",
+          // Each test starts Node and loads the MCP SDK, which under CI's
+          // load took most of the 5 s default.
           testTimeout: 20_000,
         },
       },

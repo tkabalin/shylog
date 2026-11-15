@@ -1486,10 +1486,12 @@ Deferred, or to watch:
 - Claude Code connects to `/mcp` on the 2026-07-28 protocol and the 2025 one, and lists the tools with a title and every hint.
 - `/mcp` refuses a login that isn't allowed, any request with an `Origin`, and a body that isn't JSON, with 403 or 415 and never 401; GET is refused rather than answered with the app's page, and `/.well-known/` is a 404.
 - `get_dive` finds a dive by its number or id, in app units, with each value's source and the figures the dive's detail shows; `search_dives` filters, totals and pages as the Log counts; `list_entities` gives ids and counts.
-- Tests: `src/mcp/mcp.test.ts`, `src/mcp/tools/read.test.ts`.
+- The Claude Desktop extension passes a 2025 and a 2026-07-28 client's calls through, says why when the instance can't be reached, answers no notification, and stops when Desktop closes its input; packed per instance, it installs and answers "what was dive 42?" in Claude Desktop on Windows (the owner's check).
+- Tests: `src/mcp/mcp.test.ts`, `src/mcp/tools/read.test.ts`, `apps/claude-desktop/src/bridge.test.ts`.
 
 - [x] Endpoint, guard and read tools
-- [ ] Claude Desktop extension, checked on Desktop by the owner
+- [x] Claude Desktop extension
+- [x] The extension checked in Claude Desktop by the owner (15 November 2026: installed from Settings > Extensions, answered "what was dive 42?" and a search for dives deeper than 30 m)
 - [ ] Write tools
 
 ---

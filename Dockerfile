@@ -44,6 +44,7 @@ RUN corepack install && pnpm fetch
 COPY apps/web/package.json apps/web/
 COPY apps/server/package.json apps/server/
 COPY packages/core/package.json packages/core/
+COPY apps/claude-desktop/package.json apps/claude-desktop/
 
 FROM manifests AS build
 RUN pnpm install --frozen-lockfile --offline

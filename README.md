@@ -41,7 +41,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 - Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
 - Keep a packing checklist to tick off before a dive.
 - Install to the home screen, with one instance per diver.
-- Answer questions about the log in Claude Code, through an MCP server on the tailnet: look a dive up by its number or search past dives.
+- Answer questions about the log in Claude Code and Claude Desktop, through an MCP server on the tailnet: look a dive up by its number or search past dives.
 
 ## Architecture
 
@@ -178,13 +178,21 @@ If the host doesn't use MagicDNS, add `--resolve <TS_HOSTNAME>.<tailnet>.ts.net:
 
 ### Claude
 
-Each instance serves an MCP server at `/mcp`, so Claude Code on a device on the tailnet can look dives up by number and search the log. It takes the same allowed login as the app. Add it once per instance:
+Each instance serves an MCP server at `/mcp`, so Claude Code or Claude Desktop on a device on the tailnet can look dives up by number and search the log. It takes the same allowed login as the app. Add it to Claude Code once per instance:
 
 ```bash
 claude mcp add --transport http --scope user shylog-<instance> https://<TS_HOSTNAME>.<tailnet>.ts.net/mcp
 ```
 
-Claude on the phone and claude.ai can't use it: they connect from Anthropic's cloud, which can't reach the tailnet. If Claude Code shows the server as needing authentication, the server refused the login, as it does for a login not in `SHYLOG_ALLOWED_LOGINS` or a tagged device; there is no sign-in to give it.
+Claude Desktop reaches it through an extension, packed for each instance on a computer with this repo:
+
+```bash
+pnpm --filter @shylog/claude-desktop extension <instance> https://<TS_HOSTNAME>.<tailnet>.ts.net/mcp
+```
+
+This writes `apps/claude-desktop/shylog-<instance>.mcpb`. Copy it to the computer running Claude Desktop and install it from Desktop's Settings > Extensions > Advanced settings > Install Extension. Windows doesn't open the file with Desktop on a double-click. It runs on Desktop's own Node and connects from that computer, so Tailscale has to be on there. Pack one per instance: each gets its own name, so they sit side by side.
+
+Claude on the phone, claude.ai and Desktop's own connectors can't use it: they connect from Anthropic's cloud, which can't reach the tailnet. If Claude Code shows the server as needing authentication, the server refused the login, as it does for a login not in `SHYLOG_ALLOWED_LOGINS` or a tagged device; there is no sign-in to give it.
 
 ### Dive computer cable
 
