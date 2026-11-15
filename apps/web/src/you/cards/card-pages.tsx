@@ -9,49 +9,20 @@ import {
 import { useSize } from "@/chart/size"
 import type { Card } from "@/data/db"
 import { CardImage } from "@/you/cards/card-image"
+import {
+  bandScale,
+  inertia,
+  project,
+  rubberband,
+  settle,
+  unband,
+  unbandScale,
+} from "@/you/cards/gestures"
 
 // How far a card can be zoomed: an eCard's small print readable on a phone.
 const maxScale = 4
 // The board's 16 px round the page at rest.
 const inset = 16
-// Critically damped, as nothing here was thrown: a settle, not a bounce.
-const settle = { type: "spring", bounce: 0, duration: 0.4 } as const
-
-// Apple's momentum projection: where a flick would come to rest.
-const project = (velocity: number) => ((velocity / 1000) * 0.998) / 0.002
-
-// Past a bound the page follows less the further it goes, as a scroll view
-// resists at its end.
-function rubberband(value: number, min: number, max: number, size: number) {
-  const band = (over: number) => (over * size * 0.55) / (size + 0.55 * over)
-  if (value < min) return min - band(min - value)
-  if (value > max) return max + band(value - max)
-  return value
-}
-
-// The inverse: where the finger would be for a value past a bound, so a
-// grab during a bounce carries on from there rather than jumping.
-function unband(value: number, min: number, max: number, size: number) {
-  const raw = (over: number) =>
-    (over * size) / (0.55 * Math.max(size - over, 1))
-  if (value < min) return min - raw(min - value)
-  if (value > max) return max + raw(value - max)
-  return value
-}
-
-// Scale resists past 4x like a scroll view, and below 1x at half speed.
-const bandScale = (raw: number) =>
-  raw > maxScale
-    ? rubberband(raw, 0, maxScale, maxScale)
-    : raw < 1
-      ? 1 - (1 - raw) / 2
-      : raw
-const unbandScale = (shown: number) =>
-  shown > maxScale
-    ? unband(shown, 0, maxScale, maxScale)
-    : shown < 1
-      ? 1 - (1 - shown) * 2
-      : shown
 
 type Point = { x: number; y: number }
 type Gesture =
@@ -274,7 +245,7 @@ export function CardPages({
       kind: "pinch",
       distance: Math.hypot(a.x - b.x, a.y - b.y),
       mid,
-      scale: unbandScale(scale.get()),
+      scale: unbandScale(scale.get(), maxScale),
       shown: scale.get(),
       pan,
       last: { mid, pan },
@@ -322,7 +293,10 @@ export function CardPages({
       const distance = Math.hypot(a.x - b.x, a.y - b.y)
       const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
       // Past the limits it resists rather than stopping dead.
-      const next = bandScale((now.scale * distance) / Math.max(now.distance, 1))
+      const next = bandScale(
+        (now.scale * distance) / Math.max(now.distance, 1),
+        maxScale
+      )
       // The point of the page between the fingers stays between them.
       const ratio = next / now.shown
       const pan = {
@@ -379,14 +353,10 @@ export function CardPages({
         // Slowing as a scroll does, and springing back off an edge it
         // runs into.
         animate(value, scaled, {
-          type: "inertia",
+          ...inertia,
           velocity: value.getVelocity(),
           min: -limit,
           max: limit,
-          power: 0.8,
-          timeConstant: 325,
-          bounceStiffness: 300,
-          bounceDamping: 40,
         })
       } else if (inside !== value.get()) {
         animate(value, inside, spring)
