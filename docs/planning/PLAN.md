@@ -1495,7 +1495,7 @@ Deferred, or to watch:
 - [x] The extension checked in Claude Desktop by the owner (15 November 2026: installed from Settings > Extensions, answered "what was dive 42?" and a search for dives deeper than 30 m)
 - [x] Write tools
 
-**Notes** (written 15 November 2026, branch `feat/mcp-server`)
+**Notes for the next session** (written 15 November 2026, branch `feat/mcp-server`)
 
 Decisions taken while building (D65 has the owner's):
 
@@ -1506,6 +1506,16 @@ Decisions taken while building (D65 has the owner's):
 - From review: durations and surface intervals show to 0.01 minute, so one sent back unchanged is the same second (0.1 turned a computer's 3700 s into a hand 3702 s); `assign_dives` makes a new entity through the batch's own `create`, one journal entry as on You, and asks a person's role rather than defaulting to buddy; a matched site doesn't make the new region named with it; `edit_dive` refuses an overlapping time and says when others were renumbered; oxygen under 20 % is refused, not saved as air; the SDK's own error log keeps only the error's name, as a malformed body's message can quote it.
 - From the second review: the Log's text search is one rule in core (`matchesLogSearch`), used by the app and `search_dives`; search filters follow merged-away ids; `edit_dive` checks overlaps only for a moved time, after the time is validated; `list_entities` groups dives in one pass and `assign_dives` counts with one query; the image smoke check has a timeout and sends the protocol version; the nightly soak skips changes to the extension alone; the zip writer has a read-back test.
 - CI: the extension's bridge tests run in-process for each failure message (refused, down, silent, unreachable) and spawn both the source and a freshly built bundle under both protocols; `pnpm build` bundles it; the image smoke test makes a real tool call. The SDKs are the extension's dev dependencies, as the bundle carries them, and both `@modelcontextprotocol` packages pin one `core`, so they are bumped together. The extension says Node 22 or later, the oldest it has run on.
+
+Deferred, or to watch:
+
+- On the owner's machines once deployed: `claude mcp add` against each real instance, an extension packed for each and installed side by side in Claude Desktop (only one dev pack has been installed so far, so two coexisting is unchecked), and one real dive logged, edited and put on a trip. Whether Desktop asks before the write tools and runs the read tools without asking, as their hints say.
+- The phone, claude.ai and Desktop's own connectors stay out (Later in the spec): each instance would need a public Funnel hostname and an OAuth sign-in.
+- Left as they are from review: each read tool reads the whole log (one diver, a few hundred dives), every request rebuilds the server and reads settings for its instructions (the SDK's stateless handler), and the overlap check reads every live dive; revisit if a log reaches thousands of dives.
+- Bump `@modelcontextprotocol/server` and `@modelcontextprotocol/client` together, as each pins one `core`.
+- Carried over from milestone 25: on the phone, the grip drag under a finger (lift, auto-scroll near the bar and tabs, the drop settling, an item crossing sections in WebKit), the tick's haptic and press tint, the keyboard on Add item and Add section, the All packed pop, and frame rate while dragging a long list; whether a stale Done after real edits should be refused (409); the `group-has-*` restyles in Chromium and whether WebKit pays them too; the Discard changes sheet's tight gap, left to the branch changing `drawer.tsx`.
+- Carried over from milestone 24: the milestone line unfolding with the burst, the Statistics row's press tint and expansion, and whether "Century diver (can qualify as an instructor)" wraps at 320 px in iOS's font.
+- Carried over from milestones 21 to 23: the pattern rows' tap and press tint, Expand all, the lanes, threshold strip and month bars at arm's length, All patterns' length, the time to open Statistics, the year menu, a record's Back, the tag link, the expanding rows and the count's roll on the phone; whether the Log and Statistics tabs keep their filters; a tag's count leaving out ignored dives the Log lists; the desktop sidebar lighting Log on a record's dive's edit form; the root `:has()` restyles on a held press in WebKit; `capital()` and `/stats/patterns`' year parser repeated; and the README's cable steps on the home server, the Import screen's states and Forget's sheet on the phone, and whether Last downloaded moves on a read with nothing new.
 
 ---
 
