@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState, type Ref } from "react"
-import { cardMaxPages, newId } from "@shylog/core"
-import { IconPhotoPlus, IconTrash, IconX } from "@tabler/icons-react"
+import { cardCrop, cardMaxPages, newId } from "@shylog/core"
+import {
+  IconChevronRight,
+  IconPhotoPlus,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react"
 import { AnimatePresence, motion, MotionConfig, Reorder } from "motion/react"
 import { cn } from "cn"
 
@@ -25,9 +30,12 @@ import { Segmented } from "@/dive/form/rows"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import { useHoldUpdate } from "@/update"
-import { CardImage } from "@/you/cards/card-image"
+import { CardThumb, PageImage, type PageSource } from "@/you/cards/card-thumb"
+import { CropSheet } from "@/you/cards/crop-sheet"
+import { thumbEdit, type KeyedCrop } from "@/you/cards/thumb-edit"
 import { accept } from "@/you/cards/load-sheet"
 import { useLift } from "@/you/cards/use-lift"
+import { pressable } from "@/you/parts"
 
 // A page in the sheet: one the card has (by its hash and place on the
 // server), or a picked file. Each picked file has a card id of its own for
@@ -91,6 +99,15 @@ export function CardSheet({
   const [error, setError] = useState<string | undefined>(picked?.problem)
   const [asking, setAsking] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  // The thumbnail's crop with the page it was made on, so it applies only
+  // while that page is first and comes back if it returns there; and as it
+  // was when the sheet opened, so a sync meanwhile isn't taken for an edit.
+  const [opened] = useState((): KeyedCrop => {
+    const kept = card && cardCrop(card)
+    return kept ? { key: pages[0]!.key, crop: kept } : null
+  })
+  const [crop, setCrop] = useState(opened)
+  const [cropping, setCropping] = useState(false)
   const more = useRef<HTMLInputElement>(null)
   const shots = useRef<HTMLDivElement>(null)
   // Pages added with Add more go at the end, out of sight once there are a
@@ -108,9 +125,13 @@ export function CardSheet({
   const many = pages.length > 1
   const apart = !editing && (many || split) && separate
   const tooMany = !apart && pages.length > cardMaxPages
+  const first = pages[0]
+  const { thumb, touched, send } = thumbEdit(opened, crop, first?.key)
   const changed = editing
     ? name !== card.name ||
-      pages.map((page) => page.hash ?? page.key).join() !== card.images.join()
+      pages.map((page) => page.hash ?? page.key).join() !==
+        card.images.join() ||
+      touched
     : pages.length > 0
   const named = apart
     ? pages.every((page) => names[page.key]?.trim())
@@ -142,7 +163,8 @@ export function CardSheet({
         await saveCard(
           card?.id ?? newCardId,
           name.trim(),
-          pages.map((page) => page.file ?? page.hash)
+          pages.map((page) => page.file ?? page.hash),
+          { thumb: send }
         )
       }
       onOpenChange(false)
@@ -285,6 +307,31 @@ export function CardSheet({
               />
             )}
 
+            {/* The first page as the tiles show it, opening its crop; under
+                the one-or-separate choice, so its going doesn't move that from
+                under the finger. Cards saved apart are cropped in Edit card. */}
+            {first && !apart && (
+              <button
+                type="button"
+                onClick={() => setCropping(true)}
+                className={cn(
+                  "-mt-2 flex min-h-12 w-full items-center gap-3 rounded-[14px] bg-card px-3 py-2 text-left ring-1 ring-foreground/10 transition-colors duration-150 select-none [-webkit-touch-callout:none]",
+                  pressable
+                )}
+              >
+                <CardThumb
+                  source={sourceOf(first, card)}
+                  crop={thumb}
+                  className="w-24 rounded-[9px] bg-muted ring-1 ring-foreground/10"
+                />
+                <span className="flex-1 text-base font-medium">Thumbnail</span>
+                <IconChevronRight
+                  aria-hidden
+                  className="size-4.5 shrink-0 text-muted-foreground/60"
+                />
+              </button>
+            )}
+
             {apart ? (
               <section aria-labelledby="card-names" className="flex flex-col">
                 <h3
@@ -299,9 +346,11 @@ export function CardSheet({
                       key={page.key}
                       className="flex min-h-11.5 items-center gap-3 px-4"
                     >
-                      <PageImage
-                        page={page}
-                        className="h-7.5 w-10 shrink-0 rounded-md bg-muted object-cover ring-1 ring-foreground/10"
+                      {/* At the card's shape, as every thumbnail is. */}
+                      <CardThumb
+                        source={sourceOf(page)}
+                        crop={null}
+                        className="w-10 rounded-md bg-muted ring-1 ring-foreground/10"
                       />
                       <input
                         type="text"
@@ -374,6 +423,21 @@ export function CardSheet({
         </FullSheetContent>
       </Drawer>
 
+      {first && (
+        <CropSheet
+          open={cropping}
+          onOpenChange={setCropping}
+          source={sourceOf(first, card)}
+          crop={thumb}
+          // Done with no crop on a page that had none changes nothing, so a
+          // crop on a page moved back from first still returns with it.
+          onDone={(made) => {
+            if (made) setCrop({ key: first.key, crop: made })
+            else if (thumb) setCrop(null)
+          }}
+          className={editing ? overViewer : undefined}
+        />
+      )}
       <DiscardSheet
         open={asking}
         editing={editing}
@@ -399,41 +463,13 @@ export function CardSheet({
   )
 }
 
-function PageImage({
-  page,
-  card,
-  className,
-}: {
-  page: Page
-  card?: Card
-  className?: string
-}) {
-  if (page.file) return <FileImage file={page.file} className={className} />
+function sourceOf(page: Page, card?: Card): PageSource {
+  if (page.file) return { file: page.file }
   // Fetched at its place in the card as the log has it now: another phone
   // may have reordered it since the sheet opened, and the server refuses
   // a page asked for at its old place.
   const now = card?.images.indexOf(page.hash) ?? -1
-  return (
-    <CardImage
-      cardId={card!.id}
-      n={now >= 0 ? now : page.n}
-      hash={page.hash}
-      className={className}
-    />
-  )
-}
-
-// A picked file shown before it uploads, its object URL let go with it.
-// Set on the element, so StrictMode's second mount makes its own URL rather
-// than reusing one the first unmount revoked.
-function FileImage({ file, className }: { file: File; className?: string }) {
-  const image = useRef<HTMLImageElement>(null)
-  useEffect(() => {
-    const made = URL.createObjectURL(file)
-    image.current?.setAttribute("src", made)
-    return () => URL.revokeObjectURL(made)
-  }, [file])
-  return <img ref={image} alt="" draggable={false} className={className} />
+  return { cardId: card!.id, n: now >= 0 ? now : page.n, hash: page.hash }
 }
 
 // The strip's pages and its Add more settle together: critically damped,
@@ -494,8 +530,7 @@ function Shot({
         )}
       >
         <PageImage
-          page={page}
-          card={card}
+          source={sourceOf(page, card)}
           className="block h-33 w-auto max-w-50 min-w-16 rounded-[10px] bg-muted object-cover ring-1 ring-foreground/10"
         />
       </span>

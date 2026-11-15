@@ -716,4 +716,64 @@ withData.describe("certification cards at desktop width", () => {
         .toEqual([...before.images].reverse())
     }
   )
+
+  withData(
+    "zooms a card's thumbnail with a slider in a dialog over the viewer @writes",
+    async ({ page, restore }) => {
+      const id = `card-deskcrop${Date.now().toString(36)}`
+      restore((request) => deleteCard(request, id))
+      await putCard(page.request, id, "Desk crop", [
+        png(300, 600, [30, 60, 120]),
+      ])
+
+      await page.goto(`/you/certifications/${id}`)
+      await page.getByRole("button", { name: "Edit card" }).click()
+      const edit = page.getByRole("dialog", { name: "Edit card" })
+      await still(edit)
+      await edit.getByRole("button", { name: "Thumbnail" }).click()
+      const crop = page.getByRole("dialog", { name: "Thumbnail" })
+      await still(crop)
+      // Over the viewer, as Edit card is, so it centres on the window.
+      const box = (await crop.boundingBox())!
+      expect(box.x + box.width / 2).toBeCloseTo(512, 0)
+
+      // A plain wheel zooms, and Reset is on only once there's a zoom to
+      // undo. The slider is off until the page loads, as the wheel is.
+      const slider = crop.getByRole("slider", { name: "Zoom" })
+      const reset = crop.getByRole("button", { name: "Reset" })
+      await expect(slider).toBeEnabled()
+      await expect(reset).toBeDisabled()
+      // Over the frame's centre, so the zoom adds no pan.
+      const stage = (await crop
+        .locator("[data-base-ui-swipe-ignore]")
+        .boundingBox())!
+      await page.mouse.move(
+        stage.x + stage.width / 2,
+        stage.y + stage.height / 2
+      )
+      await page.mouse.wheel(0, -200)
+      await expect(reset).toBeEnabled()
+      expect(
+        Number(await slider.getAttribute("aria-valuenow"))
+      ).toBeGreaterThan(1)
+      await reset.click()
+      await expect(reset).toBeDisabled()
+      // Settled, as the slider stops a Reset where it is.
+      await expect(slider).toHaveAttribute("aria-valuenow", "1")
+
+      // The slider zooms all the way in, about the frame's centre.
+      await slider.press("End")
+      await crop.getByRole("button", { name: "Done" }).click()
+      await expect(crop).toBeHidden()
+      await edit.getByRole("button", { name: "Save" }).click()
+      await expect(edit).toBeHidden()
+      await expect
+        .poll(
+          async () =>
+            (await getLog(page.request)).cards.find((one) => one.id === id)
+              ?.thumb
+        )
+        .toMatchObject({ x: 0.5, y: 0.5, scale: 8, aspect: 0.5 })
+    }
+  )
 })

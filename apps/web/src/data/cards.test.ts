@@ -402,6 +402,28 @@ describe("saveCard", () => {
     expect(await kept(db)).toEqual(["card-ow,08e548c038b16088"])
     const [page] = await db.cardImages.toArray()
     expect(page!.heldUntil).toBeGreaterThan(Date.now())
+    // No crop given, none is sent, so the server keeps its own.
+    expect(sent[0]!.has("thumb")).toBe(false)
+  })
+
+  it("sends a crop as JSON, and null to clear one", async () => {
+    const sent: FormData[] = []
+    const fetch = vi.fn(async (_: RequestInfo | URL, init?: RequestInit) => {
+      sent.push(init!.body as FormData)
+      return Response.json({ version: "v2" })
+    })
+    const crop = { x: 0.5, y: 0.3, scale: 2, aspect: 0.46 }
+    const options = { db, fetch, settle: false }
+    await saveCard("card-ow", "Open Water", ["aaaa"], {
+      ...options,
+      thumb: crop,
+    })
+    await saveCard("card-ow", "Open Water", ["aaaa"], {
+      ...options,
+      thumb: null,
+    })
+    expect(JSON.parse(sent[0]!.get("thumb") as string)).toEqual(crop)
+    expect(sent[1]!.get("thumb")).toBe("null")
   })
 })
 
