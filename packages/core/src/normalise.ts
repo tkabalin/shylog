@@ -26,6 +26,25 @@ export function normaliseName(name: string): string {
     .trim()
 }
 
+// The Log's search: the site, the buddies, notable animals and notes,
+// ignoring case, spacing and accents, as the app and Claude's search tool
+// both find dives.
+export function matchesLogSearch(
+  query: string,
+  dive: {
+    site?: string
+    buddies: readonly (string | undefined)[]
+    notableAnimals?: string | null
+    notes?: string | null
+  }
+): boolean {
+  const needle = normaliseName(query)
+  if (!needle) return true
+  return [dive.site, ...dive.buddies, dive.notableAnimals, dive.notes].some(
+    (text) => text && normaliseName(text).includes(needle)
+  )
+}
+
 // Sites and regions are unique by name within a country.
 export function placeKey(name: string, countryCode: string): string {
   return `${countryCode}:${normaliseName(name)}`
