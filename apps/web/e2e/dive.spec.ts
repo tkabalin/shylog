@@ -116,7 +116,7 @@ test("goes back to the Log list from a tab opened on a dive", async ({
   await expect(page).toHaveURL(/\/dive\//)
   await page
     .getByRole("navigation", { name: "Main" })
-    .getByRole("link", { name: "Stats" })
+    .getByRole("link", { name: "Statistics" })
     .click()
   await expect(page).toHaveURL("/stats")
   // Stats took the dive's place; the Log list is behind it.

@@ -6,7 +6,7 @@ import type { Log } from "../src/api/client"
 const header = (page: Page) => page.locator("header").first()
 const statsTab = (page: Page) =>
   page.getByRole("navigation", { name: "Main" }).getByRole("link", {
-    name: "Stats",
+    name: "Statistics",
   })
 // A record's link names its site; the deepest comes first.
 const record = (page: Page, site: string) =>
@@ -134,7 +134,7 @@ test("a site opens its screen over Statistics, and Back returns to the same year
   await page.goto("/stats?year=2026")
   await siteRow(page, "Sodwana").click()
   await expect(page).toHaveURL(/\/you\/entities\/site\/site-/)
-  // Stats stays the current tab, though the screen is inside You.
+  // Statistics stays the current tab, though the screen is inside You.
   await expect(statsTab(page)).toHaveAttribute("aria-current", "page")
   await page
     .locator("#main")
@@ -243,7 +243,7 @@ test("with no dives says so and offers to log one", async ({
   )
 })
 
-test("the screen's code waits for the Stats tab and starts on its touch", async ({
+test("the screen's code waits for the Statistics tab and starts on its touch", async ({
   page,
 }) => {
   // The screen's own code: its split route component and src/stats/ on

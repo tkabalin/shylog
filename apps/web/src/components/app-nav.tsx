@@ -32,7 +32,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 
 const destinations = [
   { to: "/", label: "Log", icon: IconNotebook },
-  { to: "/stats", label: "Stats", icon: IconChartBar },
+  { to: "/stats", label: "Statistics", icon: IconChartBar },
   { to: "/import", label: "Import", icon: IconUpload },
   // Once Settings: the diver's own things and the log's upkeep.
   { to: "/you", label: "You", icon: IconScubaMask },
