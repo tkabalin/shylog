@@ -2,6 +2,7 @@ import {
   cardHash,
   cardImageMaxBytes,
   sniffImage,
+  type CardCrop,
   type CardOrder,
 } from "@shylog/core"
 
@@ -114,7 +115,13 @@ export async function saveCard(
     db = defaultDb,
     fetch = globalThis.fetch,
     settle = true,
-  }: Options & { settle?: boolean } = {}
+    thumb,
+  }: Options & {
+    settle?: boolean
+    // The first page's crop, null to clear it, or none to keep the stored
+    // one while that page stays first.
+    thumb?: CardCrop | null
+  } = {}
 ) {
   await Promise.all(
     pages.map(async (page) => {
@@ -133,6 +140,7 @@ export async function saveCard(
   )
   const form = new FormData()
   form.append("name", name)
+  if (thumb !== undefined) form.append("thumb", JSON.stringify(thumb))
   for (const page of pages) form.append("images", page)
   // Built by hand, as Hono's client can't type a form the route doesn't
   // validate.

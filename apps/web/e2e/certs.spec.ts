@@ -117,7 +117,7 @@ test("adds two screenshots as one card, swipes, reorders, renames and deletes it
   await still(edit)
   // Both pages loaded first: one still loading widens mid-drag and moves
   // the point where they swap. Their object URLs give the strip's order.
-  const pages = edit.locator("img")
+  const pages = edit.getByRole("region", { name: "Screenshots" }).locator("img")
   await expect
     .poll(() =>
       pages.evaluateAll(
@@ -158,6 +158,7 @@ test("adds two screenshots as one card, swipes, reorders, renames and deletes it
     id: card!.id,
     name: `${name} Plus`,
     images: [...card!.images].reverse(),
+    thumb: null,
   })
 
   // Delete asks first, then the list takes the viewer's place.
@@ -176,6 +177,52 @@ test("adds two screenshots as one card, swipes, reorders, renames and deletes it
   // The viewer was a step deeper, so Back goes on to You.
   await page.goBack()
   await expect(page).toHaveURL(/\/you$/)
+})
+
+test("crops a card's thumbnail from Edit card, and You's tile follows @writes", async ({
+  page,
+  restore,
+}) => {
+  const name = `E2E Crop ${unique()}`
+  restore(cleanUp(name))
+  const id = `card-e2e-${unique()}`
+  // A screenshot's shape, so the frame can pan down it.
+  await putCard(page.request, id, name, [png(300, 600, [30, 60, 120])])
+  await page.goto(`/you/certifications/${id}`)
+  await page.getByRole("button", { name: "Edit card" }).click()
+  const edit = page.getByRole("dialog", { name: "Edit card" })
+  await still(edit)
+  await edit.getByRole("button", { name: "Thumbnail" }).click()
+  const crop = page.getByRole("dialog", { name: "Thumbnail" })
+  await still(crop)
+  // Up the screen, so the frame shows further down the page.
+  await drag(page, [195, 500], [195, 380])
+  await crop.getByRole("button", { name: "Done" }).click()
+  await expect(crop).toBeHidden()
+  // Only a change to save: the crop counts as one.
+  await edit.getByRole("button", { name: "Save" }).click()
+  await expect(edit).toBeHidden()
+
+  const saved = (await getLog(page.request)).cards.find((one) => one.id === id)
+  expect(saved!.thumb).toMatchObject({ hash: saved!.images[0], scale: 1 })
+  expect(saved!.thumb!.x).toBeCloseTo(0.5)
+  expect(saved!.thumb!.y).toBeGreaterThan(0.55)
+
+  // Reset puts it back to the page's centre, which is no crop at all.
+  await page.getByRole("button", { name: "Edit card" }).click()
+  await still(edit)
+  await edit.getByRole("button", { name: "Thumbnail" }).click()
+  await still(crop)
+  await crop.getByRole("button", { name: "Reset" }).click()
+  await crop.getByRole("button", { name: "Done" }).click()
+  await edit.getByRole("button", { name: "Save" }).click()
+  await expect(edit).toBeHidden()
+  await expect
+    .poll(
+      async () =>
+        (await getLog(page.request)).cards.find((one) => one.id === id)!.thumb
+    )
+    .toBeNull()
 })
 
 test("adds two screenshots as separate cards @writes", async ({
@@ -234,7 +281,9 @@ test("leaves out a HEIC the browser can't open, and says why", async ({
   await expect(
     sheet.getByText("This browser can’t open HEIC. Save it as a JPEG first.")
   ).toBeVisible()
-  await expect(sheet.locator("img")).toHaveCount(1)
+  await expect(
+    sheet.getByRole("region", { name: "Screenshots" }).locator("img")
+  ).toHaveCount(1)
   await sheet.getByRole("button", { name: "Cancel" }).click()
   await page.getByRole("button", { name: "Discard card" }).click()
 })
