@@ -66,7 +66,7 @@ export function NoLog({
             <EmptyDescription>
               {reach === "fault"
                 ? "Your log appears here once the server is working again."
-                : "Your log appears here once this phone can reach the server, on your tailnet."}
+                : "Your log appears here once this device can reach the server, on your tailnet."}
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>

@@ -186,14 +186,17 @@ function CertificationsPage() {
             </Reorder.Group>
           </MotionConfig>
           <SaveFailure error={failure} />
-          <p className="flex items-start gap-2 px-1 text-[13px] leading-normal text-muted-foreground">
-            <IconDeviceMobileCheck
-              aria-hidden
-              className="mt-[0.1em] size-[1.15em] shrink-0"
-            />
-            {/* Each row's grip says it moves, so no hint about dragging. */}
-            <span>Stored offline.</span>
-          </p>
+          {/* Phones only, as a computer is online when a dive centre asks.
+              Each row's grip says it moves, so no hint about dragging. */}
+          {!desk && (
+            <p className="flex items-start gap-2 px-1 text-[13px] leading-normal text-muted-foreground">
+              <IconDeviceMobileCheck
+                aria-hidden
+                className="mt-[0.1em] size-[1.15em] shrink-0"
+              />
+              <span>Stored offline.</span>
+            </p>
+          )}
         </div>
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-7 pb-15 text-center md:mx-auto md:w-full md:max-w-xl">

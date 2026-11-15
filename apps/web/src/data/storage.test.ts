@@ -98,7 +98,7 @@ describe("the Offline storage row and sheet", () => {
     )
     expect(row().textContent).toContain("Protected")
     expect(row().textContent).toContain(
-      "Dives saved on this phone won’t be cleared"
+      "Dives saved on this device won’t be cleared"
     )
   })
 
@@ -107,7 +107,7 @@ describe("the Offline storage row and sheet", () => {
     render()
     expect(row().textContent).toContain("Keep them safe")
     expect(row().textContent).toContain(
-      "Your browser may clear dives saved on this phone"
+      "Your browser may clear dives saved on this device"
     )
 
     await act(async () => row().click())
@@ -115,7 +115,7 @@ describe("the Offline storage row and sheet", () => {
     const sheet = document.querySelector("[role=dialog]")!
     expect(sheet.textContent).toContain("Offline storage")
     expect(sheet.textContent).toContain(
-      "Dives you log without signal are saved on this phone until they sync. Browsers can clear a website’s saved data when the phone runs low on space. Protected storage asks the browser to keep Shylog’s data."
+      "Dives you log without signal are saved on this device until they sync. Browsers can clear a website’s saved data when the device runs low on space. Protected storage asks the browser to keep Shylog’s data."
     )
     expect(sheet.textContent).toContain(
       // The menu path is held together with no-break spaces.

@@ -746,7 +746,7 @@ function NewSite({
       {!connected && (
         <p className="-mt-2 px-1 text-[13px] leading-[1.45] text-muted-foreground">
           {online ? "Can’t reach the server." : "You’re offline."} The site is
-          saved on this phone and matched with your existing sites when it
+          saved on this device and matched with your existing sites when it
           syncs.
         </p>
       )}

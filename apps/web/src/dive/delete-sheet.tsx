@@ -50,7 +50,7 @@ export function DeleteSheet({
   const held = !draft && !connected
   const [error, setError] = useState<string>()
   const body = draft
-    ? "It hasn’t synced yet, so it’s removed from this phone straight away. It won’t go to Recently deleted."
+    ? "It hasn’t synced yet, so it’s removed from this device straight away. It won’t go to Recently deleted."
     : "It leaves your log, stats and exports. You can restore it from Recently deleted."
   const cta = draft ? "Delete for good" : "Delete dive"
 

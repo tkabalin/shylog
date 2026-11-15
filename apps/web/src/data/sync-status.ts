@@ -161,7 +161,7 @@ export function syncCard(
   const oldestLine = !oldest
     ? ""
     : waiting === 1
-      ? `Saved on this phone ${waited(oldest, now)}`
+      ? `Saved on this device ${waited(oldest, now)}`
       : `The oldest was saved ${waited(oldest, now)}`
   const it = waiting === 1 ? "it" : "them"
   if (state === "paused")
@@ -202,7 +202,7 @@ export function syncCard(
     return {
       look: "stuck",
       title: `Couldn’t upload ${diveCount(waiting)}`,
-      sub: `The server couldn’t save ${it}. ${waiting === 1 ? "It’s" : "They’re"} safe on this phone.${refused ? ` ${countText(refused)} more ${refused === 1 ? "was" : "were"} refused.` : ""}`,
+      sub: `The server couldn’t save ${it}. ${waiting === 1 ? "It’s" : "They’re"} safe on this device.${refused ? ` ${countText(refused)} more ${refused === 1 ? "was" : "were"} refused.` : ""}`,
       warn: true,
       retry: true,
     }
@@ -210,7 +210,7 @@ export function syncCard(
     return {
       look: "offline",
       title: "Offline",
-      sub: `${last} · new dives save on this phone`,
+      sub: `${last} · new dives save on this device`,
       warn: false,
       retry: false,
     }
@@ -229,7 +229,7 @@ export function syncCard(
       look: "fault",
       title: "The server ran into a problem",
       sub: waiting
-        ? `${diveCount(waiting)} waiting on this phone · it tries again in a few minutes`
+        ? `${diveCount(waiting)} waiting on this device · it tries again in a few minutes`
         : `It tries again in a few minutes · ${last}`,
       warn: true,
       retry: true,

@@ -37,6 +37,7 @@ import {
   Unit,
 } from "@/dive/form/rows"
 import { instant } from "@/format/dates"
+import { useDesk } from "@/hooks/use-desk"
 import { countText } from "@/components/pickers/match"
 import { parseMaxPo2 } from "@/you/defaults"
 import { Switch } from "@/components/ui/switch"
@@ -68,6 +69,7 @@ const deletedCount = (log: LogView) =>
 // own things, then the log's upkeep, then preferences.
 function YouPage() {
   const { log, loaded } = useLog()
+  const desk = useDesk()
   const syncedAt = useLastSync()
   // Rendered again each minute, so "2 min ago" doesn't sit at "just now"
   // until the next five-minute sync.
@@ -223,7 +225,9 @@ function YouPage() {
         <PlainLabels.Provider value>
           <Section title="This device">
             <Appearance />
-            <StorageRow />
+            {/* Phones only, as a computer is online when you log on it. Safari
+                on a Mac can still clear the data; the owner accepted that. */}
+            {!desk && <StorageRow />}
             <SmoothTemperature />
           </Section>
         </PlainLabels.Provider>
