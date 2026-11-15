@@ -49,6 +49,7 @@ const log = (version: string, cards: Log["cards"]): Log => ({
     newDiveDefaults: {},
   },
   cards,
+  packing: { sections: [] },
 })
 
 // A stand-in for the server: the log, and each page's bytes as its hash.

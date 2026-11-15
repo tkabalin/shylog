@@ -132,6 +132,19 @@ describe("replay", () => {
     await ok(
       send(app, "PUT", "/api/settings", { diverName: "Thomas", maxPo2: 1.6 })
     )
+    // The default list's Mask moved into a section of its own.
+    await ok(
+      send(app, "PUT", "/api/packing", {
+        sections: [
+          {
+            id: "section-boat",
+            name: "Boat",
+            items: [{ id: "item-mask", name: "Mask" }],
+          },
+          { id: "section-hard-gear", name: "Hard gear", items: [] },
+        ],
+      })
+    )
     await ok(putCard("PADI Open Water", [png(1), png(2)]))
     const cards = (await (
       await app.request("/api/cards", { headers: apiHeaders })
@@ -190,6 +203,7 @@ describe("replay", () => {
         "deleteDive",
         "restoreDive",
         "putSettings",
+        "putPacking",
         "putCard",
         "orderCards",
         "alias",

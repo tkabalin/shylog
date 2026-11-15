@@ -48,6 +48,7 @@ const log = (version: string, overrides: Partial<Log> = {}): Log => ({
     newDiveDefaults: {},
   },
   cards: [],
+  packing: { sections: [] },
   ...overrides,
 })
 

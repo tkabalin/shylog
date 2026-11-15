@@ -82,6 +82,7 @@ const log = (
     newDiveDefaults: {},
   },
   cards: [],
+  packing: { sections: [] },
 })
 
 let db: LogDb

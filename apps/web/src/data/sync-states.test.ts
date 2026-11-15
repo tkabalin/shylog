@@ -46,6 +46,7 @@ const log = (version: string, dives: Log["dives"] = []): Log => ({
   fieldMeta: [],
   settings: { diverName: "", maxPo2: 1.4, newDiveDefaults: {} },
   cards: [],
+  packing: { sections: [] },
 })
 
 const fields = (startTime: string): DraftFields => ({

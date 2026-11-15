@@ -33,6 +33,8 @@ const tables = [
   "import_raw",
   "meta",
   "ops",
+  "packing_items",
+  "packing_sections",
   "people",
   "regions",
   "samples",
