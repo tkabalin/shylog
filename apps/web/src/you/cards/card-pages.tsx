@@ -26,8 +26,14 @@ const inset = 16
 
 type Point = { x: number; y: number }
 type Gesture =
-  // Down, not yet moved far enough to say which.
-  | { kind: "pending" | "swipe" | "pan" | "none"; from: Point; time: number }
+  // Down, not yet moved far enough to say which. After a pinch, when and
+  // where its fingers were, so a lift straight after settles under them.
+  | {
+      kind: "pending" | "swipe" | "pan" | "none"
+      from: Point
+      time: number
+      afterPinch?: { mid: Point; time: number }
+    }
   // The scale and pan at its start before any banding, and where the fingers
   // and the unbanded pan were last, for the hand-over to a pan or a settle.
   | {
@@ -376,7 +382,11 @@ export function CardPages({
       const left = [...pointers.current.values()][0]
       if (left) {
         startSingle(left, event.timeStamp, now.last.pan)
-        if (gesture.current) gesture.current.kind = "pan"
+        const single = gesture.current
+        if (single && single.kind !== "pinch") {
+          single.kind = "pan"
+          single.afterPinch = { mid: now.last.mid, time: event.timeStamp }
+        }
         return
       }
       gesture.current = null
@@ -384,6 +394,17 @@ export function CardPages({
     }
     if (pointers.current.size) return
     gesture.current = null
+
+    // The second finger of a pinch, lifted at once or without moving on:
+    // the pinch's end, settled under the fingers, not flung with the speed
+    // the zoom gave the pan.
+    const lifted = at(event)
+    if (
+      now.afterPinch &&
+      (event.timeStamp - now.afterPinch.time < 100 ||
+        Math.hypot(lifted.x - now.from.x, lifted.y - now.from.y) < 10)
+    )
+      return settleZoom(false, now.afterPinch.mid)
 
     if (now.kind === "swipe" && !cancelled) {
       // To the page a flick is heading for, one at most, at its speed.
