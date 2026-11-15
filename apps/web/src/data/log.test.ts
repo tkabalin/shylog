@@ -78,6 +78,8 @@ describe("sync", () => {
     await log.sync()
     expect(state()).toMatchObject({ loaded: true, reach: "ok" })
     expect(log.currentLog()?.version).toBe("v1")
+    // A mirror written before the packing checklist has none yet.
+    expect(log.currentLog()?.packing).toBeUndefined()
     expect(downloadProfiles).toHaveBeenCalledOnce()
     expect(upload).toHaveBeenCalledOnce()
   })

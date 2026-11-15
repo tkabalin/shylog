@@ -96,6 +96,7 @@ describe("syncLog", () => {
     expect(await db.meta.get("log")).toMatchObject({
       version: "v1",
       settings: { maxPo2: 1.4 },
+      packing: { sections: [] },
     })
   })
 

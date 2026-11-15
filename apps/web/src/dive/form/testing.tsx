@@ -170,6 +170,7 @@ export function testLog({
     links: linkMap,
     fieldMeta,
     cards: [],
+    packing: { sections: [] },
     pending: new Set(),
   }
 }

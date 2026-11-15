@@ -15,6 +15,7 @@ import {
   type FieldMeta,
   type LogDb,
   type Meta,
+  type Packing,
   type Person,
   type Region,
   type Settings,
@@ -56,6 +57,9 @@ export interface LogView {
   fieldMeta: Map<string, Map<string, FieldMeta>>
   // Certification cards in the server's order.
   cards: Card[]
+  // Missing until a sync brings it, so Edit can't save over the server's
+  // list from a mirror written before the list existed.
+  packing?: Packing
   // Entities only a draft has created, which the server doesn't know yet,
   // so they can't be renamed, merged or deleted.
   pending: Set<string>
@@ -323,6 +327,7 @@ export async function readLog(
           (a.position ?? Number.MAX_SAFE_INTEGER) -
           (b.position ?? Number.MAX_SAFE_INTEGER)
       ),
+      packing: meta.packing,
       pending: new Set(),
     }
     for (const draft of drafts) {
