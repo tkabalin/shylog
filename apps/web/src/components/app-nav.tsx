@@ -8,20 +8,27 @@ import {
 import type { MouseEvent } from "react"
 import {
   IconChartBar,
+  IconLayoutSidebarLeftCollapse,
+  IconLayoutSidebarLeftExpand,
   IconNotebook,
   IconScubaMask,
   IconUpload,
 } from "@tabler/icons-react"
 
+import { Kbd } from "@/components/ui/kbd"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  appleKeys,
+  useSidebar,
 } from "@/components/ui/sidebar"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 const destinations = [
   { to: "/", label: "Log", icon: IconNotebook },
@@ -196,47 +203,84 @@ export function BottomNav() {
 }
 
 // On a wide screen with a mouse or trackpad (desk:) the same destinations
-// sit in a fixed sidebar.
+// sit in a sidebar, which folds to a rail of icons, each named in a tooltip.
 export function AppSidebar() {
   const logTab = useLogTab()
   return (
-    <Sidebar
-      collapsible="none"
-      className="sticky top-0 hidden h-svh shrink-0 border-r desk:flex"
-    >
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <nav aria-label="Main">
-              <SidebarMenu>
-                {destinations.map(({ to, label, icon: Icon }) => {
-                  const tab = logTab(to)
-                  return (
-                    <SidebarMenuItem key={to}>
-                      {/* Link decides what is active, as in the bottom nav,
+    <TooltipProvider>
+      <Sidebar collapsible="icon">
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <nav aria-label="Main">
+                <SidebarMenu>
+                  {destinations.map(({ to, label, icon: Icon }) => {
+                    const tab = logTab(to)
+                    return (
+                      <SidebarMenuItem key={to}>
+                        {/* Link decides what is active, as in the bottom nav,
                           and sets the data-active the sidebar styles use. */}
-                      <SidebarMenuButton
-                        render={
-                          <Link
-                            to={to}
-                            replace
-                            activeProps={{ "data-active": "" }}
-                            {...tab}
-                            {...(tab["data-status"] && { "data-active": "" })}
-                          />
-                        }
-                      >
-                        <Icon aria-hidden />
-                        <span>{label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-            </nav>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+                        <SidebarMenuButton
+                          tooltip={label}
+                          render={
+                            <Link
+                              to={to}
+                              replace
+                              activeProps={{ "data-active": "" }}
+                              {...tab}
+                              {...(tab["data-status"] && { "data-active": "" })}
+                            />
+                          }
+                        >
+                          <Icon aria-hidden />
+                          <span>{label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })}
+                </SidebarMenu>
+              </nav>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <FoldButton />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+    </TooltipProvider>
+  )
+}
+
+const shortcut = appleKeys ? "⌘B" : "Ctrl B"
+
+// Folds the sidebar to its rail and back, as Ctrl+B (⌘B) does.
+function FoldButton() {
+  const { open, toggleSidebar } = useSidebar()
+  return (
+    <SidebarMenuButton
+      onClick={toggleSidebar}
+      aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
+      aria-keyshortcuts={appleKeys ? "Meta+B" : "Control+B"}
+      tooltip={{
+        children: (
+          <>
+            Expand <Kbd>{shortcut}</Kbd>
+          </>
+        ),
+      }}
+      className="text-sidebar-foreground/70"
+    >
+      {open ? (
+        <IconLayoutSidebarLeftCollapse aria-hidden />
+      ) : (
+        <IconLayoutSidebarLeftExpand aria-hidden />
+      )}
+      <span>Collapse</span>
+      <Kbd className="ml-auto">{shortcut}</Kbd>
+    </SidebarMenuButton>
   )
 }

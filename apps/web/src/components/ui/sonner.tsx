@@ -7,7 +7,10 @@ import {
   IconLoader,
 } from "@tabler/icons-react"
 
+import { cn } from "cn"
+
 import { useTheme } from "@/components/theme-provider"
+import { sidebarFold } from "@/components/ui/sidebar"
 
 // Shylog's own ThemeProvider in place of next-themes. Toasts are the
 // board's inverted pill (RecentlyDeletedHifi), held clear of the tab bar on
@@ -22,7 +25,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
       // board's type and size need !important.
       // On a desktop, centred on the content beside the sidebar, as the
       // dialogs are.
-      className="toaster group !font-sans desk:!left-[calc(50%+var(--sidebar-width)/2)]"
+      className={cn(
+        "toaster group !font-sans transition-[left] desk:!left-[calc(50%+var(--sidebar-offset)/2)]",
+        sidebarFold
+      )}
       position="bottom-center"
       // Left to itself, Sonner reads the direction from the page's computed
       // style on every render, forcing a style recalc on each navigation.

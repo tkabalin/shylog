@@ -4,7 +4,7 @@ import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer"
 import { cn } from "cn"
 
 import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { SIDEBAR_WIDTH } from "@/components/ui/sidebar"
+import { useSidebarOffset } from "@/components/ui/sidebar"
 import { useDesk } from "@/hooks/use-desk"
 
 type DrawerContextProps = {
@@ -207,16 +207,17 @@ function DeskContent({
   ...props
 }: DrawerPrimitive.Popup.Props) {
   const [actions, setActions] = React.useState<HTMLDivElement | null>(null)
+  const offset = useSidebarOffset()
   return (
     <DialogContent
       showCloseButton={false}
       className={cn(
-        "group/drawer-popup left-[round(down,calc(50%+var(--sidebar-width)/2),1px)] flex max-h-[calc(100dvh-4rem)] flex-col gap-0 overflow-hidden p-0 select-none sm:max-w-md",
+        "group/drawer-popup left-[round(down,calc(50%+var(--sidebar-offset)/2),1px)] flex max-h-[calc(100dvh-4rem)] flex-col gap-0 overflow-hidden p-0 select-none sm:max-w-md",
         className
       )}
       {...(props as React.ComponentProps<typeof DialogContent>)}
       // Portalled out of the sidebar's provider, so its width comes along.
-      style={{ "--sidebar-width": SIDEBAR_WIDTH } as React.CSSProperties}
+      style={{ "--sidebar-offset": offset } as React.CSSProperties}
     >
       <DrawerActionsSlot.Provider value={actions}>
         <div
