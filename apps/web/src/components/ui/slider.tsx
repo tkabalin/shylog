@@ -4,7 +4,9 @@ import { cn } from "cn"
 
 // Shylog: thumbs are 20px with a 44px touch area for wet hands, and each can
 // carry a label shown above it (the range sheet's bounds), or one label
-// centred between them when they are too close for two.
+// centred between them when they are too close for two. Focus sits on each
+// thumb's hidden input, so the ring follows has-focus-visible. The empty
+// track is darker than muted, so a lone thumb at its end still reads as one.
 function Slider({
   className,
   defaultValue,
@@ -42,7 +44,7 @@ function Slider({
       <SliderPrimitive.Control className="relative flex w-full touch-none items-center select-none data-disabled:opacity-50 data-vertical:h-full data-vertical:min-h-40 data-vertical:w-auto data-vertical:flex-col">
         <SliderPrimitive.Track
           data-slot="slider-track"
-          className="relative grow overflow-hidden rounded-full bg-muted select-none data-horizontal:h-1 data-horizontal:w-full data-vertical:h-full data-vertical:w-1"
+          className="relative grow overflow-hidden rounded-full bg-muted-foreground/25 select-none data-horizontal:h-1 data-horizontal:w-full data-vertical:h-full data-vertical:w-1"
         >
           <SliderPrimitive.Indicator
             data-slot="slider-range"
@@ -65,7 +67,7 @@ function Slider({
             index={index}
             getAriaLabel={getAriaLabel}
             getAriaValueText={getAriaValueText}
-            className="relative block size-5 shrink-0 rounded-full border border-ring bg-white shadow-sm ring-ring/50 transition-colors select-none after:absolute after:-inset-3 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50 desk:size-3 desk:after:-inset-2"
+            className="relative block size-5 shrink-0 rounded-full border border-ring bg-white shadow-sm ring-ring/50 transition-colors select-none after:absolute after:-inset-3 hover:ring-3 focus-visible:ring-3 focus-visible:outline-hidden active:ring-3 disabled:pointer-events-none disabled:opacity-50 has-focus-visible:ring-3 desk:size-3 desk:after:-inset-2"
           >
             {joinedLabel == null && thumbLabels?.[index] != null && (
               <span
