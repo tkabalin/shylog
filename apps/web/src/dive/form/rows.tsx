@@ -267,7 +267,7 @@ export function SelectRow<V extends string>({
       <Select<V | null> value={value} onValueChange={onChange}>
         <SelectPrimitive.Trigger
           aria-label={`${label}, ${text ?? "not set"}`}
-          className="flex h-11.5 min-w-0 flex-1 cursor-pointer items-center justify-end gap-1 text-right text-base font-medium desk:outline-none"
+          className="flex h-11.5 min-w-0 flex-1 cursor-pointer items-center justify-end gap-1 text-right text-base font-medium disabled:cursor-default desk:outline-none"
         >
           <span className={cn("truncate", !text && "text-muted-foreground/60")}>
             {text ?? empty}
