@@ -35,6 +35,8 @@ function down(event: PointerEvent) {
   const target = event.target instanceof Element ? event.target : null
   const control = target?.closest(controls)
   if (!control || control.matches(':disabled, [aria-disabled="true"]')) return
+  // A drag grip inside a row lifts the row, which mustn't read as pressed.
+  if (target?.closest("[data-grip]")) return
   // A pen scrolls as a finger does, so only a mouse marks at once.
   if (event.pointerType === "mouse") {
     mark(control)

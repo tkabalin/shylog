@@ -64,7 +64,7 @@ export function useLift() {
     onDragEnd: () => lift(false),
     onPointerDown: (event: PointerEvent<HTMLElement>) => {
       if (event.button !== 0) return
-      if ((event.target as Element).closest("button")) return
+      if ((event.target as Element).closest("button, [data-grip]")) return
       const native = event.nativeEvent
       cancel()
       moved.current = false
@@ -115,6 +115,20 @@ export function useLift() {
     },
     onContextMenu: (event: MouseEvent) => event.preventDefault(),
   }
+  // A grip lifts at once, with no hold, as a handle does in other apps: a
+  // finger on it means to drag, never to scroll. Give it `data-grip`.
+  const grab = (event: PointerEvent<HTMLElement>) => {
+    if (event.button !== 0) return
+    cancel()
+    lift(true)
+    controls.start(event.nativeEvent)
+  }
+  // For when the item can no longer move mid-press (gone offline), as its
+  // handlers go and no release would set it down.
+  const drop = () => {
+    cancel()
+    lift(false)
+  }
   // The state's setter, stable across renders, so React never detaches it.
-  return { item, ref: setNode, lifted }
+  return { item, ref: setNode, lifted, grab, drop }
 }

@@ -266,7 +266,19 @@ test("puts a new card first and moves one by dragging it @writes", async ({
     [from.x + from.width / 2, to.y + to.height * 0.9]
   )
   await expect.poll(ours).toEqual([first, second, third])
-  // The drag didn't open the card, and a plain click still does.
+  // A row's grip lifts it at once and drags it, here the last to the top,
+  // once the first drag's rows have settled.
+  await still(row(first))
+  await still(row(third))
+  const grip = (await row(third).locator("[data-grip]").boundingBox())!
+  const top = (await row(first).boundingBox())!
+  await drag(
+    page,
+    [grip.x + grip.width / 2, grip.y + grip.height / 2],
+    [grip.x + grip.width / 2, top.y + top.height * 0.1]
+  )
+  await expect.poll(ours).toEqual([third, first, second])
+  // Neither drag opened a card, and a plain click still does.
   await expect(page).toHaveURL(/\/you\/certifications$/)
   await row(first).click()
   await expect(page.getByRole("dialog", { name: first })).toBeVisible()
@@ -276,10 +288,10 @@ test("puts a new card first and moves one by dragging it @writes", async ({
   await page.goto("/you")
   const tiles = page.locator("main a[href^='/you/certifications/card-']")
   await expect(tiles).toHaveCount(3)
-  await expect(tiles.nth(0)).toHaveAccessibleName(first)
-  await expect(tiles.nth(1)).toHaveAccessibleName(second)
+  await expect(tiles.nth(0)).toHaveAccessibleName(third)
+  await expect(tiles.nth(1)).toHaveAccessibleName(first)
   await tiles.nth(1).click()
-  const viewer = page.getByRole("dialog", { name: second })
+  const viewer = page.getByRole("dialog", { name: first })
   await expect(viewer).toBeVisible()
   await viewer.getByRole("link", { name: "Close" }).click()
   await expect(page).toHaveURL(/\/you$/)
