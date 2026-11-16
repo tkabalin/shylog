@@ -67,6 +67,7 @@ import {
   IntervalSheet,
   type IntervalChoice,
 } from "@/components/pickers/interval-sheet"
+import { DiscardSheet } from "@/components/discard-sheet"
 import { LeaveGuard, type Leave } from "@/components/leave-guard"
 import { DatePopover, TimePopover } from "@/components/pickers/date-time"
 import { countText } from "@/components/pickers/match"
@@ -83,14 +84,6 @@ import { DeleteSheet } from "@/dive/delete-sheet"
 import { OfflineMark } from "@/components/offline-mark"
 import { useConnected } from "@/data/sync-status"
 import { Card } from "@/components/ui/card"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Toggle } from "@/components/ui/toggle"
@@ -1480,51 +1473,12 @@ export function DiveForm({
             onBlock={setLeave}
           />
         )}
-        <Drawer
+        <DiscardSheet
           open={confirming || leave != null}
-          onOpenChange={(open) => !open && keep()}
-        >
-          {desk ? (
-            // A desktop dialog asks as shadcn's alert dialogs do.
-            <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle>Discard changes?</DrawerTitle>
-                <DrawerDescription>{discardNote}</DrawerDescription>
-              </DrawerHeader>
-              <DrawerFooter>
-                <Button variant="outline" onClick={keep}>
-                  Keep editing
-                </Button>
-                <Button variant="destructive" onClick={discard}>
-                  Discard changes
-                </Button>
-              </DrawerFooter>
-            </DrawerContent>
-          ) : (
-            <DrawerContent>
-              <DrawerTitle className="sr-only">Discard changes?</DrawerTitle>
-              <div className="flex flex-col gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-                <p className="pb-1 text-center text-[13px] text-muted-foreground">
-                  {discardNote}
-                </p>
-                <Button
-                  variant="outline"
-                  className="h-12 rounded-[14px] text-base font-semibold text-destructive"
-                  onClick={discard}
-                >
-                  Discard changes
-                </Button>
-                <Button
-                  variant="outline"
-                  className="h-12 rounded-[14px] text-base font-semibold"
-                  onClick={keep}
-                >
-                  Keep editing
-                </Button>
-              </div>
-            </DrawerContent>
-          )}
-        </Drawer>
+          note={discardNote}
+          onKeep={keep}
+          onDiscard={discard}
+        />
         <SiteSheet
           open={sheet === "site"}
           onOpenChange={(next) => setSheet(next ? "site" : null)}

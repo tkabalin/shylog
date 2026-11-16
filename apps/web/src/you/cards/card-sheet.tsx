@@ -14,6 +14,7 @@ import {
   FullSheetContent,
   SheetBar,
 } from "@/components/pickers/sheet"
+import { DiscardSheet } from "@/components/discard-sheet"
 import { OfflineMark } from "@/components/offline-mark"
 import { Button } from "@/components/ui/button"
 import {
@@ -440,7 +441,14 @@ export function CardSheet({
       )}
       <DiscardSheet
         open={asking}
-        editing={editing}
+        title={editing ? "Discard changes?" : "Discard this card?"}
+        note={
+          editing
+            ? "The card stays as it was."
+            : "The screenshots you picked aren’t saved."
+        }
+        cta={editing ? "Discard changes" : "Discard card"}
+        className={editing ? overViewer : undefined}
         onKeep={() => setAsking(false)}
         onDiscard={() => {
           setAsking(false)
@@ -543,68 +551,6 @@ function Shot({
         <IconX aria-hidden className="size-3.5 stroke-[2.5]" />
       </button>
     </Reorder.Item>
-  )
-}
-
-function DiscardSheet({
-  open,
-  editing,
-  onKeep,
-  onDiscard,
-}: {
-  open: boolean
-  editing: boolean
-  onKeep: () => void
-  onDiscard: () => void
-}) {
-  const desk = useDesk()
-  const title = editing ? "Discard changes?" : "Discard this card?"
-  const cta = editing ? "Discard changes" : "Discard card"
-  const body = editing
-    ? "The card stays as it was."
-    : "The screenshots you picked aren’t saved."
-  return (
-    <Drawer open={open} onOpenChange={(next) => !next && onKeep()}>
-      {desk ? (
-        <DrawerContent className={editing ? overViewer : undefined}>
-          <DrawerHeader>
-            <DrawerTitle>{title}</DrawerTitle>
-            <DrawerDescription>{body}</DrawerDescription>
-          </DrawerHeader>
-          <DrawerFooter>
-            <Button variant="outline" onClick={onKeep}>
-              Keep editing
-            </Button>
-            <Button variant="destructive" onClick={onDiscard}>
-              {cta}
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      ) : (
-        <DrawerContent>
-          <DrawerTitle className="sr-only">{title}</DrawerTitle>
-          <div className="flex flex-col gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-            <p className="pb-1 text-center text-[13px] text-muted-foreground">
-              {body}
-            </p>
-            <Button
-              variant="outline"
-              className="h-12 rounded-[14px] text-base font-semibold text-destructive"
-              onClick={onDiscard}
-            >
-              {cta}
-            </Button>
-            <Button
-              variant="outline"
-              className="h-12 rounded-[14px] text-base font-semibold"
-              onClick={onKeep}
-            >
-              Keep editing
-            </Button>
-          </div>
-        </DrawerContent>
-      )}
-    </Drawer>
   )
 }
 

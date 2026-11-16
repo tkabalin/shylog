@@ -30,6 +30,7 @@ import {
 } from "motion/react"
 import { cn } from "cn"
 
+import { DiscardSheet } from "@/components/discard-sheet"
 import { LeaveGuard, type Leave } from "@/components/leave-guard"
 import { countText, nameLimit, tidyName } from "@/components/pickers/match"
 import { BarButton } from "@/components/pickers/sheet"
@@ -175,6 +176,15 @@ export function EditList({
   const [failure, setFailure] = useState<string>()
   const [busy, setBusy] = useState(false)
   const [leave, setLeave] = useState<Leave | null>(null)
+  // The answers when leaving with changes asks first.
+  const keepEditing = () => {
+    leave?.reset()
+    setLeave(null)
+  }
+  const discardEdits = () => {
+    setLeave(null)
+    leave?.proceed()
+  }
   // As Done would save it, so a blank row left behind doesn't ask first.
   const changed = useMemo(
     () => JSON.stringify(tidied(sections).packing) !== JSON.stringify(opened),
@@ -806,43 +816,12 @@ export function EditList({
       {/* The tabs and the desktop sidebar stay in reach in Edit mode, so
           leaving through them with changes asks first; Cancel drops them. */}
       <LeaveGuard when={() => changed} onBlock={setLeave} />
-      <Drawer
+      <DiscardSheet
         open={leave != null}
-        onOpenChange={(open) => {
-          if (open) return
-          leave?.reset()
-          setLeave(null)
-        }}
-      >
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Discard changes?</DrawerTitle>
-            <DrawerDescription>
-              Your changes to the packing list will be lost.
-            </DrawerDescription>
-          </DrawerHeader>
-          <DrawerFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                leave?.reset()
-                setLeave(null)
-              }}
-            >
-              Keep editing
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setLeave(null)
-                leave?.proceed()
-              }}
-            >
-              Discard changes
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+        note="Your changes to the packing list will be lost."
+        onKeep={keepEditing}
+        onDiscard={discardEdits}
+      />
       <DeleteSection
         // Kept as it closes, so its words don't empty while it slides away.
         section={doomed}

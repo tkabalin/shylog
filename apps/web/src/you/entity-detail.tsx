@@ -24,6 +24,7 @@ import {
 import { useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { DiscardSheet } from "@/components/discard-sheet"
 import { LeaveGuard, type Leave } from "@/components/leave-guard"
 import { countText, nameLimit, tidyName } from "@/components/pickers/match"
 import { options } from "@/components/pickers/option-sheet"
@@ -733,7 +734,7 @@ export function EntityDetail({
             title="Country"
             start={<BarButton onClick={() => setSheet(null)}>Cancel</BarButton>}
           />
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(1rem+var(--keyboard,0px))]">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom),var(--keyboard,0px))]">
             <CountryList
               sites={countrySites}
               value={values.countryCode}
@@ -837,43 +838,18 @@ export function EntityDetail({
             onBlock={setLeave}
           />
           {/* Asked as the dive form asks, in shadcn's alert dialog shape. */}
-          <Drawer
+          <DiscardSheet
             open={leave != null}
-            onOpenChange={(open) => {
-              if (open) return
+            note={`Your changes to this ${label.one} will be lost.`}
+            onKeep={() => {
               leave?.reset()
               setLeave(null)
             }}
-          >
-            <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle>Discard changes?</DrawerTitle>
-                <DrawerDescription>
-                  Your changes to this {label.one} will be lost.
-                </DrawerDescription>
-              </DrawerHeader>
-              <DrawerFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    leave?.reset()
-                    setLeave(null)
-                  }}
-                >
-                  Keep editing
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    setLeave(null)
-                    leave?.proceed()
-                  }}
-                >
-                  Discard changes
-                </Button>
-              </DrawerFooter>
-            </DrawerContent>
-          </Drawer>
+            onDiscard={() => {
+              setLeave(null)
+              leave?.proceed()
+            }}
+          />
         </>
       )}
 
