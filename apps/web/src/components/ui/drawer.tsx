@@ -184,10 +184,12 @@ function DrawerContent({
           {...props}
         >
           {showSwipeHandle && <DrawerSwipeHandle />}
+          {/* Shylog: scrolls once a short sheet outgrows its cap, as on a
+              phone in landscape, rather than clipping its last rows. */}
           <DrawerPrimitive.Content
             data-slot="drawer-content"
             className={cn(
-              "flex min-h-0 flex-1 flex-col overflow-hidden overscroll-contain rounded-[inherit] transition-opacity duration-300 ease-out select-text group-data-nested-drawer-open/drawer-popup:opacity-0 group-data-nested-drawer-swiping/drawer-popup:opacity-100 group-data-swiping/drawer-popup:select-none"
+              "flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain rounded-[inherit] transition-opacity duration-300 ease-out select-text group-data-nested-drawer-open/drawer-popup:opacity-0 group-data-nested-drawer-swiping/drawer-popup:opacity-100 group-data-swiping/drawer-popup:select-none"
             )}
           >
             {children}
@@ -222,7 +224,7 @@ function DeskContent({
       <DrawerActionsSlot.Provider value={actions}>
         <div
           data-slot="drawer-content"
-          className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[inherit] select-text"
+          className="flex min-h-0 flex-1 flex-col overflow-x-hidden overflow-y-auto overscroll-contain rounded-[inherit] select-text"
         >
           {children}
         </div>
