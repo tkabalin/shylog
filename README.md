@@ -10,14 +10,14 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 [Subsurface](https://github.com/subsurface/subsurface) is the open-source dive log many divers rely on for the numbers, but it is a desktop app. Shylog is built to be filled in on a phone soon after the dive, with wet hands and often no signal, while giving the same figures Subsurface would.
 
 <p>
-  <img src="docs/screenshots/log.png" width="250" alt="The Log: 51 dives logged, 42 hours underwater, and a card per dive with its site, region, depth, time and a sparkline of its profile">
-  <img src="docs/screenshots/dive.png" width="250" alt="A 30.9 m dive at Roonies, Sodwana, with its profile chart, the water temperature, the computer's ascent alarms and the safety stop">
-  <img src="docs/screenshots/dive-edit.png" width="250" alt="Editing the same dive, with a bar beside the surface interval marking a value worked out by Shylog">
+  <img src="docs/screenshots/readme/log.png" width="250" alt="The Log: 51 dives logged, 42 hours underwater, and a card per dive with its site, region, depth, time and a sparkline of its profile">
+  <img src="docs/screenshots/readme/dive.png" width="250" alt="A 30.9 m dive at Roonies, Sodwana, with its profile chart, the water temperature, the computer's ascent alarms and the safety stop">
+  <img src="docs/screenshots/readme/dive-edit.png" width="250" alt="Editing the same dive, with a bar beside the surface interval marking a value worked out by Shylog">
 </p>
 <p>
-  <img src="docs/screenshots/stats.png" width="250" alt="Air consumption on Statistics: the trend across the log, then its spread opened below, with the average, median, best and worst dives and a histogram with a bell curve and box plot">
-  <img src="docs/screenshots/stats-sections.png" width="250" alt="Statistics further down: dives by depth band, the surface conditions opened to show their split, and habits">
-  <img src="docs/screenshots/import.png" width="250" alt="Import: download from the Suunto D4i on the server's cable, or import a Subsurface file, with the last import's counts">
+  <img src="docs/screenshots/readme/stats.png" width="250" alt="Air consumption on Statistics: the trend across the log, then its spread opened below, with the average, median, best and worst dives and a histogram with a bell curve and box plot">
+  <img src="docs/screenshots/readme/stats-sections.png" width="250" alt="Statistics further down: dives by depth band, the surface conditions opened to show their split, and habits">
+  <img src="docs/screenshots/readme/import.png" width="250" alt="Import: download from the Suunto D4i on the server's cable, or import a Subsurface file, with the last import's counts">
 </p>
 
 - **[Calculations checked against Subsurface's own code](docs/calculations.md)**: Subsurface's functions are copied into [one small C++ program](packages/core/test/reference/subsurface.cpp) and run side by side with Shylog's TypeScript on thousands of random dives from [fast-check](https://fast-check.dev), aimed at the boundaries where bugs hide. Every rounded figure must match exactly, on every CI run.
