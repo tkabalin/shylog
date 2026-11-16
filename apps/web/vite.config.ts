@@ -30,6 +30,22 @@ export default defineConfig({
         // with the instance's title when the worker fetched it.
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//, /^\/manifest\.webmanifest$/],
+        // The map's extract, too big to precache: kept whole once the app
+        // downloads it (src/map/extract.ts, which names the cache too), and
+        // every range the map asks for is cut from that copy. Ranges from
+        // the network aren't kept, and a new extract replaces the old.
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/basemap-[\w-]+\.pmtiles$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "map-extract",
+              rangeRequests: true,
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 1 },
+            },
+          },
+        ],
       },
     }),
   ],
@@ -40,6 +56,9 @@ export default defineConfig({
   },
   // The browser tests give each of their dev servers a cache of its own.
   cacheDir: process.env.VITE_CACHE_DIR,
+  // Just above the map's chunk, MapLibre at about 1.1 MB, which only Explore
+  // loads, so a build that warns has a chunk bigger than it.
+  build: { chunkSizeWarningLimit: 1200 },
   // The Hono server, which listens on 127.0.0.1 only. It writes the
   // manifest too, with the instance's name, so Vite mustn't answer it with
   // the app's HTML, and serves /mcp, which Claude Desktop on Windows reaches

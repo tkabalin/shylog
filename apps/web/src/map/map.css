@@ -1,0 +1,79 @@
+/* MapLibre's own look for what it draws in HTML: Helvetica, a white disc
+   with a black icon for the credit, glaring in dark mode, and a blue glow
+   after a tap. In the app's type and colours instead. */
+.maplibregl-map {
+  font-family: var(--font-sans);
+}
+
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  background-color: var(--background);
+  color: var(--muted-foreground);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+.maplibregl-ctrl-attrib a {
+  color: inherit;
+}
+
+.maplibregl-ctrl-attrib-button,
+.maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
+  background: none;
+}
+
+/* MapLibre's icon, in the text's colour. */
+.maplibregl-ctrl-attrib-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: currentColor;
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' fill-rule='evenodd' viewBox='0 0 20 20'%3E %3Cpath d='M4 10a6 6 0 1 0 12 0 6 6 0 1 0-12 0m5-3a1 1 0 1 0 2 0 1 1 0 1 0-2 0m0 3a1 1 0 1 1 2 0v3a1 1 0 1 1-2 0'/%3E %3C/svg%3E")
+    center / 24px no-repeat;
+}
+
+/* About 44px to a finger, the same 24px to the eye. */
+.maplibregl-ctrl-attrib-button::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
+.maplibregl-ctrl-attrib-button:focus {
+  box-shadow: none;
+}
+
+/* From desk: up the zoom buttons sit above it (basemap.tsx), so it takes
+   their size, 32px with its ring outside, and lines up under them. */
+@media (width >= 48rem) and (pointer: fine) {
+  .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib.maplibregl-compact {
+    min-height: 28px;
+    margin: 0 11px 11px 0;
+    padding-right: 32px;
+    border-radius: 16px;
+  }
+
+  .maplibregl-ctrl-bottom-right
+    .maplibregl-ctrl-attrib.maplibregl-compact-show {
+    padding: 2px 36px 2px 12px;
+  }
+
+  .maplibregl-ctrl-attrib-inner {
+    line-height: 28px;
+  }
+
+  .maplibregl-ctrl-attrib-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
+  }
+}
+
+.maplibregl-ctrl-attrib-button:focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent);
+}
+
+/* The map meets the tab bar all along it, and its land is the bar's
+   colour, so the bar keeps its top line while a map shows. */
+:root:has(.maplibregl-map) .bottom-nav {
+  border-top-color: var(--border);
+  animation: none;
+}

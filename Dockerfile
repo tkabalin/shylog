@@ -54,7 +54,11 @@ RUN pnpm --filter @shylog/server build
 # Declared after the server's build, so the revision alone never rebuilds
 # the server; every commit ships a new web bundle.
 ARG VITE_REVISION=dev
-RUN pnpm --filter @shylog/web build
+# The map's extract is copied into the image on its own below, so its
+# 10 MB layer is reused until the extract itself changes.
+RUN pnpm --filter @shylog/web build \
+  && mkdir /extract \
+  && mv apps/web/dist/assets/basemap-*.pmtiles /extract/
 
 # The server's runtime dependencies alone. fetch filled node_modules with
 # every package, so it starts empty. Core is bundled into the server's build,
@@ -76,6 +80,7 @@ COPY --from=deps /src/node_modules node_modules
 COPY --from=deps /src/apps/server/node_modules apps/server/node_modules
 COPY --from=build /src/apps/server/package.json apps/server/
 COPY --from=build /src/apps/server/dist apps/server/dist
+COPY --from=build /extract/ apps/web/dist/assets/
 COPY --from=build /src/apps/web/dist apps/web/dist
 # After the COPYs, so the revision never invalidates them. Every log line
 # carries it.

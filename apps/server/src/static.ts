@@ -63,12 +63,17 @@ export function web(root: string, appName: string) {
         c.header("Cache-Control", "no-cache")
         return c.html(index())
       })
-      // Vite hashes everything under assets/; the rest, such as the service
-      // worker, must be checked on every load.
+      // Vite hashes everything under assets/, the map's extract included,
+      // whose ranges count too; the rest, such as the service worker, must
+      // be checked on every load.
       .use("*", async (c, next) => {
         await next()
-        if (c.res.status === 200 && !c.res.headers.has("Cache-Control")) {
-          c.res.headers.set(
+        const { status, headers } = c.res
+        if (
+          (status === 200 || status === 206) &&
+          !headers.has("Cache-Control")
+        ) {
+          headers.set(
             "Cache-Control",
             c.req.path.startsWith("/assets/")
               ? "public, max-age=31536000, immutable"

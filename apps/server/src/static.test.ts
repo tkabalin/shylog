@@ -43,6 +43,22 @@ describe("the web app", () => {
     )
   })
 
+  // MapLibre reads the map's tiles out of one file, a range at a time.
+  it("answers range requests for the map's tiles", async () => {
+    const res = await app.request("/assets/basemap-stand-in.pmtiles", {
+      headers: { Range: "bytes=2-11", "Accept-Encoding": "gzip, br" },
+    })
+    expect(res.status).toBe(206)
+    expect(res.headers.get("Content-Range")).toBe("bytes 2-11/32")
+    // Compressed, the range's bytes would no longer be the file's.
+    expect(res.headers.get("Content-Encoding")).toBeNull()
+    // Its name is hashed like the other assets, so its ranges keep too.
+    expect(res.headers.get("Cache-Control")).toBe(
+      "public, max-age=31536000, immutable"
+    )
+    expect(await res.text()).toBe("stand-in f")
+  })
+
   it("has a manifest named after the instance", async () => {
     const res = await app.request("/manifest.webmanifest")
     expect(res.headers.get("Content-Type")).toBe("application/manifest+json")

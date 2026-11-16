@@ -73,13 +73,13 @@ The phone keeps a mirror of the whole log, so the app opens and reads without si
 
 ## Tech stack
 
-| Area    | Tools                                                                                           |
-| ------- | ----------------------------------------------------------------------------------------------- |
-| Web app | React 19, Vite, TanStack Router, Tailwind CSS 4, shadcn/ui, Recharts, Dexie, vite-plugin-pwa    |
-| Server  | Node 24, Hono with its typed RPC client, better-sqlite3, @xmldom/xmldom, tsup                   |
-| Shared  | TypeScript, Zod schemas used by both the app and the server                                     |
-| Testing | Vitest, fast-check, Playwright on Chromium and WebKit, `xmllint` and `xsltproc` for UDDF checks |
-| Deploy  | Docker Compose with a Tailscale sidecar, HTTPS through Tailscale Serve                          |
+| Area    | Tools                                                                                                  |
+| ------- | ------------------------------------------------------------------------------------------------------ |
+| Web app | React 19, Vite, TanStack Router, Tailwind CSS 4, shadcn/ui, Recharts, MapLibre, Dexie, vite-plugin-pwa |
+| Server  | Node 24, Hono with its typed RPC client, better-sqlite3, @xmldom/xmldom, tsup                          |
+| Shared  | TypeScript, Zod schemas used by both the app and the server                                            |
+| Testing | Vitest, fast-check, Playwright on Chromium and WebKit, `xmllint` and `xsltproc` for UDDF checks        |
+| Deploy  | Docker Compose with a Tailscale sidecar, HTTPS through Tailscale Serve                                 |
 
 See [docs/tech-stack.md](docs/tech-stack.md) for versions and the reasons behind each choice.
 
