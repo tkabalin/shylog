@@ -96,11 +96,14 @@ export function CardPages({
       const box = boxes.current[shownPage.current]
       if (!box) return
       box.style.transform = `translate(${panX.get()}px, ${panY.get()}px) scale(${scale.get()})`
-      // Its own layer while a finger or a settle moves it, so the track's
-      // isn't repainted each frame, and none at rest, so a zoomed page is
-      // drawn again sharp rather than kept as the blurred layer.
+      // Its own layer while a pinch, pan or settle moves it, so the track's
+      // isn't repainted each frame (a swipe moves the track, which has one),
+      // and none at rest, so a zoomed page is drawn sharp, not kept blurred.
+      const kind = gesture.current?.kind
       const moving =
-        !!gesture.current || [scale, panX, panY].some((v) => v.isAnimating())
+        kind === "pinch" ||
+        kind === "pan" ||
+        [scale, panX, panY].some((v) => v.isAnimating())
       box.style.willChange = moving ? "transform" : ""
     }
     const zoom = () => {

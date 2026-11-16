@@ -270,7 +270,9 @@ function CardRow({
       // Its corners follow the list's at either end.
       className={cn(
         "relative select-none [-webkit-touch-callout:none] first:rounded-t-[14px] last:rounded-b-[14px]",
-        lifted && "z-10"
+        // Its own layer while dragged, so each frame moves it rather than
+        // repainting its thumbnail and shadow.
+        lifted && "z-10 will-change-transform"
       )}
     >
       <Link
