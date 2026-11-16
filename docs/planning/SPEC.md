@@ -174,7 +174,6 @@ The whole log as one CSV file, one row per dive and one column per field, so it 
 | Tank volume | millilitres (integer) | litres | cubic metres |
 | Weight | kg | kg | kg |
 | Gas mix | tenths of a per cent (integer; 324 = 32.4%) | % to one decimal place | fraction from 0 to 1 |
-| Latitude and longitude | decimal degrees | decimal degrees | decimal degrees |
 
 ### v1 fields
 
