@@ -13,16 +13,17 @@ import {
 } from "maplibre-gl"
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url"
 import { Protocol } from "pmtiles"
-import { useEffect, useEffectEvent, useRef, useState } from "react"
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react"
 import { IconMinus, IconPlus } from "@tabler/icons-react"
 import { cn } from "cn"
+import { cubicBezier } from "motion"
 
 import { Button } from "@/components/ui/button"
 import { useDesk } from "@/hooks/use-desk"
-import { rootFlag } from "@/lib/root-flag"
 
 import { extractUrl } from "./extract"
-import { siteById } from "./sites"
+import { SiteSheet, type Cover } from "./site-sheet"
+import { siteById, type Site } from "./sites"
 import {
   areaSource,
   clusterLayers,
@@ -52,9 +53,6 @@ addProtocol("pmtiles", protocol.tile)
 
 // Where the map was left, so coming back to the tab finds it there.
 let camera: { center: LngLatLike; zoom: number } | undefined
-
-// The tab bar keeps its top line while a map shows (see map.css).
-const flagMap = rootFlag("data-map")
 
 // The theme class on <html>, which the theme provider sets, so the map
 // follows the app's choice rather than only the system's.
@@ -91,6 +89,19 @@ const pointOf = (feature: MapGeoJSONFeature) =>
   (feature.geometry as { coordinates: [number, number] }).coordinates
 // Close enough to tell a site's neighbours apart, opening one.
 const siteZoom = 12.5
+// The sheet's slide, its --ease-drawer over about its 450 ms, read from the
+// theme, so the map and the sheet move as one.
+let slide: ((t: number) => number) | undefined
+const sheetEasing = () => {
+  if (slide) return slide
+  const [a, b, c, d] =
+    getComputedStyle(document.documentElement)
+      .getPropertyValue("--ease-drawer")
+      .match(/-?[\d.]+/g)
+      ?.map(Number) ?? []
+  if (d !== undefined) slide = cubicBezier(a, b, c, d)
+  return slide
+}
 
 export default function Basemap({
   onState,
@@ -113,8 +124,10 @@ export default function Basemap({
   const pick = useEffectEvent((id: string | undefined) => onPick?.(id))
   // The site the map shows as picked, and the one whose pin it has marked,
   // which waits for the picked layer to have the site.
-  const shownPick = useRef(picked?.id)
+  const shownPick = useRef<string>(undefined)
   const marked = useRef<string>(undefined)
+  // The site the camera aimed at, until the map is moved by hand.
+  const held = useRef<Site>(undefined)
   // A theme change redraws the style with the pick as it stands.
   const styleFor = useEffectEvent((look: MapTheme) =>
     mapStyle(look, tiles, picked)
@@ -258,6 +271,7 @@ export default function Basemap({
       )
       // Left unanswered if Explore closed meanwhile, as the map is gone.
       if (zoom === undefined || map.current !== created) return
+      held.current = undefined
       created.easeTo({
         center: pointOf(cluster),
         zoom: zoom + 0.3,
@@ -273,8 +287,9 @@ export default function Basemap({
       created.getCanvas().style.cursor = ""
     })
     // Busy while the camera moves, which tests wait out before a tap.
-    created.on("movestart", () => {
+    created.on("movestart", (event) => {
       container.current?.parentElement?.setAttribute("aria-busy", "true")
+      if (event.originalEvent) held.current = undefined
     })
     created.on("moveend", () => {
       container.current?.parentElement?.setAttribute("aria-busy", "false")
@@ -323,10 +338,50 @@ export default function Basemap({
     map.current.setStyle(styleFor(theme))
   }, [theme])
 
-  // The picked pin moves to its own layer, and the map to it.
+  // The picked pin moves to its own layer, and the map to it, aimed at the
+  // middle of what the sheet or card leaves showing. A site in the address
+  // when the map opens is placed there at once.
+  const [sheetBox, setSheetBox] = useState<HTMLDivElement | null>(null)
+  const cover = useRef<Cover & { site?: string }>({ left: 0, bottom: 0 })
+  const waiting = useRef<{ site: Site; jump: boolean }>(undefined)
+  const aim = useCallback((site: Site, jump: boolean) => {
+    const current = map.current
+    const { left, bottom } = cover.current
+    held.current = site
+    current?.easeTo({
+      center: [site.lon, site.lat],
+      zoom: Math.max(current.getZoom(), siteZoom),
+      offset: [left / 2, -bottom / 2],
+      duration: jump ? 0 : 450,
+      easing: sheetEasing(),
+    })
+  }, [])
+  // The move waits for the sheet to say what it covers, a render after a
+  // first pick, and until the map is moved by hand keeps the site in the
+  // middle of what's left as that changes (a peek rewrapped, a wider card).
+  const onCover = useCallback(
+    (covered: Cover, site: string) => {
+      const before = cover.current
+      cover.current = { ...covered, site }
+      const next = waiting.current
+      if (next?.site.id === site) {
+        waiting.current = undefined
+        return aim(next.site, next.jump)
+      }
+      const moved =
+        before.left !== covered.left || before.bottom !== covered.bottom
+      if (moved && held.current?.id === site) aim(held.current, false)
+    },
+    [aim]
+  )
+  const placed = useRef(false)
   useEffect(() => {
     const current = map.current
-    if (!current || shownPick.current === picked?.id) return
+    if (!current || (placed.current && shownPick.current === picked?.id)) {
+      return
+    }
+    const jump = !placed.current
+    placed.current = true
     shownPick.current = picked?.id
     // The old pin's mark goes and the new one's comes once the picked layer
     // has the site, so its name never shows twice or not at all.
@@ -342,18 +397,20 @@ export default function Basemap({
         mark(current, picked?.id, true)
       })
       .catch(() => {})
+    waiting.current = undefined
+    held.current = undefined
     if (!picked) return
-    current.easeTo({
-      center: [picked.lon, picked.lat],
-      zoom: Math.max(current.getZoom(), siteZoom),
-    })
+    if (cover.current.site === picked.id) aim(picked, jump)
+    else waiting.current = { site: picked, jump }
+    // The camera follows the pick alone, not the layout's width.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picked])
 
   // Hidden on a wrapper: React rewriting the container's classes would drop
   // the ones MapLibre adds to it.
   return (
     <div
-      ref={flagMap}
+      ref={setSheetBox}
       className={cn("relative size-full", !shown && "opacity-0")}
     >
       <div ref={container} className="size-full" />
@@ -370,7 +427,11 @@ export default function Basemap({
             size="icon"
             className="rounded-none"
             aria-label="Zoom in"
-            onClick={() => map.current?.zoomIn()}
+            onClick={() => {
+              // Moved by hand, as a pinch is, so the camera stops following.
+              held.current = undefined
+              map.current?.zoomIn()
+            }}
           >
             <IconPlus />
           </Button>
@@ -379,12 +440,21 @@ export default function Basemap({
             size="icon"
             className="rounded-none border-t-border"
             aria-label="Zoom out"
-            onClick={() => map.current?.zoomOut()}
+            onClick={() => {
+              held.current = undefined
+              map.current?.zoomOut()
+            }}
           >
             <IconMinus />
           </Button>
         </div>
       )}
+      <SiteSheet
+        site={picked}
+        container={sheetBox}
+        onCover={onCover}
+        onClose={() => onPick?.(undefined)}
+      />
     </div>
   )
 }

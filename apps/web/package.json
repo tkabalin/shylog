@@ -27,6 +27,7 @@
     "dexie": "^4.4.6",
     "hono": "^4.13.17",
     "maplibre-gl": "^6.18.0",
+    "markdown-to-jsx": "^9.10.6",
     "motion": "^14.7.1",
     "pmtiles": "^4.5.0",
     "react": "^19.3.1",

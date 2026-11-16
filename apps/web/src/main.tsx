@@ -17,14 +17,15 @@ import { keepExtract } from "@/map/extract"
 import { startWorker } from "@/pwa"
 import { routeTree } from "./routeTree.gen.ts"
 
-// Content scrolls in <main>, not the window, so reset that on navigation.
-// Going back restores it, so the Log returns to the card that was opened.
+// Content scrolls in <main>, not the window, so reset that on navigation,
+// and a site sheet's text, so another site opens at its top. Going back
+// restores them, so the Log returns to the card that was opened.
 const router = createRouter({
   routeTree,
   scrollRestoration: true,
   // A card's route chunk starts loading on touchstart, before the tap ends.
   defaultPreload: "intent",
-  scrollToTopSelectors: ["#main"],
+  scrollToTopSelectors: ["#main", "[data-scroll-top]"],
 })
 
 declare module "@tanstack/react-router" {

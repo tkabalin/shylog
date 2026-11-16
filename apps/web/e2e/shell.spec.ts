@@ -285,7 +285,8 @@ test.describe("at phone width", () => {
       "opacity",
       "1"
     )
-    // The service worker keeps the map's chunk and its worker with the app.
+    // The service worker keeps the map's chunk, its worker and the dive
+    // sites' page text with the app.
     await expect
       .poll(
         () =>
@@ -295,13 +296,17 @@ test.describe("at phone width", () => {
               const cache = await caches.open(key)
               urls.push(...(await cache.keys()).map((req) => req.url))
             }
-            return [/\/basemap-[\w-]+\.js/, /\/maplibre-gl-worker-[\w-]+\.js/]
+            return [
+              /\/basemap-[\w-]+\.js/,
+              /\/maplibre-gl-worker-[\w-]+\.js/,
+              /\/pages-[\w-]+\.json/,
+            ]
               .map((pattern) => urls.some((url) => pattern.test(url)))
               .join()
           }),
         { timeout: 15_000 }
       )
-      .toBe("true,true")
+      .toBe("true,true,true")
     expect(errors).toEqual([])
   })
 
