@@ -11,7 +11,7 @@ import {
 import { png } from "./png"
 import { still } from "./ui"
 
-const tabs = ["Log", "Statistics", "Import", "You"]
+const tabs = ["Log", "Statistics", "Explore", "Import", "You"]
 
 async function height(locator: Locator) {
   const box = await locator.boundingBox()
@@ -26,7 +26,7 @@ test.describe("at phone width", () => {
     ).toBeVisible()
   })
 
-  test("shows the four tabs in a bottom nav and no sidebar", async ({
+  test("shows the five tabs in a bottom nav and no sidebar", async ({
     page,
   }) => {
     await page.goto("/")
@@ -201,6 +201,143 @@ test.describe("at phone width", () => {
     expect(page.url()).not.toMatch(/\/(stats|you)$/)
   })
 
+  test("fills Explore with the map between the status bar and the tabs", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    const nav = page.getByRole("navigation", { name: "Main" })
+    await nav.getByRole("link", { name: "Explore" }).click()
+    await expect(page).toHaveURL("/explore")
+    await expect(
+      page.getByRole("heading", { name: "Explore", exact: true })
+    ).toBeAttached()
+    const map = page.locator("main .maplibregl-canvas")
+    await expect(map).toBeVisible()
+    // Shown once its land has drawn.
+    await expect(page.locator("main div:has(> .maplibregl-map)")).toHaveCSS(
+      "opacity",
+      "1"
+    )
+    const box = (await map.boundingBox())!
+    const bar = (await nav.boundingBox())!
+    expect(box.y).toBeCloseTo(12, 0)
+    expect(box.y + box.height).toBeCloseTo(bar.y, 0)
+    // A finger pinches, so a phone has no zoom buttons.
+    await expect(page.getByRole("group", { name: "Zoom" })).toHaveCount(0)
+    // The map takes every drag, so the page never scrolls behind it.
+    const main = page.locator("main")
+    expect(
+      await main.evaluate((el) => el.scrollHeight - el.clientHeight)
+    ).toBeLessThanOrEqual(0)
+  })
+
+  test("folds the map's credit to its info button", async ({ page }) => {
+    await page.goto("/explore")
+    const credit = page.locator(".maplibregl-ctrl-attrib")
+    // Compact once the style names its sources, and folded from the start.
+    await expect(credit).toHaveClass(/maplibregl-compact\b/)
+    // There once the extract's header is read, and still folded. Not by
+    // role, which can't find a hidden link at all.
+    const protomaps = credit.locator('a[href="https://protomaps.com"]')
+    await expect(protomaps).toBeAttached()
+    await expect(protomaps).toBeHidden()
+    // A 24px button that a finger a little off its edge still opens.
+    const button = (await page.getByLabel("Toggle attribution").boundingBox())!
+    expect(button.width).toBe(24)
+    await page.mouse.click(button.x - 8, button.y + button.height / 2)
+    await expect(protomaps).toBeVisible()
+  })
+
+  test("says the map isn't downloaded when it can't load, and tries again", async ({
+    page,
+  }) => {
+    await page.route(/basemap[\w-]*\.pmtiles$/, (route) => route.abort())
+    await page.goto("/explore")
+    await expect(
+      page.getByText("The map isn't downloaded yet", { exact: true })
+    ).toBeVisible()
+    // No map behind it: without the land, the zones would show their
+    // shapes ashore.
+    await expect(page.locator(".maplibregl-map")).toHaveCount(0)
+    await page.unroute(/basemap[\w-]*\.pmtiles$/)
+    await page.getByRole("button", { name: "Try again" }).click()
+    await expect(page.locator("main div:has(> .maplibregl-map)")).toHaveCSS(
+      "opacity",
+      "1"
+    )
+  })
+
+  test("reads the map's extract by range in the built app @built", async ({
+    page,
+  }) => {
+    const errors: Error[] = []
+    page.on("pageerror", (error) => errors.push(error))
+    // A tile's range, past the header and root directory read first.
+    const tile = page.waitForResponse(
+      (res) =>
+        /\/assets\/basemap-[\w-]+\.pmtiles$/.test(res.url()) &&
+        res.status() === 206 &&
+        !res.request().headers()["range"]?.startsWith("bytes=0-")
+    )
+    await page.goto("/explore")
+    await tile
+    await expect(page.locator("main div:has(> .maplibregl-map)")).toHaveCSS(
+      "opacity",
+      "1"
+    )
+    // The service worker keeps the map's chunk and its worker with the app.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(async () => {
+            const urls: string[] = []
+            for (const key of await caches.keys()) {
+              const cache = await caches.open(key)
+              urls.push(...(await cache.keys()).map((req) => req.url))
+            }
+            return [/\/basemap-[\w-]+\.js/, /\/maplibre-gl-worker-[\w-]+\.js/]
+              .map((pattern) => urls.some((url) => pattern.test(url)))
+              .join()
+          }),
+        { timeout: 15_000 }
+      )
+      .toBe("true,true")
+    expect(errors).toEqual([])
+  })
+
+  test("draws the map with no signal once the app has kept it @built", async ({
+    page,
+    context,
+  }) => {
+    await page.goto("/")
+    await expect
+      .poll(() => page.evaluate(() => !!navigator.serviceWorker.controller), {
+        timeout: 15_000,
+      })
+      .toBe(true)
+    // The app downloads the extract at launch, before Explore is opened.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(async () => {
+            const cache = await caches.open("map-extract")
+            return (await cache.keys()).length
+          }),
+        { timeout: 30_000 }
+      )
+      .toBe(1)
+    await context.setOffline(true)
+    await page
+      .getByRole("navigation", { name: "Main" })
+      .getByRole("link", { name: "Explore" })
+      .click()
+    await expect(page.locator("main div:has(> .maplibregl-map)")).toHaveCSS(
+      "opacity",
+      "1",
+      { timeout: 15_000 }
+    )
+  })
+
   test("sends the old Settings address to You", async ({ page }) => {
     await page.goto("/settings")
     await expect(page).toHaveURL(/\/you$/)
@@ -239,6 +376,47 @@ test.describe("at desktop width", () => {
     const current = nav.locator("[data-active]")
     await expect(current).toHaveText("Import")
     await expect(current).toHaveAttribute("aria-current", "page")
+  })
+
+  test("runs the map from the sidebar to the window's edges", async ({
+    page,
+  }) => {
+    await page.goto("/explore")
+    const map = page.locator("main .maplibregl-canvas")
+    await expect(map).toBeVisible()
+    const box = (await map.boundingBox())!
+    const sidebar = (await page
+      .locator("[data-slot=sidebar-container]")
+      .boundingBox())!
+    expect(box.x).toBeCloseTo(sidebar.x + sidebar.width, 0)
+    expect(box.y).toBe(0)
+    expect(box.x + box.width).toBeCloseTo(1024, 0)
+    expect(box.y + box.height).toBeCloseTo(768, 0)
+    // A mouse has no pinch: zoom buttons, bottom right above the credit.
+    const zoom = page.getByRole("group", { name: "Zoom" })
+    const buttons = (await zoom.boundingBox())!
+    const credit = (await page.getByLabel("Toggle attribution").boundingBox())!
+    expect(buttons.y + buttons.height).toBeLessThan(credit.y)
+    // The credit as wide as the buttons, its ring included, and under them.
+    expect(credit.width).toBe(32)
+    expect(buttons.x + buttons.width / 2).toBeCloseTo(
+      credit.x + credit.width / 2,
+      0
+    )
+    await expect(page.locator("main div:has(> .maplibregl-map)")).toHaveCSS(
+      "opacity",
+      "1"
+    )
+    const before = await page.locator("main .maplibregl-map").screenshot()
+    await zoom.getByRole("button", { name: "Zoom in" }).click()
+    await expect
+      .poll(async () =>
+        Buffer.compare(
+          before,
+          await page.locator("main .maplibregl-map").screenshot()
+        )
+      )
+      .not.toBe(0)
   })
 
   test("picks the Statistics year from a menu", async ({ page }) => {

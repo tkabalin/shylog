@@ -10,6 +10,7 @@ import {
   IconChartBar,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
+  IconMap2,
   IconNotebook,
   IconScubaMask,
   IconUpload,
@@ -33,6 +34,8 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 const destinations = [
   { to: "/", label: "Log", icon: IconNotebook },
   { to: "/stats", label: "Statistics", icon: IconChartBar },
+  // Cape Town's dive sites, apart from the log's own.
+  { to: "/explore", label: "Explore", icon: IconMap2 },
   { to: "/import", label: "Import", icon: IconUpload },
   // Once Settings: the diver's own things and the log's upkeep.
   { to: "/you", label: "You", icon: IconScubaMask },
@@ -179,7 +182,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Main"
-      className="bottom-nav fixed inset-x-0 bottom-0 z-10 grid grid-cols-4 border-t bg-background pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] desk:hidden"
+      className="bottom-nav fixed inset-x-0 bottom-0 z-10 grid grid-cols-5 border-t bg-background pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] desk:hidden"
     >
       {destinations.map(({ to, label, icon: Icon }) => (
         // Icons only, so the label is the link's name for tests and VoiceOver.
