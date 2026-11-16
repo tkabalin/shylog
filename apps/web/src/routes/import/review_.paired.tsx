@@ -183,7 +183,10 @@ function UseComputer({
           const id = `use-computer-${key}`
           return (
             <div key={key} className="flex items-center gap-4 px-4 py-3">
-              <label htmlFor={id} className="flex flex-1 flex-col gap-0.5">
+              <label
+                htmlFor={id}
+                className="flex flex-1 flex-col gap-0.5 select-none"
+              >
                 <span className="text-[15px]">{valueLabels[key]}</span>
                 <span className="text-[13px] text-muted-foreground tabular-nums">
                   {diveCount(counts.get(key)!)}
