@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { createRootRoute, Outlet } from "@tanstack/react-router"
+import { createRootRoute, Outlet, useMatchRoute } from "@tanstack/react-router"
 
 import { cn } from "cn"
 
@@ -29,6 +29,7 @@ const sidebarOpen = () =>
 function RootLayout() {
   const onForm = useOnForm()
   const step = useImportStep()
+  const onMap = !!useMatchRoute()({ to: "/explore" })
   const [defaultOpen] = useState(sidebarOpen)
   return (
     <SidebarProvider defaultOpen={defaultOpen} className="h-full">
@@ -56,12 +57,14 @@ function RootLayout() {
       {/* Opaque over the status bar, so iOS never draws its top edge blur:
           WebKit drops it only for a fixed or sticky opaque full-width box at
           the top, so this stays mounted. Pages' top bars sit above it (z-30).
-          It follows the sidebar's width as the sidebar folds, in step. */}
+          It follows the sidebar's width as the sidebar folds, in step. A
+          desktop has no status bar, so there the map runs to the top. */}
       <div
         aria-hidden
         className={cn(
           "pointer-events-none fixed inset-x-0 top-0 z-20 h-[max(0.75rem,env(safe-area-inset-top))] bg-background transition-[left] desk:left-(--sidebar-offset)",
-          sidebarFold
+          sidebarFold,
+          onMap && "desk:hidden"
         )}
       />
       <BottomNav />

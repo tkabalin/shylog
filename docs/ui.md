@@ -19,7 +19,7 @@ A dive is logged on the phone soon after it ends, on a boat, at the shore or bac
 
 The layout switches on a custom Tailwind variant, `desk:`, which means at least 48rem wide **and** a fine pointer. Width alone would hand a phone turned landscape the desktop chrome while it is still under a finger, and a tablet without a trackpad keeps the phone layout for the same reason. `md:` is used only for layout, such as the centred column (48rem for the Log and a dive, 36rem for the form and You's screens), and hover styles are limited to fine pointers too, since Tailwind's own `hover:` matches some Android phones and iPads and leaves a tint stuck after a tap.
 
-**On a phone** the four destinations are a bottom bar of 28 px icons with no words: Log, Statistics, Import and You. Each icon is named by its `aria-label` for screen readers. The dive form and the import's review steps cover the bar, as an iOS edit sheet would, so a tab can't leave a half-filled form behind. Pickers are bottom sheets, choice fields open a list in a sheet, and the surface interval is set on hours and minutes wheels.
+**On a phone** the five destinations are a bottom bar of 28 px icons with no words: Log, Statistics, Explore, Import and You. Each icon is named by its `aria-label` for screen readers. The dive form and the import's review steps cover the bar, as an iOS edit sheet would, so a tab can't leave a half-filled form behind. Pickers are bottom sheets, choice fields open a list in a sheet, and the surface interval is set on hours and minutes wheels.
 
 **From `desk:` up** the app follows shadcn instead of iOS:
 
@@ -123,7 +123,7 @@ Motion is judged by how often it is seen. Tab switches, opening a dive from the 
 
 **What a finger drags keeps up with it.** In a reorder, the neighbours making room and the drop settling use a critically damped spring of about 0.12 s; a quarter of a second read as sluggish. Segmented controls and tags tick with the system haptic on iOS, which Safari offers no API for: a transparent label laid over the control hands the tap to a hidden native switch, whose toggle plays it. Android uses the Vibration API.
 
-**Loading never flashes.** The Log stays blank for 150 ms before fading in a skeleton of the count, the bar and the first cards, each where it will land, so a quick start shows nothing and nothing moves when the log arrives. The profile chart and Statistics load as chunks of their own, so opening the app doesn't wait for Recharts.
+**Loading never flashes.** The Log stays blank for 150 ms before fading in a skeleton of the count, the bar and the first cards, each where it will land, so a quick start shows nothing and nothing moves when the log arrives. The profile chart, Statistics and the Explore map load as chunks of their own, so opening the app doesn't wait for Recharts or MapLibre.
 
 ## Where a value came from
 

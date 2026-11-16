@@ -19,6 +19,7 @@ A mobile-first PWA for logging dives, self-hosted on a home server and reachable
 - Managing sites, people, dive centres, and trips, including putting many dives on a trip, a dive centre, or a person at once
 - Certification cards, viewable offline
 - A packing checklist of things to take on a dive, in sections, editable, ticked off on the phone
+- A map of the Cape Peninsula and False Bay with its marine protected areas and their diving rules, for finding somewhere to dive
 - An MCP server for Claude Code and Claude Desktop on a tailnet device: look a dive up by its number, search the log, log and edit dives, and tidy sites, people, dive centres, trips and regions
 - A second instance for a second diver
 - Installable on a phone home screen
@@ -733,7 +734,7 @@ How each field forms its groups:
 
 ## Dive site map
 
-A map of the Cape Peninsula and False Bay for finding somewhere to dive. It is separate from the log's own sites, which store no position.
+A map of the Cape Peninsula and False Bay for finding somewhere to dive, on the Explore tab. It is separate from the log's own sites, which store no position.
 
 ### Basemap
 
@@ -800,13 +801,14 @@ The app is designed for a phone first, used soon after a dive with wet hands, an
   - Saving with a required field empty or an impossible value (an average depth deeper than the maximum, a minimum temperature above the maximum) shows the problem under each field and scrolls to the first.
   - Saving a new dive celebrates it once on the detail that takes the form's place: seven small bubbles rise off the max depth figure to the top of the screen at once, offline too, and a milestone number plays a burst of twelve larger bubbles from the bottom of the screen instead, once the server numbers the dive (the draft's provisional number already says it will be one, so the small stream is left out), and the milestone's line unfolds under the number pill, staying while the page is open. Editing a dive, opening it again, or reloading it shows nothing, and nothing plays under reduced motion. The milestone numbers, and the line saying what each means, are under Dive-number milestones in Statistics.
 - **Statistics**: headline figures and charts, filtered by year (see Statistics).
+- **Explore** (the middle tab, with a folded map icon): the dive site map (see Dive site map), with no header bar. On a phone it fills the tab below the status bar's strip; from `desk:` up it runs from the sidebar to the window's edges, and the strip makes way for it there. The title is for screen readers only. While MapLibre loads, the tab shows the map's sea colour, and if the map can't load at all, an empty state (see Basemap). The tab bar keeps its top line while the map shows, as the map's land is the bar's colour.
 - **Import**: upload a Subsurface UDDF export, or download from the dive computer when it is connected to the server, review the pairings, then see the summary (see Subsurface import).
   - The Import screen offers the upload, a preview still waiting for review (its dive count and when it expires), and the last completed import with its counts.
   - The review leads with the paired dives as one row (their count, and how many still differ once the values switched on are taken), then the new dives from the computer (each ticked to add), then the hand-logged dives no computer dive was paired with, then a card with the count already imported and the dives left out (freedives and dives under five minutes, under day headings, each saying which it is and with its own Include). A dive whose gas v1 can't hold says it will be stored as air. The headings say whether a list's dives come from the file or from the log. A bar at the foot counts what will be imported, and the hand-logged dives left unchanged. Discard, in the review's bar, asks first and throws the preview away.
   - Paired lists every pair by day, your values beside the computer's, the differing ones in the warning colour. Above them, "Use your D4i's values" has a row for each compared value that differs on any pair, with how many dives it changes and a switch; a value switched on reads as the computer's in the list below, and the choice is kept with the review's others until apply sends it.
   - A computer dive's pairing screen offers that day's hand-logged dives, dives from other days, Add as a new dive and Don't import, with a comparison of the two dives. A hand-logged dive's pairing screen is the same turned round: that day's computer dives, any already paired marked, and Leave unpaired.
   - If the apply finds dives changed since the preview, a sheet names them, with Check it (the dive's pairing, for one dive) and Import anyway, which applies the review as proposed again. A failed chunk says what was applied, with Try again.
-- **You** (the fourth tab, once called Settings, with a scuba mask icon): sync status first, then the diver's own things, then the log's upkeep, then preferences, in sections. Fields save as they change: a tap at once, typing as its field is left (Return leaves it too). A value refused as typed stays with the problem under it; a save that fails says why under its card and puts the saved value back
+- **You** (the last tab, once called Settings, with a scuba mask icon): sync status first, then the diver's own things, then the log's upkeep, then preferences, in sections. Fields save as they change: a tap at once, typing as its field is left (Return leaves it too). A value refused as typed stays with the problem under it; a save that fails says why under its card and puts the saved value back
   - Alerts for a failed export or paused saving, above everything
   - Sync status, with save waiting dives to a file when there are drafts
   - Diver name and certifications, under the sync status with no heading of their own: the first three cards in the owner's order as tiles, each opening its card, and an All certifications row to the list

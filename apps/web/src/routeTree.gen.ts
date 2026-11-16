@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as DevCardsRouteImport } from './routes/dev.cards'
@@ -38,6 +39,11 @@ import { Route as YouEntitiesKindNewRouteImport } from './routes/you/entities/$k
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -163,6 +169,7 @@ const YouEntitiesKindNewRoute = YouEntitiesKindNewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/you/certifications': typeof YouCertificationsRouteRouteWithChildren
@@ -190,6 +197,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/you/certifications': typeof YouCertificationsRouteRouteWithChildren
@@ -218,6 +226,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/explore': typeof ExploreRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/you/certifications': typeof YouCertificationsRouteRouteWithChildren
@@ -247,6 +256,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/explore'
     | '/settings'
     | '/stats'
     | '/you/certifications'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/explore'
     | '/settings'
     | '/stats'
     | '/you/certifications'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/explore'
     | '/settings'
     | '/stats'
     | '/you/certifications'
@@ -329,6 +341,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ExploreRoute: typeof ExploreRoute
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
   YouCertificationsRouteRoute: typeof YouCertificationsRouteRouteWithChildren
@@ -360,6 +373,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -561,6 +581,7 @@ const DiveDiveIdRouteWithChildren = DiveDiveIdRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ExploreRoute: ExploreRoute,
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
   YouCertificationsRouteRoute: YouCertificationsRouteRouteWithChildren,
