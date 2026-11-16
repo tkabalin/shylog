@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 import { useDesk } from "@/hooks/use-desk"
 
 import { extractUrl } from "./extract"
-import { basemapStyle, type MapTheme } from "./style"
+import { drawHatch, hatchImage, mapStyle, type MapTheme } from "./style"
 
 // MapLibre looks for its worker beside its own file, which bundling moves,
 // so Vite builds the worker and hands over its URL. Started now and kept,
@@ -70,7 +70,7 @@ export default function Basemap({
     if (!container.current) return
     const created = new MapLibre({
       container: container.current,
-      style: basemapStyle(theme, tiles),
+      style: mapStyle(theme, tiles),
       attributionControl: { compact: true },
       // Fitted to the coast's dive sites, not the metro. Upright, as on a
       // phone, by height from Robben Island to Cape Point, False Bay's east
@@ -128,9 +128,22 @@ export default function Basemap({
     }
     created.on("styledata", fold)
     created.on("sourcedata", fold)
-    // Hidden until the land has drawn, so it never shows half drawn. With
-    // no signal the extract can't load, and pmtiles would keep that
-    // failure, so it is dropped to be read again next time.
+    // The no-diving hatch is drawn here, as a style can only name images.
+    // Both themes' go in as the style loads: one added when a tile first
+    // asks for it reached only some tiles.
+    created.on("style.load", () => {
+      for (const look of ["light", "dark"] as const) {
+        if (!created.hasImage(hatchImage(look))) {
+          created.addImage(hatchImage(look), drawHatch(look), {
+            pixelRatio: 2,
+          })
+        }
+      }
+    })
+    // Hidden until the land has drawn: the zones close across it, so
+    // without it they show shapes ashore. With no signal the extract can't
+    // load, and pmtiles would keep that failure, so it is dropped to be
+    // read again next time.
     let settled = false
     const fail = () => {
       if (settled) return
@@ -167,7 +180,7 @@ export default function Basemap({
   useEffect(() => {
     if (!map.current || drawn.current === theme) return
     drawn.current = theme
-    map.current.setStyle(basemapStyle(theme, tiles))
+    map.current.setStyle(mapStyle(theme, tiles))
   }, [theme])
 
   // Hidden on a wrapper: React rewriting the container's classes would drop

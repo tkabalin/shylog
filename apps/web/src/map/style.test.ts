@@ -2,7 +2,7 @@
 import { validateStyleMin } from "@maplibre/maplibre-gl-style-spec"
 import { describe, expect, it } from "vitest"
 
-import { basemapStyle, oklch, placesZoom } from "./style"
+import { mapStyle, oklch, placesZoom } from "./style"
 
 const tiles = "pmtiles:///assets/basemap-test.pmtiles"
 
@@ -17,13 +17,13 @@ describe("oklch", () => {
   })
 })
 
-describe("basemapStyle", () => {
+describe("mapStyle", () => {
   it.each(["light", "dark"] as const)("is a valid %s style", (theme) => {
-    expect(validateStyleMin(basemapStyle(theme, tiles))).toEqual([])
+    expect(validateStyleMin(mapStyle(theme, tiles))).toEqual([])
   })
 
   it("keeps the coastal names and adds OpenStreetMap's from one zoom", () => {
-    const layers = basemapStyle("light", tiles).layers
+    const layers = mapStyle("light", tiles).layers
     const coast = layers.find((layer) => layer.id === "coast-labels")
     const places = layers.find((layer) => layer.id === "places")
     expect(coast?.maxzoom).toBeUndefined()
@@ -34,10 +34,20 @@ describe("basemapStyle", () => {
     ).toContain("Simon's Town")
   })
 
+  // The land then ends every zone line at the coast as the map draws it.
+  it("draws every zone's edge and fill under the land", () => {
+    const layers = mapStyle("light", tiles).layers
+    const earth = layers.findIndex((layer) => layer.id === "earth")
+    for (const [index, layer] of layers.entries()) {
+      if ("source" in layer && ["edges", "fills"].includes(layer.source)) {
+        if (layer.type !== "symbol") expect(index, layer.id).toBeLessThan(earth)
+      }
+    }
+  })
 
   it("labels places in English where OpenStreetMap has it", () => {
     for (const id of ["places", "sea-labels"]) {
-      const layer = basemapStyle("light", tiles).layers.find(
+      const layer = mapStyle("light", tiles).layers.find(
         (each) => each.id === id
       )
       expect(layer?.layout).toMatchObject({

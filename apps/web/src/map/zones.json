@@ -1,0 +1,440 @@
+{
+  "fills": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "table-mountain",
+          "mpa": "Table Mountain",
+          "kind": "mpa",
+          "label": "Table Mountain"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.46875, -34.109833],
+              [18.556883, -34.109833],
+              [18.556883, -34.4074],
+              [18.25, -34.4074],
+              [18.25, -33.90125],
+              [18.400617, -33.90125],
+              [18.46875, -34.109833]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "karbonkelberg",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Karbonkelberg"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.337533, -34.061],
+              [18.296617, -34.061],
+              [18.296617, -33.979283],
+              [18.364117, -33.979283],
+              [18.337533, -34.061]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "cape-of-good-hope",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Cape of Good Hope"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.3699, -34.204517],
+              [18.3699, -34.274833],
+              [18.391667, -34.30655],
+              [18.4043, -34.30655],
+              [18.407439, -34.305817],
+              [18.373039, -34.203784],
+              [18.3699, -34.204517]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "paulsberg",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Paulsberg"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.4744, -34.275817],
+              [18.483333, -34.275817],
+              [18.483333, -34.295733],
+              [18.467, -34.295733],
+              [18.463884, -34.294932],
+              [18.471284, -34.275016],
+              [18.4744, -34.275817]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "castle-rock",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Castle Rock"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.475133, -34.235],
+              [18.488333, -34.235],
+              [18.488333, -34.258],
+              [18.4724, -34.258],
+              [18.475133, -34.235]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "boulders",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Boulders"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.446033, -34.192783],
+              [18.453267, -34.17635],
+              [18.463017, -34.17635],
+              [18.463017, -34.21175],
+              [18.446033, -34.192783]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "st-james",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "St James"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.459467, -34.118717],
+              [18.459467, -34.126117],
+              [18.450833, -34.126117],
+              [18.448888, -34.124541],
+              [18.457522, -34.117141],
+              [18.459467, -34.118717]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "robben-island",
+          "mpa": "Robben Island",
+          "kind": "mpa",
+          "business": true,
+          "label": "Robben Island"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.4006, -33.90125],
+              [18.25, -33.90125],
+              [18, -33.90125],
+              [18, -33.75],
+              [18.4006, -33.75],
+              [18.4006, -33.90125]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "robben-restricted",
+          "mpa": "Robben Island",
+          "kind": "no-dive",
+          "label": "Robben Island"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.3627, -33.793056],
+              [18.2717, -33.793056],
+              [18.2717, -33.863333],
+              [18.3633, -33.863333],
+              [18.3633, -33.815252],
+              [18.366542, -33.815191],
+              [18.365942, -33.792995],
+              [18.3627, -33.793056]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "bettys-bay",
+          "mpa": "Betty's Bay",
+          "kind": "mpa",
+          "label": "Betty's Bay"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [18.896083, -34.374167],
+              [18.896083, -34.4075],
+              [18.937333, -34.4075],
+              [18.937333, -34.35595],
+              [18.92712, -34.339978],
+              [18.88587, -34.358194],
+              [18.896083, -34.374167]
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  "edges": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "table-mountain",
+          "mpa": "Table Mountain",
+          "kind": "mpa",
+          "label": "Table Mountain"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.46875, -34.109833],
+              [18.556883, -34.109833],
+              [18.556883, -34.4074],
+              [18.25, -34.4074],
+              [18.25, -33.90125],
+              [18.400617, -33.90125]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "karbonkelberg",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Karbonkelberg"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.337533, -34.061],
+              [18.296617, -34.061],
+              [18.296617, -33.979283],
+              [18.364117, -33.979283]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "cape-of-good-hope",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Cape of Good Hope"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.3699, -34.204517],
+              [18.3699, -34.274833],
+              [18.391667, -34.30655],
+              [18.4043, -34.30655]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "paulsberg",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Paulsberg"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.4744, -34.275817],
+              [18.483333, -34.275817],
+              [18.483333, -34.295733],
+              [18.467, -34.295733]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "castle-rock",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Castle Rock"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.475133, -34.235],
+              [18.488333, -34.235],
+              [18.488333, -34.258],
+              [18.4724, -34.258]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "boulders",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "Boulders"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.446033, -34.192783],
+              [18.453267, -34.17635],
+              [18.463017, -34.17635],
+              [18.463017, -34.21175]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "st-james",
+          "mpa": "Table Mountain",
+          "kind": "no-take",
+          "label": "St James"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.459467, -34.118717],
+              [18.459467, -34.126117],
+              [18.450833, -34.126117]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "robben-island",
+          "mpa": "Robben Island",
+          "kind": "mpa",
+          "business": true,
+          "label": "Robben Island"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.25, -33.90125],
+              [18, -33.90125],
+              [18, -33.75],
+              [18.4006, -33.75],
+              [18.4006, -33.90125]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "robben-restricted",
+          "mpa": "Robben Island",
+          "kind": "no-dive",
+          "label": "Robben Island"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.3627, -33.793056],
+              [18.2717, -33.793056],
+              [18.2717, -33.863333],
+              [18.3633, -33.863333],
+              [18.3633, -33.815252]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "bettys-bay",
+          "mpa": "Betty's Bay",
+          "kind": "mpa",
+          "label": "Betty's Bay"
+        },
+        "geometry": {
+          "type": "MultiLineString",
+          "coordinates": [
+            [
+              [18.896083, -34.374167],
+              [18.896083, -34.4075],
+              [18.937333, -34.4075],
+              [18.937333, -34.35595]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+}
