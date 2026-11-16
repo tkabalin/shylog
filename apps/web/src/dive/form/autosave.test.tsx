@@ -20,9 +20,17 @@ function Probe({ id }: { id: string }) {
   return null
 }
 
-// Lets IndexedDB answer, or the saver's 400 ms pause pass.
+// Lets a write land, or the saver's 400 ms pause pass.
 const settle = (ms = 20) =>
   act(() => new Promise((resolve) => setTimeout(resolve, ms)))
+
+// Waits for the kept values to be read, which a busy CI runner has taken
+// longer than 20 ms to answer.
+async function read() {
+  for (let i = 0; i < 100 && autosave.restored === undefined; i++) {
+    await settle()
+  }
+}
 
 // Unmounted after each test, so a probe left over can't set `autosave`.
 let views: ReturnType<typeof render>[] = []
@@ -42,35 +50,35 @@ describe("useAutosave", () => {
     await writeForm("new", { notes: "Turtle" })
     mount("new")
     expect(autosave.restored).toBeUndefined()
-    await settle()
+    await read()
     expect(autosave.restored).toEqual({ notes: "Turtle" })
   })
 
   it("opens fresh when nothing is kept, or storage refuses", async () => {
     const view = mount("new")
-    await settle()
+    await read()
     expect(autosave.restored).toBeNull()
     view.unmount()
 
     vi.spyOn(queue.forms, "get").mockRejectedValueOnce(new Error("Refused"))
     mount("dive-a")
-    await settle()
+    await read()
     expect(autosave.restored).toBeNull()
   })
 
   it("reads again for another dive, showing nothing until then", async () => {
     await writeForm("dive-b", { notes: "Shark" })
     const view = mount("dive-a")
-    await settle()
+    await read()
     view.rerender(<Probe id="dive-b" />)
     expect(autosave.restored).toBeUndefined()
-    await settle()
+    await read()
     expect(autosave.restored).toEqual({ notes: "Shark" })
   })
 
   it("keeps the last keystrokes when the form closes mid-edit", async () => {
     const view = mount("new")
-    await settle()
+    await read()
     autosave.write({ notes: "Tur" })
     view.unmount()
     await settle()
@@ -80,7 +88,7 @@ describe("useAutosave", () => {
   it("clears the kept values and a write still waiting", async () => {
     await writeForm("new", { notes: "Turtle" })
     mount("new")
-    await settle()
+    await read()
     autosave.write({ notes: "Turtles" })
     await act(() => autosave.clear())
     await settle(450)
