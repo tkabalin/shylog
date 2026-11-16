@@ -154,11 +154,14 @@ function DeletedCard({
     >
       {/* Room for the card's ring, which the fold would otherwise clip. */}
       <div className="-m-px min-h-0 overflow-hidden p-px">
-        <div className="flex items-center gap-3 rounded-[14px] bg-card py-3.5 pr-3 pl-4 ring-1 ring-foreground/10">
+        {/* Tinted while its link is pressed or hovered, as the Log's cards
+            are; not for Restore, which dims on its own. The link takes the
+            card's padding, so a tap anywhere but Restore opens the dive. */}
+        <div className="group/card flex items-stretch rounded-[14px] bg-card pr-3 ring-1 ring-foreground/10 transition-colors duration-100 has-[>a[data-press]]:bg-muted has-[>a[data-press]]:duration-0 [@media(hover:hover)_and_(pointer:fine)]:has-[>a:hover]:bg-muted">
           <Link
             {...open}
             aria-label={`${site}, ${day}. Open`}
-            className="grid min-w-0 flex-1 grid-cols-1 items-center gap-x-3.5 select-none [-webkit-touch-callout:none] min-[390px]:grid-cols-[minmax(0,1fr)_5rem]"
+            className="grid min-w-0 flex-1 grid-cols-1 items-center gap-x-3.5 py-3.5 pr-3 pl-4 select-none [-webkit-touch-callout:none] min-[390px]:grid-cols-[minmax(0,1fr)_5rem]"
           >
             <span className="flex min-w-0 flex-col gap-0.5">
               {/* Two lines, so sites that start alike can be told apart. */}
@@ -216,9 +219,10 @@ function DeletedCard({
             }}
             // Grey offline, as RecentlyDeletedHifi draws it, not a faded tint.
             className={cn(
-              "relative inline-flex h-9 shrink-0 items-center rounded-full px-3.5 text-sm font-medium transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50",
+              "relative inline-flex h-9 shrink-0 items-center self-center rounded-full px-3.5 text-sm font-medium transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50",
               offline
-                ? "bg-muted text-muted-foreground disabled:opacity-100"
+                ? // Darker while the card is tinted, or it vanishes into it.
+                  "bg-muted text-muted-foreground group-has-[>a[data-press]]/card:bg-foreground/10 disabled:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-has-[>a:hover]/card:bg-foreground/10"
                 : "bg-primary/12 text-primary"
             )}
           >
