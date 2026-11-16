@@ -4,33 +4,49 @@ import { describe, expect, it } from "vitest"
 import { zoneRules } from "./zone-rules"
 import zones from "./zones.json"
 
-const fill = (id: string) =>
-  zones.fills.features.find((zone) => zone.properties.id === id)!.geometry
-    .coordinates[0]
+const zone = (id: string) =>
+  zones.fills.features.find((each) => each.properties.id === id)!.geometry
+const rings = ({ type, coordinates }: ReturnType<typeof zone>) =>
+  (type === "Polygon" ? [coordinates] : coordinates).flat() as number[][][]
 
 describe("zones", () => {
   it("closes every fill", () => {
-    for (const zone of zones.fills.features) {
-      const ring = zone.geometry.coordinates[0]
-      expect(ring.at(-1), zone.properties.id).toEqual(ring[0])
+    for (const { geometry, properties } of zones.fills.features) {
+      for (const ring of rings(geometry)) {
+        expect(ring.at(-1), properties.id).toEqual(ring[0])
+      }
     }
   })
 
   it("meets Table Mountain's northern edge with Robben Island's southern", () => {
-    const north = Math.max(...fill("table-mountain").map(([, lat]) => lat))
-    const south = Math.min(...fill("robben-island").map(([, lat]) => lat))
+    const north = Math.max(
+      ...rings(zone("table-mountain"))[0].map(([, lat]) => lat)
+    )
+    const south = Math.min(
+      ...rings(zone("robben-island"))[0].map(([, lat]) => lat)
+    )
     expect(south).toBe(north)
   })
 
-  // The map names each zone along its edge, so it reads with no key.
-  it("gives every zone its rules and names its edge", () => {
-    for (const zone of zones.edges.features) {
-      const { id } = zone.properties
-      expect(zoneRules[id], id).toBeDefined()
-      expect(zone.properties, id).toHaveProperty("label")
+  it("keeps the Cape Point bands south of Venus Pool and Olifantsbos", () => {
+    for (const id of ["cape-point-no-dive", "cape-point-shore-only"]) {
+      for (const [lon, lat] of rings(zone(id)).flat()) {
+        expect(lat, id).toBeLessThanOrEqual(
+          lon <= 18.43 ? -34.271667 : -34.295733
+        )
+      }
     }
+  })
+
+  // The map names each zone along its edge, so it reads with no key.
+  it("names every zone's rule, and every edge", () => {
     expect(Object.keys(zoneRules).sort()).toEqual(
-      zones.edges.features.map((zone) => zone.properties.id).sort()
+      zones.fills.features.map((each) => each.properties.id).sort()
     )
+    for (const { properties } of zones.edges.features) {
+      // The shore band's dotted ends close an area its words already name.
+      if (properties.kind === "shore-only-end") continue
+      expect(properties, properties.id).toHaveProperty("label")
+    }
   })
 })
