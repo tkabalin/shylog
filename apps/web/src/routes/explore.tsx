@@ -14,7 +14,13 @@ import {
 import { LazyMap, preloadMap } from "@/map/lazy"
 import { sea } from "@/map/sea"
 
+type ExploreSearch = { site?: string }
+
 export const Route = createFileRoute("/explore")({
+  // The picked site, so a reload or a link opens it.
+  validateSearch: (search: Record<string, unknown>): ExploreSearch => ({
+    site: typeof search.site === "string" ? search.site : undefined,
+  }),
   // From the tap on the tab, as the router preloads routes on intent.
   loader: () => void preloadMap().catch(() => {}),
   component: ExplorePage,
@@ -28,6 +34,15 @@ const seaColour = {
 // The map fills the tab below the status bar's strip, with no header bar:
 // its controls float over it. From desk: up it runs to the window's top.
 function ExplorePage() {
+  const { site } = Route.useSearch()
+  const navigate = Route.useNavigate()
+  // In place, as a picker is: Back leaves Explore rather than stepping
+  // through every site looked at.
+  const pick = useCallback(
+    (id: string | undefined) =>
+      void navigate({ search: { site: id }, replace: true }),
+    [navigate]
+  )
   const [state, setState] = useState<"loading" | "drawn" | "failed">("loading")
   const [attempt, setAttempt] = useState(0)
   const retry = useCallback(() => {
@@ -78,7 +93,7 @@ function ExplorePage() {
           style={seaColour}
           className="min-h-0 flex-1 bg-(--sea) dark:bg-(--sea-dark)"
         >
-          <LazyMap key={attempt} onState={setState} />
+          <LazyMap key={attempt} onState={setState} site={site} onPick={pick} />
         </div>
       )}
     </div>

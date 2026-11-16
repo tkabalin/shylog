@@ -5,6 +5,7 @@ import type {
 } from "maplibre-gl"
 
 import { sea } from "./sea"
+import { areas, sites, type Area, type Site } from "./sites"
 import zones from "./zones.json"
 
 export type MapTheme = "light" | "dark"
@@ -53,6 +54,16 @@ const palette = {
     noDive: oklch(0.553, 0.195, 38.402),
     business: oklch(0.553, 0.195, 38.402, 0.08),
     hatch: oklch(0.553, 0.195, 38.402, 0.26),
+    // Pins in the foreground's slate, ringed in white so they stand off
+    // the sea; the picked one in the accent.
+    pin: oklch(0.42, 0.02, 222),
+    pinRing: oklch(1, 0, 0),
+    pinText: oklch(0.3, 0.012, 222),
+    cluster: oklch(1, 0, 0),
+    clusterRing: oklch(0.86, 0.008, 214),
+    clusterText: oklch(0.148, 0.004, 228.8),
+    picked: oklch(0.52, 0.105, 223.128),
+    pickedRing: oklch(1, 0, 0),
   },
   dark: {
     sea: oklch(...sea.dark),
@@ -72,6 +83,14 @@ const palette = {
     // than the land and Robben Island still stands out of it.
     business: oklch(0.47, 0.157, 37.304, 0.12),
     hatch: oklch(0.75, 0.183, 55.934, 0.24),
+    pin: oklch(0.88, 0.01, 214),
+    pinRing: oklch(0.2, 0.022, 232),
+    pinText: oklch(0.9, 0.006, 214),
+    cluster: oklch(0.218, 0.008, 223.9),
+    clusterRing: oklch(0.38, 0.01, 220),
+    clusterText: oklch(0.987, 0.002, 197.1),
+    picked: oklch(0.789, 0.154, 211.53),
+    pickedRing: oklch(0.148, 0.004, 228.8),
   },
 } satisfies Record<MapTheme, Record<string, string>>
 
@@ -94,6 +113,70 @@ export function drawHatch(theme: MapTheme) {
   }
   return context.getImageData(0, 0, size, size)
 }
+
+// A site's pin, a dot for a reef or fresh water and a diamond for a wreck,
+// ringed, drawn at twice its size; the picked one bigger, in the accent.
+type Shape = "dot" | "diamond"
+export const pinImage = (theme: MapTheme, shape: Shape, picked: boolean) =>
+  `${shape}${picked ? "-picked" : ""}-${theme}`
+export function drawPin(theme: MapTheme, shape: Shape, picked: boolean) {
+  const p = palette[theme]
+  const size = picked ? 44 : 26
+  const canvas = document.createElement("canvas")
+  canvas.width = canvas.height = size
+  const context = canvas.getContext("2d")!
+  context.translate(size / 2, size / 2)
+  const reach = size / 2 - 3.2
+  context.beginPath()
+  if (shape === "diamond") {
+    const d = reach * 1.12
+    context.moveTo(0, -d)
+    context.lineTo(d, 0)
+    context.lineTo(0, d)
+    context.lineTo(-d, 0)
+    context.closePath()
+  } else context.arc(0, 0, reach * 0.92, 0, Math.PI * 2)
+  context.lineWidth = 3.2
+  // A mitred diamond's points reach past the image and are cut flat.
+  context.lineJoin = "round"
+  context.strokeStyle = picked ? p.pickedRing : p.pinRing
+  context.fillStyle = picked ? p.picked : p.pin
+  context.fill()
+  context.stroke()
+  return context.getImageData(0, 0, size, size)
+}
+export const pinImages = (["dot", "diamond"] as const).flatMap((shape) =>
+  [false, true].map((picked) => ({ shape, picked }))
+)
+
+// Each area's sites, which cluster among themselves, so a bubble never
+// mixes the Atlantic with False Bay and the first view shows the spread.
+const siteFeatures = (list: Site[]) => ({
+  type: "FeatureCollection" as const,
+  features: list.map(({ id, name, type, lon, lat }) => ({
+    type: "Feature" as const,
+    geometry: { type: "Point" as const, coordinates: [lon, lat] },
+    properties: { id, name, type },
+  })),
+})
+export const areaSource = (area: Area) => `sites-${area}`
+export const pinLayers = Object.keys(areas).map((area) => `pins-${area}`)
+export const nameLayers = Object.keys(areas).map((area) => `names-${area}`)
+export const clusterLayers = Object.keys(areas).map(
+  (area) => `clusters-${area}`
+)
+export const pickedSource = "picked"
+export const pickedData = (site?: Site) => siteFeatures(site ? [site] : [])
+const unclustered: ExpressionSpecification = ["!", ["has", "point_count"]]
+// The picked site shows again in a layer of its own, bigger, with its name
+// always there. Its name here is hidden by feature state, which needs no new
+// layout, and its pin stays under the picked one, so a tap finds it at once.
+const unlessPicked: ExpressionSpecification = [
+  "case",
+  ["boolean", ["feature-state", "picked"], false],
+  0,
+  1,
+]
 
 // Coastal names at every zoom, in priority order: OpenStreetMap's places
 // zoomed out are mostly inland suburbs, which don't help a diver.
@@ -171,11 +254,26 @@ const zoneLabel = {
 // In a new tab, so the installed app on a desktop isn't replaced.
 const attribution =
   '<a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a> © <a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+const sitesAttribution =
+  'Sites: <a href="https://en.wikivoyage.org/wiki/Diving_the_Cape_Peninsula_and_False_Bay/Dive_sites" target="_blank" rel="noopener">Wikivoyage</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA</a>'
 
 // A quiet basemap from Protomaps' OpenStreetMap layers, kept to the few
 // that help find a dive site, with the marine protected areas over it.
-export function mapStyle(theme: MapTheme, tiles: string): StyleSpecification {
+export function mapStyle(
+  theme: MapTheme,
+  tiles: string,
+  picked?: Site
+): StyleSpecification {
   const p = palette[theme]
+  const shape = (isPicked: boolean): ExpressionSpecification => [
+    "case",
+    ["==", ["get", "type"], "wreck"],
+    pinImage(theme, "diamond", isPicked),
+    pinImage(theme, "dot", isPicked),
+  ]
+  // Names in the land's colour as their halo, so a name over the shore has
+  // no blue rim.
+  const siteName = { "text-color": p.pinText, "text-halo-color": p.land }
   return {
     version: 8,
     // A theme change swaps the colours at once, as the rest of the app does.
@@ -203,6 +301,21 @@ export function mapStyle(theme: MapTheme, tiles: string): StyleSpecification {
           })),
         },
       },
+      ...Object.fromEntries(
+        (Object.keys(areas) as Area[]).map((area) => [
+          areaSource(area),
+          {
+            type: "geojson",
+            data: siteFeatures(sites.filter((site) => site.area === area)),
+            cluster: true,
+            clusterMaxZoom: 11,
+            clusterRadius: 34,
+            promoteId: "id",
+            attribution: sitesAttribution,
+          } satisfies GeoJSONSourceSpecification,
+        ])
+      ),
+      [pickedSource]: { type: "geojson", data: pickedData(picked) },
     },
     layers: [
       { id: "sea", type: "background", paint: { "background-color": p.sea } },
@@ -533,30 +646,6 @@ export function mapStyle(theme: MapTheme, tiles: string): StyleSpecification {
         paint: { "text-color": p.seaText },
       },
       {
-        id: "coast-labels",
-        type: "symbol",
-        source: "coast",
-        layout: {
-          "text-field": ["get", "name"],
-          "text-font": font.medium,
-          "text-size": 11,
-          "symbol-sort-key": ["get", "rank"],
-          "text-padding": 4,
-          "text-anchor": ["get", "anchor"],
-          "text-offset": [
-            "case",
-            ["==", ["get", "anchor"], "right"],
-            ["literal", [-0.3, 0]],
-            ["literal", [0.3, 0]],
-          ],
-        },
-        paint: {
-          "text-color": p.placeText,
-          "text-halo-color": p.land,
-          "text-halo-width": 1.2,
-        },
-      },
-      {
         id: "places",
         type: "symbol",
         source: "osm",
@@ -580,6 +669,122 @@ export function mapStyle(theme: MapTheme, tiles: string): StyleSpecification {
           "text-halo-color": p.land,
           "text-halo-width": 1.2,
         },
+      },
+      // Names under the pins and the coast's names: MapLibre places the top
+      // layer first, so every pin and Simon's Town is down before a site's
+      // name looks for room. From zoom 12, where they fit.
+      ...(Object.keys(areas) as Area[]).map(
+        (area): StyleSpecification["layers"][number] => ({
+          id: `names-${area}`,
+          type: "symbol",
+          source: areaSource(area),
+          minzoom: 12,
+          filter: unclustered,
+          layout: {
+            "text-field": ["get", "name"],
+            "text-font": font.regular,
+            "text-size": 11.5,
+            "text-max-width": 9,
+            "text-variable-anchor": ["left", "right", "top", "bottom"],
+            "text-radial-offset": 0.75,
+            "text-justify": "auto",
+          },
+          paint: {
+            ...siteName,
+            "text-halo-width": 1.2,
+            "text-opacity": unlessPicked,
+          },
+        })
+      ),
+      {
+        id: "coast-labels",
+        type: "symbol",
+        source: "coast",
+        layout: {
+          "text-field": ["get", "name"],
+          "text-font": font.medium,
+          "text-size": 11,
+          "symbol-sort-key": ["get", "rank"],
+          "text-padding": 4,
+          "text-anchor": ["get", "anchor"],
+          "text-offset": [
+            "case",
+            ["==", ["get", "anchor"], "right"],
+            ["literal", [-0.3, 0]],
+            ["literal", [0.3, 0]],
+          ],
+        },
+        paint: {
+          "text-color": p.placeText,
+          "text-halo-color": p.land,
+          "text-halo-width": 1.2,
+        },
+      },
+      ...(Object.keys(areas) as Area[]).flatMap(
+        (area): StyleSpecification["layers"] => [
+          {
+            id: `clusters-${area}`,
+            type: "circle",
+            source: areaSource(area),
+            filter: ["has", "point_count"],
+            paint: {
+              "circle-color": p.cluster,
+              "circle-stroke-color": p.clusterRing,
+              "circle-stroke-width": 1,
+              "circle-radius": [
+                "step",
+                ["get", "point_count"],
+                13,
+                10,
+                16,
+                40,
+                19,
+              ],
+            },
+          },
+          {
+            id: `count-${area}`,
+            type: "symbol",
+            source: areaSource(area),
+            filter: ["has", "point_count"],
+            layout: {
+              "text-field": ["get", "point_count_abbreviated"],
+              "text-font": font.medium,
+              "text-size": 12,
+              "text-allow-overlap": true,
+            },
+            paint: { "text-color": p.clusterText },
+          },
+          {
+            id: `pins-${area}`,
+            type: "symbol",
+            source: areaSource(area),
+            filter: unclustered,
+            layout: {
+              "icon-image": shape(false),
+              "icon-allow-overlap": true,
+            },
+          },
+        ]
+      ),
+      {
+        id: "picked",
+        type: "symbol",
+        source: pickedSource,
+        layout: {
+          "icon-image": shape(true),
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+          "text-field": ["get", "name"],
+          "text-font": font.medium,
+          "text-size": 12.5,
+          "text-allow-overlap": true,
+          "text-variable-anchor": ["left", "right", "top", "bottom"],
+          "text-radial-offset": 1.1,
+          "text-justify": "auto",
+          "text-max-width": 10,
+        },
+        paint: { ...siteName, "text-halo-width": 1.6 },
       },
     ],
   }
