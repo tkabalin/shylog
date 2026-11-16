@@ -328,10 +328,12 @@ const bandOf = (bounds: readonly number[], value: number) => {
 const depthBounds = depthBands.slice(0, -1).map((band) => band.below)
 const hourBounds = timesOfDay.slice(0, -1).map((part) => part.below)
 
+// One collator for every sort: localeCompare with a locale builds a new one
+// per comparison, a sixth of the difference rule's time at 1000 dives.
+const nameOrder = new Intl.Collator("en-GB", { numeric: true })
+
 const byName = (name: (key: string) => string) => (keys: string[]) =>
-  [...keys].sort((a, b) =>
-    name(a).localeCompare(name(b), "en-GB", { numeric: true })
-  )
+  [...keys].sort((a, b) => nameOrder.compare(name(a), name(b)))
 
 const tagField = (tag: keyof typeof allTags, noun: string): ManyField => ({
   key: `tag:${tag}`,
