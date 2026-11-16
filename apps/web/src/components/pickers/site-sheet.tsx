@@ -296,9 +296,9 @@ export function SiteSheet({
           className={cn(
             "flex min-h-0 flex-1 flex-col",
             move &&
-              "animate-in duration-300 ease-drawer fade-in-50 motion-reduce:[--tw-enter-translate-x:0] desk:duration-200",
-            move === "back" && "slide-in-from-left-8",
-            move === "forward" && "slide-in-from-right-16"
+              "animate-view-in duration-300 ease-drawer motion-reduce:[--view-from:0] desk:duration-200",
+            move === "back" && "[--view-from:-2rem]",
+            move === "forward" && "[--view-from:4rem]"
           )}
         >
           {bar[view]}

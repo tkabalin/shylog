@@ -39,7 +39,10 @@ export function ProfilePlaceholder({
       className={cn(
         "flex flex-col gap-3",
         // Faded in, as the Log's sketch is, once a load turns out slow.
-        bare ? "invisible" : "animate-in duration-300 ease-linear fade-in-0"
+        // Hidden, its sketch stops pulsing, as nothing shows it.
+        bare
+          ? "invisible [&_[data-slot=skeleton]]:animate-none"
+          : "animate-appear duration-300 ease-linear"
       )}
     >
       <div

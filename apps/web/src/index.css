@@ -224,6 +224,23 @@
       transform: translateX(300%);
     }
   }
+  /* Entrances that take duration-* and ease-* as tw-animate's animate-in
+     does, minus its keyframe's filter: blur(0) and identity transform,
+     which WebKit may not composite on a full-width block. */
+  --animate-appear: appear var(--tw-duration, 150ms) var(--tw-ease, ease);
+  @keyframes appear {
+    from {
+      opacity: 0;
+    }
+  }
+  /* A sheet's view swap: half faded, slid in from --view-from. */
+  --animate-view-in: view-in var(--tw-duration, 150ms) var(--tw-ease, ease);
+  @keyframes view-in {
+    from {
+      opacity: 0.5;
+      translate: var(--view-from, 0);
+    }
+  }
 }
 
 :root {
@@ -351,18 +368,19 @@
 
 /* Where toasts sit (see components/ui/sonner.tsx): over the tab bar, and
    the Log's floating button while it is on screen, at every width a touch
-   screen has; from desk: up, near the bottom. */
-:root {
+   screen has; from desk: up, near the bottom. Set on the toaster alone, so
+   the button coming and going doesn't restyle the whole page. */
+[data-sonner-toaster] {
   --toast-bottom: calc(
     3.0625rem + max(0.5rem, env(safe-area-inset-bottom)) + 1rem +
       var(--toast-lift, 0px)
   );
 }
-:root:has([data-fab]) {
+:root:has([data-fab]) [data-sonner-toaster] {
   --toast-lift: 3.9375rem;
 }
 @media (width >= 48rem) and (pointer: fine) {
-  :root {
+  [data-sonner-toaster] {
     --toast-bottom: max(1.5rem, env(safe-area-inset-bottom));
   }
 }

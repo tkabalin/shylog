@@ -301,7 +301,7 @@ function LogSkeleton() {
   return (
     <div
       aria-hidden
-      className="flex animate-in flex-col px-4 pt-3 duration-300 ease-linear fade-in-0 md:mx-auto md:w-full md:max-w-3xl"
+      className="flex animate-appear flex-col px-4 pt-3 duration-300 ease-linear md:mx-auto md:w-full md:max-w-3xl"
     >
       <Skeleton className="mb-2 h-14 w-36" />
       <div className="pt-0.5 pb-4">
