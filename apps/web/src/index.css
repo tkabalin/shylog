@@ -328,15 +328,18 @@
 
 @layer base {
   /* Taps show each control's own pressed state, not iOS's grey flash, and
-     a long press on a button or list row doesn't select its text. */
+     a long press on a button, link or list row neither selects its text nor
+     opens iOS's link menu: every link here is a control, not text to copy. */
   html {
     -webkit-tap-highlight-color: transparent;
   }
+  a[href],
   button,
   [role="button"],
   [role="option"] {
     user-select: none;
     -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
   /* Tailwind 4 gives buttons the arrow, so with a mouse a text button such
      as Select all looked like plain text. Links already show the hand. */

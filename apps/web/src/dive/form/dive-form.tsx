@@ -1434,7 +1434,7 @@ export function DiveForm({
             <div className="flex items-center gap-4 px-4 py-3">
               <label
                 htmlFor="field-ignored"
-                className="flex flex-1 flex-col gap-0.5"
+                className="flex flex-1 flex-col gap-0.5 select-none"
               >
                 <span className="text-base font-medium">Ignore this dive</span>
                 <span className="text-[13px] text-muted-foreground">

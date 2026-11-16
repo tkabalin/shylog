@@ -37,7 +37,7 @@ function EditDivePage() {
         <Link
           to="/"
           replace
-          className="inline-flex h-11 items-center gap-0.5 self-start pr-2 pl-1 text-base font-medium text-primary"
+          className="inline-flex h-11 items-center gap-0.5 self-start pr-2 pl-1 text-base font-medium text-primary transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
         >
           <IconChevronLeft aria-hidden className="size-5.5 stroke-[2.25]" />
           Log

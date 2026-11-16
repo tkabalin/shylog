@@ -560,7 +560,7 @@ function SmoothTemperature() {
     <div className="flex items-center gap-4 px-4 py-3">
       <label
         htmlFor="you-smooth-temperature"
-        className="flex flex-1 flex-col gap-0.5"
+        className="flex flex-1 flex-col gap-0.5 select-none"
       >
         <span className="text-[15px]">Smooth water temperature</span>
         <span className="text-[13px] text-muted-foreground">
