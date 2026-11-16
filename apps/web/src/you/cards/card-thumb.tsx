@@ -53,18 +53,32 @@ export function PageImage({
   )
 }
 
-// A picked file shown before it uploads, its object URL let go with it.
-// Set on the element, so StrictMode's second mount makes its own URL rather
-// than reusing one the first unmount revoked.
+// One object URL per picked file, shared by the strip, the names and the
+// crop, so the browser can share one decode of a ~14 MB screenshot rather
+// than make one per URL. Let go once the last image showing it unmounts.
+const fileUrls = new WeakMap<File, { url: string; users: number }>()
+
+// A picked file shown before it uploads. Its URL is set on the element in
+// an effect, so StrictMode's second mount makes a new one rather than
+// reusing one the first unmount revoked.
 function FileImage({
   file,
   ...props
 }: { file: File } & Omit<ComponentProps<"img">, "src" | "ref">) {
   const image = useRef<HTMLImageElement>(null)
   useEffect(() => {
-    const made = URL.createObjectURL(file)
-    image.current?.setAttribute("src", made)
-    return () => URL.revokeObjectURL(made)
+    const held = fileUrls.get(file) ?? {
+      url: URL.createObjectURL(file),
+      users: 0,
+    }
+    held.users++
+    fileUrls.set(file, held)
+    image.current?.setAttribute("src", held.url)
+    return () => {
+      if (--held.users) return
+      URL.revokeObjectURL(held.url)
+      fileUrls.delete(file)
+    }
   }, [file])
   return <img ref={image} alt="" draggable={false} {...props} />
 }
