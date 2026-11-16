@@ -73,7 +73,9 @@ for (const via of ["the Log link", "the browser"] as const) {
 test.describe("on a short screen", () => {
   test.use({ viewport: { width: 390, height: 320 } })
 
-  test("scrolls every page's end clear of the tab bar", async ({ page }) => {
+  test("scrolls every page's end clear of the tab bar, never sideways", async ({
+    page,
+  }) => {
     // Seventeen page loads in one test.
     test.slow()
     await page.goto("/")
@@ -121,6 +123,12 @@ test.describe("on a short screen", () => {
         await expect
           .poll(() => lowestAtEnd(page.locator("#main")))
           .toBeLessThanOrEqual(limit + 0.5)
+        // Nor too wide at a phone's width: #main doesn't clip sideways, so
+        // a screen that overflows would scroll sideways.
+        const wider = await page
+          .locator("#main")
+          .evaluate((el) => el.scrollWidth - el.clientWidth)
+        expect(wider).toBeLessThanOrEqual(0)
       })
   })
 })
