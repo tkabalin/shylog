@@ -172,6 +172,33 @@ function CropStage({
   const pointers = useRef(new Map<number, Point>())
   const gesture = useRef<Gesture | null>(null)
 
+  // The page gets its own layer while a finger or a settle moves it, as
+  // the viewer's does, so the stage isn't repainted each frame, and none at
+  // rest, so a zoomed page is drawn sharp. Checked a frame after each move.
+  const page = useRef<HTMLDivElement>(null)
+  const layer = useRef(() => {})
+  useEffect(() => {
+    let queued = 0
+    const check = () => {
+      queued = 0
+      const moving =
+        !!gesture.current || [scale, panX, panY].some((v) => v.isAnimating())
+      if (page.current)
+        page.current.style.willChange = moving ? "transform" : ""
+    }
+    layer.current = () => {
+      queued ||= requestAnimationFrame(check)
+    }
+    const stops = [scale, panX, panY].flatMap((value) => [
+      value.on("change", layer.current),
+      value.on("animationComplete", layer.current),
+    ])
+    return () => {
+      cancelAnimationFrame(queued)
+      stops.forEach((stop) => stop())
+    }
+  }, [scale, panX, panY])
+
   // How far the page can pan at a scale before its edge comes into the
   // frame.
   const bounds = (at: number) => ({
@@ -468,11 +495,18 @@ function CropStage({
         data-base-ui-swipe-ignore=""
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
-        onPointerUp={(event) => release(event, false)}
-        onPointerCancel={(event) => release(event, true)}
+        onPointerUp={(event) => {
+          release(event, false)
+          layer.current()
+        }}
+        onPointerCancel={(event) => {
+          release(event, true)
+          layer.current()
+        }}
         className="relative min-h-0 flex-1 cursor-grab touch-none overflow-hidden bg-black select-none [-webkit-touch-callout:none] active:cursor-grabbing"
       >
         <motion.div
+          ref={page}
           className="absolute flex items-center justify-center"
           style={{
             width: baseW,

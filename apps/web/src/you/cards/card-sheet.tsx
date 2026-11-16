@@ -539,7 +539,9 @@ function Shot({
       transition={strip}
       className={cn(
         "relative shrink-0 select-none [-webkit-touch-callout:none]",
-        lifted && "z-10"
+        // Its own layer while dragged, so each frame moves it rather than
+        // repainting its screenshot and shadow.
+        lifted && "z-10 will-change-transform"
       )}
     >
       {/* Lifted, it grows a little and its deeper shadow fades in, as a
