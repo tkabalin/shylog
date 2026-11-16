@@ -1,0 +1,171 @@
+{
+  "alpha-reef": {
+    "said": "Bearing to Spaniard Rock 276° magnetic 250 m",
+    "position": [18.469733, -34.21645]
+  },
+  "ankers": {
+    "said": "S34°18.526’ E018°48.815’",
+    "position": [18.813583, -34.308767]
+  },
+  "batsata-rock/batsata-rock": {
+    "said": "Batsata Rock: S34°16.602’ E018°28.830’",
+    "position": [18.481, -34.2767]
+  },
+  "batsata-rock/smileys-reef": {
+    "said": "a shallow (6 m) area to the west of the exposed rocks",
+    "depth": 6,
+    "approximate": true
+  },
+  "blue-rock-quarry/deep-end": {
+    "said": "the deep area in the south east corner extends to at least 47 m, though there are unconfirmed reports of greater depth",
+    "depth": 47,
+    "approximate": true
+  },
+  "blue-rock-quarry/dive-and-adventure-corner": {
+    "said": "the deep area in the south east corner extends to at least 47 m, though there are unconfirmed reports of greater depth",
+    "depth": 47,
+    "approximate": true
+  },
+  "blue-rock-quarry/floating-jetty": {
+    "said": "the deep area in the south east corner extends to at least 47 m, though there are unconfirmed reports of greater depth",
+    "depth": 47,
+    "approximate": true
+  },
+  "blue-rock-quarry/west-end": {
+    "said": "the deep area in the south east corner extends to at least 47 m, though there are unconfirmed reports of greater depth",
+    "depth": 47,
+    "approximate": true
+  },
+  "boardroom-pinnacle": {
+    "said": "About 620 m directly offshore from the Twelve Apostles hotel",
+    "position": [18.352517, -33.97935]
+  },
+  "caravan-reef/caravan-central-east-pinnacle": {
+    "said": "Central: Maximum about 19 m",
+    "depth": 19
+  },
+  "caravan-reef/caravan-central-north-pinnacle": {
+    "said": "Central: Maximum about 19 m",
+    "depth": 19
+  },
+  "caravan-reef/south-caravan": {
+    "said": "South: Maximum about 20 m",
+    "depth": 20
+  },
+  "colebrooke": {
+    "said": "S34°13.871' E18°50.588'",
+    "position": [18.843133, -34.231183]
+  },
+  "cow-and-calf/stone-dog": {
+    "said": "Stone Dog: S34°10.376’ E018°50.183’",
+    "position": [18.836378, -34.17293]
+  },
+  "disa": {
+    "said": [
+      "S33°52.398' E018.18.981', about 8km north of the Green Point lighthouse.",
+      "he Disa was built for Irvin and Johnson in 1959"
+    ],
+    "position": [18.31635, -33.8733],
+    "description": "The Disa was built for Irvin and Johnson in 1959 in Yorkshire, England by Cook, Welton and Gemmell."
+  },
+  "duiker-island": {
+    "said": "The dive site Seal Island or Duiker Island",
+    "name": "Duiker Island"
+  },
+  "fishermans-beach": {
+    "said": "Shallow. The 10 m contour is over a hundred metres from the shore.",
+    "depth": 10,
+    "approximate": true
+  },
+  "froggy-pond": {
+    "said": "Shallow, the 10 m contour is about 200 m out at the end of the reef",
+    "depth": 10,
+    "approximate": true
+  },
+  "hermes": {
+    "said": "S33°52.210' E018°29.255'. About 170 m off Milnerton beach.",
+    "position": [18.487583, -33.870167]
+  },
+  "joshs-reef/ne-pinnacle": {
+    "said": "NE pinnacle: S34°15.280'",
+    "position": [18.55585, -34.254467]
+  },
+  "lonehill-reef": {
+    "said": "Known depths between 39 and 43 m",
+    "depth": 43
+  },
+  "millers-point/millers-point-slipway": {
+    "said": "Maximum depth is probably between 6 and 8 m along the shoreline reefs",
+    "depth": 8,
+    "approximate": true
+  },
+  "millers-point/tidal-pool": {
+    "said": "Maximum depth is probably between 6 and 8 m along the shoreline reefs",
+    "depth": 8,
+    "approximate": true
+  },
+  "mv-gemsbok": {
+    "said": "S33°52.910' E18°20.315', 6.1 km WNW of Green Point lighthouse",
+    "position": [18.338583, -33.88183]
+  },
+  "partridge-point/fish-tank": {
+    "said": "Fish Tank: S34°15.230' E018°28.930'",
+    "position": [18.482167, -34.253833]
+  },
+  "quarry": {
+    "said": "The site is shallow, the 10 m contour is about 250 m offshore.",
+    "depth": 10,
+    "approximate": true
+  },
+  "rocky-bank/rocky-ridge": {
+    "said": "Rocky Ridge: S34° 24.929', E18° 36.496'",
+    "position": [18.608267, -34.415483]
+  },
+  "sas-good-hope": {
+    "said": "nominal position (amidships)",
+    "position": [18.480842, -34.267992]
+  },
+  "simons-town-jetty": {
+    "said": "Simon's Town Jetty: S34°11.525' E18°24.968'",
+    "position": [18.432794, -34.19208]
+  },
+  "ss-bia": {
+    "said": "S34°16.217', E018°22.638'",
+    "position": [18.377306, -34.270194]
+  },
+  "ss-hypatia": {
+    "said": "S33°50.110’ E018°22.750’ — Engine block",
+    "position": [18.379167, -33.835167]
+  },
+  "ss-lusitania": {
+    "said": "Just beyond the steep drop-off on the east side of Bellows Rock",
+    "position": [18.49083, -34.38958]
+  },
+  "ss-sa-seafarer": {
+    "said": "S33°53.939’ E018°23.822’ — 50 to 75 m offshore, slightly to the west of the Green Point Lighthouse",
+    "position": [18.397033, -33.89898]
+  },
+  "ss-thomas-t-tucker": {
+    "said": "S34°16.603', E018°23.228', at Olifantsbospunt",
+    "position": [18.387133, -34.276717]
+  },
+  "st-godetia": {
+    "said": "S34°06.050' E19°44.200', about 2.7 km offshore of Macassar",
+    "position": [18.736667, -34.10083]
+  },
+  "steenbras-ridge/steenbras-ridge-edge": {
+    "said": [
+      "S34°10.069', E018°46.493'",
+      "The highest part of the reef is at about 22.6 m depth at S34°10.010', E18°46.435'"
+    ],
+    "position": [18.774883, -34.167817]
+  },
+  "whittle-rock/gullies": {
+    "said": "Gullies S34°14.872' E18°33.454'",
+    "position": [18.557567, -34.247867]
+  },
+  "whittle-rock/m-m-tower": {
+    "said": "M&M Tower (the Spark plug): S34°14.943' E18°33.549'",
+    "position": [18.55915, -34.24905]
+  }
+}

@@ -9,3 +9,5 @@ LICENSE
 
 pnpm-lock.yaml
 apps/web/src/routeTree.gen.ts
+# One dive site to a line, as the refresh script writes it
+apps/web/src/map/sites.geojson

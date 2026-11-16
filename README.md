@@ -290,4 +290,6 @@ If the replay fails, the app is left stopped with the old database in `restore-a
 
 Licensed under [GPL-3.0-or-later](LICENSE).
 
+The dive sites in `apps/web/src/map/sites.geojson` and their text in `apps/web/src/map/pages.json` come from Wikivoyage's [Dive sites](https://en.wikivoyage.org/wiki/Diving_the_Cape_Peninsula_and_False_Bay/Dive_sites) list for the Cape Peninsula and False Bay and the pages it links to, by Wikivoyage's contributors, under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). They are converted from wikitext to GeoJSON and Markdown, cut down, and corrected in places (`apps/web/scripts/map/site-fixes.json`).
+
 The image includes `dctool` from [libdivecomputer](https://www.libdivecomputer.org), licensed under LGPL-2.1, built from its [0.9.0 release](https://github.com/libdivecomputer/libdivecomputer/releases/tag/v0.9.0) with [one patch](docker/libdivecomputer/stop-events.patch) (see the `Dockerfile`). Its licence, the patch and where its source is are in the image under `/usr/share/doc/libdivecomputer/`.
