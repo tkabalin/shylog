@@ -41,7 +41,28 @@ export function estimateOffsets(
   const byDate = new Map<string, HandDive[]>()
   for (const hand of hands) {
     const date = dateOf(hand.startTime)
-    byDate.set(date, [...(byDate.get(date) ?? []), hand])
+    const day = byDate.get(date)
+    if (day) day.push(hand)
+    else byDate.set(date, [hand])
+  }
+  // Each start parsed once and sorted, so a day's window is a binary search
+  // rather than a scan of the whole file per hand-logged day.
+  const starts = computers
+    .map((computer, index) => ({
+      computer,
+      index,
+      start: localSeconds(computer.startTime),
+    }))
+    .sort((a, b) => a.start - b.start)
+  const firstFrom = (seconds: number) => {
+    let low = 0
+    let high = starts.length
+    while (low < high) {
+      const middle = (low + high) >> 1
+      if (starts[middle].start < seconds) low = middle + 1
+      else high = middle
+    }
+    return low
   }
   const offsets = new Map<string, number>()
   const claimed = new Map<string, string>()
@@ -50,19 +71,20 @@ export function estimateOffsets(
   )) {
     // A dive an earlier day paired with stays there, so it can't decide
     // this day's offset either. Only dives within the widest shift (plus a
-    // rounding step) of the day can land on it.
+    // rounding step) of the day can land on it. In the order given, as
+    // pairDay's ties fall back to it.
     const from = dayNumber(date) * 86400 - (widest + 15) * 60
     const to = from + 86400 + 2 * (widest + 15) * 60
-    const free = computers.filter((computer) => {
-      const start = localSeconds(computer.startTime)
-      return !claimed.has(computer.ref) && start >= from && start < to
-    })
+    const inReach = starts
+      .slice(firstFrom(from), firstFrom(to))
+      .filter(({ computer }) => !claimed.has(computer.ref))
+      .sort((a, b) => a.index - b.index)
+    const free = inReach.map(({ computer }) => computer)
     const suggested = new Set<number>()
     for (const hand of dayHands) {
-      for (const computer of free) {
-        const offset = toFifteen(
-          (localSeconds(hand.startTime) - localSeconds(computer.startTime)) / 60
-        )
+      const handStart = localSeconds(hand.startTime)
+      for (const { computer, start } of inReach) {
+        const offset = toFifteen((handStart - start) / 60)
         if (
           Math.abs(offset) <= widest &&
           likelySame(hand, { ...computer, startTime: hand.startTime })
