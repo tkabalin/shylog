@@ -3,22 +3,16 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { underwater } from "../../src/calc/average-depth.ts"
 import { minChartTime } from "../../src/calc/axes.ts"
-import {
-  cnsWithCarryOver,
-  diveCns,
-  diveOtu,
-  maxCns,
-  type CnsDive,
-} from "../../src/calc/cns-otu.ts"
+import { diveCns, diveOtu } from "../../src/calc/cns-otu.ts"
 import { gasVolume } from "../../src/calc/gas.ts"
 import { depthLabels, pointsInView } from "../../src/calc/labels.ts"
 import { likelySame } from "../../src/calc/likely-same.ts"
 import { mod } from "../../src/calc/mod.ts"
 import type { Water } from "../../src/calc/pressure.ts"
+import { maxCns, previousDiveFigures } from "../../src/calc/previous-dives.ts"
 import { lrint } from "../../src/calc/round.ts"
 import { sacRate } from "../../src/calc/sac.ts"
 import { diveEnd, type Sample } from "../../src/calc/samples.ts"
-import { surfaceInterval } from "../../src/calc/surface-interval.ts"
 import { axisTicks } from "../../src/calc/ticks.ts"
 import {
   chartEnd,
@@ -212,8 +206,13 @@ const log = fc
       end: fc.integer({ min: 0, max: 3 * 60 * 60 }),
       trip: fc.integer({ min: 0, max: 2 }),
       // Well past 100 %, so a dive 12 hours back, cut to 1/256, still moves
-      // the rounded figure.
-      cns: fc.option(fc.double({ min: 0, max: 1000, noNaN: true })),
+      // the rounded figure. Halves too, which lrint rounds to even.
+      cns: fc.option(
+        fc.oneof(
+          fc.double({ min: 0, max: 1000, noNaN: true }),
+          fc.integer({ min: 0, max: 2000 }).map((n) => n / 2)
+        )
+      ),
     }),
     { minLength: 1, maxLength: 12 }
   )
@@ -333,51 +332,45 @@ describe("Subsurface's code on random inputs", () => {
       }
     ))
 
-  it("carries CNS over from earlier dives the same way (calculate_cns)", () =>
-    check(
-      log.chain((table) =>
-        fc.tuple(fc.constant(table), fc.nat(table.length - 1))
-      ),
-      async ([table, index]) => {
-        const [expected] = await ask("cns", index, ...tableWords(table))
-        const dives: CnsDive[] = table.map((d) => ({
-          startTime: startTime(d.when),
-          end: d.end,
-          tripId: d.trip ? `trip-${d.trip}` : null,
-          cns: d.cns,
-        }))
-        const cns = cnsWithCarryOver(dives[index], dives)
-        // Without its own samples a dive has no CNS in Shylog.
-        if (table[index].cns == null) expect(cns).toBeNull()
-        // Departure: Shylog caps the figure.
-        else expect(cns).toBe(Math.min(expected, maxCns))
-      }
-    ))
-
-  // Shylog's 48-hour cap shows a longer interval as no previous dive.
-  it("gives the same surface interval (get_surface_interval)", () =>
+  // The whole log at once, written in any order except that dives starting
+  // together keep theirs, as that order breaks their tie. Shylog's 48-hour
+  // cap shows a longer interval as no previous dive, and CNS is capped.
+  it("gives every dive the same surface interval and carried CNS (get_surface_interval, calculate_cns)", () =>
     check(
       log.chain((table) =>
         fc.tuple(
           fc.constant(table),
-          fc.oneof(
-            fc.constantFrom(...table.map((d) => d.when)),
-            fc.integer({
-              min: base - 600,
-              max: table.at(-1)!.when + 3 * 24 * 60 * 60,
-            })
+          fc.shuffledSubarray(
+            table.map((_, i) => i),
+            { minLength: table.length }
           )
         )
       ),
-      async ([table, when]) => {
-        const [interval] = await ask("interval", when, ...tableWords(table))
-        const dives = table.map((d) => ({
-          startTime: startTime(d.when),
-          end: d.end,
-        }))
-        expect(surfaceInterval(startTime(when), dives)).toBe(
-          interval < 0 || interval > 48 * 60 * 60 ? "none" : interval
+      async ([table, shuffled]) => {
+        const answers = await ask("log", ...tableWords(table))
+        const tied = new Map<number, number[]>()
+        table.forEach((d, i) =>
+          tied.set(d.when, [...(tied.get(d.when) ?? []), i])
         )
+        const written = shuffled.map((i) => tied.get(table[i].when)!.shift()!)
+        const figures = previousDiveFigures(
+          written.map((i) => ({
+            startTime: startTime(table[i].when),
+            end: table[i].end,
+            tripId: table[i].trip ? `trip-${table[i].trip}` : null,
+            cns: table[i].cns,
+          }))
+        )
+        written.forEach((i, at) => {
+          const [cns, interval] = answers.slice(2 * i, 2 * i + 2)
+          expect(figures[at].surfaceInterval).toBe(
+            interval < 0 || interval > 48 * 60 * 60 ? "none" : interval
+          )
+          // Without its own samples a dive has no CNS in Shylog.
+          expect(figures[at].cns).toBe(
+            table[i].cns == null ? null : Math.min(cns, maxCns)
+          )
+        })
       }
     ))
 
