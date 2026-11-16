@@ -240,6 +240,19 @@ export function mapStyle(theme: MapTheme, tiles: string): StyleSpecification {
         filter: kind("no-dive"),
         paint: { "fill-pattern": hatchImage(theme) },
       },
+      // Off Cape Point the abalone bands are measured from the coast, so
+      // their outlines are drawn here, where the land hides the parts ashore.
+      {
+        id: "zone-outline-no-dive",
+        type: "line",
+        source: "fills",
+        filter: ["all", ["has", "outline"], kind("no-dive")],
+        paint: {
+          "line-color": p.noDive,
+          "line-width": 1.3,
+          "line-opacity": 0.75,
+        },
+      },
       // MPA edges are long pale dashes; a no-take or no-diving zone's edge
       // is solid, so the two read apart at a glance. Under the land too,
       // which ends each at the coast as the map draws it.
@@ -270,6 +283,75 @@ export function mapStyle(theme: MapTheme, tiles: string): StyleSpecification {
           "line-color": p.noDive,
           "line-width": 1.3,
           "line-opacity": 0.75,
+        },
+      },
+      // Round Robben Island the abalone area bans snorkelling, not diving:
+      // the same orange, in dashes, over the MPA's tint.
+      {
+        id: "no-snorkel-edge",
+        type: "line",
+        source: "edges",
+        filter: kind("no-snorkel"),
+        paint: {
+          "line-color": p.noDive,
+          "line-width": 1.3,
+          "line-opacity": 0.75,
+          "line-dasharray": [4, 3],
+        },
+      },
+      // The inner Cape Point band's ends, dotted from the shore out to the
+      // hatching, so the shore dives' area reads as closed.
+      {
+        id: "shore-only-end",
+        type: "line",
+        source: "edges",
+        filter: kind("shore-only-end"),
+        layout: { "line-cap": "round" },
+        paint: {
+          "line-color": p.noDive,
+          "line-width": 1.6,
+          "line-opacity": 0.75,
+          "line-dasharray": [0, 2.5],
+        },
+      },
+      // Off Cape Point the words follow lines that also run ashore, so they
+      // sit under the land too: "No diving" along the outer band's edges,
+      // "Shore dives only" half a mile out, in the gap the inner band leaves.
+      {
+        id: "band-labels",
+        type: "symbol",
+        source: "fills",
+        minzoom: 9,
+        filter: ["all", ["has", "outline"], kind("no-dive")],
+        layout: {
+          ...zoneLabel,
+          "text-field": "No diving",
+          "text-offset": [0, -0.8],
+        },
+        paint: {
+          "text-color": p.noDive,
+          "text-halo-color": p.sea,
+          "text-halo-width": 1.2,
+        },
+      },
+      {
+        id: "shore-labels",
+        type: "symbol",
+        source: "edges",
+        // The gap is too thin for words further out; closer, its line
+        // curves, so they repeat often and may bend.
+        minzoom: 11,
+        filter: kind("shore-only"),
+        layout: {
+          ...zoneLabel,
+          "text-field": ["get", "label"],
+          "symbol-spacing": 120,
+          "text-max-angle": 60,
+        },
+        paint: {
+          "text-color": p.noDive,
+          "text-halo-color": p.sea,
+          "text-halo-width": 1.2,
         },
       },
       {
@@ -408,6 +490,8 @@ export function mapStyle(theme: MapTheme, tiles: string): StyleSpecification {
             ["get", "kind"],
             "no-dive",
             "No diving",
+            "no-snorkel",
+            "No snorkelling",
             "no-take",
             ["concat", ["get", "label"], " · no-take"],
             ["concat", ["get", "label"], " MPA"],
@@ -418,7 +502,7 @@ export function mapStyle(theme: MapTheme, tiles: string): StyleSpecification {
           "text-color": [
             "match",
             ["get", "kind"],
-            "no-dive",
+            ["no-dive", "no-snorkel"],
             p.noDive,
             "mpa",
             p.seaText,

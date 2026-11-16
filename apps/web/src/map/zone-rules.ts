@@ -1,8 +1,8 @@
-// What each marine protected area's notices say about diving, fishing and
-// boats, as the map's zone rules list them, with the notice each rule comes
-// from. Read from the Government Gazettes on 16 November 2026.
+// What the notices say about diving, fishing and boats in each marine
+// protected area, the abalone regulations' areas included, with the notice
+// each rule comes from. Read from the Government Gazettes on 16 November 2026.
 
-export type Swatch = "no-take" | "no-dive" | "business"
+export type Swatch = "no-take" | "no-dive" | "no-snorkel" | "business"
 
 export type Rule = { text: string; source: string; swatch?: Swatch }
 
@@ -37,6 +37,15 @@ export const mpaRules: MpaRules[] = [
         text: "No anchoring in a no-take zone for more than 24 hours. No jet skis.",
         source: "GN R.695 of 2004, reg 11",
       },
+      {
+        swatch: "no-dive",
+        text: "From Venus Pool round Cape Point to Olifantsbospunt, 1.9 to 3.7 km out (1 to 2 nautical miles): no diving or snorkelling, and no boat may carry masks, fins or scuba gear. Bellows Rock and 300 m round it are left out, so it can be dived from a boat that comes in from further out.",
+        source: "R.62 of 2008, regs 3 and 4, amended by R.6795 of 2025",
+      },
+      {
+        text: "Closer in, dive or snorkel only from the shore, in the park's opening hours, with no dive gear on any boat. Divers and boats keep 30 m apart. Dive businesses can't get a permit for boat dives here.",
+        source: "R.62 of 2008, regs 3 and 4, amended by R.6795 of 2025",
+      },
     ],
   },
   {
@@ -64,6 +73,11 @@ export const mpaRules: MpaRules[] = [
         text: "Boats with divers down fly the alpha flag. No boat may carry scuba gear and a speargun together.",
         source: "R.794 of 2019, regs 4 and 9",
       },
+      {
+        swatch: "no-snorkel",
+        text: "Within 1.9 km of the island (1 nautical mile): no snorkelling or freediving, scuba only with a dive business that holds an abalone permit, and no dive gear on a boat without one.",
+        source: "R.62 of 2008, regs 3 and 4, amended by R.6795 of 2025",
+      },
     ],
   },
   {
@@ -78,6 +92,16 @@ export const mpaRules: MpaRules[] = [
         source: "Draft GN 709 of 2017",
       },
     ],
+  },
+  {
+    mpa: "Helderberg",
+    rules: [
+      {
+        text: "No fishing or collecting. No rules on diving.",
+        source: "Protected Areas Act, s48A; R.1429 of 2000",
+      },
+    ],
+    note: "The notice gives no coordinates, only the 500 m from the shore between the Eerste and Lourens river mouths, so the map measures it from OpenStreetMap's coastline.",
   },
 ]
 
@@ -115,6 +139,10 @@ export const zoneRules: Record<string, { name: string; rule: string }> = {
     name: "Robben Island marine protected area",
     rule: "Scuba dive only with an authorised dive business.",
   },
+  "robben-abalone": {
+    name: "Robben Island abalone area",
+    rule: "No snorkelling or freediving, and scuba only with a dive business that holds a permit.",
+  },
   "robben-restricted": {
     name: "Robben Island restricted zone",
     rule: "No fishing. No diving without a SANParks permit for research, photography or salvage.",
@@ -122,5 +150,17 @@ export const zoneRules: Record<string, { name: string; rule: string }> = {
   "bettys-bay": {
     name: "Betty's Bay marine protected area",
     rule: "No fishing except recreational shore-angling for linefish.",
+  },
+  helderberg: {
+    name: "Helderberg marine protected area",
+    rule: "No fishing or collecting.",
+  },
+  "cape-point-no-dive": {
+    name: "Cape Point abalone area",
+    rule: "No diving or snorkelling, and no dive gear on boats.",
+  },
+  "cape-point-shore-only": {
+    name: "Cape Point abalone area",
+    rule: "Dive from the shore only, in park hours. No dive gear on boats.",
   },
 }
