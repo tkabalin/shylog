@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { memo, useRef } from "react"
 import {
   CartesianGrid,
   ComposedChart,
@@ -41,8 +41,9 @@ const tickText = "fill-muted-foreground text-[11px]"
 // The SAC rate of each dive and the five-dive average, from the first rated
 // dive's month to the last's, in the year or across every year.
 // Plain <text> ticks, as Recharts' own measure each word in the DOM to
-// wrap it, and every measure restyles the page.
-export function SacTrend({
+// wrap it, and every measure restyles the page. Memoised, so the screen's
+// other state, such as the axis switch's thumb, doesn't redraw it.
+export const SacTrend = memo(function SacTrend({
   trend,
   year,
   byNumber,
@@ -226,4 +227,4 @@ export function SacTrend({
       />
     </>
   )
-}
+})

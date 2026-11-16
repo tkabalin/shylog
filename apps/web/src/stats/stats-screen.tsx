@@ -350,6 +350,9 @@ function AirConsumption({
 }) {
   const [open, setOpen] = useKept("distribution", false)
   const [axis, setAxis] = useKept<"date" | "number">("sac-axis", "number")
+  // The chart redraws a frame after the switch, once the thumb's slide has
+  // been painted: a deferred render could still run before that paint.
+  const chartAxis = useFrameLater(axis)
   // Back restores it open at once; a tap eases it open.
   const [still, setStill] = useState(true)
   const { average, trend } = stats.sac
@@ -419,7 +422,11 @@ function AirConsumption({
         {/* A painted frame later, as the sections below the records are:
             the chart was most of a big log's first frame. */}
         {painted ? (
-          <SacTrend trend={trend} year={year} byNumber={axis === "number"} />
+          <SacTrend
+            trend={trend}
+            year={year}
+            byNumber={chartAxis === "number"}
+          />
         ) : (
           <Skeleton aria-hidden className="h-42 w-full" />
         )}
