@@ -526,6 +526,9 @@ export function EntityDetail({
                     onChange={(event) => set("name", event.target.value)}
                     maxLength={nameLimit}
                     autoCapitalize="words"
+                    // A name keeps its spelling, as when it was added.
+                    autoCorrect="off"
+                    spellCheck={false}
                     aria-invalid={!!nameError || undefined}
                     aria-describedby={nameError ? "error-name" : undefined}
                   />

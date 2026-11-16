@@ -841,7 +841,9 @@ export function DiveForm({
                         else event.target.value = values.date
                       }}
                       onClick={openPicker}
-                      className="absolute inset-0 opacity-0"
+                      // Unseen, but 16px, so iOS never zooms in on focus
+                      // even without the app's zoom lock.
+                      className="absolute inset-0 text-base opacity-0"
                     />
                   </span>
                 )}
@@ -914,7 +916,8 @@ export function DiveForm({
                       onPointerUp={() => !values.time && set("time")("09:00")}
                       onChange={(event) => set("time")(event.target.value)}
                       onClick={openPicker}
-                      className="absolute inset-0 opacity-0"
+                      // As the date's, 16px for iOS's zoom.
+                      className="absolute inset-0 text-base opacity-0"
                       {...error("time")}
                     />
                   </span>

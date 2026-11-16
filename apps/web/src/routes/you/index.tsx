@@ -426,6 +426,8 @@ function DiverCard({
             onBlur={() => void save()}
             placeholder="Your name"
             autoCapitalize="words"
+            autoCorrect="off"
+            spellCheck={false}
             maxLength={120}
             disabled={!settings || !connected}
             className="text-ellipsis"

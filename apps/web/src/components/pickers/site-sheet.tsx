@@ -593,12 +593,14 @@ function NewSite({
             }
             placeholder="Required"
             maxLength={nameLimit}
-            enterKeyHint="next"
-            // Return moves on to the region, the next thing to type.
+            // Return moves on to the region, the next thing to type, or
+            // closes the keyboard while the region waits for a country.
+            enterKeyHint={draft.countryCode ? "next" : "done"}
             onKeyDown={(event) => {
               if (event.key !== "Enter") return
               event.preventDefault()
-              regionInput.current?.focus()
+              if (draft.countryCode) regionInput.current?.focus()
+              else event.currentTarget.blur()
             }}
             autoComplete="off"
             autoCorrect="off"

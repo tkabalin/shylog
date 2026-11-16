@@ -148,6 +148,9 @@ export function NewEntity({ log, kind }: { log: LogView; kind: DiveSetKind }) {
                 }}
                 maxLength={nameLimit}
                 autoCapitalize="words"
+                // A name keeps its spelling, not iOS's correction of it.
+                autoCorrect="off"
+                spellCheck={false}
                 aria-invalid={!!nameError || undefined}
                 aria-describedby={nameError ? "error-name" : undefined}
               />
