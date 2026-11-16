@@ -13,7 +13,7 @@ export default defineConfig({
         "packages/*/src/**",
         "apps/server/src/**",
         "apps/claude-desktop/src/**",
-        "apps/web/src/{data,format,log,dive}/**",
+        "apps/web/src/{data,format,log,dive,map}/**",
       ],
       // The extension's entry runs only in a child process, out of sight.
       exclude: ["**/*.test.{ts,tsx}", "apps/claude-desktop/src/index.ts"],

@@ -80,6 +80,19 @@ asset=$(grep -o '/assets/[^"]*\.js' <<<"$page" | head -n 1)
 get "$asset" >/dev/null
 # The service worker precaches the app, so it opens with no signal.
 get /sw.js | grep -q 'assets/'
+# It keeps the map's extract too, once the app has downloaded it.
+get /sw.js | grep -q 'map-extract'
+# The map's extract, under its hashed name, read a range at a time as the
+# map does: a 206 holding the file's first bytes, which spell its format.
+extract=$(docker exec "$container" ls apps/web/dist/assets |
+  grep -m 1 '^basemap-.*\.pmtiles$')
+docker exec "$container" node -e "
+  fetch('http://127.0.0.1:3000/assets/$extract', {
+    headers: { Range: 'bytes=0-6' },
+    signal: AbortSignal.timeout(15000),
+  }).then(async (res) => {
+    process.exit(res.status === 206 && (await res.text()) === 'PMTiles' ? 0 : 1)
+  }, () => process.exit(1))"
 # The build argument reached the bundle, so About doesn't say "dev".
 if [[ -n $revision ]]; then
   docker exec "$container" grep -rqF "${revision:0:7}" apps/web/dist/assets

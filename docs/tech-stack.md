@@ -19,17 +19,18 @@ Everything is TypeScript, in a pnpm workspace of four packages:
 
 ## Web app
 
-| Category       | Choice                                                        |
-| -------------- | ------------------------------------------------------------- |
-| UI framework   | React 19                                                      |
-| Bundler        | Vite 8, with vite-plugin-pwa 2                                |
-| Routing        | TanStack Router 1, file-based                                 |
-| Components     | shadcn/ui 4 on Base UI, preset `b1sAmWaNW`, with Tabler icons |
-| CSS            | Tailwind CSS 4, Geist and Geist Mono                          |
-| Charts         | Recharts 3, through shadcn's chart component                  |
-| Local storage  | Dexie 4 over IndexedDB                                        |
-| API client     | Hono's typed RPC client (`hono/client`)                       |
-| Motion, toasts | Motion 14, Sonner 2                                           |
+| Category       | Choice                                                          |
+| -------------- | --------------------------------------------------------------- |
+| UI framework   | React 19                                                        |
+| Bundler        | Vite 8, with vite-plugin-pwa 2                                  |
+| Routing        | TanStack Router 1, file-based                                   |
+| Components     | shadcn/ui 4 on Base UI, preset `b1sAmWaNW`, with Tabler icons   |
+| CSS            | Tailwind CSS 4, Geist and Geist Mono                            |
+| Charts         | Recharts 3, through shadcn's chart component                    |
+| Map            | MapLibre GL JS 6, with a Protomaps extract read through PMTiles |
+| Local storage  | Dexie 4 over IndexedDB                                          |
+| API client     | Hono's typed RPC client (`hono/client`)                         |
+| Motion, toasts | Motion 14, Sonner 2                                             |
 
 **A PWA rather than a native app.** Each instance serves one diver, installed from the Home Screen and updated whenever a change is merged. A PWA needs no app store review, runs the same code on an iPhone and a laptop, and with a service worker it opens and works with no signal, which is the case that matters at a dive site.
 
@@ -40,6 +41,8 @@ Everything is TypeScript, in a pnpm workspace of four packages:
 **shadcn/ui on Base UI.** shadcn's components are copied into the repo, so they are edited in place to fit the app: larger touch targets on phones, iOS-style sheets, and compact desktop sizes. Base UI provides the accessible primitives underneath (dialogs, menus, selects) that would otherwise be rebuilt by hand. The preset sets the cyan accent, which is also the chart colour, and the Geist typeface.
 
 **Recharts through shadcn's chart component.** The profile chart and the statistics share shadcn's container, tooltip and theming, so charts match the rest of the app in both themes without a second colour system. Recharts costs bundle size, which is why the chart code is in lazy chunks.
+
+**MapLibre with a PMTiles extract.** The dive site map needs vector tiles of one small region, styled to match the app, and nothing else. A Protomaps extract of OpenStreetMap covers the Cape Peninsula and False Bay in one 10 MB file, which the server hands out as a static file, a range at a time, so there is no tile server or map service to run or pay for. The app downloads the whole file ahead, and the service worker cuts each range from that copy, so the map works with no signal, as on a boat. MapLibre draws it, and with no font files named in the style it draws the labels in the app's own Geist. It is the heaviest library in the app, so it is a chunk of its own that runs only when the map opens, though the service worker downloads it with the rest of the app.
 
 **Dexie for the phone's copy.** The phone keeps a read-only mirror of the log, one table per collection, plus the queue of draft dives, each profile's samples and each certification card's images. Dexie is the standard typed wrapper over IndexedDB, and its transactions let a draft and the operations that upload it be written together, so neither can exist without the other. The mechanism is in [offline-sync.md](offline-sync.md).
 

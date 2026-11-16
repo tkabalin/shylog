@@ -13,6 +13,7 @@ import { loadDiveComputer } from "@/data/dive-computer"
 import { loadLog, startSync } from "@/data/log"
 import { protectOnFirstLaunch } from "@/data/storage"
 import { startPress } from "@/lib/press"
+import { keepExtract } from "@/map/extract"
 import { startWorker } from "@/pwa"
 import { routeTree } from "./routeTree.gen.ts"
 
@@ -42,6 +43,8 @@ void loadDiveComputer()
 // Asks the browser to keep the drafts and the log's copy (see storage.ts).
 void protectOnFirstLaunch()
 startWorker()
+// The map's extract, downloaded ahead so Explore works with no signal.
+keepExtract()
 // Rows tint on a held press, not on a touch that turns into a scroll.
 startPress()
 

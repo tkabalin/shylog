@@ -1,5 +1,7 @@
 # Normalize line endings for all text files
 * text=auto eol=lf
+# The map's extracts, never to be read as text
+*.pmtiles binary
 
 # Copied from Subsurface for the reference tests, so keep them out of the language stats
 packages/core/test/reference/subsurface.cpp linguist-vendored

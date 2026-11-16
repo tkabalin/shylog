@@ -25,7 +25,7 @@ The topic docs in `docs/` (and the README) are the public write-up for the owner
 ## Stack (all decided)
 
 - pnpm workspace: `apps/web`, `apps/server`, `packages/core`
-- Web: React, Vite, TanStack Router, vite-plugin-pwa, shadcn/ui with preset `b1sAmWaNW` (cyan accent and chart colour), Geist font, shadcn charts (Recharts), Dexie
+- Web: React, Vite, TanStack Router, vite-plugin-pwa, shadcn/ui with preset `b1sAmWaNW` (cyan accent and chart colour), Geist font, shadcn charts (Recharts), MapLibre GL JS with a PMTiles extract, Dexie
 - Server: Node 24 (LTS), TypeScript, Hono (typed RPC client used by `apps/web`), better-sqlite3 (not `node:sqlite`), @xmldom/xmldom, tsup for the build
 - Validation: Zod schemas in `packages/core`, shared by client and server
 - Deployment: Docker Compose on the home server, app plus a Tailscale sidecar, HTTPS via Tailscale Serve
