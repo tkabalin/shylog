@@ -420,7 +420,7 @@ export default function Basemap({
         <div
           role="group"
           aria-label="Zoom"
-          className="absolute right-2.5 bottom-13 flex flex-col overflow-hidden rounded-[10px] border bg-background shadow-xs"
+          className="absolute right-2.5 bottom-13 flex flex-col overflow-hidden rounded-[10px] border bg-background shadow-xs select-none"
         >
           <Button
             variant="ghost"
