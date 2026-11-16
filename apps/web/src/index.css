@@ -175,8 +175,8 @@
   * {
     @apply border-border outline-ring/50;
   }
-  /* The shell never scrolls or bounces; only <main> does, so the bottom nav
-     stays put while the content rubber-bands, as in a native app. */
+  /* The shell never scrolls or bounces; only <main> scrolls, so the bottom
+     nav stays put while the content moves under it. */
   html,
   body,
   #root {
