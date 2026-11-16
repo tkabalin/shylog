@@ -1,0 +1,141 @@
+<!doctype html>
+<!-- Source of github.png and linkedin.png. Serve the repo root over HTTP and screenshot
+     card.html at 1280x640 (card.html?h=670 for LinkedIn) with a device scale factor of 2. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: "Geist";
+        src: url(../../apps/web/node_modules/@fontsource-variable/geist/files/geist-latin-wght-normal.woff2)
+          format("woff2");
+        font-weight: 100 900;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      /* ?h=670 gives LinkedIn's 1.91:1; --dy keeps the phones centred in the taller card */
+      body {
+        width: 1280px;
+        height: var(--h, 640px);
+        overflow: hidden;
+        position: relative;
+        font-family: "Geist", sans-serif;
+        color: #18181b;
+        background: radial-gradient(
+          circle at 78% 55%,
+          #ecfeff 0,
+          #ecfeff 22%,
+          #ffffff 58%
+        );
+      }
+      .brand {
+        position: absolute;
+        left: 96px;
+        top: 0;
+        bottom: 0;
+        width: 520px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .brand img {
+        width: 168px;
+        height: 168px;
+        margin: 0 0 12px -14px;
+      }
+      h1 {
+        font-size: 104px;
+        font-weight: 650;
+        letter-spacing: -0.035em;
+        line-height: 1;
+        margin: 0 0 22px;
+      }
+      p {
+        font-size: 36px;
+        line-height: 1.25;
+        color: #52525b;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+      p b {
+        color: #0e7490;
+        font-weight: 600;
+      }
+      /* iPhone 15 Pro proportions scaled to a 240px screen (0.61 px/pt): 55pt display
+     corners, 54pt status bar with the island, 34pt home indicator area */
+      .phone {
+        position: absolute;
+        width: 240px;
+        padding: 8px;
+        border-radius: 42px;
+        background: #0a0a0a;
+        box-shadow: 0 30px 60px -20px rgba(8, 51, 68, 0.45);
+      }
+      .screen {
+        position: relative;
+        padding: 33px 0 21px;
+        background: #fff;
+        border-radius: 34px;
+        overflow: hidden;
+      }
+      .screen::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 7px;
+        width: 76px;
+        height: 22px;
+        margin-left: -38px;
+        border-radius: 11px;
+        background: #0a0a0a;
+      }
+      .screen::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 5px;
+        width: 82px;
+        height: 3px;
+        margin-left: -41px;
+        border-radius: 2px;
+        background: #0a0a0a;
+      }
+      /* Both shots carry a 3px grey edge strip at top and bottom; trim it */
+      .phone img {
+        display: block;
+        width: 100%;
+        clip-path: inset(2px 0);
+        margin: -2px 0;
+      }
+      .p1 {
+        left: 660px;
+        top: calc(28px + var(--dy, 0px));
+      }
+      /* Twice --dy keeps the right phone cut by the bottom edge as on GitHub, home indicator hidden */
+      .p2 {
+        left: 930px;
+        top: calc(86px + 2 * var(--dy, 0px));
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const h = Number(new URLSearchParams(location.search).get("h")) || 640
+      document.documentElement.style.setProperty("--h", h + "px")
+      document.documentElement.style.setProperty("--dy", (h - 640) / 2 + "px")
+    </script>
+    <div class="brand">
+      <img src="../../apps/web/public/icon.svg" alt="" />
+      <h1>Shylog</h1>
+      <p>A self-hosted dive log,<br />built for <b>your phone</b>.</p>
+    </div>
+    <div class="phone p1">
+      <div class="screen"><img src="../screenshots/log.png" alt="" /></div>
+    </div>
+    <div class="phone p2">
+      <div class="screen"><img src="../screenshots/dive.png" alt="" /></div>
+    </div>
+  </body>
+</html>
