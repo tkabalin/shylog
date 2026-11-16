@@ -188,7 +188,7 @@ export function FilterPills({
     <div
       role="group"
       aria-label="Filters"
-      className="-mx-4 flex [scrollbar-width:none] gap-1 overflow-x-auto px-3.5 py-1"
+      className="-mx-4 flex [scrollbar-width:none] gap-1 overflow-x-auto overscroll-x-contain px-3.5 py-1"
     >
       {/* First, so it shows without scrolling the row. It folds in and out
           rather than mounting, so the pills slide over instead of jumping;
