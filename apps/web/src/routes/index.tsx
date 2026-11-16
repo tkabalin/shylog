@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/input-group"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useLog, type LogView } from "@/data/log"
+import { isReturn } from "@/lib/keys"
 import {
   depthScale,
   durationScale,
@@ -218,7 +219,7 @@ function LogPage() {
                   }}
                   // The keyboard's Search key closes it; results are live.
                   onKeyDown={(event) => {
-                    if (event.key === "Enter") event.currentTarget.blur()
+                    if (isReturn(event)) event.currentTarget.blur()
                   }}
                 />
               </InputGroup>

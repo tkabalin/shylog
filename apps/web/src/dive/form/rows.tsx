@@ -24,6 +24,7 @@ import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Haptic } from "@/lib/haptic"
+import { isReturn } from "@/lib/keys"
 
 // The pieces of EditDiveHifi's form: a section heading over a card of rows,
 // each row a muted label on the left and its value, right-aligned, in the
@@ -169,7 +170,7 @@ export function RowInput({ className, ...props }: ComponentProps<"input">) {
       // closes the keyboard instead.
       enterKeyHint="done"
       onKeyDown={(event) => {
-        if (event.key === "Enter") {
+        if (isReturn(event)) {
           event.preventDefault()
           event.currentTarget.blur()
         }

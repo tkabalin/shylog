@@ -31,6 +31,7 @@ import { Segmented } from "@/dive/form/rows"
 import { useConnected, useOnline } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import type { NewEntity } from "@/dive/form/values"
+import { isReturn } from "@/lib/keys"
 
 import {
   countText,
@@ -597,7 +598,7 @@ function NewSite({
             // closes the keyboard while the region waits for a country.
             enterKeyHint={draft.countryCode ? "next" : "done"}
             onKeyDown={(event) => {
-              if (event.key !== "Enter") return
+              if (!isReturn(event)) return
               event.preventDefault()
               if (draft.countryCode) regionInput.current?.focus()
               else event.currentTarget.blur()
@@ -662,7 +663,7 @@ function NewSite({
               disabled={!draft.countryCode}
               enterKeyHint="done"
               onKeyDown={(event) => {
-                if (event.key !== "Enter") return
+                if (!isReturn(event)) return
                 event.preventDefault()
                 event.currentTarget.blur()
               }}
