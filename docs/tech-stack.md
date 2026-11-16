@@ -28,6 +28,7 @@ Everything is TypeScript, in a pnpm workspace of four packages:
 | CSS            | Tailwind CSS 4, Geist and Geist Mono                            |
 | Charts         | Recharts 3, through shadcn's chart component                    |
 | Map            | MapLibre GL JS 6, with a Protomaps extract read through PMTiles |
+| Dive site text | markdown-to-jsx 9                                               |
 | Local storage  | Dexie 4 over IndexedDB                                          |
 | API client     | Hono's typed RPC client (`hono/client`)                         |
 | Motion, toasts | Motion 14, Sonner 2                                             |
@@ -43,6 +44,8 @@ Everything is TypeScript, in a pnpm workspace of four packages:
 **Recharts through shadcn's chart component.** The profile chart and the statistics share shadcn's container, tooltip and theming, so charts match the rest of the app in both themes without a second colour system. Recharts costs bundle size, which is why the chart code is in lazy chunks.
 
 **MapLibre with a PMTiles extract.** The dive site map needs vector tiles of one small region, styled to match the app, and nothing else. A Protomaps extract of OpenStreetMap covers the Cape Peninsula and False Bay in one 10 MB file, which the server hands out as a static file, a range at a time, so there is no tile server or map service to run or pay for. The app downloads the whole file ahead, and the service worker cuts each range from that copy, so the map works with no signal, as on a boat. MapLibre draws it, and with no font files named in the style it draws the labels in the app's own Geist. It is the heaviest library in the app, so it is a chunk of its own that runs only when the map opens, though the service worker downloads it with the rest of the app.
+
+**markdown-to-jsx for the dive sites' pages.** Each site's sheet shows its Wikivoyage page, converted to Markdown once by the refresh script and committed. markdown-to-jsx draws it with the app's own headings, links and tables, with raw HTML switched off, in 31 KB compressed and no dependencies, where react-markdown with remark-gfm for the tables is 45 KB across 17 packages.
 
 **Dexie for the phone's copy.** The phone keeps a read-only mirror of the log, one table per collection, plus the queue of draft dives, each profile's samples and each certification card's images. Dexie is the standard typed wrapper over IndexedDB, and its transactions let a draft and the operations that upload it be written together, so neither can exist without the other. The mechanism is in [offline-sync.md](offline-sync.md).
 

@@ -22,7 +22,8 @@ export default defineConfig({
       injectRegister: false,
       manifest: false,
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+        // The dive sites' page text is the JSON.
+        globPatterns: ["**/*.{js,css,html,svg,png,woff2,json}"],
         // The first install takes the open page, so it works offline
         // without a reload; an update still waits, as nothing else is open.
         clientsClaim: true,
@@ -56,9 +57,10 @@ export default defineConfig({
   },
   // The browser tests give each of their dev servers a cache of its own.
   cacheDir: process.env.VITE_CACHE_DIR,
-  // Just above the map's chunk, MapLibre at about 1.1 MB, which only Explore
-  // loads, so a build that warns has a chunk bigger than it.
-  build: { chunkSizeWarningLimit: 1200 },
+  // Just above the map's chunk, about 1.4 MB with MapLibre, the dive sites
+  // and the Markdown renderer, which only Explore loads, so a build that
+  // warns has a bigger one. A precached file over 2 MiB fails the build.
+  build: { chunkSizeWarningLimit: 1450 },
   // The Hono server, which listens on 127.0.0.1 only. It writes the
   // manifest too, with the instance's name, so Vite mustn't answer it with
   // the app's HTML, and serves /mcp, which Claude Desktop on Windows reaches
