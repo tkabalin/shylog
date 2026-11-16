@@ -901,16 +901,13 @@ int main()
 			printf("%.17g %d %d %d %d\n", calculate_cns_dive(w, o2, samples),
 			       calculate_otu(w, o2, samples), fixed.duration, fixed.meandepth,
 			       totaltime(fixed.duration, samples));
-		} else if (command == "cns") {
-			int divenr;
-			in >> divenr;
+		} else if (command == "log") {
+			// Each dive's carried CNS and surface interval, in table order.
 			auto table = read_table(in);
-			printf("%d\n", calculate_cns(table, divenr));
-		} else if (command == "interval") {
-			long long when;
-			in >> when;
-			auto table = read_table(in);
-			printf("%lld\n", get_surface_interval(table, when));
+			for (size_t i = 0; i < table.size(); i++)
+				printf("%s%d %lld", i ? " " : "", calculate_cns(table, static_cast<int>(i)),
+				       get_surface_interval(table, table[i].when));
+			printf("\n");
 		} else if (command == "same") {
 			comparable a, b;
 			in >> a.maxdepth >> a.meandepth >> a.duration >> a.when;

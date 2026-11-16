@@ -1,10 +1,9 @@
 import {
-  cnsWithCarryOver,
   diveCns,
   diveEnd,
   diveOtu,
   diveOxygen,
-  surfaceInterval,
+  previousDiveFigures,
   type Sample,
   type WaterType,
 } from "@shylog/core"
@@ -44,8 +43,7 @@ export function sampleTemperatures(samples: readonly Sample[]) {
 }
 
 // Recalculates every dive's number, surface interval, average depth,
-// temperatures, CNS and OTU in one pass, inside the caller's write. Fine at
-// hundreds of dives; see docs/planning/PLAN.md before reaching for anything finer.
+// temperatures, CNS and OTU in one pass, inside the caller's write.
 export function recalculate(db: Db) {
   const rows = prepared<[], Row>(
     db,
@@ -113,10 +111,12 @@ export function recalculate(db: Db) {
        max_temperature = @maxTemperature, cns = @cns, otu = @otu
      WHERE id = @id`
   )
-  for (const dive of live) {
+  // Every dive's surface interval and carried CNS from one sort of the log.
+  const previous = previousDiveFigures(live)
+  for (const [i, dive] of live.entries()) {
     const interval = dive.override
       ? dive.surfaceInterval
-      : surfaceInterval(dive.startTime, live)
+      : previous[i].surfaceInterval
     const has = (field: string) => recorded.has(`${dive.id} ${field}`)
     // Both temperatures or neither, so a hand value is never paired with a
     // calculated one that breaks their order.
@@ -139,7 +139,7 @@ export function recalculate(db: Db) {
       maxTemperature: calculateTemperatures
         ? dive.temperatures.max
         : dive.maxTemperature,
-      cns: cnsWithCarryOver(dive, live),
+      cns: previous[i].cns,
       otu: dive.otu,
     })
   }
