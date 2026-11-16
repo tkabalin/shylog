@@ -15,6 +15,13 @@
   color: inherit;
 }
 
+/* Its words sit beside the zoom buttons, which a double click would
+   otherwise select along with them; the links still open. */
+.maplibregl-ctrl-attrib {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .maplibregl-ctrl-attrib-button,
 .maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button {
   background: none;
