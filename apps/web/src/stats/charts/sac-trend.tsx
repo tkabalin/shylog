@@ -2,10 +2,13 @@ import { memo, useRef } from "react"
 import {
   CartesianGrid,
   ComposedChart,
+  DefaultZIndexes,
   Line,
-  Scatter,
+  useXAxisScale,
+  useYAxisScale,
   XAxis,
   YAxis,
+  ZIndexLayer,
   type XAxisTickContentProps,
   type YAxisTickContentProps,
 } from "recharts"
@@ -154,64 +157,28 @@ export const SacTrend = memo(function SacTrend({
                 // Every given tick shows, so none is measured to see if it fits.
                 interval={0}
                 width={24}
+                // The hidden line's scale, for a lone dive's dot.
+                includeHidden
               />
-              <Scatter
-                dataKey="sac"
+              {/* Over the line and axes, where a Scatter draws. */}
+              <ZIndexLayer zIndex={DefaultZIndexes.scatter}>
+                <Dots data={data} width={width} />
+              </ZIndexLayer>
+              <Line
+                dataKey="average"
+                // One dive has no line, only its dot. Hidden rather than left
+                // out, as the y axis takes its scale from a series.
+                hide={trend.length < 2}
+                // Curved, as a rolling average stands for a gradual trend.
+                // Monotone passes through every average without overshooting,
+                // so it never draws a peak or dip the dives don't have.
+                type="monotone"
+                stroke="var(--color-average)"
+                strokeWidth={2}
+                dot={false}
+                activeDot={false}
                 isAnimationActive={false}
-                // The board's grey 5.5 px dots, faint so the average reads over them.
-                shape={(props: {
-                  cx?: number
-                  cy?: number
-                  payload?: { clamped: boolean; rate: number }
-                }) =>
-                  props.payload?.clamped ? (
-                    // Its rate beside it, on the side with room.
-                    <g>
-                      <path
-                        d={`M${props.cx! - 4} ${props.cy! + 3}L${props.cx} ${props.cy! - 2}L${props.cx! + 4} ${props.cy! + 3}`}
-                        fill="none"
-                        stroke="var(--color-sac)"
-                        strokeOpacity={0.6}
-                        strokeWidth={1.75}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                      <text
-                        x={props.cx! + (props.cx! > width - 40 ? -7 : 7)}
-                        y={props.cy}
-                        dy="0.3em"
-                        textAnchor={props.cx! > width - 40 ? "end" : "start"}
-                        className={tickText}
-                      >
-                        {rate(props.payload.rate)}
-                      </text>
-                    </g>
-                  ) : (
-                    <circle
-                      cx={props.cx}
-                      cy={props.cy}
-                      r={2.75}
-                      fill="var(--color-sac)"
-                      fillOpacity={0.4}
-                    />
-                  )
-                }
               />
-              {/* One dive has no line, only its dot. */}
-              {trend.length > 1 && (
-                <Line
-                  dataKey="average"
-                  // Curved, as a rolling average stands for a gradual trend.
-                  // Monotone passes through every average without overshooting,
-                  // so it never draws a peak or dip the dives don't have.
-                  type="monotone"
-                  stroke="var(--color-average)"
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={false}
-                  isAnimationActive={false}
-                />
-              )}
             </ComposedChart>
           </ChartContainer>
         )}
@@ -228,3 +195,59 @@ export const SacTrend = memo(function SacTrend({
     </>
   )
 })
+
+// Every dive's dot from the axes' scales in one component: a Recharts
+// Scatter made a component and a store selector per dot, most of a second
+// for each redraw of a big log. A circle each, so overlaps still darken.
+function Dots({
+  data,
+  width,
+}: {
+  data: { x: number; sac: number; clamped: boolean; rate: number }[]
+  width: number
+}) {
+  const x = useXAxisScale()
+  const y = useYAxisScale()
+  if (!x || !y) return null
+  return (
+    <g>
+      {data.map((point, i) => {
+        const cx = x(point.x)!
+        const cy = y(point.sac)!
+        return point.clamped ? (
+          // Its rate beside it, on the side with room.
+          <g key={i}>
+            <path
+              d={`M${cx - 4} ${cy + 3}L${cx} ${cy - 2}L${cx + 4} ${cy + 3}`}
+              fill="none"
+              stroke="var(--color-sac)"
+              strokeOpacity={0.6}
+              strokeWidth={1.75}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <text
+              x={cx + (cx > width - 40 ? -7 : 7)}
+              y={cy}
+              dy="0.3em"
+              textAnchor={cx > width - 40 ? "end" : "start"}
+              className={tickText}
+            >
+              {rate(point.rate)}
+            </text>
+          </g>
+        ) : (
+          // The board's grey 5.5 px dots, faint so the average reads over them.
+          <circle
+            key={i}
+            cx={cx}
+            cy={cy}
+            r={2.75}
+            fill="var(--color-sac)"
+            fillOpacity={0.4}
+          />
+        )
+      })}
+    </g>
+  )
+}
