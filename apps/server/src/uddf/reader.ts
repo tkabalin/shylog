@@ -27,7 +27,12 @@ import {
   type Sample,
   type WaterType,
 } from "@shylog/core"
-import { DOMParser, XMLSerializer, type Element } from "@xmldom/xmldom"
+import {
+  DOMParser,
+  XMLSerializer,
+  type Element,
+  type Node,
+} from "@xmldom/xmldom"
 
 import {
   downloadGeneratorName,
@@ -144,16 +149,72 @@ export interface OwnFields {
 }
 
 const ns = uddfNamespace
-const all = (parent: Element, name: string) =>
-  Array.from(parent.getElementsByTagNameNS(ns, name))
-const text = (parent: Element, name: string) =>
-  all(parent, name)[0]?.textContent?.trim() || null
-const number = (parent: Element, name: string) => {
-  const value = text(parent, name)
+// The elements under parent in document order, as getElementsByTagNameNS
+// gives them, until visit returns true. Its live lists walk the whole
+// subtree on every call, a dive's hundreds of samples included.
+function walk(parent: Node, visit: (element: Element) => boolean | void) {
+  let node = parent.firstChild
+  while (node) {
+    if (node.nodeType === node.ELEMENT_NODE && visit(node as Element)) return
+    if (node.firstChild) {
+      node = node.firstChild
+      continue
+    }
+    while (node !== parent && !node.nextSibling) node = node.parentNode!
+    node = node === parent ? null : node.nextSibling
+  }
+}
+// Several names' elements from one walk: a dive's figures come after its
+// samples, so even the first of each is a walk of the whole dive. Names
+// are UDDF's unless namespaces gives another.
+function gather<N extends string>(
+  parent: Element,
+  names: readonly N[],
+  namespaces: Partial<Record<N, string>> = {}
+) {
+  const found = new Map<string | null, Element[]>(
+    names.map((name) => [name, []])
+  )
+  walk(parent, (element) => {
+    const list = found.get(element.localName)
+    const name = element.localName as N
+    if (list && element.namespaceURI === (namespaces[name] ?? ns))
+      list.push(element)
+  })
+  return (name: N) => found.get(name)!
+}
+const all = (parent: Element, name: string, namespace = ns) =>
+  gather(parent, [name], { [name]: namespace })(name)
+const first = (parent: Element, name: string) => {
+  let found: Element | undefined
+  walk(parent, (element) => {
+    if (element.localName === name && element.namespaceURI === ns)
+      found = element
+    return !!found
+  })
+  return found
+}
+const valueOf = (element: Element | undefined) =>
+  element?.textContent?.trim() || null
+const numberOf = (element: Element | undefined) => {
+  const value = valueOf(element)
   return value == null ? null : Number(value)
 }
-const children = (parent: Element, name: string) =>
-  all(parent, name).filter((child) => child.parentNode === parent)
+const text = (parent: Element, name: string) => valueOf(first(parent, name))
+const number = (parent: Element, name: string) => numberOf(first(parent, name))
+const children = (parent: Element, name: string) => {
+  const found: Element[] = []
+  for (let node = parent.firstChild; node; node = node.nextSibling) {
+    const element = node as Element
+    if (
+      node.nodeType === node.ELEMENT_NODE &&
+      element.localName === name &&
+      element.namespaceURI === ns
+    )
+      found.push(element)
+  }
+  return found
+}
 // Paragraphs of text, as Shylog and Subsurface write notes.
 const paragraphs = (notes: Element[]) =>
   notes
@@ -274,25 +335,59 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
   // Subsurface's own .xml log also has <dive>s, which would be refused for
   // a missing figure rather than as the wrong kind of file.
   if (root.localName !== "uddf") throw new UnreadableUddf("Not a UDDF file")
+  const inFile = gather(root, [
+    "divecomputer",
+    "mix",
+    "site",
+    "buddy",
+    "tank",
+    "generator",
+    "dive",
+  ])
   const computers = new Map(
-    all(root, "divecomputer").map((computer) => [
+    inFile("divecomputer").map((computer) => [
       computer.getAttribute("id"),
       text(computer, "model"),
     ])
   )
+  // What each dive is read for, gathered before any is read, as finding
+  // the file's links needs every dive's.
+  const dives = inFile("dive").map((dive) => ({
+    dive,
+    inDive: gather(
+      dive,
+      [
+        "link",
+        "switchmix",
+        "tankdata",
+        "waypoint",
+        "informationbeforedive",
+        "informationafterdive",
+        "shylog",
+        "datetime",
+        "diveduration",
+        "greatestdepth",
+        "averagedepth",
+        "lowesttemperature",
+      ],
+      { shylog: shylogNamespace }
+    ),
+  }))
   // A dive names its computer by a link. Subsurface's export from one
   // computer leaves every link out; in a file that links any (Shylog's), a
   // dive without one was logged by hand.
-  const linked = (dive: Element) =>
-    all(dive, "link")
+  const linked = (links: Element[]) =>
+    links
       .map((link) => computers.get(link.getAttribute("ref")))
       .find((model) => model !== undefined)
-  const anyLinked = all(root, "dive").some((dive) => linked(dive) !== undefined)
-  const computerOf = (dive: Element) =>
-    linked(dive) ??
+  const anyLinked = dives.some(
+    ({ inDive }) => linked(inDive("link")) !== undefined
+  )
+  const computerOf = (links: Element[]) =>
+    linked(links) ??
     (!anyLinked && computers.size === 1 ? [...computers.values()][0] : null)
   const mixElements = new Map(
-    all(root, "mix").map((mix) => [mix.getAttribute("id"), mix])
+    inFile("mix").map((mix) => [mix.getAttribute("id"), mix])
   )
   const mixes = new Map(
     [...mixElements].map(([id, mix]) => {
@@ -309,8 +404,8 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
   )
 
   const sites = new Map(
-    all(root, "site").map((site) => {
-      const geography = all(site, "geography")[0]
+    inFile("site").map((site) => {
+      const geography = first(site, "geography")
       const name = entityName(text(site, "name"))
       return [
         site.getAttribute("id"),
@@ -332,7 +427,7 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
   )
   // The owner's name is under <owner>, so <buddy> holds only the others.
   const buddies = new Map(
-    all(root, "buddy").map((buddy) => [
+    inFile("buddy").map((buddy) => [
       buddy.getAttribute("id"),
       entityName(
         [text(buddy, "firstname"), text(buddy, "lastname")]
@@ -343,20 +438,20 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
   )
   // A cylinder type in the owner's equipment, linked from tank data.
   const materials = new Map(
-    all(root, "tank").map((tank) => [
+    inFile("tank").map((tank) => [
       tank.getAttribute("id"),
       choiceOf(cylinderMaterials, text(tank, "tankmaterial")),
     ])
   )
   const serializer = new XMLSerializer()
-  const generator = all(root, "generator")[0]
+  const generator = inFile("generator")[0]
   const fromShylog = !!generator && text(generator, "name") === generatorName
   const fromDownload =
     !!generator && text(generator, "name") === downloadGeneratorName
 
   // The preview names dives by their ids, so two alike would be confused.
   const refs = new Set<string>()
-  return all(root, "dive").map((dive, i) => {
+  return dives.map(({ dive, inDive }, i) => {
     const position = i + 1
     // Subsurface and Shylog both write one; the position stands in if not.
     const ref = dive.getAttribute("id") || `dive ${position}`
@@ -366,21 +461,22 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
       )
     }
     refs.add(ref)
-    const tank = all(dive, "tankdata")[0]
+    const tank = inDive("tankdata")[0]
+    const tankLinks = tank ? all(tank, "link") : []
     // The gas the dive starts on is the switchmix at 0 s; without one, the
     // tank's links name its mix, alongside the tank, in either order.
-    const switchmixes = all(dive, "switchmix")
+    const switchmixes = inDive("switchmix")
     const switchmix = switchmixes.find(
       (gas) => number(gas.parentNode as Element, "divetime") === 0
     )
-    const mix = [switchmix, ...(tank ? all(tank, "link") : [])]
+    const mix = [switchmix, ...tankLinks]
       .map((link) => link && mixes.get(link.getAttribute("ref")))
       .find((found) => found !== undefined)
     const unsupportedGas =
       mix !== undefined && (mix.he > 0 || mix.o2 < airOxygen)
     // A trimix's oxygen alone would read as nitrox, so it is air too.
     const o2 = unsupportedGas ? undefined : mix?.o2
-    const waypoints = all(dive, "waypoint")
+    const waypoints = inDive("waypoint")
     const written = waypoints.map((waypoint) => {
       const time = number(waypoint, "divetime")
       const depth = number(waypoint, "depth")
@@ -406,8 +502,8 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
     // Subsurface writes the weight under informationbeforedive, and 0 when
     // none was logged; UDDF and Shylog put it under informationafterdive,
     // where 0 kg is a weight someone entered.
-    const before = all(dive, "informationbeforedive")[0]
-    const after = all(dive, "informationafterdive")[0]
+    const before = inDive("informationbeforedive")[0]
+    const after = inDive("informationafterdive")[0]
     const weight =
       (after && number(after, "leadquantity")) ??
       ((before && number(before, "leadquantity")) || null)
@@ -415,7 +511,7 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
     // Subsurface writes an empty paragraph when there are none.
     const notes = after ? paragraphs(children(after, "notes")) : null
     const standard = {
-      cylinderMaterial: (tank ? all(tank, "link") : [])
+      cylinderMaterial: tankLinks
         .map((found) => materials.get(found.getAttribute("ref")))
         .find(Boolean),
       entry: choiceOf(entries, before && text(before, "platform")),
@@ -434,16 +530,16 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
           )) ??
         undefined,
     }
-    const own = readOwn(dive, before)
+    const own = readOwn(inDive("shylog")[0], before)
     // The figures must pass the rules a dive saved in the app does, so what
     // an import stores always fits the database. Start, duration and depth
     // must be there; the start is site time with no offset.
     const figures = {
-      startTime: text(dive, "datetime"),
-      duration: number(dive, "diveduration"),
-      maxDepth: number(dive, "greatestdepth"),
-      averageDepth: number(dive, "averagedepth"),
-      minTemperature: celsius(number(dive, "lowesttemperature")),
+      startTime: valueOf(inDive("datetime")[0]),
+      duration: numberOf(inDive("diveduration")[0]),
+      maxDepth: numberOf(inDive("greatestdepth")[0]),
+      averageDepth: numberOf(inDive("averagedepth")[0]),
+      minTemperature: celsius(numberOf(inDive("lowesttemperature")[0])),
       cylinderVolume: volume ? cubicMetresToMillilitres(volume) : null,
       startPressure: tank ? bar(number(tank, "tankpressurebegin")) : null,
       endPressure: tank ? bar(number(tank, "tankpressureend")) : null,
@@ -478,7 +574,7 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
     })
     // The mixes it links to, by a tank or a gas switch, go with it.
     const linkedMixes = new Set(
-      [...all(dive, "link"), ...all(dive, "switchmix")].map((found) =>
+      [...inDive("link"), ...switchmixes].map((found) =>
         found.getAttribute("ref")
       )
     )
@@ -504,7 +600,7 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
       unsupportedGas,
       hasTankData: tank !== undefined,
       hasGas: switchmixes.length > 0,
-      computerModel: computerOf(dive),
+      computerModel: computerOf(inDive("link")),
       samples,
       // A download's deco alarms are all stops. Shylog's export names its
       // stops' seconds, read from there: a stop added to a dive imported
@@ -572,19 +668,16 @@ function stopAlarms(counts: ReadonlyMap<number, number> | undefined) {
 }
 
 // Shylog's <shylog> block, which only its own export writes.
-function readOwn(dive: Element, before: Element | undefined) {
-  const block = Array.from(
-    dive.getElementsByTagNameNS(shylogNamespace, "shylog")
-  )[0]
+function readOwn(block: Element | undefined, before: Element | undefined) {
   if (!block) return null
   const every = (name: string) =>
-    Array.from(block.getElementsByTagNameNS(shylogNamespace, name)).map(
+    all(block, name, shylogNamespace).map(
       (found) => found.textContent?.trim() ?? ""
     )
   const one = (name: string) => every(name)[0] || null
   // An override is the interval UDDF already holds; otherwise it was
   // worked out, and is worked out again.
-  const interval = before && all(before, "surfaceintervalbeforedive")[0]
+  const interval = before && first(before, "surfaceintervalbeforedive")
   const passed = interval && number(interval, "passedtime")
   const centre = entityName(one("diveCentreName"))
   const regionName = entityName(one("diveCentreRegion"))
@@ -627,7 +720,7 @@ function readOwn(dive: Element, before: Element | undefined) {
       ignored: one("ignored") === "true" || undefined,
       surfaceInterval:
         one("surfaceIntervalOverride") === "true" && interval
-          ? all(interval, "infinity").length
+          ? first(interval, "infinity")
             ? ("none" as const)
             : (passed ?? undefined)
           : undefined,
