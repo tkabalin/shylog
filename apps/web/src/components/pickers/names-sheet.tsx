@@ -10,6 +10,7 @@ import {
 import { cn } from "cn"
 
 import { Drawer } from "@/components/ui/drawer"
+import { isReturn } from "@/lib/keys"
 
 import { diveCount, Highlighted, matchName, nameLimit, tidyName } from "./match"
 import { BarButton, FullSheetContent, SheetBar } from "./sheet"
@@ -189,7 +190,7 @@ export function NamesSheet({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key !== "Enter") return
+                if (!isReturn(event)) return
                 event.preventDefault()
                 // The exact name first, then the typed name as a new
                 // person, so "Ann" never quietly picks "Anna".

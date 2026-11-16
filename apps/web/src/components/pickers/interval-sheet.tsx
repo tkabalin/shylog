@@ -6,6 +6,7 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer"
 import { Input } from "@/components/ui/input"
 import { interval } from "@/format/figures"
 import { useDesk } from "@/hooks/use-desk"
+import { isReturn } from "@/lib/keys"
 
 import { BarButton, SheetBar } from "./sheet"
 
@@ -335,7 +336,7 @@ function NumberBox({
           onChange(Math.min(max, n))
         }}
         onKeyDown={(event) => {
-          if (event.key === "Enter") onEnter()
+          if (isReturn(event)) onEnter()
         }}
         // The form's 16px values, not a desktop input's 14px.
         className="w-20 text-right text-base font-medium text-foreground tabular-nums desk:text-base"

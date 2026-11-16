@@ -49,6 +49,7 @@ import { savePacking } from "@/data/packing"
 import { useConnected } from "@/data/sync-status"
 import { ErrorLine } from "@/dive/form/rows"
 import { useDesk } from "@/hooks/use-desk"
+import { isReturn } from "@/lib/keys"
 import { useHoldUpdate } from "@/update"
 
 import { PageBar } from "./bar"
@@ -1139,7 +1140,7 @@ const EditRow = memo(function EditRow({
         onChange={(event) => actions?.rename(id, event.target.value)}
         // Return puts the keyboard away, as Done on the keyboard says.
         onKeyDown={(event) => {
-          if (event.key === "Enter") event.currentTarget.blur()
+          if (isReturn(event)) event.currentTarget.blur()
         }}
         aria-label={heading ? "Section name" : "Item name"}
         aria-invalid={invalid || undefined}

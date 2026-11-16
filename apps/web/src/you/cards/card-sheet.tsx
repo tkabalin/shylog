@@ -30,6 +30,7 @@ import type { Card } from "@/data/db"
 import { Segmented } from "@/dive/form/rows"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
+import { isReturn } from "@/lib/keys"
 import { useHoldUpdate } from "@/update"
 import { CardThumb, PageImage, type PageSource } from "@/you/cards/card-thumb"
 import { CropSheet } from "@/you/cards/crop-sheet"
@@ -374,7 +375,7 @@ export function CardSheet({
                         // closes the keyboard after the last.
                         enterKeyHint={i < pages.length - 1 ? "next" : "done"}
                         onKeyDown={(event) => {
-                          if (event.key !== "Enter") return
+                          if (!isReturn(event)) return
                           event.preventDefault()
                           const next = event.currentTarget
                             .closest("label")
@@ -405,7 +406,7 @@ export function CardSheet({
                   spellCheck={false}
                   enterKeyHint="done"
                   onKeyDown={(event) => {
-                    if (event.key !== "Enter") return
+                    if (!isReturn(event)) return
                     event.preventDefault()
                     event.currentTarget.blur()
                   }}

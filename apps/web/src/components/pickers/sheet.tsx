@@ -23,6 +23,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group"
 import { useDesk } from "@/hooks/use-desk"
+import { isReturn } from "@/lib/keys"
 
 // How much of the screen the on-screen keyboard covers. iOS doesn't shrink
 // a full-height sheet for it, so its lists pad their ends by this much to
@@ -223,7 +224,7 @@ export function SheetSearch({
         enterKeyHint="search"
         maxLength={maxLength}
         onKeyDown={(event) => {
-          if (event.key !== "Enter") return
+          if (!isReturn(event)) return
           event.preventDefault()
           event.currentTarget.blur()
         }}
