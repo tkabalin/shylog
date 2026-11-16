@@ -368,7 +368,20 @@ export function CardSheet({
                         aria-label={`Name for screenshot ${i + 1}`}
                         maxLength={120}
                         autoCapitalize="words"
-                        enterKeyHint="next"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        // Return moves on to the next page's name, and
+                        // closes the keyboard after the last.
+                        enterKeyHint={i < pages.length - 1 ? "next" : "done"}
+                        onKeyDown={(event) => {
+                          if (event.key !== "Enter") return
+                          event.preventDefault()
+                          const next = event.currentTarget
+                            .closest("label")
+                            ?.nextElementSibling?.querySelector("input")
+                          if (next) next.focus()
+                          else event.currentTarget.blur()
+                        }}
                         className="h-11.5 min-w-0 flex-1 bg-transparent text-base font-medium outline-none placeholder:font-normal placeholder:text-muted-foreground/60"
                       />
                     </label>
@@ -388,6 +401,8 @@ export function CardSheet({
                   placeholder="e.g. Rescue Diver"
                   maxLength={120}
                   autoCapitalize="words"
+                  autoCorrect="off"
+                  spellCheck={false}
                   enterKeyHint="done"
                   onKeyDown={(event) => {
                     if (event.key !== "Enter") return

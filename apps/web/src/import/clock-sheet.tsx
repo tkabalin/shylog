@@ -128,7 +128,9 @@ export function ClockSheet({
             value={date}
             disabled={!!wanted}
             onChange={(event) => onDateChange(event.target.value)}
-            className="absolute inset-0 size-full cursor-pointer opacity-0"
+            // Unseen, but 16px, so iOS never zooms in on focus even without
+            // the app's zoom lock.
+            className="absolute inset-0 size-full cursor-pointer text-base opacity-0"
           >
             {days.map((option) => (
               <option key={option.value} value={option.value}>

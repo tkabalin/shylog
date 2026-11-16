@@ -1,3 +1,4 @@
+import { act } from "react"
 import { describe, expect, it, vi } from "vitest"
 
 import {
@@ -35,7 +36,7 @@ const unknown: SiteRow = {
   last: "2026-08-01T08:00:00",
 }
 
-function show(rows = sites, create = true) {
+function show(rows = sites, create = true, country: "ZA" | null = "ZA") {
   const onCreate = vi.fn()
   const onChange = vi.fn()
   render(
@@ -44,7 +45,7 @@ function show(rows = sites, create = true) {
       onOpenChange={vi.fn()}
       sites={rows}
       regions={regions}
-      defaultCountry="ZA"
+      defaultCountry={country}
       value={null}
       onChange={onChange}
       onCreate={onCreate}
@@ -56,7 +57,32 @@ function show(rows = sites, create = true) {
 
 const field = (id: string) => document.querySelector<HTMLInputElement>(`#${id}`)
 
+const pressReturn = (input: HTMLInputElement) =>
+  act(() => {
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true })
+    )
+  })
+
 describe("a new site", () => {
+  it("moves Return from the name on to the region", () => {
+    show()
+    const name = field("site-name")!
+    expect(name.getAttribute("enterkeyhint")).toBe("next")
+    name.focus()
+    pressReturn(name)
+    expect(document.activeElement).toBe(field("site-region"))
+  })
+
+  it("closes the keyboard on Return while the region waits for a country", () => {
+    show(sites, true, null)
+    const name = field("site-name")!
+    expect(name.getAttribute("enterkeyhint")).toBe("done")
+    name.focus()
+    pressReturn(name)
+    expect(document.activeElement).toBe(document.body)
+  })
+
   it("flags Long Beach in South Africa, not the one in Vietnam, with Use it", () => {
     const { onChange, onCreate } = show()
     type(field("site-name"), "long beach ")
