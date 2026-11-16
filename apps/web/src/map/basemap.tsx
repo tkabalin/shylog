@@ -3,10 +3,13 @@ import "./map.css"
 
 import {
   addProtocol,
+  GeoJSONSource,
   Map as MapLibre,
   prewarm,
   setWorkerUrl,
   type LngLatLike,
+  type MapGeoJSONFeature,
+  type PointLike,
 } from "maplibre-gl"
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url"
 import { Protocol } from "pmtiles"
@@ -19,7 +22,22 @@ import { useDesk } from "@/hooks/use-desk"
 import { rootFlag } from "@/lib/root-flag"
 
 import { extractUrl } from "./extract"
-import { drawHatch, hatchImage, mapStyle, type MapTheme } from "./style"
+import { siteById } from "./sites"
+import {
+  areaSource,
+  clusterLayers,
+  drawHatch,
+  drawPin,
+  hatchImage,
+  mapStyle,
+  nameLayers,
+  pickedData,
+  pickedSource,
+  pinImage,
+  pinImages,
+  pinLayers,
+  type MapTheme,
+} from "./style"
 
 // MapLibre looks for its worker beside its own file, which bundling moves,
 // so Vite builds the worker and hands over its URL. Started now and kept,
@@ -57,11 +75,34 @@ function useMapTheme() {
 
 export type MapState = "drawn" | "failed"
 
+// A site's name shown as picked, or not, by feature state.
+function mark(map: MapLibre, id: string | undefined, picked: boolean) {
+  const site = id ? siteById.get(id) : undefined
+  if (!site || !map.getSource(areaSource(site.area))) return
+  map.setFeatureState(
+    { source: areaSource(site.area), id: site.id },
+    { picked }
+  )
+}
+
+// A finger's reach around a tap, in pixels, so wet hands still hit a pin.
+const reach = 18
+const pointOf = (feature: MapGeoJSONFeature) =>
+  (feature.geometry as { coordinates: [number, number] }).coordinates
+// Close enough to tell a site's neighbours apart, opening one.
+const siteZoom = 12.5
+
 export default function Basemap({
   onState,
+  site,
+  onPick,
 }: {
   onState?: (state: MapState) => void
+  // The picked site's id, from the address, and a tap's choice.
+  site?: string
+  onPick?: (id: string | undefined) => void
 }) {
+  const picked = site ? siteById.get(site) : undefined
   const container = useRef<HTMLDivElement>(null)
   const map = useRef<MapLibre | null>(null)
   const theme = useMapTheme()
@@ -69,29 +110,43 @@ export default function Basemap({
   const [shown, setShown] = useState(false)
   const desk = useDesk()
   const report = useEffectEvent((state: MapState) => onState?.(state))
+  const pick = useEffectEvent((id: string | undefined) => onPick?.(id))
+  // The site the map shows as picked, and the one whose pin it has marked,
+  // which waits for the picked layer to have the site.
+  const shownPick = useRef(picked?.id)
+  const marked = useRef<string>(undefined)
+  // A theme change redraws the style with the pick as it stands.
+  const styleFor = useEffectEvent((look: MapTheme) =>
+    mapStyle(look, tiles, picked)
+  )
 
   useEffect(() => {
     if (!container.current) return
     const created = new MapLibre({
       container: container.current,
-      style: mapStyle(theme, tiles),
+      style: mapStyle(theme, tiles, picked),
       attributionControl: { compact: true },
       // Fitted to the coast's dive sites, not the metro. Upright, as on a
       // phone, by height from Robben Island to Cape Point, False Bay's east
       // shore a swipe away; a wider screen takes in the coast to Betty's Bay.
-      ...(camera ?? {
-        bounds:
-          container.current.clientHeight > container.current.clientWidth
-            ? [
-                [18.3, -34.38],
-                [18.6, -33.765],
-              ]
-            : [
-                [18.3, -34.43],
-                [18.93, -33.78],
-              ],
-        fitBoundsOptions: { padding: 8 },
-      }),
+      // A site in the address opens there instead.
+      ...(camera ??
+        (picked && {
+          center: [picked.lon, picked.lat] as LngLatLike,
+          zoom: siteZoom,
+        }) ?? {
+          bounds:
+            container.current.clientHeight > container.current.clientWidth
+              ? [
+                  [18.3, -34.38],
+                  [18.6, -33.765],
+                ]
+              : [
+                  [18.3, -34.43],
+                  [18.93, -33.78],
+                ],
+          fitBoundsOptions: { padding: 8 },
+        }),
       maxBounds: [
         [17.9, -34.75],
         [19.3, -33.3],
@@ -101,6 +156,9 @@ export default function Basemap({
       // Past a source's last zoom its tiles are stretched, never split, so
       // the overview's few tiles go on covering the coast as the map moves.
       zoomLevelsToOverscale: undefined,
+      // Labels swap at once: a count fading out beside a bubble that changed
+      // in a frame (circles don't fade) hung on as a stray second number.
+      fadeDuration: 0,
       // A flick glides on at the finger's speed, as in the phone's own
       // maps, where MapLibre's own drops to half and glides a fifth as far.
       dragPan: { linearity: 0.6, deceleration: 1000, maxSpeed: 1500 },
@@ -142,7 +200,84 @@ export default function Basemap({
             pixelRatio: 2,
           })
         }
+        for (const { shape, picked: isPicked } of pinImages) {
+          const name = pinImage(look, shape, isPicked)
+          if (created.hasImage(name)) continue
+          created.addImage(name, drawPin(look, shape, isPicked), {
+            pixelRatio: 2,
+          })
+        }
       }
+      // A new style starts with no feature state, and with the pick as it
+      // stood in its picked layer, which a pick before the first had no
+      // layer to wait for.
+      marked.current = shownPick.current
+      mark(created, marked.current, true)
+    })
+    // A tap opens the nearest pin within a finger's reach, else the site
+    // whose name it lands on, or zooms into a cluster; one on open water puts
+    // the site down, unless a second tap follows it to zoom in.
+    let putDown: number | undefined
+    created.on("click", async ({ point }) => {
+      const second = putDown !== undefined
+      clearTimeout(putDown)
+      putDown = undefined
+      const box: [PointLike, PointLike] = [
+        [point.x - reach, point.y - reach],
+        [point.x + reach, point.y + reach],
+      ]
+      const hits = created.queryRenderedFeatures(box, {
+        layers: [...pinLayers, ...clusterLayers, "picked"],
+      })
+      const distance = (hit: MapGeoJSONFeature) => {
+        const at = created.project(pointOf(hit))
+        return Math.hypot(at.x - point.x, at.y - point.y)
+      }
+      const pins = hits.filter((hit) => !hit.properties.cluster)
+      if (pins.length) {
+        pins.sort((a, b) => distance(a) - distance(b))
+        return pick(pins[0].properties.id as string)
+      }
+      // A name, placed clear of every pin, is a bigger target than its dot.
+      const [name] = created.queryRenderedFeatures(point, {
+        layers: nameLayers,
+      })
+      if (name) return pick(name.properties.id as string)
+      const cluster = hits.find((hit) => hit.properties.cluster)
+      if (!cluster) {
+        if (second) return
+        putDown = window.setTimeout(() => {
+          putDown = undefined
+          pick(undefined)
+        }, 300)
+        return
+      }
+      const source = created.getSource<GeoJSONSource>(cluster.source)
+      const zoom = await source?.getClusterExpansionZoom(
+        cluster.properties.cluster_id as number
+      )
+      // Left unanswered if Explore closed meanwhile, as the map is gone.
+      if (zoom === undefined || map.current !== created) return
+      created.easeTo({
+        center: pointOf(cluster),
+        zoom: zoom + 0.3,
+      })
+    })
+    // One target for every layer, so moving from a name onto its pin
+    // doesn't fire the name's leave after the pin's enter.
+    const pointable = [...pinLayers, ...nameLayers, ...clusterLayers, "picked"]
+    created.on("mouseenter", pointable, () => {
+      created.getCanvas().style.cursor = "pointer"
+    })
+    created.on("mouseleave", pointable, () => {
+      created.getCanvas().style.cursor = ""
+    })
+    // Busy while the camera moves, which tests wait out before a tap.
+    created.on("movestart", () => {
+      container.current?.parentElement?.setAttribute("aria-busy", "true")
+    })
+    created.on("moveend", () => {
+      container.current?.parentElement?.setAttribute("aria-busy", "false")
     })
     // Hidden until the land has drawn: the zones close across it, so
     // without it they show shapes ashore. With no signal the extract can't
@@ -174,6 +309,7 @@ export default function Basemap({
     map.current = created
     return () => {
       resize.disconnect()
+      clearTimeout(putDown)
       created.remove()
       map.current = null
     }
@@ -184,8 +320,34 @@ export default function Basemap({
   useEffect(() => {
     if (!map.current || drawn.current === theme) return
     drawn.current = theme
-    map.current.setStyle(mapStyle(theme, tiles))
+    map.current.setStyle(styleFor(theme))
   }, [theme])
+
+  // The picked pin moves to its own layer, and the map to it.
+  useEffect(() => {
+    const current = map.current
+    if (!current || shownPick.current === picked?.id) return
+    shownPick.current = picked?.id
+    // The old pin's mark goes and the new one's comes once the picked layer
+    // has the site, so its name never shows twice or not at all.
+    void current
+      .getSource<GeoJSONSource>(pickedSource)
+      ?.setData(pickedData(picked))
+      .then(() => {
+        if (map.current !== current || shownPick.current !== picked?.id) {
+          return
+        }
+        mark(current, marked.current, false)
+        marked.current = picked?.id
+        mark(current, picked?.id, true)
+      })
+      .catch(() => {})
+    if (!picked) return
+    current.easeTo({
+      center: [picked.lon, picked.lat],
+      zoom: Math.max(current.getZoom(), siteZoom),
+    })
+  }, [picked])
 
   // Hidden on a wrapper: React rewriting the container's classes would drop
   // the ones MapLibre adds to it.
