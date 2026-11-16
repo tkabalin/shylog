@@ -239,9 +239,11 @@ function DeskBar({
             <span
               role="link"
               aria-disabled
+              // Inert to the pointer, as a disabled button is, so a press
+              // doesn't lift it to the pressed dim, brighter than this.
               className={cn(
                 buttonVariants({ variant: "outline" }),
-                "opacity-50"
+                "pointer-events-none opacity-50"
               )}
             >
               <IconPencil data-icon="inline-start" />
