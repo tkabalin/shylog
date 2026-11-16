@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "icons": "node scripts/apple-touch-icon.ts",
     "map:basemap": "node scripts/map/basemap.ts",
+    "map:zones": "node scripts/map/zones.ts",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run --root ../.. --project web",
     "test:e2e": "playwright test -c ../../playwright.config.ts"

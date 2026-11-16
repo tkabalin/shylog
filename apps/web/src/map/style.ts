@@ -1,6 +1,11 @@
-import type { ExpressionSpecification, StyleSpecification } from "maplibre-gl"
+import type {
+  ExpressionSpecification,
+  GeoJSONSourceSpecification,
+  StyleSpecification,
+} from "maplibre-gl"
 
 import { sea } from "./sea"
+import zones from "./zones.json"
 
 export type MapTheme = "light" | "dark"
 
@@ -41,6 +46,13 @@ const palette = {
     roadHighway: oklch(0.83, 0.008, 214),
     placeText: oklch(0.56, 0.021, 213.5),
     seaText: oklch(0.58, 0.06, 225),
+    mpaEdge: oklch(0.6, 0.05, 222, 0.6),
+    noTakeEdge: oklch(0.42, 0.02, 222, 0.7),
+    zoneText: oklch(0.42, 0.02, 222),
+    // Orange is the app's warning colour: 700 on light, 400 on dark.
+    noDive: oklch(0.553, 0.195, 38.402),
+    business: oklch(0.553, 0.195, 38.402, 0.08),
+    hatch: oklch(0.553, 0.195, 38.402, 0.26),
   },
   dark: {
     sea: oklch(...sea.dark),
@@ -52,8 +64,36 @@ const palette = {
     roadHighway: oklch(0.42, 0.01, 220),
     placeText: oklch(0.723, 0.014, 214.4),
     seaText: oklch(0.6, 0.05, 222),
+    mpaEdge: oklch(0.6, 0.05, 222, 0.5),
+    noTakeEdge: oklch(0.8, 0.02, 214, 0.6),
+    zoneText: oklch(0.8, 0.012, 214),
+    noDive: oklch(0.75, 0.183, 55.934),
+    // A darker orange than the others, so the tinted sea stays darker
+    // than the land and Robben Island still stands out of it.
+    business: oklch(0.47, 0.157, 37.304, 0.12),
+    hatch: oklch(0.75, 0.183, 55.934, 0.24),
   },
 } satisfies Record<MapTheme, Record<string, string>>
+
+// The diagonal hatching over the no-diving zones, one image per theme,
+// drawn at twice its size so it stays crisp.
+export const hatchImage = (theme: MapTheme) => `hatch-${theme}`
+export function drawHatch(theme: MapTheme) {
+  const size = 24
+  const canvas = document.createElement("canvas")
+  canvas.width = canvas.height = size
+  const context = canvas.getContext("2d")!
+  context.strokeStyle = palette[theme].hatch
+  context.lineWidth = 2.4
+  // Three strokes, so the stripes run on across the tile's edges.
+  for (const offset of [-size, 0, size]) {
+    context.beginPath()
+    context.moveTo(offset, size)
+    context.lineTo(offset + size, 0)
+    context.stroke()
+  }
+  return context.getImageData(0, 0, size, size)
+}
 
 // Coastal names at every zoom, in priority order: OpenStreetMap's places
 // zoomed out are mostly inland suburbs, which don't help a diver.
@@ -109,16 +149,32 @@ const englishName: ExpressionSpecification = [
   ["get", "name"],
 ]
 
+type GeoJSONData = GeoJSONSourceSpecification["data"]
+
+const kind = (value: string): ExpressionSpecification => [
+  "==",
+  ["get", "kind"],
+  value,
+]
+
+// Small caps-like words along a zone's line, as on a chart.
+const zoneLabel = {
+  "symbol-placement": "line",
+  "text-font": font.medium,
+  "text-size": 10.5,
+  "text-transform": "uppercase",
+  "text-letter-spacing": 0.12,
+  "symbol-spacing": 320,
+  "text-keep-upright": true,
+} as const
+
 // In a new tab, so the installed app on a desktop isn't replaced.
 const attribution =
   '<a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a> © <a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
 
 // A quiet basemap from Protomaps' OpenStreetMap layers, kept to the few
-// that help find a dive site.
-export function basemapStyle(
-  theme: MapTheme,
-  tiles: string
-): StyleSpecification {
+// that help find a dive site, with the marine protected areas over it.
+export function mapStyle(theme: MapTheme, tiles: string): StyleSpecification {
   const p = palette[theme]
   return {
     version: 8,
@@ -130,6 +186,8 @@ export function basemapStyle(
       // cover the whole coast, so they are in hand wherever the map moves
       // and stand in for the land while a closer tile is still loading.
       overview: { type: "vector", url: tiles, maxzoom: 9, attribution },
+      fills: { type: "geojson", data: zones.fills as GeoJSONData },
+      edges: { type: "geojson", data: zones.edges as GeoJSONData },
       coast: {
         type: "geojson",
         data: {
@@ -148,8 +206,8 @@ export function basemapStyle(
     },
     layers: [
       { id: "sea", type: "background", paint: { "background-color": p.sea } },
-      // Under the land, and the ocean in the water layer then covers its
-      // rough coast, so it shows only while a closer tile is loading.
+      // Under the zones, so they show over it only until the closer tile
+      // arrives, and its ocean then covers the overview's rough coast.
       {
         id: "overview",
         type: "fill",
@@ -158,18 +216,80 @@ export function basemapStyle(
         paint: { "fill-color": p.land },
       },
       {
+        id: "ocean",
+        type: "fill",
+        source: "osm",
+        "source-layer": "water",
+        filter: kind("ocean"),
+        paint: { "fill-color": p.sea },
+      },
+      // Shading follows the diving rules alone: a faint tint where you dive
+      // only with a business, hatching where you can't dive at all. The
+      // zones close across the land, which is drawn over them.
+      {
+        id: "zone-business",
+        type: "fill",
+        source: "fills",
+        filter: ["has", "business"],
+        paint: { "fill-color": p.business },
+      },
+      {
+        id: "zone-no-dive",
+        type: "fill",
+        source: "fills",
+        filter: kind("no-dive"),
+        paint: { "fill-pattern": hatchImage(theme) },
+      },
+      // MPA edges are long pale dashes; a no-take or no-diving zone's edge
+      // is solid, so the two read apart at a glance. Under the land too,
+      // which ends each at the coast as the map draws it.
+      {
+        id: "mpa-edge",
+        type: "line",
+        source: "edges",
+        filter: kind("mpa"),
+        paint: {
+          "line-color": p.mpaEdge,
+          "line-width": 1.2,
+          "line-dasharray": [3, 3],
+        },
+      },
+      {
+        id: "no-take-edge",
+        type: "line",
+        source: "edges",
+        filter: kind("no-take"),
+        paint: { "line-color": p.noTakeEdge, "line-width": 1.4 },
+      },
+      {
+        id: "no-dive-edge",
+        type: "line",
+        source: "edges",
+        filter: kind("no-dive"),
+        paint: {
+          "line-color": p.noDive,
+          "line-width": 1.3,
+          "line-opacity": 0.75,
+        },
+      },
+      {
         id: "earth",
         type: "fill",
         source: "osm",
         "source-layer": "earth",
         paint: { "fill-color": p.land },
       },
+      // Lakes and dams; the ocean has its own layer, under the zones.
       {
         id: "water",
         type: "fill",
         source: "osm",
         "source-layer": "water",
-        filter: ["==", ["geometry-type"], "Polygon"],
+        filter: [
+          "all",
+          ["==", ["geometry-type"], "Polygon"],
+          ["!=", ["get", "kind"], "ocean"],
+        ],
         paint: { "fill-color": p.sea },
       },
       {
@@ -271,6 +391,41 @@ export function basemapStyle(
             15,
             4.5,
           ],
+        },
+      },
+      // Each zone says what it means along its edge, so the map reads with
+      // no key: "No diving", "Boulders · no-take", "Table Mountain MPA".
+      {
+        id: "zone-labels",
+        type: "symbol",
+        source: "edges",
+        minzoom: 9,
+        filter: ["all", ["has", "label"], ["!", kind("shore-only")]],
+        layout: {
+          ...zoneLabel,
+          "text-field": [
+            "match",
+            ["get", "kind"],
+            "no-dive",
+            "No diving",
+            "no-take",
+            ["concat", ["get", "label"], " · no-take"],
+            ["concat", ["get", "label"], " MPA"],
+          ],
+          "text-offset": [0, -0.8],
+        },
+        paint: {
+          "text-color": [
+            "match",
+            ["get", "kind"],
+            "no-dive",
+            p.noDive,
+            "mpa",
+            p.seaText,
+            p.zoneText,
+          ],
+          "text-halo-color": p.sea,
+          "text-halo-width": 1.2,
         },
       },
       {
