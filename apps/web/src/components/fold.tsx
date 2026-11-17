@@ -6,8 +6,11 @@ import { reduced } from "@/lib/motion"
 // its room is open, so it is never seen clipped; on the drawer's curve, as
 // --ease-in-out lurched. A list's row, seen often, folds within 300 ms.
 const timings = {
-  block: { roomMs: 250, fadeMs: 150 },
-  row: { roomMs: 200, fadeMs: 100 },
+  block: { roomMs: 250, fadeMs: 150, ease: "--ease-drawer", together: false },
+  row: { roomMs: 200, fadeMs: 100, ease: "--ease-drawer", together: false },
+  // A pill in a row (the Log's Clear) fades as the pills after it slide,
+  // as it never shows clipped.
+  pill: { roomMs: 200, fadeMs: 200, ease: "--ease-out", together: true },
 }
 
 // Read once each: the tokens never change while the app runs.
@@ -21,12 +24,18 @@ export function curve(name: string) {
   return value
 }
 
-type Moving = { element: HTMLElement; shift: number; top: number }
+type Moving = {
+  element: HTMLElement
+  x: number
+  y: number
+  left: number
+  top: number
+}
 type Box = { element: HTMLElement; shift: number; radius: number }
 
-// What the fold's room moves, up to the page's scroller, and the cards it
-// sits in, whose bottom edge moves with it: what is on screen, measured
-// once with the fold and once without.
+// What the fold's room moves up to the page's scroller (across, in a row of
+// pills), and the cards it sits in, whose bottom edge moves with it: what
+// is on screen, measured once with the fold and once without.
 function measure(fold: HTMLElement) {
   const after: HTMLElement[] = []
   const before: HTMLElement[] = []
@@ -70,14 +79,15 @@ function measure(fold: HTMLElement) {
   const moving: Moving[] = []
   const add = (list: HTMLElement[], from: DOMRect[], to: DOMRect[]) =>
     list.forEach((element, i) => {
-      const { top, bottom } = from[i]!
-      const shift = top - to[i]!.top
+      const { top, bottom, left } = from[i]!
+      const x = left - to[i]!.left
+      const y = top - to[i]!.top
       if (
-        shift &&
-        Math.min(top, top - shift) < innerHeight &&
-        Math.max(bottom, bottom - shift) > 0
+        (x || y) &&
+        Math.min(top, top - y) < innerHeight &&
+        Math.max(bottom, bottom - y) > 0
       )
-        moving.push({ element, shift, top })
+        moving.push({ element, x, y, left, top })
     })
   add(after, shown, hidden)
   if (pulled.length) add(before, rects(before), pulled)
@@ -94,13 +104,18 @@ function measure(fold: HTMLElement) {
 // Where a slide or fade stopped part-way left things, read as it stops, so
 // one starting in the same commit (a toggle back mid-way) goes on from
 // there rather than jumping. Forgotten once the commit's task is done.
-type Stopped = { top?: number; bottom?: number; opacity?: number }
+type Stopped = {
+  left?: number
+  top?: number
+  bottom?: number
+  opacity?: number
+}
 const stopped = new Map<Element, Stopped>()
-function remember(element: Element, at: Stopped) {
+export function remember(element: Element, at: Stopped) {
   if (!stopped.size) queueMicrotask(() => stopped.clear())
   stopped.set(element, { ...stopped.get(element), ...at })
 }
-const stoppedAt = (element: Element) => stopped.get(element)
+export const stoppedAt = (element: Element) => stopped.get(element)
 
 // A card's sliding edge, shared by every slide on it at once: the latest
 // drives it from where it is, and its copy goes as the last one ends.
@@ -187,15 +202,25 @@ export function slideAfter(
   const { moving, boxes } = measure(fold)
   const played: Animation[] = []
   const undo: ((keep: boolean) => void)[] = []
-  for (const { element, shift, top } of moving) {
-    const was = stoppedAt(element)?.top
-    const from = was != null ? was - top : opening ? -shift : 0
-    const to = opening ? 0 : -shift
+  for (const { element, x, y, left, top } of moving) {
+    const was = stoppedAt(element)
+    const [fromX, fromY] =
+      was?.left != null && was.top != null
+        ? [was.left - left, was.top - top]
+        : opening
+          ? [-x, -y]
+          : [0, 0]
+    const [toX, toY] = opening ? [0, 0] : [-x, -y]
     played.push(
       // Added to any other slide, as rows revealed together each move
       // what follows them by their own room.
       element.animate(
-        { transform: [`translateY(${from}px)`, `translateY(${to}px)`] },
+        {
+          transform: [
+            `translate(${fromX}px, ${fromY}px)`,
+            `translate(${toX}px, ${toY}px)`,
+          ],
+        },
         { ...timing, fill: "both", composite: "add" }
       )
     )
@@ -214,8 +239,10 @@ export function slideAfter(
     if (ended) return
     ended = true
     if (keep)
-      for (const { element } of moving)
-        remember(element, { top: element.getBoundingClientRect().top })
+      for (const { element } of moving) {
+        const { left, top } = element.getBoundingClientRect()
+        remember(element, { left, top })
+      }
     played.forEach((one) => one.cancel())
     undo.forEach((one) => one(keep))
     undo.length = 0
@@ -231,8 +258,8 @@ export function slideAfter(
 
 // Something that comes or goes in a column (You's alerts, a dive's offline
 // note) unfolds into place and folds away, so the page never jumps under
-// the thumb; reduced motion only fades. `appear` is false when drawn with
-// the page. Its room snaps open or shut once while what follows slides.
+// the thumb; reduced motion only fades. `appear` is false when drawn open
+// with the page. Its room snaps open or shut once while what follows slides.
 export function Fold({
   open,
   appear,
@@ -251,6 +278,7 @@ export function Fold({
 }) {
   const box = useRef<HTMLDivElement>(null)
   const drawn = useRef(open)
+  const mounted = useRef(false)
   const folded = useRef(onFolded)
   useLayoutEffect(() => {
     folded.current = onFolded
@@ -259,6 +287,8 @@ export function Fold({
   useLayoutEffect(() => {
     const el = box.current
     if (!el) return
+    const first = !mounted.current
+    mounted.current = true
     if (open) el.style.display = ""
     // Drawn closed, it takes no room from the start.
     else if (!drawn.current) {
@@ -266,13 +296,29 @@ export function Fold({
       return
     }
     drawn.current = true
-    if (open && !appear) return
-    const { roomMs, fadeMs } = timings[timing]
+    if (open && first && !appear) return
+    const { roomMs, fadeMs, ease, together } = timings[timing]
     const out = curve("--ease-out")
     const still = reduced()
-    const room = { duration: roomMs, easing: curve("--ease-drawer") }
+    const room = { duration: roomMs, easing: curve(ease) }
+    // Folded away, it reads as opaque, but was last seen at nothing.
     const keep = () =>
-      remember(el, { opacity: Number(getComputedStyle(el).opacity) })
+      remember(el, {
+        opacity:
+          el.style.display === "none"
+            ? 0
+            : Number(getComputedStyle(el).opacity),
+      })
+    if (together) {
+      // From where a toggle back mid-way left it.
+      const from = stoppedAt(el)?.opacity ?? (open ? 0 : 1)
+      const fade = el.animate(
+        { opacity: [from, open ? 1 : 0] },
+        { duration: fadeMs, easing: out, fill: "forwards" }
+      )
+      const slid = still ? null : slideAfter(el, open, room)
+      return settle(fade, slid, fadeMs)
+    }
     if (open) {
       // Opens at once under the room's slide, then fades in.
       const fade = el.animate(
@@ -305,23 +351,32 @@ export function Fold({
     const slid = still
       ? null
       : slideAfter(el, false, { ...room, delay: fading })
-    const done = () => {
-      clearTimeout(late)
-      el.style.display = "none"
-      fade.cancel()
-      slid?.end()
-      folded.current?.()
-    }
-    fade.onfinish = done
-    // A hidden page draws no frames, so its fade never ends.
-    const late = setTimeout(() => {
-      if (document.hidden) done()
-    }, total + 100)
-    return () => {
-      clearTimeout(late)
-      keep()
-      fade.cancel()
-      slid?.stop()
+    return settle(fade, slid, total)
+
+    // Opened, it is left as it is; closed, it takes no room once still.
+    function settle(
+      fade: Animation,
+      slid: ReturnType<typeof slideAfter> | null,
+      total: number
+    ) {
+      const done = () => {
+        clearTimeout(late)
+        if (!open) el!.style.display = "none"
+        fade.cancel()
+        slid?.end()
+        if (!open) folded.current?.()
+      }
+      fade.onfinish = done
+      // A hidden page draws no frames, so its fade never ends.
+      const late = setTimeout(() => {
+        if (document.hidden) done()
+      }, total + 100)
+      return () => {
+        clearTimeout(late)
+        keep()
+        fade.cancel()
+        slid?.stop()
+      }
     }
   }, [open, appear, timing])
 
