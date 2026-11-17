@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { normaliseName, type DiveRole, type DiveSetKind } from "@shylog/core"
 import {
   IconArrowBarToDown,
@@ -73,6 +73,21 @@ function usualRole(picked: Picked): DiveRole {
   return pros > picked.size / 2 ? "professional" : "buddy"
 }
 
+// The open commit draws the newest months, about two screens of dives, so
+// the sheet starts sliding at once; the rest follow once it's up, a batch
+// a task, so a tap or a scroll is never held up by the whole log at once.
+const firstDives = 24
+const batchDives = 40
+
+// Whole months, newest first, until they hold `dives` dives.
+function firstMonths(groups: ReturnType<typeof grouped>, dives: number) {
+  let count = 0
+  let end = 0
+  while (end < groups.length && count < dives)
+    count += groups[end++].days.reduce((sum, day) => sum + day.length, 0)
+  return end
+}
+
 const sameTicks = (a: Picked, b: Picked) =>
   a.size === b.size && [...a].every(([id, role]) => b.get(id) === role)
 
@@ -119,6 +134,8 @@ export function DivePicker({
   const [error, setError] = useState<string>()
   const [confirming, setConfirming] = useState(false)
   const [confirmError, setConfirmError] = useState<string>()
+  const [settled, setSettled] = useState(false)
+  const [drawn, setDrawn] = useState(firstDives)
   // Fresh ticks each time it opens.
   const [wasOpen, setWasOpen] = useState(open)
   if (open !== wasOpen) {
@@ -151,6 +168,13 @@ export function DivePicker({
       ),
     [dives, key, log]
   )
+  const drawnMonths = firstMonths(groups, drawn)
+  const whole = drawnMonths === groups.length
+  useEffect(() => {
+    if (!settled || whole) return
+    const next = setTimeout(() => setDrawn((was) => was + batchDives))
+    return () => clearTimeout(next)
+  }, [settled, whole, drawn])
 
   // The same handler across ticks, so only the rows that change re-render;
   // a new role makes a new one, which is rare.
@@ -169,14 +193,6 @@ export function DivePicker({
     },
     [kind, role]
   )
-
-  // The trip or dive centre a dive is in now, when it's another one.
-  const elsewhere = (dive: Dive) => {
-    if (kind === "person") return undefined
-    const other = kind === "trip" ? dive.tripId : dive.diveCentreId
-    if (!other || other === entityId) return undefined
-    return (kind === "trip" ? log.trips : log.diveCentres).get(other)?.name
-  }
 
   const confirm = async (deleteIfEmpty: boolean) => {
     setBusy(true)
@@ -208,7 +224,6 @@ export function DivePicker({
   const title = count
     ? `${countText(count)} ${count === 1 ? "dive" : "dives"}`
     : "Choose dives"
-  const KindIcon = kindLabels[kind].icon
 
   return (
     <>
@@ -219,6 +234,10 @@ export function DivePicker({
           // Escape doesn't throw them away, only Cancel does.
           if (next || busy || changed) return
           onOpenChange(false)
+        }}
+        onOpenChangeComplete={(isOpen) => {
+          setSettled(isOpen)
+          if (!isOpen) setDrawn(firstDives)
         }}
       >
         <FullSheetContent>
@@ -275,59 +294,20 @@ export function DivePicker({
                 {key ? "No dives at a site by that name." : "No dives yet."}
               </p>
             )}
-            {groups.map((group) => (
-              <section
+            {groups.slice(0, drawnMonths).map((group) => (
+              <Month
                 key={group.key}
-                aria-label={group.label}
-                className="flex flex-col"
-              >
-                <h3 className="mx-1 mt-3 mb-0.5 text-[15px] font-semibold tracking-[-0.01em]">
-                  {group.label}
-                </h3>
-                {group.days.map((day) => {
-                  const ids = day.map((dive) => dive.id)
-                  const all = ids.every((id) => ticked.has(id))
-                  const label = `${cardDay(day[0].startTime)} ${months[Number(day[0].startTime.slice(5, 7)) - 1]}`
-                  return (
-                    <div key={ids[0]} className="mb-2 flex flex-col">
-                      <div className="flex h-8 items-center justify-between px-1">
-                        <span className="text-[13px] font-semibold text-muted-foreground">
-                          {label}
-                        </span>
-                        {/* A one-dive day's row does the same, so only
-                            days with more get the link. */}
-                        {day.length > 1 && (
-                          <button
-                            type="button"
-                            aria-label={`${all ? "Deselect" : "Select"} all on ${label}`}
-                            onClick={() => tick(ids, !all)}
-                            className={headingButton}
-                          >
-                            {all ? "Deselect all" : "Select all"}
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex flex-col divide-y overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
-                        {day.map((dive) => (
-                          <PickerRow
-                            key={dive.id}
-                            dive={dive}
-                            site={log.sites.get(dive.siteId)?.name}
-                            on={ticked.has(dive.id)}
-                            other={elsewhere(dive)}
-                            icon={KindIcon}
-                            onTick={tick}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })}
-              </section>
+                group={group}
+                ticked={ticked}
+                log={log}
+                kind={kind}
+                entityId={entityId}
+                onTick={tick}
+              />
             ))}
             {/* Something the list can't show: a dive logged offline is
                 missing until it syncs. */}
-            {drafts && (
+            {drafts && whole && (
               <p className="px-1 pt-2 text-[13px] text-muted-foreground">
                 Dives waiting to sync aren’t listed.
               </p>
@@ -402,6 +382,85 @@ export function DivePicker({
     </>
   )
 }
+
+// The trip or dive centre a dive is in now, when it's another one.
+function elsewhere(
+  log: LogView,
+  kind: DiveSetKind,
+  entityId: string | null,
+  dive: Dive
+) {
+  if (kind === "person") return undefined
+  const other = kind === "trip" ? dive.tripId : dive.diveCentreId
+  if (!other || other === entityId) return undefined
+  return (kind === "trip" ? log.trips : log.diveCentres).get(other)?.name
+}
+
+// A month of days, drawn again only for a tick or a sync, not as each
+// later batch of months is added under it.
+const Month = memo(function Month({
+  group,
+  ticked,
+  log,
+  kind,
+  entityId,
+  onTick,
+}: {
+  group: ReturnType<typeof grouped>[number]
+  ticked: Picked
+  log: LogView
+  kind: DiveSetKind
+  entityId: string | null
+  onTick: (ids: string[], on: boolean) => void
+}) {
+  const KindIcon = kindLabels[kind].icon
+  return (
+    <section aria-label={group.label} className="flex flex-col">
+      <h3 className="mx-1 mt-3 mb-0.5 text-[15px] font-semibold tracking-[-0.01em]">
+        {group.label}
+      </h3>
+      {group.days.map((day) => {
+        const ids = day.map((dive) => dive.id)
+        const all = ids.every((id) => ticked.has(id))
+        const label = `${cardDay(day[0].startTime)} ${months[Number(day[0].startTime.slice(5, 7)) - 1]}`
+        return (
+          <div key={ids[0]} className="mb-2 flex flex-col">
+            <div className="flex h-8 items-center justify-between px-1">
+              <span className="text-[13px] font-semibold text-muted-foreground">
+                {label}
+              </span>
+              {/* A one-dive day's row does the same, so only days with
+                  more get the link. */}
+              {day.length > 1 && (
+                <button
+                  type="button"
+                  aria-label={`${all ? "Deselect" : "Select"} all on ${label}`}
+                  onClick={() => onTick(ids, !all)}
+                  className={headingButton}
+                >
+                  {all ? "Deselect all" : "Select all"}
+                </button>
+              )}
+            </div>
+            <div className="flex flex-col divide-y overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
+              {day.map((dive) => (
+                <PickerRow
+                  key={dive.id}
+                  dive={dive}
+                  site={log.sites.get(dive.siteId)?.name}
+                  on={ticked.has(dive.id)}
+                  other={elsewhere(log, kind, entityId, dive)}
+                  icon={KindIcon}
+                  onTick={onTick}
+                />
+              ))}
+            </div>
+          </div>
+        )
+      })}
+    </section>
+  )
+})
 
 // One dive, re-rendered only when its own tick or other trip changes, so
 // a tap on a long log updates a row, not the whole list.
