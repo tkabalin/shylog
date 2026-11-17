@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useState, type ReactNode } from "react"
 import { useRouterState } from "@tanstack/react-router"
 
+import { diveCount } from "@/components/pickers/match"
 import { FormShown, Reveal } from "@/dive/form/rows"
 
 // The accent mixed into the card, as the boards tint their bars: 100 is the
@@ -45,8 +46,8 @@ export const fullMonths =
     " "
   )
 
-export const dives = (count: number) =>
-  `${count.toLocaleString("en-GB")} ${count === 1 ? "dive" : "dives"}`
+// "1,234 dives", worded as the pickers word it.
+export const dives = diveCount
 
 // True from the frame after the first paint: what isn't seen at first can
 // render then, so the tap that opened the screen shows it sooner.

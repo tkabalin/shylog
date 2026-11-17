@@ -5,6 +5,7 @@ import type { EntityKind } from "@shylog/core"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { countText } from "@/components/pickers/match"
 import { Card } from "@/components/ui/card"
 import { listRow, pressable } from "@/you/parts"
 
@@ -84,7 +85,7 @@ export function Ranked({
           />
         </span>
         <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium tabular-nums">
-          {row.count.toLocaleString("en-GB")}
+          {countText(row.count)}
           <IconChevronRight
             aria-hidden
             className="size-3.5 stroke-[2.25] text-muted-foreground"

@@ -2,6 +2,7 @@ import { IconChevronRight } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { countText } from "@/components/pickers/match"
 import type { LogView } from "@/data/log"
 import { listRow, pressable } from "@/you/parts"
 
@@ -30,7 +31,7 @@ export function PatternsCard({
       >
         <span className="flex-1">All patterns</span>
         <span className="text-sm text-muted-foreground tabular-nums">
-          {all.length.toLocaleString("en-GB")}
+          {countText(all.length)}
         </span>
         <IconChevronRight
           aria-hidden
