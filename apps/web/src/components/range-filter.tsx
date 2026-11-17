@@ -25,10 +25,11 @@ export function usePreloadRangeSheet() {
   }, [])
 }
 
-// "18–30 m", or "≥ 18 m" when the top handle is at the end of the scale.
+// "18–30 m", or "18+ m" when the top handle is at the end of the scale, as
+// the handle there reads "40+ m".
 export function rangeLabel(range: Range, scale: Scale, unit: string) {
   return range.max >= scale.max
-    ? `≥ ${range.min} ${unit}`
+    ? `${range.min}+ ${unit}`
     : `${range.min}–${range.max} ${unit}`
 }
 

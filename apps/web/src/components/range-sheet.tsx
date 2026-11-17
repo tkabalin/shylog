@@ -59,7 +59,7 @@ export default function RangeSheet({
     if (open) setDraft(value ?? full)
   }
   const bound = (n: number) =>
-    n >= scale.max ? `> ${scale.max} ${unit}` : `${n} ${unit}`
+    n >= scale.max ? `${scale.max}+ ${unit}` : `${n} ${unit}`
   // Two labels need about a fifth of the track before they touch.
   const close = draft.max - draft.min < (scale.max - scale.min) / 5
 
@@ -93,7 +93,7 @@ export default function RangeSheet({
             getAriaLabel={(index) => `${index ? "Maximum" : "Minimum"} ${noun}`}
             getAriaValueText={(_, n) =>
               n >= scale.max
-                ? `More than ${scale.max} ${unitName}`
+                ? `${scale.max} ${unitName} or more`
                 : `${n} ${unitName}`
             }
           />

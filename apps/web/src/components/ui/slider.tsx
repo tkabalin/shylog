@@ -75,7 +75,7 @@ function Slider({
                 className={cn(
                   "pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 text-sm font-medium whitespace-nowrap text-foreground tabular-nums",
                   // Shylog: at an end it lines up with the thumb's outer
-                  // edge, so "> 40 m" stays inside the track's padding.
+                  // edge, so "40+ m" stays inside the track's padding.
                   _values[index] <= min && "left-0 translate-x-0",
                   _values[index] >= max && "right-0 left-auto translate-x-0"
                 )}

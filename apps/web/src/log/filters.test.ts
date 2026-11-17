@@ -48,7 +48,7 @@ describe("depth range", () => {
     expect(inDepthRange(30.5, range)).toBe(false)
   })
 
-  it("keeps everything deeper when the top handle is at > 40 m", () => {
+  it("keeps everything deeper when the top handle is at 40+ m", () => {
     expect(inDepthRange(56.2, { min: 30, max: 40 })).toBe(true)
     expect(inDepthRange(56.2, { min: 30, max: 39 })).toBe(false)
   })
@@ -66,7 +66,7 @@ describe("duration range", () => {
     expect(inDurationRange(2730, range)).toBe(false)
   })
 
-  it("keeps everything longer when the top handle is at > 90 min", () => {
+  it("keeps everything longer when the top handle is at 90+ min", () => {
     expect(inDurationRange(5520, { min: 60, max: 90 })).toBe(true)
     expect(inDurationRange(5520, { min: 60, max: 85 })).toBe(false)
   })
