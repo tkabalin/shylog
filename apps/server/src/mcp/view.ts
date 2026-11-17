@@ -101,6 +101,17 @@ export function compact<T extends Record<string, unknown>>(value: T) {
   ) as Partial<T>
 }
 
+// A search's page of results, and which of them it shows.
+export function paged<T>(found: T[], offset: number, limit: number) {
+  const page = found.slice(offset, offset + limit)
+  return {
+    page,
+    showing: page.length
+      ? `${offset + 1}–${offset + page.length} of ${found.length}`
+      : `0 of ${found.length}`,
+  }
+}
+
 // A search result's row: enough to pick the dive out and name it.
 export function diveRow(index: LogIndex, dive: Dive) {
   const links = linksOf(index, dive)

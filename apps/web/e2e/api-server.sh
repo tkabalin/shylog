@@ -39,4 +39,4 @@ fi
 cd "$(dirname "$0")/../../server"
 pnpm exec tsx scripts/seed.ts >/dev/null
 # Not exec'd, so the trap runs once the server has stopped.
-pnpm exec tsx src/index.ts
+pnpm exec tsx --import ./scripts/raw-imports.mjs src/index.ts

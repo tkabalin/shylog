@@ -55,6 +55,13 @@ const text = (value: unknown) => ({
   ],
 })
 
+// The hints of a tool that only reads.
+export const readHints = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+}
+
 // Registers a tool whose reply is compact JSON. Each call logs one line with
 // its outcome, never its arguments, as the API's logs hold no dive contents.
 // The SDK would pass on only an error's message, so refusals and failures

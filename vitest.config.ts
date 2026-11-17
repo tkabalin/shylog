@@ -16,7 +16,13 @@ export default defineConfig({
         "apps/web/src/{data,format,log,dive,map}/**",
       ],
       // The extension's entry runs only in a child process, out of sight.
-      exclude: ["**/*.test.{ts,tsx}", "apps/claude-desktop/src/index.ts"],
+      // The map's data has no code to cover, and the server's tests load
+      // its 1.6 MB of page text in nearly every file.
+      exclude: [
+        "**/*.test.{ts,tsx}",
+        "apps/claude-desktop/src/index.ts",
+        "apps/web/src/map/*.{json,geojson}",
+      ],
       reporter: [
         ["text", { file: "coverage.txt", skipFull: false }],
         "text-summary",

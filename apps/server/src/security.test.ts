@@ -138,7 +138,13 @@ describe("starting the server", () => {
   it("exits in production with the dev login set", () => {
     const run = spawnSync(
       process.execPath,
-      ["--import", "tsx", "src/index.ts"],
+      [
+        "--import",
+        "tsx",
+        "--import",
+        "./scripts/raw-imports.mjs",
+        "src/index.ts",
+      ],
       {
         cwd: new URL("..", import.meta.url),
         env: {

@@ -5,6 +5,7 @@ import { logger } from "../log.ts"
 import { guard } from "./guard.ts"
 import { instructions } from "./instructions.ts"
 import { readTools } from "./tools/read.ts"
+import { siteTools } from "./tools/sites.ts"
 import { writeTools } from "./tools/write.ts"
 
 // Claude's way into the log (see MCP server in the spec), kept apart from
@@ -24,6 +25,7 @@ export function mcp(deps: Deps) {
       )
       readTools(server, deps)
       writeTools(server, deps)
+      if (deps.env.SHYLOG_EXPLORE === "on") siteTools(server)
       return server
     },
     {

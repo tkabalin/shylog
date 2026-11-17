@@ -10,7 +10,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "NODE_ENV=development tsx watch --env-file-if-exists=../../.env src/index.ts | pino-pretty --colorize",
+    "dev": "NODE_ENV=development tsx watch --import ./scripts/raw-imports.mjs --include ../web/src/map/sites.geojson --env-file-if-exists=../../.env src/index.ts | pino-pretty --colorize",
     "build": "tsup",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",

@@ -16,5 +16,10 @@ export function instructions(db: Db, env: Env) {
     "edit_dive replaces a dive's buddies, professionals and tags as whole lists; to add one person, a trip or a dive centre to dives, use assign_dives.",
     "What you enter counts as entered by hand, and a later import from the dive computer never overwrites it.",
     "Downloads from the dive computer, imports, deleting dives or anything else, Statistics and Patterns are in the Shylog app, not here.",
-  ].join("\n\n")
+    // Only where the instance shows the map, as its tools are only there.
+    env.SHYLOG_EXPLORE === "on" &&
+      "search_map_sites and get_map_site read the Explore map's dive sites round the Cape Peninsula and False Bay, from Wikivoyage. They aren't the log's sites: a dive is logged at a site from list_entities. To pick a site for a day, look the forecast up yourself (swell, wind and their directions) and read each candidate's Conditions and Get in.",
+  ]
+    .filter(Boolean)
+    .join("\n\n")
 }

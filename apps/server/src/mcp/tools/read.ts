@@ -17,7 +17,7 @@ import { Rejected } from "../../apply/rejected.ts"
 import type { Deps } from "../../factory.ts"
 import { selectEvents } from "../../profile.ts"
 import { readLog } from "../../routes/log.ts"
-import { addTool } from "../tool.ts"
+import { addTool, readHints as read } from "../tool.ts"
 import {
   compact,
   diveDetail,
@@ -25,16 +25,11 @@ import {
   indexLog,
   linksOf,
   minutes,
+  paged,
   profileOf,
   type Dive,
   type LogIndex,
 } from "../view.ts"
-
-const read = {
-  readOnlyHint: true,
-  destructiveHint: false,
-  idempotentHint: true,
-}
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
 
@@ -297,12 +292,10 @@ export function readTools(server: McpServer, deps: Deps) {
       const found = log.log.dives
         .filter((dive) => matches(log, dive, search))
         .sort(orders[search.sort])
-      const page = found.slice(search.offset, search.offset + search.limit)
+      const { page, showing } = paged(found, search.offset, search.limit)
       const totalled = found.filter(counted)
       return {
-        showing: page.length
-          ? `${search.offset + 1}–${search.offset + page.length} of ${found.length}`
-          : `0 of ${found.length}`,
+        showing,
         totals: compact({
           dives: totalled.length,
           timeUnderwaterMin: minutes(
