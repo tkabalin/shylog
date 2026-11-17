@@ -115,6 +115,18 @@ function Body({ zones, onZones, onRules, desk }: Options & { desk: boolean }) {
             <span className="whitespace-nowrap">{day(fetched)}</span>.
           </li>
           <li>
+            <b className="font-medium text-foreground">Site maps and images</b>:{" "}
+            <a
+              href="https://commons.wikimedia.org/"
+              target="_blank"
+              rel="noopener"
+              className={link}
+            >
+              Wikimedia Commons
+            </a>
+            , each credited under it.
+          </li>
+          <li>
             <b className="font-medium text-foreground">MPA zones</b>: Government
             Gazettes. Read on{" "}
             <span className="whitespace-nowrap">{day(rulesRead)}</span>.

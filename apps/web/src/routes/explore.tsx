@@ -22,6 +22,13 @@ export const Route = createFileRoute("/explore")({
   // link opens them. The map's own code checks them against its data.
   validateSearch: (search: Record<string, unknown>): ExploreSearch => ({
     site: text(search.site),
+    // An image only of a picked site.
+    image:
+      text(search.site) &&
+      Number.isInteger(search.image) &&
+      (search.image as number) >= 0
+        ? (search.image as number)
+        : undefined,
     types: text(search.types),
     depth: text(search.depth),
     view:
