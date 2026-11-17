@@ -24,6 +24,7 @@ import { openDatabase } from "../db/open.ts"
 import { getMeta, setMeta } from "../journal.ts"
 import { csvFile, exportDir, exportFile } from "../jobs/export.ts"
 import { csvHeaders, writeCsv } from "../csv/writer.ts"
+import { writeUddf } from "../uddf/writer.ts"
 
 function setup() {
   const dir = mkdtempSync(join(tmpdir(), "shylog-export-"))
@@ -53,6 +54,7 @@ describe("GET /api/export/uddf", () => {
     )
     const body = await res.text()
     expect(body.match(/<dive id=/g)).toHaveLength(42)
+    expect(body).toBe(writeUddf(db).xml)
     // Only the nightly job and Export now write the backup copy.
     expect(existsSync(exportDir(dir))).toBe(false)
     expect(getMeta(db, "last_export_at")).toBeNull()

@@ -5,13 +5,12 @@ import { writeCsv } from "../csv/writer.ts"
 import { factory } from "../factory.ts"
 import {
   checkCsv,
-  checkUddf,
   exportTemp,
+  exportUddf,
   refuseDamaged,
   writeExport,
 } from "../jobs/export.ts"
 import { localDate } from "../jobs/nightly.ts"
-import { writeUddfParts } from "../uddf/writer.ts"
 
 const attachment = (name: string) => `attachment; filename="${name}"`
 
@@ -26,12 +25,10 @@ export const exports = factory
   )
   // A fresh export, built and checked for the download alone: the server's
   // copy is the backup, replaced only by the nightly job and Export now.
-  .get("/export/uddf", (c) => {
+  .get("/export/uddf", async (c) => {
     const { db, state } = c.var.deps
-    refuseDamaged(state.integrity)
-    const uddf = writeUddfParts(db)
-    checkUddf(uddf)
-    return c.body(uddf.head + uddf.groups.join("") + uddf.tail, 200, {
+    const file = await exportUddf(db, state.integrity)
+    return c.body(file, 200, {
       "Content-Type": "application/xml; charset=utf-8",
       "Content-Disposition": attachment(`shylog-${localDate(new Date())}.uddf`),
     })
@@ -67,9 +64,9 @@ export const exports = factory
       "Content-Disposition": attachment(`shylog-${localDate(new Date())}.db`),
     })
   })
-  .post("/export/run", (c) => {
+  .post("/export/run", async (c) => {
     const { db, env, state } = c.var.deps
     const now = new Date()
-    writeExport(db, env.SHYLOG_DATA_DIR, state.integrity, now)
+    await writeExport(db, env.SHYLOG_DATA_DIR, state.integrity, now)
     return c.json({ lastExportAt: now.toISOString() })
   })
