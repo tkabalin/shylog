@@ -140,6 +140,34 @@ describe("sites.geojson", () => {
     expect(checked).toBeGreaterThan(350)
   })
 
+  // How you get in is read from each page by hand (scripts/map/page-fixes.json);
+  // only the aquarium, the two wrecks whose pages don't say, and the sites
+  // with no page go without.
+  it("says how to get in to every site whose page tells", () => {
+    const without = sites
+      .filter(({ properties }) => properties.access === undefined)
+      .map(({ properties }) => properties.page ?? properties.id)
+    expect(without.sort()).toEqual([
+      "Colebrooke",
+      "Sao Jose Paquete d' Africa",
+      "Two Oceans Aquarium",
+      "bens-reef",
+      "bloemfontein-reef",
+      "gb-north-reef",
+      "llandudno-reef",
+    ])
+    for (const { properties } of sites) {
+      if (properties.access === undefined) continue
+      expect(["shore", "boat", "both"], properties.id).toContain(
+        properties.access
+      )
+      // Only a site with a shore entry can have a hard one.
+      if (properties.shoreEntry !== undefined) {
+        expect(properties.access, properties.id).toBe("both")
+      }
+    }
+  })
+
   it("names and describes its sites in plain words", () => {
     for (const { properties } of sites) {
       const { id, name, description } = properties as {

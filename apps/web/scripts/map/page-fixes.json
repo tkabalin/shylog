@@ -1,0 +1,867 @@
+{
+  "13th Apostle": {
+    "said": "Access to the site is only by boat, as it is too far to swim from shore.",
+    "access": "boat"
+  },
+  "A-Frame": {
+    "said": "one of the most popular shore dives",
+    "access": "shore"
+  },
+  "Albatross Rock": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Alpha Reef": {
+    "said": "can be done as a shore dive from Rocklands Point.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Ammunition Barges": {
+    "said": "Usual access is by boat from Miller's Point slipway or Simon's Town jetty, but can be dived from the shore entry at Seaforth (Boulders Beach).",
+    "access": "both"
+  },
+  "Andre se Gat": {
+    "said": "Normally a shore entry dive.",
+    "access": "shore"
+  },
+  "Ankers": {
+    "said": "Normally a shore entry dive.",
+    "access": "shore"
+  },
+  "Anvil Rock": {
+    "said": "Access is by boat, usually from Simon's Town or the Millers Point slipway.",
+    "access": "boat"
+  },
+  "Atlantis Reef": {
+    "said": "This is a boat access dive site.",
+    "access": "boat"
+  },
+  "Bakoven Rock": {
+    "said": "Usually done as a shore dive.",
+    "access": "shore"
+  },
+  "Balcony": {
+    "said": "This site is almost exclusively dived from the shore.",
+    "access": "shore"
+  },
+  "Bantry Bay": {
+    "said": "The shoreline reef is normally a shore entry, but may be done from a boat.",
+    "access": "shore"
+  },
+  "Batsata Rock": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Bikini Beach": {
+    "said": "Normally a shore dive.",
+    "access": "shore"
+  },
+  "Bill Liltved's Reef": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Billy's Reef": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Blomvlei": {
+    "said": "Access is by boat.",
+    "access": "boat"
+  },
+  "Blouklip": {
+    "said": "Usual access is from the shore, as there is a long boat ride from the nearest publicly accessible launch site.",
+    "access": "shore"
+  },
+  "Blousteen Ridge": {
+    "said": "This requires a fairly long walk down to the shore and a swim of about 400 m to the site.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Blue Flame Reef": {
+    "said": "Only accessible by boat.",
+    "access": "boat"
+  },
+  "Blue Rock Quarry": {
+    "said": "equipment will have to be carried to the water",
+    "access": "shore"
+  },
+  "Boardroom pinnacle": {
+    "said": "The site may be done as a boat dive, either from Oceana Power Boat Club slipway in Granger Bay, which is slightly closer, or from Hout Bay.",
+    "access": "boat"
+  },
+  "Boat Rock": {
+    "said": "Usually considered a boat dive, but may be dived from a shore entry at the end of Miller’s point.",
+    "access": "both"
+  },
+  "Bordjiesrif": {
+    "said": "Normally a shore dive, but there is a slipway at the site.",
+    "access": "shore"
+  },
+  "Bruce's Mark": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Brunswick": {
+    "said": "This site can be dived from a boat or the shore.",
+    "access": "both"
+  },
+  "Buffels Bay": {
+    "said": "This site is usually dived from the shore, as the access is easy, though there is a slipway at the site.",
+    "access": "shore"
+  },
+  "Canyon": {
+    "said": "The site can only be accessed by boat.",
+    "access": "boat"
+  },
+  "Caravan Reef": {
+    "said": "Boat dive from Miller's Point slipway or Simon's Town jetty.",
+    "access": "boat"
+  },
+  "Castle Rocks": {
+    "said": "Generally considered a shore dive.",
+    "access": "shore"
+  },
+  "Castor Rock": {
+    "said": "Always dived from a boat.",
+    "access": "boat"
+  },
+  "Cleeve's Tunnel": {
+    "said": "This site is normally a boat dive from Oceana Power Boat Club slipway.",
+    "access": "boat"
+  },
+  "Clifton Rocks": {
+    "said": "This is normally a shore dive.",
+    "access": "shore"
+  },
+  "Container Bay": {
+    "said": "Usually a shore dive.",
+    "access": "shore"
+  },
+  "Coral Gardens (Oudekraal)": {
+    "said": "Shore dive: Use the Table Mountain National Park Oudekraal",
+    "access": "shore"
+  },
+  "Coral Gardens (Rooi-els)": {
+    "said": "Shore dive: Very limited parking at the side of Rocklands road (gravel).",
+    "access": "shore"
+  },
+  "Cow and Calf": {
+    "said": "Access is easiest by boat, but is also possible from the shore.",
+    "access": "both"
+  },
+  "D-Frame": {
+    "said": "Boat dive from Miller's Point slipway or Simon's Town jetty, or Shore dive from A-Frame for those who don’t mind a long swim, are competent at navigation, and want a 30 m shore dive.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Dale Brook": {
+    "said": "Normally done as a shore dive.",
+    "access": "shore"
+  },
+  "Deep South Whittle Reef": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Di's Cracks": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Die Josie": {
+    "said": "This site is only accessible by boat, though in principle an entry could be made by base-jumping the cliffs from the Chapman's Peak drive.",
+    "access": "boat"
+  },
+  "Die Perd": {
+    "said": "Access to the site is only possible by boat.",
+    "access": "boat"
+  },
+  "Disa": {
+    "said": "Boat access only, usually from V&A Waterfront or Oceana Powerboat Club at Granger Bay.",
+    "access": "boat"
+  },
+  "Dome Rock": {
+    "said": "This reef is only accessible by boat.",
+    "access": "boat"
+  },
+  "Dreadlocks Reef": {
+    "said": "Usual access is by boat, but it could be dived from the shore by very fit divers in good conditions.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Duiker Island": {
+    "said": "This site is only accessible as a boat dive.",
+    "access": "boat"
+  },
+  "East Shoal": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "False Bay Yacht Club moorings": {
+    "said": "Entry and exit can be at the stairs at the east side of the garden area of the jetty",
+    "access": "shore"
+  },
+  "Fan Reef": {
+    "said": "Access to this site is only practicable by boat.",
+    "access": "boat"
+  },
+  "Finlay's Deep": {
+    "said": "Access to this site is only by boat.",
+    "access": "boat"
+  },
+  "Finlay's Point": {
+    "said": "There is a \"path\" down to the water, which has been used in dry weather.",
+    "access": "both",
+    "shoreEntry": "climb"
+  },
+  "Finlay's Point offshore pinnacles": {
+    "said": "It is possible as a shore dive if you are into extreme shorediving.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Fish Hoek Reef": {
+    "said": "A long swim shore dive (about 550 m) or a boat dive from Simon’s Town or Miller’s Point.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Fisherman's Beach": {
+    "said": "This site is normally a shore entry dive.",
+    "access": "shore"
+  },
+  "Friskies Pinnacle": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Froggy Pond": {
+    "said": "Beach entry and exit very sheltered.",
+    "access": "shore"
+  },
+  "GB Reef": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "GB South Reef": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Geldkis": {
+    "said": "Shore dive.",
+    "access": "shore"
+  },
+  "Geldkis Blinder": {
+    "said": "Shore dive: Park at the side of the road on the outside of the bend just north of the Twelve Apostles Hotel.",
+    "access": "shore"
+  },
+  "Giant's Castle": {
+    "said": "Access is by boat.",
+    "access": "boat"
+  },
+  "Glencairn Barge": {
+    "said": "Boat dive or shore dive with a long swim.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Glencairn Fan Garden": {
+    "said": "Usual access is by boat, but it would be possible to dive from a shore entry with a long swim of about 350 m each way.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Good Hope Reef": {
+    "said": "This is a boat dive, as it is too far from the coast to swim.",
+    "access": "boat"
+  },
+  "Groot Pannekoek": {
+    "said": "A shore dive for the fit diver.",
+    "access": "shore"
+  },
+  "HNMS Bato": {
+    "said": "There is a walk of about 450 m along the beach from the slipway gap",
+    "access": "shore"
+  },
+  "Hakka Reef": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Harvest Capella": {
+    "said": "Access is usually by boat from Hout Bay harbour.",
+    "access": "boat"
+  },
+  "Hermes": {
+    "said": "Usual access: Boat dive from Oceana Power Boat Club slipway or the V&A Waterfront, or shore dive from Milnerton beach.",
+    "access": "both"
+  },
+  "Het Huis te Kraaiestein": {
+    "said": "This is almost always dived as a shore entry dive, as the access is easy, and the distance from the entry point is not very far.",
+    "access": "shore"
+  },
+  "Highfields": {
+    "said": "This site is only accessed by boat as it is quite far offshore and at the edge of the shipping lane at the entry to Cape Town harbour.",
+    "access": "boat"
+  },
+  "Humpback Ridge": {
+    "said": "This site is only dived from a boat, as it is dangerously far offshore and there is no road access to the adjacent shore.",
+    "access": "boat"
+  },
+  "Insanity Reef": {
+    "said": "Generally considered a boat dive from Miller's Point slipway or Simon's Town jetty, but also occasionally done as a shore dive from Spaniard Rock north entry.",
+    "access": "both"
+  },
+  "Josh's Reef": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Justins Caves": {
+    "said": "Shore dive.",
+    "access": "shore"
+  },
+  "Kalk Bay Harbour Wall": {
+    "said": "Normally done as a shore dive.",
+    "access": "shore"
+  },
+  "Kanobi's Wall": {
+    "said": "This site can only be accessed by boat.",
+    "access": "boat"
+  },
+  "King Emperor": {
+    "said": "Access is only by boat, usually from the V&A Waterfront, or the Offshore Powerboat Club at Granger Bay.",
+    "access": "boat"
+  },
+  "Klein Pannekoek": {
+    "said": "Boat dive or shore dive with a long swim (570 m).",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Klein Tafelberg": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Kruis": {
+    "said": "Shore entry requires no complications, and is more popular",
+    "access": "shore"
+  },
+  "Ledges": {
+    "said": "Alternatively it could be a shore dive with quite a steep climb.",
+    "access": "both",
+    "shoreEntry": "climb"
+  },
+  "Livingstone Reef": {
+    "said": "The site is too far offshore to swim",
+    "access": "boat"
+  },
+  "Logies Bay": {
+    "said": "The site is normally accessed from a shore entry.",
+    "access": "shore"
+  },
+  "Lonehill Reef": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Long Beach Simon's Town": {
+    "said": "Easy shore access in most conditions.",
+    "access": "shore"
+  },
+  "Lorry Bay": {
+    "said": "The site can probably be dived from shore access from the sloping rocks at the south point, but it would be a long walk from the nearest parking area and a fairly long climb down from the road.",
+    "access": "both",
+    "shoreEntry": "climb"
+  },
+  "MFV Orotava": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "MFV Princess Elizabeth": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "MV Afrikaner": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "MV Antipolis": {
+    "said": "This site is almost always dived from the shore.",
+    "access": "shore"
+  },
+  "MV Aster": {
+    "said": "Access is only reasonably practicable by boat.",
+    "access": "boat"
+  },
+  "MV Daeyang Family": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "MV Gemsbok": {
+    "said": "Access to this site is only possible by boat, usually from Oceana Power Boat Club slipway at Granger Bay.",
+    "access": "boat"
+  },
+  "MV Katsu Maru": {
+    "said": "Access is only reasonably practicable by boat.",
+    "access": "boat"
+  },
+  "MV Ker Yar Vor and the Jo May": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "MV Rockeater": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "MV Romelia": {
+    "said": "This site is dived from boats and from the shore.",
+    "access": "both"
+  },
+  "MV Seli 1": {
+    "said": "It can also be done as a shore dive from the beach but if a southeasterly (offshore) wind develops the swim back should be underwater as far as reasonably practicable.",
+    "access": "both"
+  },
+  "MV Treasure": {
+    "said": "Boat dive: Either 26 km from Oceana Power Boat Club slipway or the V&A Waterfront, or 12 km from Melkbosstrand",
+    "access": "boat"
+  },
+  "MV Winton": {
+    "said": "Usual access: Boat dive from Oceana Power Boat Club slipway or the V&A Waterfront or shore dive from Milnerton beach.",
+    "access": "both"
+  },
+  "Maidstone Rock": {
+    "said": "Access to this site is by boat, It is about 4.4 km from the Miller's Point slipway to Maidstone Rock, and much the same to Anchor and Ammo Reefs.",
+    "access": "boat"
+  },
+  "Midway Ridge": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Mike's Point": {
+    "said": "Easiest as a boat dive, though it is possible to do it as a shore dive from Container Bay.",
+    "access": "both"
+  },
+  "Miller's Point": {
+    "said": "Usually a shore dive.",
+    "access": "shore"
+  },
+  "Moddergat": {
+    "said": "Boat access only, The site is a considerable distance offshore, and while it would be possible to find it with compass bearings, a GPS will be far more reliable.",
+    "access": "boat"
+  },
+  "Mooivlei": {
+    "said": "Access is by boat.",
+    "access": "boat"
+  },
+  "Muizenberg trawler wrecks": {
+    "said": "Access is only by boat — it is much too far to swim.",
+    "access": "boat"
+  },
+  "Murphy's": {
+    "said": "Usually dived from a boat, though shore dives are possible and have been done.",
+    "access": "both"
+  },
+  "Mushroom Pinnacle": {
+    "said": "Generally a shore dive.",
+    "access": "shore"
+  },
+  "Noah's Ark": {
+    "said": "Generally considered a boat dive from Simon's Town jetty or Miller's Point slipway, though all can be dived from shore entry at Penguin Point.",
+    "access": "both"
+  },
+  "North Island Reef": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "North Paw": {
+    "said": "This is a boat dive.",
+    "access": "boat"
+  },
+  "Off-Whittle Ridge": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Offshore Barges": {
+    "said": "Access to the site is by boat.",
+    "access": "boat"
+  },
+  "Omega Reef": {
+    "said": "This site is dived from a boat.",
+    "access": "boat"
+  },
+  "Outer Photographer's Reef": {
+    "said": "This is a boat dive.",
+    "access": "boat"
+  },
+  "P87": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Partridge Point": {
+    "said": "Access is problematic for shore dives as it is necessary to cross through private land for the most direct route.",
+    "access": "boat"
+  },
+  "Penguin Point": {
+    "said": "Usually a shore entry dive.",
+    "access": "shore"
+  },
+  "Percy's Hole": {
+    "said": "dives at Percy's are mostly done from shore entry",
+    "access": "shore"
+  },
+  "Phil's Bay": {
+    "said": "Boat dive.",
+    "access": "boat"
+  },
+  "Phoenix Shoal": {
+    "said": "Usually a shore dive, but also sometimes accessed by boat from Miller's Point slipway or Simon's Town jetty.",
+    "access": "shore"
+  },
+  "Phone Reef": {
+    "said": "This is exclusively a boat dive",
+    "access": "boat"
+  },
+  "Photographer's Reef": {
+    "said": "dive from North Windmill Beach or a gully south of the parking area at Penguin Point.",
+    "access": "both"
+  },
+  "Pie Rock and Outer Castle reefs": {
+    "said": "It could be dived from a shore entry at Castle Rocks, but would require a 750 m swim each way.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Pinnacle": {
+    "said": "Access is usually by boat, a short ride from Gordon's Bay harbour (3.1 km)or Harbour Island (3.8 km), but can be done as a shore dive by a fit and agile diver.",
+    "access": "both",
+    "shoreEntry": "climb"
+  },
+  "Pyramid Rock reef and Shark Alley": {
+    "said": "The site may be dived from shore or boat.",
+    "access": "both"
+  },
+  "Quarry": {
+    "said": "The site is easily accessible from the shore in good weather.",
+    "access": "shore"
+  },
+  "RMS Athens": {
+    "said": "This site can be accessed from a boat or from shore.",
+    "access": "both"
+  },
+  "Rachel's Reef": {
+    "said": "This site is only dived from a boat, as it is dangerously far offshore for swimming, and there is no road access to the adjacent shore.",
+    "access": "boat"
+  },
+  "Rambler Rock": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Random Rocks Reefs": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Reigersdaal": {
+    "said": "The site is accessible by boat, and from the shore.",
+    "access": "both"
+  },
+  "Robben Island steamer wreck": {
+    "said": "Access is by boat, either from the V&A Waterfront, or from Granger Bay.",
+    "access": "boat"
+  },
+  "Rocklands blinder": {
+    "said": "This site is dived from shore or boat.",
+    "access": "both"
+  },
+  "Rocky Bank": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Rocky Bay": {
+    "said": "Shore dive from the gully",
+    "access": "both"
+  },
+  "Roman Rock": {
+    "said": "This site is always dived from a boat",
+    "access": "boat"
+  },
+  "Rooi-els Point": {
+    "said": "Boat dive from Rooi-els slipway, or shore dive.",
+    "access": "both"
+  },
+  "SAS Bloemfontein": {
+    "said": "Only accessible by boat.",
+    "access": "boat"
+  },
+  "SAS Fleur": {
+    "said": "The site can only be accessed by boat.",
+    "access": "boat"
+  },
+  "SAS Gelderland": {
+    "said": "The site can only be reached by boat.",
+    "access": "boat"
+  },
+  "SAS Good Hope": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "SAS Pietermaritzburg": {
+    "said": "The site can only safely be accessed by boat, usually from Miller's Point slipway, which is about 1 km away or Simon's Town jetty.",
+    "access": "boat"
+  },
+  "SAS Transvaal": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "SATS General Botha": {
+    "said": "Only accessible as a boat dive.",
+    "access": "boat"
+  },
+  "SS Bia": {
+    "said": "Boat dive.",
+    "access": "boat"
+  },
+  "SS Cape Matapan": {
+    "said": "Boat dive, usually from Oceana Power Boat Club, or from the V&A waterfront.",
+    "access": "boat"
+  },
+  "SS Clan Monroe": {
+    "said": "Boat or shore access.",
+    "access": "both"
+  },
+  "SS Clan Stuart": {
+    "said": "The site is usually dived from a shore entry, but can also easily be accessed by boat from Simon's Town.",
+    "access": "shore"
+  },
+  "SS Hypatia": {
+    "said": "Only accessible by boat.",
+    "access": "boat"
+  },
+  "SS Lusitania": {
+    "said": "Access to this site is only by boat.",
+    "access": "boat"
+  },
+  "SS Maori": {
+    "said": "The site can only be accessed by boat.",
+    "access": "boat"
+  },
+  "SS Oakburn and BOS 400": {
+    "said": "The site is only accessible by boat as there are no roads in the area.",
+    "access": "boat"
+  },
+  "SS SA Seafarer": {
+    "said": "Shore dive: To get there park in the parking lot facing the sea in front of the lighthouse.",
+    "access": "shore"
+  },
+  "SS Thomas T Tucker": {
+    "said": "The site is only accessible by boat, as there are no roads providing reasonable shore access.",
+    "access": "boat"
+  },
+  "SS Umhlali": {
+    "said": "The site is only accessible by boat, as there are no roads providing reasonable shore access.",
+    "access": "boat"
+  },
+  "ST Godetia": {
+    "said": "The site is too far offshore for shore dives, and can only be dived from a boat.",
+    "access": "boat"
+  },
+  "SURG Pinnacles": {
+    "said": "The site can only be accessed by boat.",
+    "access": "boat"
+  },
+  "Sandy Cove": {
+    "said": "This site is a shore dive.",
+    "access": "shore"
+  },
+  "Sandy-top Ridge": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Sea Point Ridge Pinnacles": {
+    "said": "This site is only accessible by boat, as it is nearly 2 km offshore.",
+    "access": "boat"
+  },
+  "Seal Island": {
+    "said": "Boat dive with licensed Shark Cage Diving charter.",
+    "access": "boat"
+  },
+  "Sentinel": {
+    "said": "This site can be dived from a boat or from the shore.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Sherwood Forest": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Sickle Reef": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Simon's Town Jetty": {
+    "said": "Entry and exit can be at the stairs at the end of the jetty",
+    "access": "shore"
+  },
+  "Smits Cliff": {
+    "said": "Access to this site is only by boat.",
+    "access": "boat"
+  },
+  "Smits Reef": {
+    "said": "Only accessible by boat.",
+    "access": "boat"
+  },
+  "South Island Reef": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "South Paw": {
+    "said": "This is a boat dive.",
+    "access": "boat"
+  },
+  "South-west Reefs": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Southwood's Corner": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Spaniard Rock": {
+    "said": "Traditionally a shore dive, but not dived as much from the shore as it used to be.",
+    "access": "shore"
+  },
+  "Star Wall": {
+    "said": "The site can only be accessed by boat.",
+    "access": "boat"
+  },
+  "Star of Africa": {
+    "said": "This site can only be accessed by boat.",
+    "access": "boat"
+  },
+  "Steenbras Ridge": {
+    "said": "The sites are only accessible by boat, usually from Gordon's Bay Old Harbour or Harbour Island marina.",
+    "access": "boat"
+  },
+  "Stef's Reef": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Steps": {
+    "said": "This site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Stern Reef": {
+    "said": "Optional shore dive from Rocklands Point: Parking at side of main road on gravel shoulder.",
+    "access": "both"
+  },
+  "Stonehenge": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Strawberry Rocks": {
+    "said": "Shore dive.",
+    "access": "shore"
+  },
+  "Sunfish Pinnacle": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Sunny Cove": {
+    "said": "This dive is generally dived from the shore, though the site appears to be less frequently dived than in the past.",
+    "access": "shore"
+  },
+  "Super Fan Reef": {
+    "said": "This is exclusively a boat dive",
+    "access": "boat"
+  },
+  "T.S. McEwan": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Tafelberg Deep": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Tafelberg Reef": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Target Reef": {
+    "said": "This site is only dived from a boat as it is too far offshore to swim",
+    "access": "boat"
+  },
+  "Three Anchor Bay": {
+    "said": "Normally dived from shore entry: Park on the parking lot to the north east of the bay, close to the Putt-Putt course.",
+    "access": "shore"
+  },
+  "Tivoli Pinnacles": {
+    "said": "This site is always dived from a boat, as it is too far offshore to swim and is in the harbour approaches of the Simon's Town Naval harbour.",
+    "access": "boat"
+  },
+  "Tony's Reef": {
+    "said": "Boat dive from Gordon’s Bay or Harbour Island.",
+    "access": "boat"
+  },
+  "Torch Reef": {
+    "said": "This site is only accessible by boat, It is about 4 km from Miller's Point slipway and ?? km from Simon's Town jetty.",
+    "access": "boat"
+  },
+  "Tristania": {
+    "said": "Boat access only.",
+    "access": "boat"
+  },
+  "Troglodyte's Cove": {
+    "said": "The site can be accessed by boat or from the shore.",
+    "access": "both"
+  },
+  "Twin Towers": {
+    "said": "Access is by boat, usually from Hout Bay harbour.",
+    "access": "boat"
+  },
+  "Two Oceans Aquarium": {
+    "said": "Entry to the tanks is from the roof area",
+    "access": null
+  },
+  "Vogelsteen": {
+    "said": "Often dived from a boat, but shore access is an option.",
+    "access": "both"
+  },
+  "Vulcan Rock": {
+    "said": "The site is accessible only by boat.",
+    "access": "boat"
+  },
+  "Western Deep": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "Whale Rock": {
+    "said": "Only accessible by boat.",
+    "access": "boat"
+  },
+  "Whirlpool cove": {
+    "said": "Boat dive from Rooi-Els or Gordon's Bay, or a shore entry dive with quite a climb.",
+    "access": "both",
+    "shoreEntry": "climb"
+  },
+  "Whittle Rock": {
+    "said": "The sites are only accessible by boat.",
+    "access": "boat"
+  },
+  "Wilhelm's Wall": {
+    "said": "This site is only dived from a boat, as it is dangerously far offshore and there is no road access to the adjacent shore.",
+    "access": "boat"
+  },
+  "Windmill Beach": {
+    "said": "Generally considered a shore dive.",
+    "access": "shore"
+  },
+  "Windmill Offshore Reefs": {
+    "said": "It would be possible for a fit diver to do some of these reefs as shore dives from Windmill Beach, but the route is across the path of small craft and there would be a risk of being run down while at the surface.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
+  "Windtoy Reef": {
+    "said": "The sites are only accessible by boat, usually from Simon's Tow, Gordon's Bay Old Harbour or Harbour Island marina.",
+    "access": "boat"
+  },
+  "Wreckless Ridge": {
+    "said": "The site is only accessible by boat.",
+    "access": "boat"
+  },
+  "York Shoal": {
+    "said": "Boat access only: the site is several kilometers offshore.",
+    "access": "boat"
+  },
+  "Zigzag Reef": {
+    "said": "Access is by boat.",
+    "access": "boat"
+  }
+}
