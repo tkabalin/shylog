@@ -139,19 +139,20 @@ export const timesOfDay = [
   { key: "night", label: "Night", below: 24 },
 ] as const
 
+// Names in order, numbers too ("Reef 2" before "Reef 10"), with one
+// collator for the name sorts here and in patterns: localeCompare with a
+// locale builds a new one for each comparison.
+export const nameOrder = new Intl.Collator("en-GB", { numeric: true })
+
 // Every one, most dives first: the screen shows the top three and the rest
-// on a tap. A tie goes by name, numbers in order ("Reef 2" before "Reef 10").
+// on a tap. A tie goes by name.
 function ranked<T>(
   counts: Map<string, number>,
   name: (key: string) => T & { name: string }
 ) {
   return [...counts]
     .map(([key, count]) => ({ key, count, ...name(key) }))
-    .sort(
-      (a, b) =>
-        b.count - a.count ||
-        a.name.localeCompare(b.name, "en-GB", { numeric: true })
-    )
+    .sort((a, b) => b.count - a.count || nameOrder.compare(a.name, b.name))
 }
 
 // How the rated dives' SAC rates spread: the plain mean, median and sample
