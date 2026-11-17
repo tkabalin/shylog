@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "icons": "node scripts/apple-touch-icon.ts",
     "map:basemap": "node scripts/map/basemap.ts",
+    "map:images": "node scripts/map/images.ts",
     "map:sites": "node scripts/map/sites.ts",
     "map:zones": "node scripts/map/zones.ts",
     "typecheck": "tsc -b --noEmit",
@@ -54,6 +55,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "fast-check": "^4.10.2",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
     "vite": "^8.3.4",
     "vite-plugin-pwa": "^2.0.0"
