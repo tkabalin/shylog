@@ -20,13 +20,10 @@ import {
 } from "@shylog/core"
 import { IconCircleMinus, IconCirclePlus, IconEqual } from "@tabler/icons-react"
 import {
-  animate,
   AnimatePresence,
   motion,
   MotionConfig,
-  useMotionValue,
   useReducedMotion,
-  type AnimationPlaybackControls,
 } from "motion/react"
 import { cn } from "cn"
 
@@ -49,6 +46,12 @@ import { savePacking } from "@/data/packing"
 import { useConnected } from "@/data/sync-status"
 import { ErrorLine } from "@/dive/form/rows"
 import { useDesk } from "@/hooks/use-desk"
+import {
+  dragSpring as spring,
+  mainView,
+  naturalStart,
+  useDragOrder,
+} from "@/lib/drag-order"
 import { isReturn } from "@/lib/keys"
 import { useHoldUpdate } from "@/update"
 
@@ -77,16 +80,9 @@ interface Actions {
   registerInput: (id: string, node: HTMLInputElement) => () => void
 }
 
-// What a finger drags keeps up with it: neighbours make room, and the drop
-// settles, with a critically damped spring this short (motion.md).
-const spring = { type: "spring", visualDuration: 0.12, bounce: 0 } as const
 // A deleted row fades, on the list's spring, while the rest close up.
 const exit = { opacity: 0 }
 
-// How far into the visible list a drag starts scrolling it, and how fast
-// at the very edge or over a bar, in pixels a frame at 60 Hz.
-const edge = 64
-const fastest = 14
 // The room left between a card brought into view and the keyboard.
 const keyboardGap = 16
 
@@ -379,39 +375,10 @@ export function EditList({
   // The drag: a copy of the row follows the finger over the list while the
   // row itself, hidden, moves to where it would drop.
   const container = useRef<HTMLDivElement>(null)
-  const y = useMotionValue(0)
-  const [drag, setDrag] = useState<{
-    kind: Kind
-    id: string
-    left: number
-    width: number
-    // Settling into place after the finger has let go.
-    dropping?: boolean
-  } | null>(null)
-  const dragging = useRef<{
-    kind: Kind
-    id: string
-    offset: number
-    height: number
-  } | null>(null)
-  const settling = useRef<AnimationPlaybackControls | null>(null)
-  const pointer = useRef(0)
 
-  // Where a row sits once laid out, in the viewport: offsets, which leave
-  // out the transforms of rows still sliding into place.
-  const naturalTop = (
-    node: HTMLElement,
-    base = container.current!.getBoundingClientRect().top
-  ) => {
-    let top = 0
-    for (
-      let at: HTMLElement | null = node;
-      at && at !== container.current;
-      at = at.offsetParent as HTMLElement | null
-    )
-      top += at.offsetTop
-    return base + top
-  }
+  // Where a row sits once laid out, in the viewport.
+  const naturalTop = (node: HTMLElement, base?: number) =>
+    naturalStart(node, container.current!, "y", base)
   // The list's top, read once per step rather than once per row measured.
   const listTop = useRef(0)
   const middle = (key: string) => {
@@ -495,131 +462,26 @@ export function EditList({
     return true
   }
 
-  const follow = () => {
-    const held = dragging.current
-    if (!held) return
-    const top = pointer.current - held.offset
-    y.set(top)
-    // A fast finger can pass several rows between two moves.
-    for (let n = 0; n < 50; n++) {
-      if (!step(held.kind, held.id, top, top + held.height)) break
-    }
-  }
-
-  // Captured by the list, which never remounts, as the grip that began the
-  // drag may: an item crossing into another section is drawn anew there.
-  useEffect(() => {
-    if (!drag || drag.dropping || dragging.current?.id !== drag.id) return
-    const list = container.current!
-    const scroller = document.getElementById("main")
-    let frame = 0
-    let last = performance.now()
-    // The visible list's edges, under the bar and above the tabs, which a
-    // drag doesn't move, read once rather than each frame.
-    const box = scroller?.getBoundingClientRect()
-    const bar = scroller?.querySelector("header")?.getBoundingClientRect()
-    const top = bar ? bar.bottom : (box?.top ?? 0)
-    const bottom = box
-      ? box.bottom - parseFloat(getComputedStyle(scroller!).paddingBottom)
-      : innerHeight
-    // What a frame's scroll leaves over a whole pixel, which WebKit would
-    // round away, stalling the slow edge of the zone.
-    let carry = 0
-    // Near those edges the list scrolls under the finger, faster the
-    // nearer it is, at the same speed whatever the refresh rate.
-    const scroll = (now: number) => {
-      const frames = Math.min(now - last, 32) / (1000 / 60)
-      last = now
-      const from = pointer.current - top
-      const to = bottom - pointer.current
-      const speed =
-        from < edge
-          ? -fastest * Math.min(1, 1 - from / edge)
-          : to < edge
-            ? fastest * Math.min(1, 1 - to / edge)
-            : 0
-      if (scroller && speed) {
-        carry += speed * frames
-        const whole = Math.trunc(carry)
-        carry -= whole
-        if (whole) {
-          scroller.scrollTop += whole
-          follow()
-        }
-      }
-      frame = requestAnimationFrame(scroll)
-    }
-    frame = requestAnimationFrame(scroll)
-    const move = (event: PointerEvent) => {
-      pointer.current = event.clientY
-      follow()
-    }
-    const drop = () => {
-      const held = dragging.current
-      dragging.current = null
-      cancelAnimationFrame(frame)
-      if (!held) return
-      const node = nodes.current.get(
-        held.kind === "item" ? `item:${held.id}` : `block:${held.id}`
-      )
-      if (!node || reduce) {
-        setDrag(null)
-        return
-      }
-      // The copy lowers as it settles, then gives way to the row.
-      setDrag((was) => was && { ...was, dropping: true })
-      const settle = animate(y, naturalTop(node), spring)
-      settling.current = settle
-      void settle.then(() => {
-        if (settling.current !== settle) return
-        settling.current = null
-        setDrag((was) => (was?.id === held.id && was.dropping ? null : was))
-      })
-    }
-    list.addEventListener("pointermove", move)
-    list.addEventListener("pointerup", drop)
-    list.addEventListener("pointercancel", drop)
-    list.addEventListener("lostpointercapture", drop)
-    return () => {
-      cancelAnimationFrame(frame)
-      list.removeEventListener("pointermove", move)
-      list.removeEventListener("pointerup", drop)
-      list.removeEventListener("pointercancel", drop)
-      list.removeEventListener("lostpointercapture", drop)
-    }
-    // Once per drag: the handlers read the latest list through refs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [drag?.id, drag?.dropping])
+  const order = useDragOrder<{ kind: Kind; id: string }>({
+    axis: "y",
+    container,
+    scroller: () => document.getElementById("main"),
+    view: mainView,
+    node: ({ kind, id }) =>
+      nodes.current.get(kind === "item" ? `item:${id}` : `block:${id}`),
+    step: ({ kind, id }, top, bottom) => step(kind, id, top, bottom),
+  })
+  const drag = order.drag
 
   // A grip lifts its row at once, as the certifications list's does, and
-  // takes the touch from the scroller (it is touch-action: none). A row
-  // still settling from the last drop gives way at once.
+  // takes the touch from the scroller (it is touch-action: none).
   const grab = (kind: Kind, id: string, event: ReactPointerEvent) => {
-    if (event.button !== 0 || dragging.current) return
+    if (event.button !== 0) return
     event.preventDefault()
-    if (settling.current) {
-      settling.current.stop()
-      settling.current = null
-      flushSync(() => setDrag(null))
-    }
+    if (!order.grab({ kind, id }, event)) return
     // The keyboard would otherwise stay up over the list being dragged.
     if (document.activeElement instanceof HTMLElement)
       document.activeElement.blur()
-    const node = nodes.current.get(
-      kind === "item" ? `item:${id}` : `block:${id}`
-    )
-    if (!node) return
-    container.current!.setPointerCapture(event.pointerId)
-    const box = node.getBoundingClientRect()
-    pointer.current = event.clientY
-    y.set(box.top)
-    dragging.current = {
-      kind,
-      id,
-      offset: event.clientY - box.top,
-      height: box.height,
-    }
-    setDrag({ kind, id, left: box.left, width: box.width })
   }
 
   // Each render's handlers, read by the stable ones the rows hold, which
@@ -660,15 +522,15 @@ export function EditList({
   })
   const addPlace = `${sections.length}:${above}:${flagged}:${failure ?? ""}`
   const lifted = drag
-    ? drag.kind === "section"
-      ? sections.find((section) => section.id === drag.id)
+    ? drag.held.kind === "section"
+      ? sections.find((section) => section.id === drag.held.id)
       : sections
           .flatMap((section) => section.items)
-          .find((item) => item.id === drag.id)
+          .find((item) => item.id === drag.held.id)
     : undefined
   // The row the copy shows keeps its identity through the swaps, so the
   // copy is drawn once per lift, not again at every swap.
-  const liftedKind = drag?.kind
+  const liftedKind = drag?.held.kind
   const copy = useMemo(
     () =>
       !lifted ? null : liftedKind === "section" ? (
@@ -746,11 +608,13 @@ export function EditList({
                 key={section.id}
                 section={section}
                 place={places[i]}
-                hidden={drag?.kind === "section" && drag.id === section.id}
+                hidden={
+                  drag?.held.kind === "section" && drag.held.id === section.id
+                }
                 heldItem={
-                  drag?.kind === "item" &&
-                  section.items.some((item) => item.id === drag.id)
-                    ? drag.id
+                  drag?.held.kind === "item" &&
+                  section.items.some((item) => item.id === drag.held.id)
+                    ? drag.held.id
                     : undefined
                 }
                 error={errors[i]}
@@ -786,7 +650,7 @@ export function EditList({
           // opacity only, which the compositor draws.
           <motion.div
             aria-hidden
-            style={{ y, left: drag.left, width: drag.width }}
+            style={{ y: order.position, left: drag.left, width: drag.width }}
             // Under the bar, as the rows it passes are, and over the tabs;
             // a layer of its own, so following the finger repaints nothing.
             className="pointer-events-none fixed top-0 z-25 will-change-transform"
