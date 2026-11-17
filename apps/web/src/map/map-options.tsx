@@ -16,10 +16,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Switch } from "@/components/ui/switch"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { months } from "@/format/dates"
 import { localValue } from "@/lib/local-value"
 
 import { extractBuilt } from "./extract"
+import { imageryThumb } from "./imagery"
+import mapDark from "./looks/map-dark.png"
+import mapLight from "./looks/map-light.png"
 import { fetched } from "./sites"
 import { rulesRead } from "./zone-rules"
 
@@ -41,11 +45,97 @@ type Options = {
   onZones: (on: boolean) => void
   // The rules screen, or card, which the desktop's popover closes for.
   onRules: () => void
+  // Map or satellite, where the instance has a key for the imagery.
+  satellite?: Satellite
+}
+
+type Satellite = {
+  // Whether the map shows the imagery, which it doesn't with no signal or
+  // once the imagery failed to come, whatever was chosen.
+  shown: boolean
+  // Esri sends the imagery, so it needs a signal, not Shylog's server.
+  online: boolean
+  onChange: (on: boolean) => void
+}
+
+// Map and Satellite as pictures of the same harbour, as Apple Maps shows
+// them, switching the map live. The card marked is what the map shows, and
+// with no signal Satellite can't be chosen.
+function Looks({ satellite, desk }: { satellite: Satellite; desk: boolean }) {
+  const picture = "size-full object-cover"
+  const looks = [
+    {
+      value: "map",
+      label: "Map",
+      picture: (
+        <>
+          <img src={mapLight} alt="" className={cn(picture, "dark:hidden")} />
+          <img
+            src={mapDark}
+            alt=""
+            className={cn(picture, "hidden dark:block")}
+          />
+        </>
+      ),
+    },
+    {
+      value: "satellite",
+      label: "Satellite",
+      // Grey where Esri doesn't send it, not a broken image, and asked for
+      // again when the signal comes back.
+      picture: (
+        <img
+          key={String(satellite.online)}
+          src={imageryThumb}
+          alt=""
+          className={picture}
+          onError={(event) => (event.currentTarget.style.visibility = "hidden")}
+        />
+      ),
+    },
+  ]
+  return (
+    <ToggleGroup
+      aria-label="Map type"
+      value={[satellite.shown ? "satellite" : "map"]}
+      // Tapping the marked card again leaves it marked.
+      onValueChange={(next: string[]) => {
+        if (next[0]) satellite.onChange(next[0] === "satellite")
+      }}
+      className={cn("grid w-full grid-cols-2", desk ? "gap-2" : "gap-3")}
+    >
+      {looks.map(({ value, label, picture: image }) => (
+        <ToggleGroupItem
+          key={value}
+          value={value}
+          disabled={value === "satellite" && !satellite.online}
+          className={cn(
+            "group/look h-auto min-w-0 flex-col items-stretch gap-1.5 p-0 pb-1 font-normal text-muted-foreground hover:bg-transparent aria-pressed:bg-transparent aria-pressed:text-foreground",
+            // Greyed as well as faded, which alone read as unpressed in the
+            // dark theme.
+            "disabled:opacity-40 disabled:[&_img]:grayscale",
+            desk ? "text-xs" : "text-[13px]"
+          )}
+        >
+          <span className="block aspect-[16/10] overflow-hidden rounded-lg bg-muted ring-1 ring-border transition-[box-shadow] duration-150 group-aria-pressed/look:ring-2 group-aria-pressed/look:ring-primary">
+            {image}
+          </span>
+          {label}
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
+  )
 }
 
 // The MPA zones switch, the way to the rules, and where the map's data comes
 // from, each as "Label: text".
-function Body({ zones, onZones, onRules, desk }: Options & { desk: boolean }) {
+function Body({
+  zones,
+  onZones,
+  onRules,
+  satellite,
+  desk,
+}: Options & { desk: boolean }) {
   const row = cn(
     "flex w-full items-center justify-between gap-3 border-b text-left",
     desk ? "min-h-10 text-sm" : "min-h-13 text-[15px]"
@@ -54,9 +144,37 @@ function Body({ zones, onZones, onRules, desk }: Options & { desk: boolean }) {
     "underline decoration-current/40 underline-offset-2 hover:decoration-current"
   return (
     <>
-      <div className={desk ? undefined : "border-t"}>
-        <label className={cn(row, "cursor-pointer select-none")}>
-          MPA zones
+      {satellite && (
+        <div className={desk ? "pb-3" : "pb-4"}>
+          <Looks satellite={satellite} desk={desk} />
+        </div>
+      )}
+      <div className={desk && !satellite ? undefined : "border-t"}>
+        {/* Laid out as the app's other switches: the note under the name,
+            the switch centred beside both. The shading closes across the
+            land, which the imagery doesn't hide; said under either card,
+            so the sheet doesn't grow under the finger as Satellite is
+            chosen. */}
+        <label
+          className={cn(
+            row,
+            "cursor-pointer gap-4 select-none",
+            desk ? "py-2" : "py-2.5"
+          )}
+        >
+          <span className="flex flex-1 flex-col gap-0.5">
+            MPA zones
+            {satellite && (
+              <span
+                className={cn(
+                  "text-muted-foreground",
+                  desk ? "text-xs" : "text-[13px]"
+                )}
+              >
+                Zone shading and the Cape Point bands show on Map only.
+              </span>
+            )}
+          </span>
           <Switch checked={zones} onCheckedChange={onZones} />
         </label>
         <button
@@ -101,6 +219,21 @@ function Body({ zones, onZones, onRules, desk }: Options & { desk: boolean }) {
             contributors, via Protomaps. Extract of{" "}
             <span className="whitespace-nowrap">{day(extractBuilt)}</span>.
           </li>
+          {satellite && (
+            <li>
+              <b className="font-medium text-foreground">Satellite</b>:{" "}
+              <a
+                href="https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9"
+                target="_blank"
+                rel="noopener"
+                className={link}
+              >
+                Esri World Imagery
+              </a>
+              , from Esri, Vantor, GeoEye, Earthstar Geographics, CNES/Airbus
+              DS, USDA, USGS, AeroGRID, IGN and the GIS User Community.
+            </li>
+          )}
           <li>
             <b className="font-medium text-foreground">Dive sites</b>:{" "}
             <a

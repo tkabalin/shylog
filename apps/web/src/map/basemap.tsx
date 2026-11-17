@@ -10,7 +10,9 @@ import {
   type LngLatBoundsLike,
   type LngLatLike,
   type MapGeoJSONFeature,
+  type MapSourceDataEvent,
   type PointLike,
+  type StyleSpecification,
 } from "maplibre-gl"
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url"
 import { Protocol } from "pmtiles"
@@ -31,6 +33,7 @@ import { cn } from "cn"
 import { cubicBezier } from "motion"
 
 import { Button } from "@/components/ui/button"
+import { reportError } from "@/data/client-log"
 import { useDesk } from "@/hooks/use-desk"
 import { reduced } from "@/lib/motion"
 
@@ -114,6 +117,10 @@ export const useMapFrame = () => useContext(FrameContext)
 // so a new style (a theme change) draws them as they were.
 let shownSites: readonly Site[] = sites
 let zonesOn = true
+// The satellite imagery's tiles, while it shows, and how its tiles have
+// fared since it was switched on.
+let imageryOn: string | undefined
+const imageryLoad = { came: false, failed: 0 }
 // The list row's site the map rings, kept so a new style rings it too.
 let hoveredSite: Site | undefined
 // What the current style was built with: a change made before it loaded
@@ -127,7 +134,26 @@ function styleNow(theme: MapTheme, picked?: Site) {
     shown: shownSites,
     showZones: zonesOn,
     hovered: hoveredSite,
+    imagery: imageryOn,
   })
+}
+
+// The imagery is sharp enough for a reef's rocks and kelp, about 0.3 m a
+// pixel, where the map's own extract has nothing more to show past 16.
+const maxZoom = () => (imageryOn ? 18 : 16)
+
+// Map or satellite, swapped live; the style's diff keeps the tiles and the
+// picked site's mark it shares.
+function applyImagery(
+  map: MapLibre,
+  imagery: string | undefined,
+  style: () => StyleSpecification
+) {
+  imageryOn = imagery
+  imageryLoad.came = false
+  imageryLoad.failed = 0
+  map.setMaxZoom(maxZoom())
+  map.setStyle(style())
 }
 
 function applyShown(map: MapLibre) {
@@ -231,6 +257,7 @@ type Kept = {
   pick: (id: string | undefined) => void
   report: (state: MapState) => void
   reveal: () => void
+  imageryFailed: () => void
 }
 let kept: Kept | undefined
 const away = () => {}
@@ -283,6 +310,9 @@ function create(
   picked: Site | undefined,
   desk: boolean
 ) {
+  // A new map's imagery hasn't come yet, whatever the last one's did.
+  imageryLoad.came = false
+  imageryLoad.failed = 0
   const created = new MapLibre({
     container: element,
     style: styleNow(theme, picked),
@@ -299,7 +329,7 @@ function create(
       [19.3, -33.3],
     ],
     minZoom: 8.5,
-    maxZoom: 16,
+    maxZoom: maxZoom(),
     // Past a source's last zoom its tiles are stretched, never split, so
     // the overview's few tiles go on covering the coast as the map moves.
     zoomLevelsToOverscale: undefined,
@@ -443,8 +473,31 @@ function create(
     // A source's errors carry its id, and a single tile's the tile.
     const { sourceId, tile } = event as { sourceId?: string; tile?: unknown }
     if (sourceId === "osm" && !tile) fail()
+    // A few of the imagery's tiles failing before any has come means none
+    // will, and the map is only pins over the sea's colour without them.
+    // Not when the signal has gone, which takes the map back on its own.
+    if (
+      sourceId === "imagery" &&
+      tile &&
+      !imageryLoad.came &&
+      navigator.onLine
+    ) {
+      imageryLoad.failed += 1
+      if (imageryLoad.failed !== 3) return
+      kept?.imageryFailed()
+      // Without the tile's address, which holds the key.
+      const { status } = (event.error ?? {}) as { status?: number }
+      void reportError(
+        "error",
+        new Error(`Satellite imagery didn't load (${status ?? "no answer"})`)
+      )
+    }
   })
-  created.once("idle", () => {
+  created.on("sourcedata", (event) => {
+    if (event.sourceId === "imagery" && event.tile) imageryLoad.came = true
+  })
+  const drawn = () => {
+    if (settled) return
     // Tiles that failed still let the map go idle, with nothing in them.
     const land = ["earth", "water"].some(
       (layer) =>
@@ -456,7 +509,19 @@ function create(
     kept.drawn = true
     kept.reveal()
     kept.report("drawn")
-  })
+  }
+  created.once("idle", drawn)
+  // Over the imagery the map shows once the extract's tiles are in, which
+  // the words and zones need, as the imagery fades in on its own and a
+  // slow Esri would otherwise keep the whole map hidden.
+  const extractIn = (event: MapSourceDataEvent) => {
+    if (settled) return void created.off("sourcedata", extractIn)
+    if (!imageryOn || event.sourceId !== "osm") return
+    if (!created.isSourceLoaded("osm")) return
+    created.off("sourcedata", extractIn)
+    drawn()
+  }
+  created.on("sourcedata", extractIn)
   return created
 }
 
@@ -466,6 +531,8 @@ export default function Basemap({
   onPick,
   filtered = sites,
   zones = true,
+  imagery,
+  onImageryFailed,
   hovered,
   children,
 }: {
@@ -477,6 +544,10 @@ export default function Basemap({
   // list row is under the mouse, ringed.
   filtered?: readonly Site[]
   zones?: boolean
+  // The satellite imagery's tiles, in place of the map's own land, and
+  // what to do if they don't come.
+  imagery?: string
+  onImageryFailed?: () => void
   hovered?: string
   // The controls, sheet and cards over the map.
   children?: ReactNode
@@ -491,6 +562,7 @@ export default function Basemap({
   const desk = useDesk()
   const report = useEffectEvent((state: MapState) => onState?.(state))
   const pick = useEffectEvent((id: string | undefined) => onPick?.(id))
+  const imageryFailed = useEffectEvent(() => onImageryFailed?.())
   // A theme change redraws the style with the pick as it stands.
   const styleFor = useEffectEvent((look: MapTheme) => styleNow(look, picked))
   // The map's box, which the phone's sheet also stays inside: a ref too,
@@ -515,6 +587,7 @@ export default function Basemap({
       wrapper.append(element)
       shownSites = filtered
       zonesOn = zones
+      imageryOn = imagery
       kept = {
         map: create(element, theme, picked, desk),
         theme,
@@ -522,6 +595,7 @@ export default function Basemap({
         pick: away,
         report: away,
         reveal: away,
+        imageryFailed: away,
       }
     }
     const current = kept
@@ -530,7 +604,16 @@ export default function Basemap({
     current.pick = (id) => pick(id)
     current.report = (state) => report(state)
     current.reveal = () => setShown(true)
+    current.imageryFailed = () => imageryFailed()
     map.current = current.map
+    // The signal may have come or gone while away: the right look before
+    // the frame paints, not one frame late.
+    if (imagery !== imageryOn) {
+      applyImagery(current.map, imagery, () => styleFor(theme))
+    } else if (imagery && !imageryLoad.came && imageryLoad.failed >= 3) {
+      // It failed while away, with no page to go back to the Map.
+      current.imageryFailed()
+    }
     // Resizing clears the canvas, so it is drawn again before the frame
     // paints, or the sidebar folding (or coming back) flashes it blank.
     const redraw = () => current.map.resize().redraw()
@@ -543,6 +626,7 @@ export default function Basemap({
     return () => {
       resize.disconnect()
       current.pick = current.report = current.reveal = away
+      current.imageryFailed = away
       map.current = null
       // One not drawn yet (no signal, or left at once) starts again.
       element.remove()
@@ -636,6 +720,13 @@ export default function Basemap({
     zonesOn = zones
     applyZones(current)
   }, [zones])
+  useEffect(() => {
+    const current = map.current
+    if (!current || imagery === imageryOn) return
+    applyImagery(current, imagery, () => styleFor(theme))
+    // The theme is read when the imagery changes, not watched here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imagery])
   useEffect(() => {
     hoveredSite = hovered ? siteById.get(hovered) : undefined
     const current = map.current

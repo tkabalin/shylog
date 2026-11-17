@@ -76,6 +76,38 @@ async function drawn(page: Page) {
   return (await page.locator("main .maplibregl-canvas").boundingBox())!
 }
 
+// The server writes the instance's ArcGIS key into the page; Vite's page is
+// rewritten here as the server would, and Esri's tiles answered with a
+// stand-in, so the map's requests for them can be counted.
+async function withSatellite(page: Page, { refused = false } = {}) {
+  const pages = ["/", "/explore"]
+  await page.route(
+    (url) => pages.includes(url.pathname),
+    async (route) => {
+      const response = await route.fetch()
+      const body = (await response.text()).replace(
+        '<meta name="shylog-arcgis-key" content=""',
+        '<meta name="shylog-arcgis-key" content="e2e-key"'
+      )
+      await route.fulfill({ response, body })
+    }
+  )
+  const tiles: string[] = []
+  await page.route(/ibasemaps-api\.arcgis\.com/, (route) => {
+    tiles.push(route.request().url())
+    return refused
+      ? route.fulfill({ status: 403, body: "Invalid token" })
+      : route.fulfill({ contentType: "image/png", body: tile })
+  })
+  // The map's own, not the Satellite card's picture.
+  return () => tiles.filter((url) => !url.includes("/tile/13/4924/4515?"))
+}
+// A grey 1 px PNG.
+const tile = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNoAAAAggCBd81ytgAAAABJRU5ErkJggg==",
+  "base64"
+)
+
 // Where the sheet comes to rest, once its slides have finished: one that
 // starts while another runs replaces it, so it waits again until none run.
 async function resting(sheet: Locator) {
@@ -956,6 +988,75 @@ test.describe("at phone width", () => {
     await expect(options).toHaveCount(0)
     await expect(button).toBeFocused()
   })
+
+  test("switches to satellite from Map options, and keeps the choice", async ({
+    page,
+    context,
+  }) => {
+    const mapTiles = await withSatellite(page)
+    await page.goto("/explore")
+    await drawn(page)
+    await page.getByRole("button", { name: "Map options" }).click()
+    const options = page.getByRole("dialog", { name: "Map" })
+    const looks = options.getByRole("group", { name: "Map type" })
+    const map = looks.getByRole("button", { name: "Map", exact: true })
+    const satellite = looks.getByRole("button", { name: "Satellite" })
+    await expect(map).toHaveAttribute("aria-pressed", "true")
+    await expect(
+      options.getByText(
+        "Zone shading and the Cape Point bands show on Map only."
+      )
+    ).toBeVisible()
+    expect(mapTiles()).toEqual([])
+    await satellite.click()
+    await expect(satellite).toHaveAttribute("aria-pressed", "true")
+    await expect.poll(() => mapTiles().length).toBeGreaterThan(0)
+    expect(mapTiles()[0]).toContain("token=e2e-key")
+    await expect(options.getByText(/^Satellite:/)).toBeVisible()
+    await page.reload()
+    await drawn(page)
+    await page.getByRole("button", { name: "Map options" }).click()
+    await expect(satellite).toHaveAttribute("aria-pressed", "true")
+    // Esri needs a signal: the map goes back to the Map until it returns.
+    await context.setOffline(true)
+    await expect(map).toHaveAttribute("aria-pressed", "true")
+    await expect(satellite).toBeDisabled()
+    await context.setOffline(false)
+    await expect(satellite).toHaveAttribute("aria-pressed", "true")
+  })
+
+  test("goes back to the map when the imagery doesn't come", async ({
+    page,
+  }) => {
+    await withSatellite(page, { refused: true })
+    await page.goto("/explore")
+    await drawn(page)
+    await page.getByRole("button", { name: "Map options" }).click()
+    const looks = page
+      .getByRole("dialog", { name: "Map" })
+      .getByRole("group", { name: "Map type" })
+    await looks.getByRole("button", { name: "Satellite" }).click()
+    await expect(
+      page.getByText("Couldn't load the satellite imagery")
+    ).toBeVisible()
+    await expect(
+      looks.getByRole("button", { name: "Map", exact: true })
+    ).toHaveAttribute("aria-pressed", "true")
+    // Still there to try again.
+    await expect(looks.getByRole("button", { name: "Satellite" })).toBeEnabled()
+  })
+
+  test("has no satellite on an instance without a key", async ({ page }) => {
+    await page.goto("/explore")
+    await drawn(page)
+    await page.getByRole("button", { name: "Map options" }).click()
+    const options = page.getByRole("dialog", { name: "Map" })
+    await expect(options.getByLabel("MPA zones")).toBeVisible()
+    await expect(options.getByRole("group", { name: "Map type" })).toHaveCount(
+      0
+    )
+    await expect(options.getByText(/^Satellite:/)).toHaveCount(0)
+  })
 })
 
 test.describe("at desktop width", () => {
@@ -1167,5 +1268,18 @@ test.describe("at desktop width", () => {
     await row.click()
     await rules.getByRole("link", { name: "Dive sites" }).click()
     await expect(page.getByRole("region", { name: "Dive sites" })).toBeVisible()
+  })
+
+  test("switches to satellite from the options popover", async ({ page }) => {
+    const mapTiles = await withSatellite(page)
+    await page.goto("/explore")
+    await drawn(page)
+    await page.getByRole("button", { name: "Map options" }).click()
+    const looks = page.getByRole("group", { name: "Map type" })
+    await looks.getByRole("button", { name: "Satellite" }).click()
+    await expect(
+      looks.getByRole("button", { name: "Satellite" })
+    ).toHaveAttribute("aria-pressed", "true")
+    await expect.poll(() => mapTiles().length).toBeGreaterThan(0)
   })
 })
