@@ -86,9 +86,12 @@ export function StatsScreen({
   onYear: (year: string | undefined) => void
 }) {
   const { log } = useLog()
-  // Below the records, the screen renders a painted frame later, so the
-  // first screen shows sooner after the tap; placeholders hold its place.
-  const painted = usePainted()
+  // The SAC chart renders a painted frame later, so the first screen shows
+  // sooner after the tap, and everything below the records a frame after
+  // the chart, so it doesn't wait on Patterns; placeholders hold its place.
+  // Counted from the log's arrival, as a cold start reads it frames later.
+  const drawn = usePainted(!!log)
+  const painted = usePainted(drawn)
   useKeptScroll(painted)
   // Until there is a log, or why there isn't, as the Log tab says it.
   if (!log) return <NoLog title="Statistics" skeleton={<StatsSkeleton />} />
@@ -109,12 +112,7 @@ export function StatsScreen({
         <Hours seconds={stats.seconds} />
       </header>
       <div className="flex flex-col gap-7">
-        <AirConsumption
-          stats={stats}
-          year={shown}
-          log={log}
-          painted={painted}
-        />
+        <AirConsumption stats={stats} year={shown} log={log} drawn={drawn} />
         <Section id="records" title="Records and averages">
           <RecordsCard stats={stats} log={log} />
         </Section>
@@ -180,7 +178,7 @@ export function StatsScreen({
             <Tags stats={stats} year={shown} />
           </>
         ) : (
-          <BelowPlaceholder />
+          <BelowPlaceholder waiting={drawn} />
         )}
       </div>
     </Page>
@@ -189,15 +187,17 @@ export function StatsScreen({
 
 // A wait's placeholder, blank at first, as the wait nearly always ends a
 // frame or two later, so a quick one never flashes the sketch; a wait past
-// 150 ms fades it in.
+// 150 ms fades it in. The wait counts only while `waiting`.
 function Late({
   className,
+  waiting = true,
   children,
 }: {
   className: string
+  waiting?: boolean
   children: React.ReactNode
 }) {
-  const late = useAfter(150)
+  const late = useAfter(150, waiting)
   return (
     <div
       aria-hidden
@@ -233,10 +233,12 @@ function StatsSkeleton() {
 }
 
 // Where the sections below the records go until they render, about their
-// height, so the page's length and a restored scroll position hold.
-function BelowPlaceholder() {
+// height, so the page's length and a restored scroll position hold. Their
+// wait counts from the SAC chart's draw, as they come a frame after it and
+// a big log's chart alone takes about 150 ms.
+function BelowPlaceholder({ waiting }: { waiting: boolean }) {
   return (
-    <Late className="flex flex-col gap-7">
+    <Late className="flex flex-col gap-7" waiting={waiting}>
       {["h-44", "h-36", "h-96", "h-52"].map((height) => (
         <Skeleton key={height} className={cn("w-full rounded-xl", height)} />
       ))}
@@ -366,12 +368,12 @@ function AirConsumption({
   stats,
   year,
   log,
-  painted,
+  drawn,
 }: {
   stats: Statistics
   year: string | undefined
   log: LogView
-  painted: boolean
+  drawn: boolean
 }) {
   const [open, setOpen] = useKept("distribution", false)
   const [axis, setAxis] = useKept<"date" | "number">("sac-axis", "number")
@@ -444,9 +446,9 @@ function AirConsumption({
             )}
           </dd>
         </dl>
-        {/* A painted frame later, as the sections below the records are:
-            the chart was most of a big log's first frame. */}
-        {painted ? (
+        {/* A painted frame later: at 1000 dives the chart took about
+            150 ms at 4x CPU, too long for the first frame. */}
+        {drawn ? (
           <SacTrend
             trend={trend}
             year={year}
