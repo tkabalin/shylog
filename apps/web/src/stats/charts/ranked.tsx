@@ -5,11 +5,12 @@ import type { EntityKind } from "@shylog/core"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { FadeIn } from "@/components/fold"
 import { countText } from "@/components/pickers/match"
 import { Card } from "@/components/ui/card"
 import { listRow, pressable } from "@/you/parts"
 
-import { Opening, tint, useKept } from "./parts"
+import { tint, useKept } from "./parts"
 
 interface Row {
   // The entity's id, which the row opens.
@@ -38,7 +39,7 @@ export function Ranked({
   avatar?: boolean
 }) {
   const [all, setAll] = useKept(`ranked ${kind}`, false)
-  // Back restores the rest open at once; a tap eases it open.
+  // Back restores the rest open at once; a tap fades it in.
   const [still, setStill] = useState(true)
   const max = rows[0]?.count ?? 1
   const item = (row: Row) => (
@@ -100,8 +101,7 @@ export function Ranked({
         {rows.slice(0, top).map(item)}
       </ol>
       {all && (
-        // Eases open, as the conditions' rows do.
-        <Opening instant={still}>
+        <FadeIn instant={still}>
           <ol
             aria-label={`${label}, the rest`}
             start={top + 1}
@@ -109,7 +109,7 @@ export function Ranked({
           >
             {rows.slice(top).map(item)}
           </ol>
-        </Opening>
+        </FadeIn>
       )}
       {rows.length > top && (
         <button

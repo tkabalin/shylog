@@ -10,13 +10,12 @@ import {
   IconListCheck,
 } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
-import { cn } from "cn"
 
+import { FadeIn } from "@/components/fold"
 import { countText } from "@/components/pickers/match"
 import { Card } from "@/components/ui/card"
 import type { Dive } from "@/data/db"
 import type { LogView } from "@/data/log"
-import { Reveal } from "@/dive/form/rows"
 import { clockTime, longDate } from "@/format/dates"
 import { depth, minutes } from "@/format/figures"
 
@@ -48,13 +47,12 @@ export function DivesCard({
           parent={parent}
         />
       ))}
-      {/* The rest ease open rather than pushing what's below down at once. */}
-      {/* One reveal per batch, so each "more" eases open too. */}
+      {/* One fade per batch, so each "more" fades in too. */}
       {Array.from(
         { length: Math.ceil((shown - 3) / 50) },
         (_, batch) => 3 + batch * 50
       ).map((start) => (
-        <Reveal key={start} className="divide-y">
+        <FadeIn key={start} className="divide-y">
           {dives.slice(start, start + 50).map((dive) => (
             <DiveRow
               key={dive.id}
@@ -64,34 +62,21 @@ export function DivesCard({
               parent={parent}
             />
           ))}
-        </Reveal>
+        </FadeIn>
       ))}
-      {/* Folds shut as the last batch opens, rather than leaving at once
-          and dropping the page under the finger. */}
-      {dives.length > 3 && (
-        <div
-          inert={dives.length <= shown}
-          className={cn(
-            "grid transition-[grid-template-rows,opacity,visibility] duration-200 ease-out motion-reduce:transition-[opacity,visibility]",
-            dives.length > shown
-              ? "visible grid-rows-[1fr] opacity-100"
-              : "invisible grid-rows-[0fr] opacity-0"
-          )}
+      {/* Gone with the last batch, whose first rows take its place. */}
+      {dives.length > shown && (
+        <button
+          type="button"
+          onClick={() => setShown((was) => was + 50)}
+          className="flex min-h-12 items-center gap-1.5 px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
         >
-          <button
-            type="button"
-            onClick={() => setShown((was) => was + 50)}
-            className="flex min-h-0 items-center gap-1.5 overflow-hidden px-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 select-none hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
-          >
-            {/* "All" only when one tap shows them all. */}
-            <span className="flex min-h-12 items-center gap-1.5">
-              {dives.length - shown <= 50
-                ? `All ${countText(dives.length)} dives`
-                : "50 more"}
-              <IconChevronDown aria-hidden className="size-4" />
-            </span>
-          </button>
-        </div>
+          {/* "All" only when one tap shows them all. */}
+          {dives.length - shown <= 50
+            ? `All ${countText(dives.length)} dives`
+            : "50 more"}
+          <IconChevronDown aria-hidden className="size-4" />
+        </button>
       )}
       {children}
     </Card>
