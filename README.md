@@ -69,7 +69,7 @@ flowchart LR
 
 Solid arrows are the request path, from the phone through Tailscale to the database; the dotted arrow is the download from the dive computer through `dctool`; cylinders are data stores.
 
-The phone keeps a mirror of the whole log, so the app opens and reads without signal, and a separate queue for dives logged offline. A sync replaces the mirror but never touches the queue, so a dive saved without signal can't be lost to a refresh. Drafts upload when there is signal and the server applies each one whole or not at all; edits to dives already on the server are plain API calls. The app container shares the Tailscale sidecar's network and listens nowhere else, so the only way in is Tailscale Serve, which tells the app who is calling. See [docs/offline-sync.md](docs/offline-sync.md) for the sync rules and [docs/security.md](docs/security.md) for the identity checks.
+The phone keeps a mirror of the whole log, so the app opens and reads without signal, and a separate queue for dives logged offline. A sync brings the mirror up to date but never touches the queue, so a dive saved without signal can't be lost to a refresh. Drafts upload when there is signal and the server applies each one whole or not at all; edits to dives already on the server are plain API calls. The app container shares the Tailscale sidecar's network and listens nowhere else, so the only way in is Tailscale Serve, which tells the app who is calling. See [docs/offline-sync.md](docs/offline-sync.md) for the sync rules and [docs/security.md](docs/security.md) for the identity checks.
 
 ## Tech stack
 

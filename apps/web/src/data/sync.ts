@@ -2,25 +2,25 @@ import { latestSchemaVersion } from "@shylog/core"
 
 import { apiClient, type Log } from "@/api/client"
 
-import {
-  byDive,
-  collections,
-  db as defaultDb,
-  type Blocked,
-  type LogDb,
-  type Meta,
-} from "./db"
-import { pruneCardImages } from "./cards"
+import { db as defaultDb, type Blocked, type LogDb, type Meta } from "./db"
 import { answered, NoAnswer, RequestFailed, requestIdOf } from "./client-log"
-import { pruneProfiles } from "./samples"
+import { fetchedMirror, writeMirror, type Mirror } from "./mirror"
 
 export type SyncResult = "updated" | "unchanged" | "blocked"
 
 // Fetches /api/log with the version the mirror holds as its ETag, and
-// replaces the mirror in one transaction, so a reader never sees half of
-// two versions. No answer throws NoAnswer, leaving the mirror as it was.
+// writes what changed to the mirror (see writeMirror). `show` has the log
+// first, so memory needn't wait for IndexedDB. No answer throws NoAnswer,
+// leaving the mirror as it was.
 export async function syncLog(
-  options: { db?: LogDb; fetch?: typeof globalThis.fetch } = {}
+  options: {
+    db?: LogDb
+    fetch?: typeof globalThis.fetch
+    show?: (
+      mirror: Mirror,
+      current: () => Promise<boolean>
+    ) => void | Promise<void>
+  } = {}
 ): Promise<SyncResult> {
   const db = options.db ?? defaultDb
   const meta = (await db.meta.get("log")) as Meta | undefined
@@ -58,40 +58,13 @@ export async function syncLog(
     })
     return "blocked"
   }
-  await db.transaction(
-    "rw",
-    [...collections, "meta", "profiles", "cardImages"],
-    async () => {
-      // Another tab may have written a newer log while this one fetched.
-      const now = (await db.meta.get("log")) as Meta | undefined
-      if (now?.version !== meta?.version) return
-      await Promise.all(collections.map((name) => db[name].clear()))
-      await Promise.all([
-        db.dives.bulkPut(log.dives),
-        db.sites.bulkPut(log.sites),
-        db.countries.bulkPut(log.countries.map((code) => ({ code }))),
-        db.regions.bulkPut(log.regions),
-        db.people.bulkPut(log.people),
-        db.diveCentres.bulkPut(log.diveCentres),
-        db.trips.bulkPut(log.trips),
-        db.diveLinks.bulkPut(byDive(log.links)),
-        db.diveFieldMeta.bulkPut(byDive(log.fieldMeta)),
-        db.cards.bulkPut(
-          log.cards.map((card, position) => ({ ...card, position }))
-        ),
-        pruneProfiles(db, new Set(log.dives.map((dive) => dive.id))),
-        pruneCardImages(db, log.cards),
-      ])
-      await db.meta.delete("blocked")
-      await db.meta.put({
-        key: "log",
-        version: log.version,
-        schemaVersion: log.schemaVersion,
-        serverTime: log.serverTime,
-        settings: log.settings,
-        packing: log.packing,
-      })
-    }
-  )
+  const mirror = fetchedMirror(db, log)
+  // Whether the mirror still holds the version this fetch began from. Once
+  // an upload or another tab has written a newer log, showing this one
+  // would flash older data, such as a dive just uploaded.
+  const current = async () =>
+    ((await db.meta.get("log")) as Meta | undefined)?.version === meta?.version
+  await options.show?.(mirror, current)
+  await writeMirror(db, mirror, meta?.version)
   return "updated"
 }

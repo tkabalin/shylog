@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { Log } from "@/api/client"
 
 import { NoAnswer } from "./client-log"
-import { LogDb, type Meta } from "./db"
+import { collections, LogDb, type Meta } from "./db"
 import { lastSync, noteSynced, readLastSync } from "./last-sync"
 import { syncLog } from "./sync"
 
@@ -17,6 +17,15 @@ const dive = (id: string, startTime: string) =>
     duration: 2520,
     maxDepth: 32.66,
   }) as Log["dives"][number]
+
+// A field typed by hand, with the computer's reading beside it.
+const source = (diveId: string, field: string, computerValue = 0) => ({
+  diveId,
+  field,
+  source: "hand" as const,
+  computerValue,
+  dismissed: false,
+})
 
 const log = (version: string, overrides: Partial<Log> = {}): Log => ({
   schemaVersion: latestSchemaVersion,
@@ -100,6 +109,24 @@ describe("syncLog", () => {
     })
   })
 
+  it("shows the fetched log before it writes it", async () => {
+    let written: unknown = "unread"
+    let current: boolean | undefined
+    const show = vi.fn(async (_: unknown, check: () => Promise<boolean>) => {
+      written = await db.meta.get("log")
+      current = await check()
+    })
+    await syncLog({ db, fetch: server(() => log("v1")), show })
+    expect(show).toHaveBeenCalledWith(
+      expect.objectContaining({
+        meta: expect.objectContaining({ version: "v1" }),
+      }),
+      expect.any(Function)
+    )
+    expect(written).toBeUndefined()
+    expect(current).toBe(true)
+  })
+
   it("replaces what an older version held", async () => {
     let current = log("v1")
     const fetch = server(() => current)
@@ -113,6 +140,79 @@ describe("syncLog", () => {
     expect((await db.dives.toArray()).map((d) => d.id)).toEqual(["dive-b"])
     expect(await db.people.count()).toBe(0)
     expect(await db.diveLinks.count()).toBe(0)
+  })
+
+  it("writes only the rows a new version changed, and deletes those it dropped", async () => {
+    let current = log("v1", {
+      dives: [
+        dive("dive-a", "2026-07-22T08:12:19"),
+        dive("dive-b", "2026-07-23T08:00:00"),
+      ],
+      fieldMeta: [
+        source("dive-a", "maxDepth", 31.2),
+        source("dive-b", "duration"),
+      ],
+    })
+    const fetch = server(() => current)
+    await syncLog({ db, fetch })
+    const kept = { digest: "[]", samples: [], events: [] }
+    await db.profiles.bulkPut([
+      { diveId: "dive-a", ...kept },
+      { diveId: "dive-b", ...kept },
+    ])
+    const clear = vi.spyOn(db.dives, "clear")
+    const put = {
+      dives: vi.spyOn(db.dives, "bulkPut"),
+      sites: vi.spyOn(db.sites, "bulkPut"),
+      people: vi.spyOn(db.people, "bulkPut"),
+      links: vi.spyOn(db.diveLinks, "bulkPut"),
+      fieldMeta: vi.spyOn(db.diveFieldMeta, "bulkPut"),
+    }
+    const changed = { ...dive("dive-a", "2026-07-22T08:12:19"), maxDepth: 30 }
+    const lerato = { id: "person-lerato", name: "Lerato Mokoena" }
+    current = log("v2", {
+      dives: [changed],
+      people: [...current.people, lerato],
+      fieldMeta: [source("dive-a", "maxDepth", 29.8)],
+    })
+    expect(await syncLog({ db, fetch })).toBe("updated")
+
+    expect(clear).not.toHaveBeenCalled()
+    expect(put.dives).toHaveBeenCalledExactlyOnceWith([changed])
+    expect(put.people).toHaveBeenCalledExactlyOnceWith([lerato])
+    expect(put.fieldMeta).toHaveBeenCalledExactlyOnceWith([
+      { diveId: "dive-a", rows: [source("dive-a", "maxDepth", 29.8)] },
+    ])
+    expect(put.sites).not.toHaveBeenCalled()
+    expect(put.links).not.toHaveBeenCalled()
+    expect(await db.diveFieldMeta.count()).toBe(1)
+    expect((await db.profiles.toArray()).map((p) => p.diveId)).toEqual([
+      "dive-a",
+    ])
+    // Just as a whole sync of the same version leaves the mirror.
+    const fresh = new LogDb(`test-${crypto.randomUUID()}`)
+    await syncLog({ db: fresh, fetch: server(() => current) })
+    for (const name of [...collections, "meta"] as const)
+      expect(await db[name].toArray()).toEqual(await fresh[name].toArray())
+    await fresh.delete()
+  })
+
+  it("replaces every table when another tab wrote the mirror since this one did", async () => {
+    await syncLog({ db, fetch: server(() => log("v1")) })
+    const other = new LogDb(db.name)
+    await syncLog({
+      db: other,
+      fetch: server(() =>
+        log("v2", { dives: [dive("dive-b", "2026-07-23T08:00:00")] })
+      ),
+    })
+    other.close()
+    const clear = vi.spyOn(db.dives, "clear")
+    expect(await syncLog({ db, fetch: server(() => log("v3")) })).toBe(
+      "updated"
+    )
+    expect(clear).toHaveBeenCalledOnce()
+    expect((await db.dives.toArray()).map((d) => d.id)).toEqual(["dive-a"])
   })
 
   it("drops the kept profiles of dives the log no longer has", async () => {
@@ -181,7 +281,13 @@ describe("syncLog", () => {
       await db.meta.put({ ...meta, version: "v3" })
       return Response.json(log("v2", { dives: [] }))
     })
-    expect(await syncLog({ db, fetch })).toBe("updated")
+    let current: boolean | undefined
+    const show = vi.fn(async (_: unknown, check: () => Promise<boolean>) => {
+      current = await check()
+    })
+    expect(await syncLog({ db, fetch, show })).toBe("updated")
+    // Shown, the older log would hide v3's dive until the read after it.
+    expect(current).toBe(false)
     expect(await db.meta.get("log")).toMatchObject({ version: "v3" })
     expect(await db.dives.count()).toBe(1)
   })

@@ -8,11 +8,12 @@ import {
 import { downloadCardImages, forgetCardUrls, warmCardImages } from "./cards"
 import {
   db as defaultDb,
-  type Blocked,
   type Card,
   type Dive,
   type DiveCentre,
+  type DiveRows,
   type FieldMeta,
+  type Link,
   type LogDb,
   type Meta,
   type Packing,
@@ -28,6 +29,7 @@ import {
   type Draft,
   type QueueDb,
 } from "./drafts"
+import { readMirror, type Mirror } from "./mirror"
 import { downloadProfiles } from "./samples"
 import { noteSynced, readLastSync } from "./last-sync"
 import { upload } from "./upload"
@@ -79,8 +81,56 @@ export interface LogState {
 
 export type Reach = "ok" | "unreachable" | "fault"
 
-const byId = <T extends { id: string }>(rows: T[]) =>
-  new Map(rows.map((row) => [row.id, row]))
+// Worked out once per object. The mirror keeps unchanged rows, and maps of
+// them, as the same objects from one version to the next, so what is made
+// from them is the same too, and a screen memoised on it doesn't render.
+function once<K extends object, V>(make: (key: K) => V) {
+  const made = new WeakMap<K, V>()
+  return (key: K) => {
+    let value = made.get(key)
+    if (value === undefined) made.set(key, (value = make(key)))
+    return value
+  }
+}
+
+const diveLinks = once(({ rows }: DiveRows<Link>) => {
+  const links: DiveLinks = { buddies: [], professionals: [], tags: [] }
+  for (const link of [...rows].sort((a, b) => a.position - b.position)) {
+    const list =
+      link.type === "buddy"
+        ? links.buddies
+        : link.type === "professional"
+          ? links.professionals
+          : links.tags
+    list.push(link.target)
+  }
+  return links
+})
+
+const linksOf = once(
+  (rows: Mirror["diveLinks"]) =>
+    new Map([...rows].map(([diveId, group]) => [diveId, diveLinks(group)]))
+)
+
+const diveFieldMeta = once(
+  ({ rows }: DiveRows<FieldMeta>) =>
+    new Map(rows.map((row) => [row.field, row]))
+)
+
+const fieldMetaOf = once(
+  (rows: Mirror["diveFieldMeta"]) =>
+    new Map([...rows].map(([diveId, group]) => [diveId, diveFieldMeta(group)]))
+)
+
+// A card kept before places were (schema 3) goes last until the full sync
+// the upgrade asks for, rather than unsorting the rest.
+const cardsOf = once((cards: Mirror["cards"]) =>
+  [...cards.values()].sort(
+    (a, b) =>
+      (a.position ?? Number.MAX_SAFE_INTEGER) -
+      (b.position ?? Number.MAX_SAFE_INTEGER)
+  )
+)
 
 // Fields a dive row doesn't carry: the lists are links, and the interval
 // is set below.
@@ -155,7 +205,10 @@ function draftDive(draft: Draft): Dive {
 // Numbers dives as the server will once drafts upload (see derived.ts): by
 // start time, ties to the one written first (refused drafts never are), so a
 // synced dive after an earlier-dated draft moves up and no number shows twice.
-function numberDrafts(dives: Dive[]) {
+// A synced dive is the mirror's own object, shared by every version that
+// leaves it alone, so one whose number moves is copied, not changed.
+function numberDrafts(dive: Map<string, Dive>) {
+  const dives = [...dive.values()].filter((dive) => !dive.deletedAt)
   // With none, the server's numbers stand, and the sort is skipped.
   if (!dives.some((dive) => dive.draft)) return
   const counted = dives
@@ -167,9 +220,9 @@ function numberDrafts(dives: Dive[]) {
         (a.number ?? 0) - (b.number ?? 0) ||
         (a.savedAt ?? "").localeCompare(b.savedAt ?? "")
     )
-  counted.forEach((dive, i) => {
-    if (dive.draft) dive.provisional = i + 1
-    else dive.number = i + 1
+  counted.forEach((one, i) => {
+    if (one.draft) one.provisional = i + 1
+    else if (one.number !== i + 1) dive.set(one.id, { ...one, number: i + 1 })
   })
 }
 
@@ -215,127 +268,90 @@ function addEntities(log: LogView, draft: Draft) {
   }
 }
 
+// The drafts to lay over the mirror. A queue that won't open (a newer app's
+// schema) mustn't hide the log.
+const readDrafts = (queue: QueueDb) =>
+  listDrafts(queue).catch((error: unknown) => {
+    console.warn("Couldn't read the drafts", error)
+    return []
+  })
+
+// The mirror with the drafts laid over it. Only what a draft changes is
+// copied: the rest is the mirror's own, never changed here.
+function viewOf({ meta, ...mirror }: Mirror, drafts: Draft[]): LogView {
+  // Shown, and opened, before they upload; a draft wins over a mirror row
+  // with its id, which is the same dive edited since it uploaded.
+  const dive = drafts.length ? new Map(mirror.dives) : mirror.dives
+  for (const draft of drafts) {
+    // One that newer code can't read (a schema change) mustn't hide the
+    // whole log; it stays queued.
+    try {
+      dive.set(draft.id, draftDive(draft))
+    } catch (error) {
+      console.warn("Couldn't read a draft", draft.id, error)
+    }
+  }
+  numberDrafts(dive)
+  // Local wall-clock strings sort as dates. Ties take the server's
+  // numbering, which follows the order they were written.
+  const logged = [...dive.values()]
+    .filter((dive) => !dive.deletedAt)
+    .sort(
+      (a, b) =>
+        b.startTime.localeCompare(a.startTime) ||
+        (b.number ?? b.provisional ?? 0) - (a.number ?? a.provisional ?? 0) ||
+        b.id.localeCompare(a.id)
+    )
+  const links = linksOf(mirror.diveLinks)
+  const entities = drafts.some((draft) => draft.entities.length)
+  const fresh = <T>(map: Map<string, T>) => (entities ? new Map(map) : map)
+  const log: LogView = {
+    version: meta.version,
+    settings: meta.settings,
+    dives: logged,
+    dive,
+    sites: fresh(mirror.sites),
+    regions: fresh(mirror.regions),
+    people: fresh(mirror.people),
+    diveCentres: fresh(mirror.diveCentres),
+    trips: fresh(mirror.trips),
+    links: drafts.length ? new Map(links) : links,
+    fieldMeta: fieldMetaOf(mirror.diveFieldMeta),
+    cards: cardsOf(mirror.cards),
+    packing: meta.packing,
+    pending: new Set(),
+  }
+  for (const draft of drafts) {
+    const { id, fields } = draft
+    log.links.set(id, {
+      buddies: fields.buddies ?? [],
+      professionals: fields.diveProfessionals ?? [],
+      tags: fields.tags ?? [],
+    })
+    try {
+      addEntities(log, draft)
+    } catch (error) {
+      console.warn("Couldn't read a draft's entities", draft.id, error)
+    }
+  }
+  return log
+}
+
 export async function readLog(
   db: LogDb = defaultDb,
   queue: QueueDb = defaultQueue
 ): Promise<LogState> {
   // Drafts before the copy: an upload writes the log before it drops the
   // draft, so a read between the two still finds the dive in one of them.
-  // A queue that won't open (a newer app's schema) mustn't hide the log.
-  const drafts = await listDrafts(queue).catch((error: unknown) => {
-    console.warn("Couldn't read the drafts", error)
-    return []
-  })
-  return db.transaction("r", db.tables, async () => {
-    const [meta, blocked] = await Promise.all([
-      db.meta.get("log") as Promise<Meta | undefined>,
-      db.meta.get("blocked") as Promise<Blocked | undefined>,
-    ])
-    // A flag an updated app now understands no longer blocks, as in syncLog.
-    const state = {
-      loaded: true,
-      reach: "ok" as Reach,
-      blocked: !!blocked && blocked.schemaVersion > latestSchemaVersion,
-    }
-    if (!meta) return { ...state, log: null }
-    const [
-      dives,
-      sites,
-      regions,
-      people,
-      centres,
-      trips,
-      links,
-      fieldMeta,
-      cards,
-    ] = await Promise.all([
-      db.dives.toArray(),
-      db.sites.toArray(),
-      db.regions.toArray(),
-      db.people.toArray(),
-      db.diveCentres.toArray(),
-      db.trips.toArray(),
-      db.diveLinks.toArray(),
-      db.diveFieldMeta.toArray(),
-      db.cards.toArray(),
-    ])
-    // Shown, and opened, before they upload; a draft wins over a mirror row
-    // with its id, which is the same dive edited since it uploaded.
-    const dive = byId(dives)
-    for (const draft of drafts) {
-      // One that newer code can't read (a schema change) mustn't hide the
-      // whole log; it stays queued.
-      try {
-        dive.set(draft.id, draftDive(draft))
-      } catch (error) {
-        console.warn("Couldn't read a draft", draft.id, error)
-      }
-    }
-    const logged = [...dive.values()].filter((dive) => !dive.deletedAt)
-    numberDrafts(logged)
-    // Local wall-clock strings sort as dates. Ties take the server's
-    // numbering, which follows the order they were written.
-    logged.sort(
-      (a, b) =>
-        b.startTime.localeCompare(a.startTime) ||
-        (b.number ?? b.provisional ?? 0) - (a.number ?? a.provisional ?? 0) ||
-        b.id.localeCompare(a.id)
-    )
-    const linkMap = new Map<string, DiveLinks>()
-    for (const { diveId, rows } of links) {
-      const entry: DiveLinks = { buddies: [], professionals: [], tags: [] }
-      for (const link of rows.sort((a, b) => a.position - b.position)) {
-        const list =
-          link.type === "buddy"
-            ? entry.buddies
-            : link.type === "professional"
-              ? entry.professionals
-              : entry.tags
-        list.push(link.target)
-      }
-      linkMap.set(diveId, entry)
-    }
-    for (const { id, fields } of drafts) {
-      linkMap.set(id, {
-        buddies: fields.buddies ?? [],
-        professionals: fields.diveProfessionals ?? [],
-        tags: fields.tags ?? [],
-      })
-    }
-    const metaMap = new Map<string, Map<string, FieldMeta>>()
-    for (const { diveId, rows } of fieldMeta)
-      metaMap.set(diveId, new Map(rows.map((row) => [row.field, row])))
-    const log: LogView = {
-      version: meta.version,
-      settings: meta.settings,
-      dives: logged,
-      dive,
-      sites: byId(sites),
-      regions: byId(regions),
-      people: byId(people),
-      diveCentres: byId(centres),
-      trips: byId(trips),
-      links: linkMap,
-      fieldMeta: metaMap,
-      // A card kept before places were (schema 3) goes last until the full
-      // sync the upgrade asks for, rather than unsorting the rest.
-      cards: cards.sort(
-        (a, b) =>
-          (a.position ?? Number.MAX_SAFE_INTEGER) -
-          (b.position ?? Number.MAX_SAFE_INTEGER)
-      ),
-      packing: meta.packing,
-      pending: new Set(),
-    }
-    for (const draft of drafts) {
-      try {
-        addEntities(log, draft)
-      } catch (error) {
-        console.warn("Couldn't read a draft's entities", draft.id, error)
-      }
-    }
-    return { ...state, log }
-  })
+  const drafts = await readDrafts(queue)
+  const { mirror, blocked } = await readMirror(db)
+  // A flag an updated app now understands no longer blocks, as in syncLog.
+  return {
+    loaded: true,
+    reach: "ok",
+    blocked: !!blocked && blocked.schemaVersion > latestSchemaVersion,
+    log: mirror ? viewOf(mirror, drafts) : null,
+  }
 }
 
 let state: LogState = {
@@ -362,6 +378,14 @@ export const useLog = () => useSyncExternalStore(subscribe, () => state)
 // The same copy outside React, for route loaders.
 export const currentLog = () => state.log
 
+function setLog(next: LogState, db: LogDb) {
+  set(next)
+  if (next.log) {
+    forgetCardUrls(next.log.cards)
+    warmCardImages(next.log.cards, { db })
+  }
+}
+
 // A failed read still marks the log loaded, so the screens can say so
 // instead of staying blank, and the next sync tries again.
 export async function loadLog(
@@ -369,14 +393,28 @@ export async function loadLog(
   queue: QueueDb = defaultQueue
 ) {
   try {
-    set({ ...(await readLog(db, queue)), reach: state.reach })
-    if (state.log) {
-      forgetCardUrls(state.log.cards)
-      warmCardImages(state.log.cards, { db })
-    }
+    setLog({ ...(await readLog(db, queue)), reach: state.reach }, db)
   } catch (error) {
     console.warn("Couldn't read the log copy", error)
     set({ ...state, loaded: true })
+  }
+}
+
+// A log a sync fetched, shown before it is written. It came from a server
+// on a schema this app knows, so the write clears any block. One that
+// can't be shown is still written, and the read after it says so.
+async function showLog(mirror: Mirror, current: () => Promise<boolean>) {
+  try {
+    // Drafts before the check, as in readLog: an upload writes its log
+    // before it drops the draft, so the dive is in one of the two.
+    const drafts = await readDrafts(defaultQueue)
+    if (!(await current())) return
+    setLog(
+      { ...state, loaded: true, blocked: false, log: viewOf(mirror, drafts) },
+      defaultDb
+    )
+  } catch (error) {
+    console.warn("Couldn't show the fetched log", error)
   }
 }
 
@@ -442,12 +480,15 @@ export function syncNow() {
 // and every five minutes while it is open, as the spec's version check
 // does. A 304 costs one small request.
 export function sync() {
-  syncing ??= syncLog()
+  syncing ??= syncLog({ show: showLog })
     .then(async (result) => {
       noteReached(true)
       // A newer server took nothing, so the last sync stays the last real one.
       if (result !== "blocked") await noteSynced()
-      if (result === "updated" || (await behind())) await loadLog()
+      // A fetched log is already in memory. Another tab's sync, which wins
+      // over this one's write, or an earlier read that failed leaves memory
+      // behind the mirror.
+      if (await behind()) await loadLog()
       if (result === "blocked" && !state.blocked)
         set({ ...state, blocked: true })
       // Every dive's profile on the phone, so charts open at once offline;
@@ -461,7 +502,7 @@ export function sync() {
         void upload()
       }
     })
-    .catch((error: unknown) => {
+    .catch(async (error: unknown) => {
       // Expected offline, with Tailscale off or from a failing server, and
       // shown on screen, so it stays out of the console's warnings.
       console.debug("Sync failed", error)
@@ -472,6 +513,9 @@ export function sync() {
       // would only repeat on a quick retry, and isn't Can't reach.
       if (error instanceof NoAnswer) noteUnreachable()
       else noteFault()
+      // A write that failed after the fetched log was shown (a full phone)
+      // leaves memory ahead of what the phone keeps and a relaunch shows.
+      if (await behind().catch(() => false)) await loadLog()
     })
     .finally(() => (syncing = undefined))
   return syncing
