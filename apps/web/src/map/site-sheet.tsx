@@ -35,11 +35,11 @@ import { useOnline } from "@/data/sync-status"
 import { localValue } from "@/lib/local-value"
 
 import { useMapFrame } from "./basemap"
+import { siteZone } from "./find"
 import { ImageStrip } from "./image-strip"
 import { withSite } from "./search"
 import { SiteText } from "./site-text"
 import { areas, siteById, siteTypes, wikivoyage, type Site } from "./sites"
-import { zoneAt } from "./zone-at"
 import { zoneRules, type Mpa } from "./zone-rules"
 
 // The zone rules, opened at a marine protected area from a site's zone row.
@@ -637,8 +637,8 @@ function Summary({
   clamp?: boolean
   titleRef?: (element: HTMLElement | null) => void
 }) {
-  // Kept per site: the card re-renders on every move of a drag on its edge.
-  const zone = useMemo(() => zoneAt([site.lon, site.lat]), [site])
+  // Cached per site: the card re-renders on every move of a drag on its edge.
+  const zone = siteZone(site)
   const rule = zone && zoneRules[zone.id]
   const noDive = zone?.kind === "no-dive"
   const page = wikivoyage(site)

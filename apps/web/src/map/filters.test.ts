@@ -1,17 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest"
 
-import {
-  filterSites,
-  filtersOf,
-  matchesSite,
-  searchOf,
-  searchSites,
-  zoneNote,
-} from "./filters"
-import { siteById, sites, type Site } from "./sites"
+import { filterSites, filtersOf, matchesSite, searchOf } from "./filters"
+import { sites, type Site } from "./sites"
 
-const site = (id: string) => siteById.get(id)!
 const reef = (depth?: number): Site => ({
   id: "test",
   name: "Test",
@@ -75,39 +67,5 @@ describe("matchesSite", () => {
 
   it("leaves every site when nothing is set", () => {
     expect(filterSites({ types: [] })).toBe(sites)
-  })
-})
-
-describe("searchSites", () => {
-  const names = (query: string) => searchSites(query).map(({ name }) => name)
-
-  it("ignores case, accents, punctuation and spaces", () => {
-    expect(names("millers point")).toContain("Miller's Point slipway")
-    expect(names("a frame")).toContain("A-Frame")
-    expect(names("SAO JOSE")).toContain("São José Paquete d' Africa")
-  })
-
-  it("searches only the sites the filters leave", () => {
-    const wrecks = sites.filter(({ type }) => type === "wreck")
-    const found = searchSites("rock", wrecks)
-    expect(found.length).toBeGreaterThan(0)
-    expect(found.every(({ type }) => type === "wreck")).toBe(true)
-  })
-
-  it("finds every site for an empty search", () => {
-    expect(searchSites("  ")).toBe(sites)
-  })
-})
-
-describe("zoneNote", () => {
-  it("names only zones that limit who may dive", () => {
-    expect(zoneNote(site("anvil-rock/anvil-rock-caves"))).toEqual({
-      text: "No diving",
-      warn: true,
-    })
-    expect(zoneNote(site("bordjiesrif"))).toEqual({ text: "Shore dives only" })
-    expect(zoneNote(site("blomvlei"))).toEqual({ text: "Dive business only" })
-    // In Boulders' no-take zone, where diving is free.
-    expect(zoneNote(site("a-frame"))).toBeUndefined()
   })
 })
