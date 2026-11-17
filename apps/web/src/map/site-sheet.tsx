@@ -207,37 +207,47 @@ function PhoneSheet({ site, container, onCover, onClose }: SheetProps) {
                 back={backTo}
               />
             )}
-            <DrawerPrimitive.Content
-              ref={content}
-              data-scroll-top
-              className={cn(
-                "min-h-0 flex-1 overscroll-contain px-4 select-text",
-                // Text scrolling up fades out under the grabber.
-                raised
-                  ? "overflow-y-auto [mask-image:linear-gradient(to_bottom,transparent,black_0.5rem)]"
-                  : "overflow-hidden"
-              )}
-            >
-              {shown && (
-                <>
-                  <div ref={setSummary} className="pt-2 pb-3.5">
-                    <Summary
+            <div className="relative flex min-h-0 flex-1 flex-col">
+              <DrawerPrimitive.Content
+                ref={content}
+                data-scroll-top
+                className={cn(
+                  "min-h-0 flex-1 overscroll-contain px-4 select-text",
+                  raised ? "overflow-y-auto" : "overflow-hidden"
+                )}
+              >
+                {shown && (
+                  <>
+                    <div ref={setSummary} className="pt-2 pb-3.5">
+                      <Summary
+                        site={shown}
+                        titleRef={setTitle}
+                        clamp={!raised}
+                        back={backTo}
+                        raise={
+                          raised ? undefined : () => setRaisedFor(shown.id)
+                        }
+                      />
+                    </div>
+                    <SiteText
                       site={shown}
-                      titleRef={setTitle}
-                      clamp={!raised}
-                      back={backTo}
-                      raise={raised ? undefined : () => setRaisedFor(shown.id)}
+                      className="pt-2 pb-8"
+                      onFollow={follow}
+                      end={end}
                     />
-                  </div>
-                  <SiteText
-                    site={shown}
-                    className="pt-2 pb-8"
-                    onFollow={follow}
-                    end={end}
-                  />
-                </>
+                  </>
+                )}
+              </DrawerPrimitive.Content>
+              {/* Text scrolling up fades out under the grabber: a still
+                overlay in the sheet's colour, not a mask WebKit may repaint
+                every scroll. */}
+              {raised && (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 top-0 h-2 bg-[linear-gradient(var(--popover),transparent)]"
+                />
               )}
-            </DrawerPrimitive.Content>
+            </div>
           </DrawerPrimitive.Popup>
         </DrawerPrimitive.Viewport>
       </DrawerPrimitive.Portal>
