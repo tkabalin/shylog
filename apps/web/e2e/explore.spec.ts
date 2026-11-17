@@ -22,6 +22,13 @@ const sites = (
 ).features.map((feature) => feature.properties)
 const pages = read("pages.json") as Record<string, Part[]>
 const site = (id: string) => sites.find((each) => each.id === id)!
+// Each site's maps and images, and the caption each was shown with.
+const images = read("images.json") as {
+  sites: Record<string, string[]>
+  files: Record<string, { caption: string }>
+}
+const captions = (id: string) =>
+  images.sites[id].map((file) => images.files[file].caption)
 const text = (part: Part) => (typeof part === "string" ? part : part.text)
 // Markdown as the sheet shows it, without its marks.
 const plain = (markdown: string) =>
@@ -705,6 +712,85 @@ test.describe("at phone width", () => {
       .toBe(0)
   })
 
+  test("opens a site's map full screen, and Back closes it", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    const sheet = page.getByRole("dialog", { name: aFrame.name })
+    await resting(sheet)
+    await drag(page, sheet, -500)
+    await resting(sheet)
+    const [first, second] = captions("a-frame")
+    await sheet
+      .getByRole("list", { name: "Maps and images" })
+      .getByRole("button", { name: first, exact: true })
+      .click()
+    const viewer = page.getByRole("dialog", {
+      name: `Maps and images of ${aFrame.name}`,
+    })
+    await expect(
+      viewer.getByRole("img", { name: first, exact: true })
+    ).toBeVisible()
+    await expect(viewer.getByText(first, { exact: true })).toBeVisible()
+    await expect(
+      viewer.getByText(/Wikimedia Commons/).filter({ visible: true })
+    ).toHaveCount(1)
+    // The words under each image take the same room, so nothing moves.
+    const dots = viewer.getByRole("tablist", { name: "Maps and images" })
+    const before = (await dots.boundingBox())!.y
+    await page.keyboard.press("ArrowRight")
+    await expect(viewer.getByText(second, { exact: true })).toBeVisible()
+    expect((await dots.boundingBox())!.y).toBe(before)
+    // The address follows, so a reload opens the same image.
+    await expect(page).toHaveURL((url) => url.searchParams.get("image") === "1")
+    await page.goBack()
+    await expect(viewer).toHaveCount(0)
+    await expect(page).toHaveURL(bySite("a-frame"))
+    await expect(
+      sheet.getByRole("list", { name: "Maps and images" })
+    ).toBeInViewport()
+    // Escape closes it too, and the sheet under it keeps its site.
+    await sheet
+      .getByRole("list", { name: "Maps and images" })
+      .getByRole("button", { name: first, exact: true })
+      .click()
+    await expect(viewer).toBeVisible()
+    await page.keyboard.press("Escape")
+    await expect(viewer).toHaveCount(0)
+    await expect(page).toHaveURL(
+      (url) => bySite("a-frame")(url) && !url.searchParams.has("image")
+    )
+    await expect(sheet).toBeVisible()
+  })
+
+  test("hides the row for a site whose page shows no maps", async ({
+    page,
+  }) => {
+    const bare = sites.find((each) => each.page && !images.sites[each.id])!
+    // Only once both lists have come does no row mean no images. Fetches
+    // only: Vite's module requests for their URLs match the names too.
+    const fetched = (name: string) =>
+      page.waitForResponse(
+        (response) =>
+          response.request().resourceType() === "fetch" &&
+          response.url().includes(name)
+      )
+    const lists = [fetched("/images.json"), fetched("/image-credits.json")]
+    await page.goto(`/explore?site=${encodeURIComponent(bare.id)}`)
+    for (const list of lists) await (await list).finished()
+    // And a render with them.
+    for (let frame = 0; frame < 2; frame++) {
+      await page.evaluate(() => new Promise(requestAnimationFrame))
+    }
+    await drawn(page)
+    const sheet = page.getByRole("dialog", { name: bare.name })
+    await resting(sheet)
+    await expect(
+      sheet.getByRole("list", { name: "Maps and images" })
+    ).toHaveCount(0)
+  })
+
   test("opens the rules at a site's MPA, and Back returns to the site", async ({
     page,
   }) => {
@@ -820,6 +906,32 @@ test.describe("at desktop width", () => {
     await page.goto("/explore?site=a-frame")
     await card.getByRole("button", { name: "Close" }).click()
     await expect(page).toHaveURL(/\/explore$/)
+  })
+
+  test("opens a site's images from the card, and Escape closes them", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    const card = page.getByRole("region", { name: aFrame.name })
+    const strip = card.getByRole("list", { name: "Maps and images" })
+    await card.getByRole("button", { name: "Read more" }).click()
+    const [first] = captions("a-frame")
+    await strip.getByRole("button", { name: first, exact: true }).click()
+    const viewer = page.getByRole("dialog", {
+      name: `Maps and images of ${aFrame.name}`,
+    })
+    await expect(
+      viewer.getByRole("img", { name: first, exact: true })
+    ).toBeVisible()
+    await expect(page).toHaveURL((url) => url.searchParams.get("image") === "0")
+    await page.keyboard.press("Escape")
+    await expect(viewer).toHaveCount(0)
+    await expect(page).toHaveURL((url) => !url.searchParams.has("image"))
+    await expect(card).toBeVisible()
+    // The thumbnails go with the text.
+    await card.getByRole("button", { name: "Read less" }).click()
+    await expect(strip).toHaveCount(0)
   })
 
   test("goes back to the site a link in the card came from", async ({

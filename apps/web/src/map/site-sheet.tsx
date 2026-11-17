@@ -35,6 +35,7 @@ import { useOnline } from "@/data/sync-status"
 import { localValue } from "@/lib/local-value"
 
 import { useMapFrame } from "./basemap"
+import { ImageStrip } from "./image-strip"
 import { withSite } from "./search"
 import { SiteText } from "./site-text"
 import { areas, siteById, siteTypes, wikivoyage, type Site } from "./sites"
@@ -43,6 +44,8 @@ import { zoneRules, type Mpa } from "./zone-rules"
 
 // The zone rules, opened at a marine protected area from a site's zone row.
 type OnRules = (mpa: Mpa) => void
+// Opens the site's image at this place in its strip, full screen.
+type OnImage = (index: number) => void
 
 // A link in the text opens another site in place of this one, so the sheet
 // keeps the way back: each step's site and how far down its text it was.
@@ -101,11 +104,13 @@ export function SiteSheet({
   site,
   onClose,
   onRules,
+  onImage,
 }: {
   site?: Site
   // A swipe down past the peek.
   onClose: () => void
   onRules: OnRules
+  onImage: OnImage
 }) {
   const { container, onCover } = useMapFrame()
   // The last site shown, kept while the sheet slides away.
@@ -224,6 +229,11 @@ export function SiteSheet({
                         }
                       />
                     </div>
+                    <ImageStrip
+                      site={shown}
+                      onOpen={onImage}
+                      className="-mx-4 scroll-px-4 px-4 pt-1 pb-2"
+                    />
                     <SiteText
                       site={shown}
                       className="pt-2 pb-8"
@@ -266,7 +276,15 @@ const cardWidth = localValue(
 
 // From desk: up, a card over the map's left side, as tall as its summary
 // until Read more grows it to the window's height for the page's text.
-export function SiteCard({ site, onRules }: { site: Site; onRules: OnRules }) {
+export function SiteCard({
+  site,
+  onRules,
+  onImage,
+}: {
+  site: Site
+  onRules: OnRules
+  onImage: OnImage
+}) {
   const { container, onCover } = useMapFrame()
   // Read more for one site: another opens collapsed, in the same card, so
   // only the first opening slides in.
@@ -432,7 +450,16 @@ export function SiteCard({ site, onRules }: { site: Site; onRules: OnRules }) {
               </Button>
             }
           />
-          {more && <SiteText site={site} className="mt-5" onFollow={follow} />}
+          {more && (
+            <>
+              <ImageStrip
+                site={site}
+                onOpen={onImage}
+                className="-mx-2.5 mt-5 scroll-px-2.5 px-2.5"
+              />
+              <SiteText site={site} className="mt-5" onFollow={follow} />
+            </>
+          )}
         </div>
       </section>
       {/* shadcn's resizable handle with its grip: a pill on the card's

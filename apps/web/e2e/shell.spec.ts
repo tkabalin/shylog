@@ -1,3 +1,4 @@
+import { readdirSync } from "node:fs"
 import { expect, test, type Locator } from "@playwright/test"
 
 import {
@@ -377,6 +378,48 @@ test.describe("at phone width", () => {
       "1",
       { timeout: 15_000 }
     )
+  })
+
+  test("shows a site's map with no signal once the app has kept the images @built", async ({
+    page,
+    context,
+  }) => {
+    // Every map and thumbnail, about 48 MB from the local server, then the
+    // waits for the worker before and the viewer after.
+    test.setTimeout(180_000)
+    const count = readdirSync(`${import.meta.dirname}/../src/map/images`).length
+    await page.goto("/")
+    await expect
+      .poll(() => page.evaluate(() => !!navigator.serviceWorker.controller), {
+        timeout: 15_000,
+      })
+      .toBe(true)
+    // The app downloads them at launch, before Explore is opened.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(async () => {
+            const cache = await caches.open("map-images")
+            return (await cache.keys()).length
+          }),
+        { timeout: 90_000 }
+      )
+      .toBe(count)
+    await context.setOffline(true)
+    await page.goto("/explore?site=a-frame&image=0")
+    const viewer = page.getByRole("dialog", {
+      name: "Maps and images of A-Frame",
+    })
+    await expect
+      .poll(
+        () =>
+          viewer
+            .getByRole("img")
+            .first()
+            .evaluate((image: HTMLImageElement) => image.naturalWidth),
+        { timeout: 15_000 }
+      )
+      .toBeGreaterThan(0)
   })
 
   test("sends the old Settings address to You", async ({ page }) => {

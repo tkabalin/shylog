@@ -54,6 +54,7 @@ import {
   zonesShown,
 } from "./map-options"
 import { withoutView, type ExploreSearch } from "./search"
+import { ImageViewer } from "./image-viewer"
 import { SiteCard, SiteSheet } from "./site-sheet"
 import { SiteList } from "./site-list"
 import { siteById, type Site } from "./sites"
@@ -98,8 +99,9 @@ export default function Explore({
       }),
     [navigate]
   )
+  // A pick never opens the viewer an old address left in it.
   const pick = useCallback(
-    (id: string | undefined) => replace({ site: id }),
+    (id: string | undefined) => replace({ site: id, image: undefined }),
     [replace]
   )
   // A filter that hides the picked site puts it down.
@@ -120,6 +122,30 @@ export default function Explore({
     })
   }
   const closeView = () => replace({ view: undefined, mpa: undefined })
+  // The viewer is a level deeper on both, so Back closes it. Neither move
+  // scrolls the sheet, whose place in the text is kept underneath.
+  const openImage = (image: number) =>
+    void navigate({
+      search: (prev: ExploreSearch) => ({ ...prev, image }),
+      state: { pushed: true },
+      resetScroll: false,
+    })
+  const closeImage = () => {
+    if (goBack()) return
+    void navigate({
+      search: (prev: ExploreSearch) => ({ ...prev, image: undefined }),
+      replace: true,
+      state: true,
+      resetScroll: false,
+    })
+  }
+  const showImage = (image: number) =>
+    void navigate({
+      search: (prev: ExploreSearch) => ({ ...prev, image }),
+      replace: true,
+      state: true,
+      resetScroll: false,
+    })
   // The map's entry under the phone's list has the filters it was opened
   // with, so ones changed on the list are put back once Back closes it,
   // with the site picked there, in one step.
@@ -203,7 +229,11 @@ export default function Explore({
             {view === "rules" ? (
               <RulesCard mpa={search.mpa} from={picked} onBack={closeView} />
             ) : picked ? (
-              <SiteCard site={picked} onRules={(mpa) => open("rules", mpa)} />
+              <SiteCard
+                site={picked}
+                onRules={(mpa) => open("rules", mpa)}
+                onImage={openImage}
+              />
             ) : (
               <ListCard
                 total={listed.length}
@@ -263,10 +293,20 @@ export default function Explore({
               site={picked}
               onClose={() => pick(undefined)}
               onRules={(mpa) => open("rules", mpa)}
+              onImage={openImage}
             />
           </>
         )}
       </Basemap>
+      {picked && search.image !== undefined && (
+        <ImageViewer
+          key={picked.id}
+          site={picked}
+          start={search.image}
+          onClose={closeImage}
+          onShow={showImage}
+        />
+      )}
       {!desk && view === "list" && (
         <Screen title="Dive sites">
           <div className="shrink-0 px-4 pt-1">
