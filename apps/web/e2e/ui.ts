@@ -1,4 +1,4 @@
-import type { Locator } from "@playwright/test"
+import type { Locator, Page } from "@playwright/test"
 
 // Waits until an element stops moving: a sheet sliding in, or a card the
 // Log is still scrolling. Watched in the page across animation frames, as
@@ -40,4 +40,14 @@ export async function tapCard(card: Locator) {
   await card.scrollIntoViewIfNeeded()
   await still(card)
   await card.click()
+}
+
+// How many dives the Log lists, added up from its months' headings, as
+// only the cards near the screen are mounted. Like the headings, it leaves
+// out ignored dives.
+export async function listed(page: Page) {
+  const counts = await page
+    .locator("[data-month-heading] > span")
+    .allTextContents()
+  return counts.reduce((sum, text) => sum + Number(text.replace(/\D/g, "")), 0)
 }

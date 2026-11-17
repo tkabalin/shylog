@@ -18,8 +18,8 @@ import { cardDay } from "@/format/dates"
 import { depth, minutes } from "@/format/figures"
 import { cardPlace } from "@/format/place"
 
-// Fixed, so a month group's height is known before it renders (see
-// MonthGroup's contain-intrinsic-size).
+// Fixed, so where every card sits is known before it renders, which the
+// Log's mounted span and spacers depend on (see log/window.ts).
 export const cardHeight = 84
 
 // LogHifi2's card, memoised so a filter change renders only the cards it
