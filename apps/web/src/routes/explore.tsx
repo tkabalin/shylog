@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react"
 import { IconMapOff, IconRefresh } from "@tabler/icons-react"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -11,6 +11,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { exploreOn } from "@/map/enabled"
 import { LazyMap, preloadMap } from "@/map/lazy"
 import { sea } from "@/map/sea"
 
@@ -21,6 +22,10 @@ export const Route = createFileRoute("/explore")({
   validateSearch: (search: Record<string, unknown>): ExploreSearch => ({
     site: typeof search.site === "string" ? search.site : undefined,
   }),
+  // An old link or bookmark on an instance with Explore off opens the Log.
+  beforeLoad: () => {
+    if (!exploreOn) throw redirect({ to: "/", replace: true })
+  },
   // From the tap on the tab, as the router preloads routes on intent.
   loader: () => void preloadMap().catch(() => {}),
   component: ExplorePage,

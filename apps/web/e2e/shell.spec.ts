@@ -58,6 +58,41 @@ test.describe("at phone width", () => {
     )
   })
 
+  // The server writes SHYLOG_EXPLORE into the page; Vite's page is rewritten
+  // here as the server would for an instance with it off.
+  test("leaves Explore out on an instance with it off", async ({ page }) => {
+    // The two pages it opens, not every module Vite serves.
+    const pages = ["/", "/explore"]
+    await page.route(
+      (url) => pages.includes(url.pathname),
+      async (route) => {
+        const response = await route.fetch()
+        const body = (await response.text()).replace(
+          '<meta name="shylog-explore" content="on"',
+          '<meta name="shylog-explore" content="off"'
+        )
+        await route.fulfill({ response, body })
+      }
+    )
+    await page.goto("/")
+    const nav = page.getByRole("navigation", { name: "Main" })
+    const links = nav.getByRole("link")
+    await expect(links).toHaveCount(tabs.length - 1)
+    await expect(nav.getByRole("link", { name: "Explore" })).toHaveCount(0)
+    // The four share the bar's width evenly.
+    const bar = (await nav.boundingBox())!
+    const widths = await links.evaluateAll((all) =>
+      all.map((link) => link.getBoundingClientRect().width)
+    )
+    for (const width of widths) {
+      expect(width).toBeCloseTo((bar.width - 16) / widths.length, 0)
+    }
+    // An old link or bookmark opens the Log instead.
+    await page.goto("/explore?site=a-frame")
+    await expect(page).toHaveURL("/")
+    await expect(page.locator(".maplibregl-map")).toHaveCount(0)
+  })
+
   // Find what is too wide instead of hiding it behind overflow-x: clip.
   test("does not scroll sideways", async ({ page }) => {
     await page.goto("/")

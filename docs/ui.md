@@ -19,7 +19,7 @@ A dive is logged on the phone soon after it ends, on a boat, at the shore or bac
 
 The layout switches on a custom Tailwind variant, `desk:`, which means at least 48rem wide **and** a fine pointer. Width alone would hand a phone turned landscape the desktop chrome while it is still under a finger, and a tablet without a trackpad keeps the phone layout for the same reason. `md:` is used only for layout, such as the centred column (48rem for the Log and a dive, 36rem for the form and You's screens), and hover styles are limited to fine pointers too, since Tailwind's own `hover:` matches some Android phones and iPads and leaves a tint stuck after a tap.
 
-**On a phone** the five destinations are a bottom bar of 28 px icons with no words: Log, Statistics, Explore, Import and You. Each icon is named by its `aria-label` for screen readers. The dive form and the import's review steps cover the bar, as an iOS edit sheet would, so a tab can't leave a half-filled form behind. Pickers are bottom sheets, choice fields open a list in a sheet, and the surface interval is set on hours and minutes wheels.
+**On a phone** the five destinations are a bottom bar of 28 px icons with no words: Log, Statistics, Explore, Import and You, or four on an instance with Explore off (its map covers only Cape Town). Each icon is named by its `aria-label` for screen readers. The dive form and the import's review steps cover the bar, as an iOS edit sheet would, so a tab can't leave a half-filled form behind. Pickers are bottom sheets, choice fields open a list in a sheet, and the surface interval is set on hours and minutes wheels.
 
 **From `desk:` up** the app follows shadcn instead of iOS:
 

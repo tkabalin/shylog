@@ -35,3 +35,9 @@ export function keepExtract() {
   window.addEventListener("online", attempt)
   navigator.serviceWorker?.addEventListener("controllerchange", attempt)
 }
+
+// An instance that turned Explore off frees the 10 MB a phone kept from
+// before.
+export function dropExtract() {
+  if ("caches" in window) void caches.delete(cacheName).catch(() => {})
+}
