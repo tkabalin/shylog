@@ -11,10 +11,16 @@ export const unreachable = "Couldn’t reach Shylog. Check your connection."
 // a rename collides with.
 export class Refused extends Error {
   readonly details: Record<string, unknown>
+  readonly status?: number
 
-  constructor(message: string, details: Record<string, unknown> = {}) {
+  constructor(
+    message: string,
+    details: Record<string, unknown> = {},
+    status?: number
+  ) {
     super(message)
     this.details = details
+    this.status = status
   }
 }
 
@@ -29,7 +35,7 @@ export async function saveFailure(res: {
   const message =
     reasonIn(body) ??
     (res.status >= 500 ? unreachable : `Couldn’t save (${res.status})`)
-  return new Refused(message, body ?? {})
+  return new Refused(message, body ?? {}, res.status)
 }
 
 // One change to synced data, never queued: a failure throws the screen's

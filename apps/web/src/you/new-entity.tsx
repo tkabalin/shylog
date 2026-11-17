@@ -1,5 +1,5 @@
-import { useRef, useState } from "react"
-import { newId, type DiveSetKind } from "@shylog/core"
+import { useMemo, useRef, useState } from "react"
+import { newId, type DiveRole, type DiveSetKind } from "@shylog/core"
 import { IconArrowMerge } from "@tabler/icons-react"
 import { useRouter } from "@tanstack/react-router"
 
@@ -19,6 +19,7 @@ import {
 import { Refused } from "@/data/edits"
 import {
   changesOf,
+  entitiesOf,
   failureText,
   pickedOf,
   setEntityDives,
@@ -28,6 +29,7 @@ import {
 import type { LogView } from "@/data/log"
 import { Label, Row, RowInput, Section } from "@/dive/form/rows"
 import { useDesk } from "@/hooks/use-desk"
+import { readKept, useKeptForm } from "@/lib/kept"
 import { useHoldUpdate } from "@/update"
 
 import { PageBar } from "./bar"
@@ -37,6 +39,33 @@ import { OfflineMark } from "@/components/offline-mark"
 import { useConnected } from "@/data/sync-status"
 import { kindLabels } from "./kinds"
 
+// A phone's unsaved new one: its id, name and ticked dives with their roles.
+interface Kept {
+  id: string
+  name: string
+  ticked: [string, DiveRole | null][]
+}
+
+// Kept in this shape: an app update could have changed what it holds.
+const isKept = (kept: Kept) =>
+  typeof kept.id === "string" &&
+  typeof kept.name === "string" &&
+  Array.isArray(kept.ticked) &&
+  kept.ticked.every(
+    (pair) =>
+      Array.isArray(pair) &&
+      typeof pair[0] === "string" &&
+      (pair[1] === null || typeof pair[1] === "string")
+  )
+
+// Refused because the server retired the id (deleted or merged away since a
+// save whose answer was lost), rather than for a name or a dive.
+const retired = (failure: unknown) =>
+  failure instanceof Refused &&
+  failure.status === 409 &&
+  !failure.details.conflict &&
+  !failure.details.diveId
+
 // A new trip, dive centre or person, made from You with its dives, so it
 // is never saved with none: Save waits for a name and a dive, and sends
 // both in one request.
@@ -44,9 +73,24 @@ export function NewEntity({ log, kind }: { log: LogView; kind: DiveSetKind }) {
   const router = useRouter()
   const desk = useDesk()
   const label = kindLabels[kind]
-  const [id] = useState(() => newId(kind))
-  const [name, setName] = useState("")
-  const [ticked, setTicked] = useState<Picked>(new Map())
+  // On a phone, what was typed before leaving comes back, under the same id
+  // so a save whose answer was lost isn't made twice; once that one is in
+  // the log, it was saved.
+  const keptKey = `new-entity:${kind}`
+  const [kept] = useState(() =>
+    readKept<Kept>(
+      keptKey,
+      (kept) =>
+        isKept(kept) && !entitiesOf(log, kind).some((one) => one.id === kept.id)
+    )
+  )
+  const [id, setId] = useState(() => kept?.id ?? newId(kind))
+  const [name, setName] = useState(kept?.name ?? "")
+  // Less any dive deleted since.
+  const [ticked, setTicked] = useState<Picked>(() => {
+    const logged = new Set(log.dives.map((dive) => dive.id))
+    return new Map(kept?.ticked.filter(([dive]) => logged.has(dive)))
+  })
   const [picking, setPicking] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string>()
@@ -60,10 +104,22 @@ export function NewEntity({ log, kind }: { log: LogView; kind: DiveSetKind }) {
   const ready = !!tidyName(name) && ticked.size > 0 && !busy && connected
   const dives = log.dives.filter((dive) => ticked.has(dive.id))
   useHoldUpdate(!!name.trim() || ticked.size > 0)
+  // A desktop asks before leaving instead (LeaveGuard below).
+  const forget = useKeptForm<Kept>(
+    keptKey,
+    useMemo(
+      () =>
+        !desk && (name.trim() || ticked.size > 0)
+          ? { id, name, ticked: [...ticked] }
+          : null,
+      [desk, id, name, ticked]
+    )
+  )
 
   // The saved one takes this screen's place, as a finished step does.
   const open = (to: string) => {
     leaving.current = true
+    forget()
     void router.navigate({
       to: "/you/entities/$kind/$id",
       params: { kind, id: to },
@@ -88,6 +144,9 @@ export function NewEntity({ log, kind }: { log: LogView; kind: DiveSetKind }) {
           ? (failure.details.conflict as Entity | undefined)
           : undefined
       const message = failureText(log, failure)
+      // The diver deleted or merged it elsewhere, so it isn't made again
+      // unasked: a second Save makes a new one, under an id of its own.
+      if (retired(failure)) setId(newId(kind))
       if (other) {
         setNameError(message)
         setConflict(other)

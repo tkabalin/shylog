@@ -1,5 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test"
 
+import type { Packing } from "@shylog/core"
+
 import { getLog, putPacking, test } from "./api"
 
 const item = (page: Page, name: string) =>
@@ -152,6 +154,173 @@ test("shows another phone's change in an untouched Edit mode, and Done keeps it 
   await expect(editButton(page)).toBeVisible()
   const { sections } = (await getLog(page.request)).packing
   expect(sections[0].items.at(-1)?.name).toBe("Logbook")
+})
+
+// A phone can't ask before iOS's back swipe leaves, so Edit mode keeps its
+// changes instead, through Back and a reload, until Cancel drops them.
+test("keeps Edit mode's changes after leaving, until Cancel", async ({
+  page,
+}) => {
+  await page.goto("/you")
+  await page.getByRole("link", { name: /Packing list/ }).click()
+  await editButton(page).click()
+  await field(page, "BCD").fill("BCD and spare strap")
+  await expect.poll(() => keptList(page)).not.toBeNull()
+  await page.goBack()
+  await expect(page).toHaveURL("/you")
+
+  await page.getByRole("link", { name: /Packing list/ }).click()
+  await expect(field(page, "BCD and spare strap")).toBeVisible()
+  await page.reload()
+  await expect(field(page, "BCD and spare strap")).toBeVisible()
+
+  await page.getByRole("button", { name: "Cancel" }).click()
+  await expect(item(page, "BCD")).toBeVisible()
+  await editButton(page).click()
+  await expect(field(page, "BCD")).toBeVisible()
+  await expect(field(page, "BCD and spare strap")).toHaveCount(0)
+})
+
+// The list in the phone's copy of the log, as the screen reads it.
+const mirrored = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<unknown>((resolve, reject) => {
+        const open = indexedDB.open("shylog")
+        open.onupgradeneeded = () => open.transaction!.abort()
+        open.onerror = () => reject(open.error)
+        open.onsuccess = () => {
+          const db = open.result
+          const get = db.transaction("meta").objectStore("meta").get("log")
+          get.onerror = () => reject(get.error)
+          get.onsuccess = () => resolve(get.result?.packing)
+          get.transaction!.oncomplete = () => db.close()
+        }
+      })
+  )
+// A sync, as the app coming back to the foreground starts one.
+const foreground = (page: Page) =>
+  page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")))
+const keptList = (page: Page) =>
+  page.evaluate(() => sessionStorage.getItem("shylog-kept:packing"))
+
+// The list with an item another phone added.
+const withLogbook = ({ sections: [first, ...rest] }: Packing): Packing => ({
+  sections: [
+    {
+      ...first!,
+      items: [...first!.items, { id: "item-logbook", name: "Logbook" }],
+    },
+    ...rest,
+  ],
+})
+
+// Kept changes were made to the list as it was. Once another phone has
+// changed it, they go rather than undo that change, even when this phone's
+// copy only catches up after Edit mode has opened with them.
+test("drops Edit mode's kept changes once the list changed elsewhere @writes", async ({
+  page,
+  restore,
+}) => {
+  const before = (await getLog(page.request)).packing
+  restore((request) => putPacking(request, before))
+  await page.goto("/you/packing")
+  await editButton(page).click()
+  await field(page, "BCD").fill("BCD kept")
+  await expect.poll(() => keptList(page)).not.toBeNull()
+  // Its startup sync done (a 304 counts), so the hold below catches none.
+  const synced = page.waitForResponse((response) =>
+    response.url().endsWith("/api/log")
+  )
+  await page.goto("/you")
+  await synced
+  await expect.poll(() => mirrored(page)).toEqual(before)
+
+  // No sync lands until the screen has opened with the kept rows.
+  let release = () => {}
+  const held = new Promise<void>((resolve) => (release = resolve))
+  await page.route("**/api/log", async (route) => {
+    await held
+    await route.fallback()
+  })
+  await putPacking(page.request, withLogbook(before))
+  await page.getByRole("link", { name: /Packing list/ }).click()
+  await expect(field(page, "BCD kept")).toBeVisible()
+  release()
+  await foreground(page)
+  await expect(field(page, "Logbook")).toBeVisible()
+  await expect(field(page, "BCD")).toBeVisible()
+  await expect(field(page, "BCD kept")).toHaveCount(0)
+  await expect.poll(() => keptList(page)).toBeNull()
+})
+
+// Edited again after they came back, the kept rows are the diver's latest
+// work: a newer list no longer replaces them, and Done refuses instead.
+test("keeps kept changes edited again, and refuses Done over a newer list @writes", async ({
+  page,
+  restore,
+}) => {
+  const before = (await getLog(page.request)).packing
+  restore((request) => putPacking(request, before))
+  await page.goto("/you/packing")
+  await editButton(page).click()
+  await field(page, "BCD").fill("BCD kept")
+  await expect.poll(() => keptList(page)).not.toBeNull()
+  const synced = page.waitForResponse((response) =>
+    response.url().endsWith("/api/log")
+  )
+  await page.goto("/you")
+  await synced
+  await expect.poll(() => mirrored(page)).toEqual(before)
+
+  let release = () => {}
+  const held = new Promise<void>((resolve) => (release = resolve))
+  await page.route("**/api/log", async (route) => {
+    await held
+    await route.fallback()
+  })
+  const changed = withLogbook(before)
+  await putPacking(page.request, changed)
+  await page.getByRole("link", { name: /Packing list/ }).click()
+  await expect(field(page, "BCD kept")).toBeVisible()
+  await field(page, "Mask").fill("Mask and spare")
+  release()
+  await expect(async () => {
+    await foreground(page)
+    expect(await mirrored(page)).toEqual(changed)
+  }).toPass()
+  await expect(field(page, "BCD kept")).toBeVisible()
+  await expect(field(page, "Mask and spare")).toBeVisible()
+  await expect(field(page, "Logbook")).toHaveCount(0)
+  await page.getByRole("button", { name: "Done" }).click()
+  await expect(
+    page.getByText("The list changed on another device")
+  ).toBeVisible()
+  expect((await getLog(page.request)).packing).toEqual(changed)
+})
+
+// The whole list is sent, so Done won't save over another phone's change
+// made while this one was editing.
+test("refuses Done once another phone has changed the list @writes", async ({
+  page,
+  restore,
+}) => {
+  const before = (await getLog(page.request)).packing
+  restore((request) => putPacking(request, before))
+  await page.goto("/you/packing")
+  await editButton(page).click()
+  await field(page, "BCD").fill("BCD and spare strap")
+  const changed = withLogbook(before)
+  await putPacking(page.request, changed)
+  await expect(async () => {
+    await foreground(page)
+    expect(await mirrored(page)).toEqual(changed)
+  }).toPass()
+  await page.getByRole("button", { name: "Done" }).click()
+  await expect(
+    page.getByText("The list changed on another device")
+  ).toBeVisible()
+  expect((await getLog(page.request)).packing).toEqual(changed)
 })
 
 test("asks for a name before saving a blank section or item", async ({

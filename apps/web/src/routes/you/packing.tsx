@@ -15,16 +15,20 @@ import { Card } from "@/components/ui/card"
 import { currentLog, useLog } from "@/data/log"
 import {
   itemIds,
+  keptFits,
+  keptListKey,
   packedCount,
   pruneTicks,
   resetTicks,
   restoreTicks,
   toggleTick,
   usePackingTicks,
+  type KeptList,
 } from "@/data/packing"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import { Haptic } from "@/lib/haptic"
+import { readKept } from "@/lib/kept"
 import { PageBar } from "@/you/bar"
 import { listRow, pressable } from "@/you/parts"
 
@@ -50,6 +54,16 @@ function PackingPage() {
   const ticked = usePackingTicks()
   const [editing, setEditing] = useState(false)
   const packing = log?.packing
+  // Edit mode a phone left with changes opens again as it was, unless the
+  // list has changed since, which the kept rows mustn't silently undo.
+  const [kept, setKept] = useState<KeptList | null>()
+  if (kept === undefined && packing) {
+    const list = readKept<KeptList>(keptListKey, (list) =>
+      keptFits(list, packing)
+    )
+    setKept(list)
+    if (list) setEditing(true)
+  }
   // A tick on an item deleted here or on another phone goes with it.
   useEffect(() => {
     if (packing) pruneTicks(packing)
@@ -64,8 +78,12 @@ function PackingPage() {
       >
         <EditList
           packing={packing}
+          kept={kept?.sections}
           back={back}
-          onClose={() => setEditing(false)}
+          onClose={() => {
+            setKept(null)
+            setEditing(false)
+          }}
         />
       </Suspense>
     )

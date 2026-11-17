@@ -238,6 +238,27 @@ test("keeps the form's values and offers Try again when the server can't be reac
   await expect(page).toHaveURL(new RegExp(`/dive/${id}/edit$`))
 })
 
+// A form's kept notes, written once typing pauses, read straight from the
+// phone's storage.
+const keptNotes = (page: Page, key: string) =>
+  page.evaluate(
+    (key) =>
+      new Promise((resolve) => {
+        const open = indexedDB.open("shylog-queue")
+        open.onsuccess = () => {
+          const get = open.result
+            .transaction("forms")
+            .objectStore("forms")
+            .get(key)
+          get.onsuccess = () => {
+            resolve(get.result?.values.values.notes ?? null)
+            open.result.close()
+          }
+        }
+      }),
+    key
+  )
+
 // iOS often kills a backgrounded home-screen app mid-entry; reopening the
 // form brings back what was typed, and discarding forgets it.
 test("brings back a new dive's typing after the app is reopened", async ({
@@ -245,24 +266,7 @@ test("brings back a new dive's typing after the app is reopened", async ({
 }) => {
   await page.goto("/dive/new")
   await page.getByLabel("General").fill("Kept through a reload")
-  // Written once typing pauses, read straight from the phone's storage.
-  const kept = () =>
-    page.evaluate(
-      () =>
-        new Promise((resolve) => {
-          const open = indexedDB.open("shylog-queue")
-          open.onsuccess = () => {
-            const get = open.result
-              .transaction("forms")
-              .objectStore("forms")
-              .get("new")
-            get.onsuccess = () => {
-              resolve(get.result?.values.values.notes ?? null)
-              open.result.close()
-            }
-          }
-        })
-    )
+  const kept = () => keptNotes(page, "new")
   await expect.poll(kept).toBe("Kept through a reload")
 
   await page.reload()
@@ -272,6 +276,33 @@ test("brings back a new dive's typing after the app is reopened", async ({
   await expect.poll(kept).toBeNull()
   await page.getByRole("link", { name: "Log a dive" }).click()
   await expect(page.getByLabel("General")).toHaveValue("")
+})
+
+// Typing kept from an edit was typed over the dive as it was; changed since
+// on another device, the dive opens as the server has it instead.
+test("drops a kept edit once the dive has changed elsewhere @writes", async ({
+  page,
+  restore,
+}) => {
+  const id = await diveId(page.request, 66)
+  const before = (await getLog(page.request)).dives.find((d) => d.id === id)!
+  restore((request) => patchDive(request, id, { notes: before.notes ?? null }))
+  await page.goto(`/dive/${id}/edit`)
+  await page.getByLabel("General").fill("Typed and left")
+  await expect.poll(() => keptNotes(page, id)).toBe("Typed and left")
+
+  await patchDive(page.request, id, { notes: "Changed on another phone" })
+  // Left unsaved, as the back swipe leaves it, straight for the dive: a load
+  // of the Log first could be cut short by the Log's own navigation. The dive
+  // shows the change once this phone's copy has it.
+  await page.goto(`/dive/${id}`)
+  await expect(page.getByText("Changed on another phone")).toBeVisible()
+  // In the app, so no page load can cut off the mirror's write.
+  await page.getByRole("link", { name: "Edit" }).click()
+  await expect(page.getByLabel("General")).toHaveValue(
+    "Changed on another phone"
+  )
+  await expect.poll(() => keptNotes(page, id)).toBeNull()
 })
 
 // iOS raises the keyboard only for a focus inside the tap itself, so the

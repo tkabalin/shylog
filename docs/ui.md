@@ -113,6 +113,8 @@ An installed web app on iOS has no Back button, only the edge swipe, so the hist
 
 TanStack Router's default is push, which is wrong for tabs, filters and saved forms, so each link decides as it is written, and each new flow gets an end-to-end check that `page.goBack()` lands where the rule says.
 
+The swipe can't be asked about either: by the time a "Discard changes?" could show, the page has already gone, and stepping forward again to ask felt broken when tried on the phone. So a phone keeps what was typed instead. Leaving the dive form, an entity's edit, a new trip or person, or the packing list's Edit mode without saving keeps the values, and the screen opens with them again; Save, Cancel and delete forget them. A new trip or person has no Cancel on a phone, so it comes back until it is saved or the session ends. An edit is dropped if its record has changed since, so it can't undo a newer change.
+
 ## Motion and press feel
 
 Motion is judged by how often it is seen. Tab switches, opening a dive from the Log and theme changes don't animate at all, and full-screen viewers open and close at once. Sheets, pickers and dialogs get a standard transition. Rare moments, such as a finished import or a saved dive, can carry a little delight. Frequently opened lists have no stagger.

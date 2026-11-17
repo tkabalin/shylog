@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { IconChevronLeft } from "@tabler/icons-react"
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
 
@@ -73,7 +73,22 @@ function EditDive({
 }) {
   const router = useRouter()
   const navigate = Route.useNavigate()
-  const restored = autosave.restored
+  // Values kept from an earlier visit were typed over the dive as it was
+  // then; if it has changed since (another device, an import), they're
+  // dropped rather than silently undoing that change.
+  const [restored] = useState(() => {
+    const kept = autosave.restored
+    return kept &&
+      JSON.stringify(kept.original) === JSON.stringify(fromDive(dive, log))
+      ? kept
+      : null
+  })
+  const stale = !!autosave.restored && !restored
+  useEffect(() => {
+    if (stale) void autosave.clear()
+    // Once, as the form opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   // Taken once: a sync while the form is open changes the dive, but not
   // what the diver typed over.
   const [original] = useState(() => restored?.original ?? fromDive(dive, log))

@@ -6,9 +6,9 @@ export interface Leave {
   reset: () => void
 }
 
-// On a desktop the sidebar and Back stay in reach, where a phone's form
-// covers its tabs, so leaving with something typed asks first, as Cancel
-// does. A phone screen that leaves its tabs in reach mounts it too.
+// On a desktop the sidebar and Back stay in reach, so leaving with something
+// typed asks first, as Cancel does. A phone keeps what was typed instead
+// (lib/kept.ts): iOS's back swipe has left before the question could show.
 export function LeaveGuard({
   when,
   onBlock,
