@@ -53,7 +53,12 @@ export function Answers({
       action={
         <ExpandAll
           every={every}
-          onClick={() => open(every ? [] : rows.map((row) => row.key))}
+          // In place, as All patterns' Expand all opens: several strips
+          // growing at once moved everything below them every frame.
+          onClick={() => {
+            setStill(true)
+            setShown(new Set(every ? [] : rows.map((row) => row.key)))
+          }}
         />
       }
     >
