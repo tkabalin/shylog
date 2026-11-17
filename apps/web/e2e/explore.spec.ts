@@ -36,6 +36,25 @@ const [, linkText, linked] = pages[aFrame.page!]
   .join("\n")
   .match(/\[([^\]]+)\]\(site:((?!a-frame\))[^)]+)\)/)!
 const bySite = (id: string) => (url: URL) => url.searchParams.get("site") === id
+// Text that is all of an element's own.
+const whole = (words: string) =>
+  new RegExp(`^${words.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`)
+// The first heading inside a page's first section, shown once it opens.
+const firstSubheading = (page: string) =>
+  pages[page]
+    .map(text)
+    .join("\n")
+    .split(/^(?=## )/m)
+    .find((section) => section.startsWith("## "))!
+    .match(/^### (.+)$/m)![1]
+// The page's section a piece of its text is in, which folds.
+const sectionOf = (page: string, words: string) =>
+  pages[page]
+    .map(text)
+    .join("\n")
+    .split(/^(?=## )/m)
+    .find((section) => section.includes(words))!
+    .match(/^## (.+)$/m)![1]
 
 // The map is a canvas, so a pin is found from where the camera puts it.
 async function drawn(page: Page) {
@@ -99,6 +118,15 @@ test.describe("at phone width", () => {
     await expect(
       sheet.getByText("Boulders no-take zone", { exact: true })
     ).toBeVisible()
+    await expect(sheet.getByText(/Diving allowed\./)).toBeVisible()
+    // Read more after the whole description, and Wikivoyage, which needs
+    // signal, after the text, which doesn't.
+    await expect(sheet.getByRole("button", { name: "Read more" })).toHaveText(
+      "Read more"
+    )
+    await expect(
+      sheet.getByRole("link", { name: "Read on Wikivoyage" })
+    ).not.toBeInViewport()
     await expect(
       sheet.getByRole("link", { name: "Read on Wikivoyage" })
     ).toHaveAttribute(
@@ -166,6 +194,9 @@ test.describe("at phone width", () => {
     await drag(page, sheet, -500)
     expect((await resting(sheet)).y).toBeCloseTo(map.y, 0)
     // Read a way down, then lowered, it shows the summary again.
+    await sheet
+      .getByRole("button", { name: firstHeading(aFrame.page!) })
+      .click()
     await sheet.locator("[data-scroll-top]").evaluate((element) => {
       element.scrollTop = 1500
     })
@@ -187,6 +218,9 @@ test.describe("at phone width", () => {
     await resting(sheet)
     // Far down the text, which opens the site at the top of its own.
     await sheet
+      .getByRole("button", { name: sectionOf(aFrame.page!, linkText) })
+      .click()
+    await sheet
       .getByRole("link", { name: plain(linkText) })
       .first()
       .click()
@@ -200,6 +234,166 @@ test.describe("at phone width", () => {
     await drag(page, next, 300)
     await expect(page).toHaveURL(/\/explore$/)
     await expect(next).toHaveCount(0)
+  })
+
+  test("goes back to the site a link came from, raised where it was", async ({
+    page,
+  }) => {
+    test.slow()
+    await page.goto("/")
+    // Its code loaded first: WebKit reloads a lazy route left mid-import.
+    await expect(page.getByRole("heading", { name: "Log" })).toBeAttached()
+    await page.goto("/explore?site=a-frame")
+    const map = await drawn(page)
+    const sheet = page.getByRole("dialog", { name: aFrame.name })
+    await resting(sheet)
+    await sheet.getByRole("button", { name: "Read more" }).click()
+    await resting(sheet)
+    // Far enough down the text that it has scrolled.
+    await sheet
+      .getByRole("button", { name: firstHeading(aFrame.page!) })
+      .click()
+    await sheet
+      .getByRole("button", { name: sectionOf(aFrame.page!, linkText) })
+      .click()
+    const link = sheet.getByRole("link", { name: plain(linkText) }).first()
+    await link.scrollIntoViewIfNeeded()
+    const scroller = sheet.locator("[data-scroll-top]")
+    const read = await scroller.evaluate((element) => element.scrollTop)
+    expect(read).toBeGreaterThan(0)
+    await link.click()
+    const next = page.getByRole("dialog", { name: site(linked).name })
+    await resting(next)
+    // In place of the area line, back to A-Frame, raised at the same place.
+    await next.getByRole("link", { name: aFrame.name }).first().click()
+    await expect(page).toHaveURL(bySite("a-frame"))
+    expect((await resting(sheet)).y).toBeCloseTo(map.y, 0)
+    await expect
+      .poll(() => scroller.evaluate((element) => element.scrollTop))
+      .toBeCloseTo(read, 0)
+    await expect(
+      sheet.getByText("False Bay coast", { exact: true })
+    ).toBeAttached()
+    // Each step replaced the address, so Back leaves Explore.
+    await page.goBack()
+    await expect(page).toHaveURL(/\/$/)
+  })
+
+  test("folds the page's sections, and shows the name once the title's gone", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    const sheet = page.getByRole("dialog", { name: aFrame.name })
+    await resting(sheet)
+    await sheet.getByRole("button", { name: "Read more" }).click()
+    await resting(sheet)
+    await expect(sheet.getByRole("button", { name: "Read more" })).toHaveCount(
+      0
+    )
+    const understand = sheet.getByRole("button", {
+      name: firstHeading(aFrame.page!),
+    })
+    await expect(understand).toHaveAttribute("aria-expanded", "false")
+    const position = sheet.getByRole("heading", {
+      name: firstSubheading(aFrame.page!),
+    })
+    await expect(position).toHaveCount(0)
+    await understand.click()
+    await expect(understand).toHaveAttribute("aria-expanded", "true")
+    await expect(position).toBeVisible()
+    // A bar with the name stands in for the title scrolled away, and goes
+    // as it comes back; its close puts the site down.
+    const bar = sheet.locator("p").filter({ hasText: whole(aFrame.name) })
+    const scroll = (top: number) =>
+      sheet.locator("[data-scroll-top]").evaluate((element, top) => {
+        element.scrollTop = top
+      }, top)
+    await expect(bar).toBeHidden()
+    await scroll(600)
+    await expect(bar).toBeVisible()
+    await scroll(0)
+    await expect(bar).toBeHidden()
+    await scroll(600)
+    await expect(bar).toBeVisible()
+    await sheet.getByRole("link", { name: "Close" }).first().click()
+    await expect(page).toHaveURL(/\/explore$/)
+  })
+
+  test("ends the way back when a site is reached any other way", async ({
+    page,
+  }) => {
+    test.slow()
+    await page.goto("/explore?site=a-frame")
+    const map = await drawn(page)
+    const sheet = page.getByRole("dialog", { name: aFrame.name })
+    await resting(sheet)
+    await sheet.getByRole("button", { name: "Read more" }).click()
+    await resting(sheet)
+    await sheet
+      .getByRole("button", { name: sectionOf(aFrame.page!, linkText) })
+      .click()
+    await sheet
+      .getByRole("link", { name: plain(linkText) })
+      .first()
+      .click()
+    const next = page.getByRole("dialog", { name: site(linked).name })
+    const top = (await resting(next)).y
+    const backRow = next.getByRole("link", { name: aFrame.name }).first()
+    await expect(backRow).toBeVisible()
+    // Put down, then picked again from its pin, it has its area line back.
+    await next.getByRole("link", { name: "Close" }).first().click()
+    await expect(next).toHaveCount(0)
+    await drawn(page)
+    await page.mouse.click(map.x + map.width / 2, (map.y + top) / 2)
+    await expect(page).toHaveURL(bySite(linked))
+    await resting(next)
+    await expect(backRow).toHaveCount(0)
+  })
+
+  test("clamps a long description at the peek, and shows it all raised", async ({
+    page,
+  }) => {
+    const long = [...sites].sort(
+      (a, b) => (b.description?.length ?? 0) - (a.description?.length ?? 0)
+    )[0]
+    await page.goto(`/explore?site=${long.id}`)
+    await drawn(page)
+    const sheet = page.getByRole("dialog", { name: long.name })
+    await resting(sheet)
+    const description = sheet
+      .locator("p")
+      .filter({ hasText: long.description!.slice(0, 30) })
+      .first()
+    const clamped = (await description.boundingBox())!.height
+    expect(clamped).toBeLessThanOrEqual(3 * 21)
+    // Over the end of the cut line, as the one after the words is hidden.
+    await expect(sheet.getByRole("button", { name: "Read more" })).toHaveText(
+      "more"
+    )
+    await sheet.getByRole("button", { name: "Read more" }).click()
+    await resting(sheet)
+    expect((await description.boundingBox())!.height).toBeGreaterThan(clamped)
+  })
+
+  test("can't open Wikivoyage with no signal", async ({ page, context }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    const sheet = page.getByRole("dialog", { name: aFrame.name })
+    await resting(sheet)
+    // The text in hand first, so the only offline icon is the summary's.
+    await expect(
+      sheet.getByRole("heading", { name: firstHeading(aFrame.page!) })
+    ).toBeAttached()
+    await context.setOffline(true)
+    await expect(
+      sheet.getByRole("img", { name: "Offline" }).first()
+    ).toBeVisible()
+    const wikivoyage = sheet.getByRole("link", { name: "Read on Wikivoyage" })
+    await expect(wikivoyage).toHaveAttribute("aria-disabled", "true")
+    await expect(wikivoyage).not.toHaveAttribute("href")
+    await context.setOffline(false)
+    await expect(wikivoyage).toHaveAttribute("href", /wikivoyage\.org/)
   })
 
   test("keeps a site with no page at its peek, with no link", async ({
@@ -223,6 +417,10 @@ test.describe("at phone width", () => {
     await page.goto(`/explore?site=${pinnacle.id}`)
     const sheet = page.getByRole("dialog", { name: pinnacle.name })
     await expect(sheet).toBeVisible()
+    // Named for a part of the reef, it says which reef.
+    await expect(
+      sheet.getByText(`Offshore False Bay · ${pinnacle.page}`)
+    ).toBeVisible()
     // Its own words, then the page under the page's name.
     const words = sheet
       .locator("p")
@@ -251,6 +449,27 @@ test.describe("at phone width", () => {
     await expect(depth).toHaveText(`≈ ${approximate.depth} m`)
     await page.goto(`/explore?site=${none.id}`)
     await expect(depth).toHaveText("–")
+  })
+
+  test("titles the zone row No diving where diving is banned", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=anvil-rock/anvil-rock-caves")
+    const sheet = page.getByRole("dialog")
+    await expect(sheet.getByText("No diving", { exact: true })).toBeVisible()
+    await expect(
+      sheet.getByText(/Cape Point abalone area\. No snorkelling/)
+    ).toBeVisible()
+    // Robben Island's restricted zone, and shore dives only off Cape Point.
+    await page.goto("/explore?site=mv-afrikaner")
+    await expect(sheet.getByText("No diving", { exact: true })).toBeVisible()
+    await expect(
+      sheet.getByText(/Robben Island restricted zone\./)
+    ).toBeVisible()
+    await page.goto("/explore?site=bordjiesrif")
+    await expect(
+      sheet.getByText("Shore dives only", { exact: true })
+    ).toBeVisible()
   })
 })
 
@@ -282,6 +501,53 @@ test.describe("at desktop width", () => {
     await page.goto("/explore?site=a-frame")
     await card.getByRole("button", { name: "Close" }).click()
     await expect(page).toHaveURL(/\/explore$/)
+  })
+
+  test("goes back to the site a link in the card came from", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    const card = page.getByRole("region", { name: aFrame.name })
+    await card.getByRole("button", { name: "Read more" }).click()
+    await card
+      .getByRole("button", { name: sectionOf(aFrame.page!, linkText) })
+      .click()
+    const link = card.getByRole("link", { name: plain(linkText) }).first()
+    await link.scrollIntoViewIfNeeded()
+    const scroller = card.locator("[data-scroll-top]")
+    const read = await scroller.evaluate((element) => element.scrollTop)
+    await link.click()
+    const next = page.getByRole("region", { name: site(linked).name })
+    await expect(next.getByRole("button", { name: "Read more" })).toBeVisible()
+    await next.getByRole("link", { name: aFrame.name }).first().click()
+    await expect(page).toHaveURL(bySite("a-frame"))
+    // Its text open again, with the section left open.
+    await expect(card.getByRole("button", { name: "Read less" })).toBeVisible()
+    await expect(
+      card.getByRole("button", { name: sectionOf(aFrame.page!, linkText) })
+    ).toHaveAttribute("aria-expanded", "true")
+    await expect
+      .poll(() => scroller.evaluate((element) => element.scrollTop))
+      .toBeCloseTo(read, 0)
+  })
+
+  test("dims Read on Wikivoyage in the card with no signal", async ({
+    page,
+    context,
+  }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    const card = page.getByRole("region", { name: aFrame.name })
+    // A button drawn as a link, which with no signal is a plain disabled one.
+    const wikivoyage = card.getByRole("button", { name: "Read on Wikivoyage" })
+    await expect(wikivoyage).toHaveAttribute("href", /wikivoyage\.org/)
+    await context.setOffline(true)
+    await expect(card.getByRole("img", { name: "Offline" })).toBeVisible()
+    await expect(wikivoyage).toBeDisabled()
+    await expect(wikivoyage).not.toHaveAttribute("href")
+    await context.setOffline(false)
+    await expect(wikivoyage).toHaveAttribute("href", /wikivoyage\.org/)
   })
 
   test("widens the card from its edge, and keeps the width", async ({
