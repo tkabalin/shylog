@@ -100,6 +100,35 @@ test("restores from the list with a toast that opens the dive @writes", async ({
   ).toHaveCount(0)
 })
 
+test.describe("on a touch screen", () => {
+  test.use({ hasTouch: true })
+
+  // A tap on a toast's text is followed by emulated mouse events, which
+  // Sonner took for a hover that never ended, so the toast stayed up.
+  test("lets a tapped toast time out @writes", async ({
+    page,
+    restore,
+    browserName,
+  }) => {
+    // Chromium's tap sends no hover, so it lets the toast go either way.
+    test.skip(browserName !== "webkit", "Only WebKit's tap hovers")
+    const id = await diveId(page.request, 61)
+    restore((request) => restoreDive(request, id))
+    await deleteDive(page.request, id)
+    const name = await cardName(page, id)
+
+    await page.goto("/you/deleted")
+    await page
+      .getByRole("button", { name: `Restore ${name}`, exact: true })
+      .tap()
+    const toast = page.getByText(/is back in your log$/)
+    await expect(toast).toBeVisible()
+    await toast.tap()
+    // Sonner's 4 s from the tap, then its exit.
+    await expect(toast).toBeHidden({ timeout: 8000 })
+  })
+})
+
 test("deletes from the edit form, back past the detail to the Log @writes", async ({
   page,
   restore,

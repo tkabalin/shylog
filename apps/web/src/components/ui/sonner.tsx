@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import {
   IconCircleCheck,
@@ -17,6 +18,7 @@ import { sidebarFold } from "@/components/ui/sidebar"
 // a phone and the home bar on every screen.
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme()
+  useEffect(() => holdOnlyForMice(), [])
 
   return (
     <Sonner
@@ -74,6 +76,38 @@ const Toaster = ({ ...props }: ToasterProps) => {
       {...props}
     />
   )
+}
+
+// Sonner holds a toast while the mouse is over it, until mouseleave; a tap's
+// emulated mouse events never leave, so it stayed up. Those after a touch
+// that land on a toast don't reach React; a real mouse's do.
+function holdOnlyForMice() {
+  let touched = -Infinity
+  const touch = (event: PointerEvent) => {
+    if (event.pointerType === "touch") touched = event.timeStamp
+  }
+  const toaster = (node: EventTarget | null) =>
+    node instanceof Element && !!node.closest("[data-sonner-toaster]")
+  // A mouseout's landing place is its relatedTarget, which React takes an
+  // enter from; leaving a toast for a button still enters the button.
+  const drop = (event: MouseEvent) => {
+    const into = event.type === "mouseout" ? event.relatedTarget : event.target
+    if (event.timeStamp - touched < 1000 && toaster(into))
+      event.stopPropagation()
+  }
+  const options = { capture: true }
+  document.addEventListener("pointerdown", touch, options)
+  document.addEventListener("pointerup", touch, options)
+  document.addEventListener("mouseover", drop, options)
+  document.addEventListener("mouseout", drop, options)
+  document.addEventListener("mousemove", drop, options)
+  return () => {
+    document.removeEventListener("pointerdown", touch, options)
+    document.removeEventListener("pointerup", touch, options)
+    document.removeEventListener("mouseover", drop, options)
+    document.removeEventListener("mouseout", drop, options)
+    document.removeEventListener("mousemove", drop, options)
+  }
 }
 
 export { Toaster }
