@@ -46,6 +46,27 @@ export const isFullRange = (
   scale: { min: number; max: number }
 ) => range.min <= scale.min && range.max >= scale.max
 
+// A text value from the address, where an empty one is none.
+export const searchText = (value: unknown) =>
+  typeof value === "string" && value ? value : undefined
+
+// A range in the address, "18-30", as the Log's and Explore's filters keep it.
+export const encodeRange = (range: Range | undefined) =>
+  range && `${range.min}-${range.max}`
+
+export function decodeRange(
+  value: string | undefined,
+  scale: { min: number; max: number }
+) {
+  const match = value?.match(/^(\d+)-(\d+)$/)
+  if (!match) return undefined
+  const min = Math.max(scale.min, Number(match[1]))
+  const max = Math.min(scale.max, Number(match[2]))
+  // The whole scale is no filter, so ?depth=0-40 doesn't mark the pill active.
+  if (min > max || isFullRange({ min, max }, scale)) return undefined
+  return { min, max }
+}
+
 export function matchesFilters(dive: Dive, filters: Filters, log: LogView) {
   if (filters.year && year(dive.startTime) !== filters.year) return false
   // Any of the picked tags, so adding one widens the list and no choice

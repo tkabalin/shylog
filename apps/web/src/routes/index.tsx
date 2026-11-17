@@ -46,14 +46,15 @@ import { isReturn } from "@/lib/keys"
 import { rootFlag } from "@/lib/root-flag"
 import {
   depthScale,
+  decodeRange,
   durationScale,
+  encodeRange,
   headerFigures,
-  isFullRange,
   matchesFilters,
   matchesSearch,
   monthGroups,
+  searchText as text,
   type Filters,
-  type Range,
 } from "@/log/filters"
 import { cardsIn, covers, monthGap, nextSpan, type Span } from "@/log/window"
 
@@ -71,25 +72,6 @@ interface LogSearch {
 // Lifts toasts over the floating button while it shows. A flag on the root,
 // as :root:has([data-fab]) was checked again on every insertion.
 const flagFab = rootFlag("data-fab")
-
-const text = (value: unknown) =>
-  typeof value === "string" && value ? value : undefined
-
-const encodeRange = (range: Range | undefined) =>
-  range && `${range.min}-${range.max}`
-
-function decodeRange(
-  value: string | undefined,
-  scale: { min: number; max: number }
-) {
-  const match = value?.match(/^(\d+)-(\d+)$/)
-  if (!match) return undefined
-  const min = Math.max(scale.min, Number(match[1]))
-  const max = Math.min(scale.max, Number(match[2]))
-  // The whole scale is no filter, so ?depth=0-40 doesn't mark the pill active.
-  if (min > max || isFullRange({ min, max }, scale)) return undefined
-  return { min, max }
-}
 
 const filtersOf = (search: LogSearch): Filters => ({
   year: search.year?.toString(),
