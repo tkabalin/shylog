@@ -50,6 +50,9 @@ export function web(root: string, appName: string, explore: "on" | "off") {
             start_url: "/",
             scope: "/",
             display: "standalone",
+            // One launch colour for both themes, since a manifest can't follow
+            // the colour scheme; light is the theme mostly used, so a dark
+            // launch on Android or a desktop install flashes white.
             background_color: "#ffffff",
             theme_color: "#ffffff",
             icons: [
