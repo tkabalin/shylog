@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { interval } from "@/format/figures"
 import { useDesk } from "@/hooks/use-desk"
 import { isReturn } from "@/lib/keys"
+import { reduced } from "@/lib/motion"
 
 import { BarButton, SheetBar } from "./sheet"
 
@@ -229,11 +230,7 @@ function Wheel({
     if (Math.round(wheel.scrollTop / rowHeight) !== value)
       wheel.scrollTo({
         top: value * rowHeight,
-        behavior:
-          placed.current &&
-          !matchMedia("(prefers-reduced-motion: reduce)").matches
-            ? "smooth"
-            : "instant",
+        behavior: placed.current && !reduced() ? "smooth" : "instant",
       })
     placed.current = true
   }, [value])

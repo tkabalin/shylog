@@ -167,6 +167,21 @@ test.describe("at phone width", () => {
     ).toBeAttached()
   })
 
+  // A chosen site is a sub-screen, not a filter, so its tab goes back to
+  // the bare map rather than only scrolling to the top.
+  test("closes the site on a tap of Explore's own tab", async ({ page }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    const sheet = page.getByRole("dialog", { name: aFrame.name })
+    await expect(sheet).toBeVisible()
+    await page
+      .getByRole("navigation", { name: "Main" })
+      .getByRole("link", { name: "Explore" })
+      .click()
+    await expect(page).toHaveURL(/\/explore$/)
+    await expect(sheet).toBeHidden()
+  })
+
   test("picks a site with a tap near its pin, and puts it down on land", async ({
     page,
   }) => {
