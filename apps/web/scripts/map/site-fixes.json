@@ -121,6 +121,10 @@
     "said": "Rocky Ridge: S34° 24.929', E18° 36.496'",
     "position": [18.608267, -34.415483]
   },
+  "rocky-bay/noble-reef": {
+    "said": "S34°11.332’ E018°48.934’",
+    "position": [18.815567, -34.188867]
+  },
   "sas-good-hope": {
     "said": "nominal position (amidships)",
     "position": [18.480842, -34.267992]
