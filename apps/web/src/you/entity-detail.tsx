@@ -31,6 +31,7 @@ import { options } from "@/components/pickers/option-sheet"
 import {
   BarButton,
   FullSheetContent,
+  keyboardPad,
   SheetBar,
   SheetSection,
 } from "@/components/pickers/sheet"
@@ -737,7 +738,10 @@ export function EntityDetail({
             title="Country"
             start={<BarButton onClick={() => setSheet(null)}>Cancel</BarButton>}
           />
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom),var(--keyboard,0px))]">
+          <div
+            ref={keyboardPad}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[max(1rem,env(safe-area-inset-bottom),var(--keyboard,0px))]"
+          >
             <CountryList
               sites={countrySites}
               value={values.countryCode}

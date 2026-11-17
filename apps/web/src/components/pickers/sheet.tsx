@@ -1,10 +1,7 @@
 import {
   createContext,
   useContext,
-  useEffect,
-  useState,
   type ComponentProps,
-  type CSSProperties,
   type ReactNode,
 } from "react"
 import { cn } from "cn"
@@ -28,24 +25,51 @@ import { isReturn } from "@/lib/keys"
 // How much of the screen the on-screen keyboard covers. iOS doesn't shrink
 // a full-height sheet for it, so its lists pad their ends by this much to
 // scroll their last rows above it.
-function useKeyboardInset() {
-  const [inset, setInset] = useState(0)
-  useEffect(() => {
-    const viewport = window.visualViewport
-    if (!viewport) return
-    const update = () =>
-      setInset(
-        Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
-      )
-    update()
-    viewport.addEventListener("resize", update)
-    viewport.addEventListener("scroll", update)
-    return () => {
-      viewport.removeEventListener("resize", update)
-      viewport.removeEventListener("scroll", update)
-    }
-  }, [])
-  return inset
+const pads = new Set<HTMLElement>()
+let keyboard = 0
+let frame = 0
+
+function measure() {
+  const viewport = window.visualViewport
+  if (!viewport) return 0
+  return Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+}
+
+// iOS sends several resizes and scrolls a frame as the keyboard slides, so
+// this writes at most once a frame, and only when the height has changed.
+function follow() {
+  if (frame) return
+  frame = requestAnimationFrame(() => {
+    frame = 0
+    const next = measure()
+    if (next === keyboard) return
+    keyboard = next
+    for (const pad of pads) pad.style.setProperty("--keyboard", `${next}px`)
+  })
+}
+
+// A ref for the scroller in a sheet that pads its end by `--keyboard`. The
+// variable doesn't inherit (index.css), so it's written on each scroller
+// as it mounts: one remounted with the keyboard up starts clear of it.
+export function keyboardPad(pad: HTMLElement | null) {
+  if (!pad) return
+  const viewport = window.visualViewport
+  if (!pads.size) {
+    keyboard = measure()
+    viewport?.addEventListener("resize", follow)
+    viewport?.addEventListener("scroll", follow)
+  }
+  pads.add(pad)
+  pad.style.setProperty("--keyboard", `${keyboard}px`)
+  return () => {
+    pads.delete(pad)
+    if (pads.size) return
+    // Nothing open reads it, so a closed sheet doesn't follow the keyboard.
+    viewport?.removeEventListener("resize", follow)
+    viewport?.removeEventListener("scroll", follow)
+    cancelAnimationFrame(frame)
+    frame = 0
+  }
 }
 
 // A picker sheet at full height, like an iOS page sheet, stopping a little
@@ -64,23 +88,8 @@ export function FullSheetContent({
       )}
       {...props}
     >
-      <KeyboardInset>{children}</KeyboardInset>
-    </DrawerContent>
-  )
-}
-
-// Inside the popup, which mounts only while the sheet is open, so a closed
-// sheet doesn't follow the keyboard. `contents` keeps the sheet's layout;
-// the variable still reaches the lists below it.
-function KeyboardInset({ children }: { children: ReactNode }) {
-  const keyboard = useKeyboardInset()
-  return (
-    <div
-      className="contents"
-      style={{ "--keyboard": `${keyboard}px` } as CSSProperties}
-    >
       {children}
-    </div>
+    </DrawerContent>
   )
 }
 
