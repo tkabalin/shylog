@@ -14,6 +14,7 @@ import {
   note,
   ownWords,
   pageLines,
+  pictures,
   printed,
   quotes,
   sentences,
@@ -355,5 +356,67 @@ describe("a site's own section", () => {
       "'''Aoife's Reef patch''' is a relatively small patch of reef.",
     ]
     expect(findEnd(lines, findStart(lines, seek("Bus-stop")))).toBe(5)
+  })
+})
+
+describe("pictures", () => {
+  it("takes maps, sonar, aerial photos and plans, in page order", () => {
+    const page = [
+      "{{Toggle dive maps",
+      "| regionmap=Anvil Rock Reef map.png",
+      "| regionmaptext=Map of the reef at [[Anvil Rock]]",
+      "}}",
+      "[[File:Ultima_Thule_Reef.png|thumb|upright=1.5|Multibeam sonar image of ''Ultima Thule'']]",
+      "[[File:Ledges Aerial.jpg|400px|thumb|Aerial view of the dive site at Ledges. (Photo CDS&amp;M)]]",
+      "[[File:MV Orotava general arrangement plan.png|thumb|General arrangement plan of the wreck]]",
+      "[[File:Noah%27s Ark map.png|thumb|Map of the dive sites]]",
+      "[[File:Caf%C3%A9 Reef map.png|thumb|Map of the reef]]",
+    ].join("\n")
+    expect(pictures(page)).toEqual([
+      {
+        file: "Anvil Rock Reef map.png",
+        kind: "map",
+        caption: "Map of the reef at Anvil Rock",
+      },
+      {
+        file: "Ultima Thule Reef.png",
+        kind: "sonar",
+        caption: "Multibeam sonar image of Ultima Thule",
+      },
+      {
+        file: "Ledges Aerial.jpg",
+        kind: "aerial",
+        caption: "Aerial view of the dive site at Ledges. (Photo CDS&M)",
+      },
+      {
+        file: "MV Orotava general arrangement plan.png",
+        kind: "plan",
+        caption: "General arrangement plan of the wreck",
+      },
+      {
+        file: "Noah's Ark map.png",
+        kind: "map",
+        caption: "Map of the dive sites",
+      },
+      { file: "Café Reef map.png", kind: "map", caption: "Map of the reef" },
+    ])
+  })
+
+  it("leaves out photos, placeholders, galleries and comments", () => {
+    const page = [
+      "[[File:Map or aerial photo|upright=2|thumb|Map (or aerial photo) of the site]]",
+      "[[File:Horsefish DSC09127.JPG|thumb|A horsefish on the reef]]",
+      "[[File:Coral Gardens from the road.jpg|thumb|View showing the route to the entry]]",
+      "<gallery>",
+      "Reef map.png|Map of the reef",
+      "</gallery>",
+      "<!-- [[File:Old map.svg|thumb|Map of the dive sites]] -->",
+    ].join("\n")
+    expect(pictures(page)).toEqual([])
+  })
+
+  it("takes a file once, however often the page shows it", () => {
+    const line = "[[File:Long Beach map.png|thumb|Map of the dive site]]"
+    expect(pictures(`${line}\n${line}`)).toHaveLength(1)
   })
 })

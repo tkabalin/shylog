@@ -24,6 +24,7 @@ import {
   opening,
   ownWords,
   pageLines,
+  pictures,
   plain,
   section,
   sentences,
@@ -33,11 +34,13 @@ import {
   tidy,
   type Kind,
   type Marker,
+  type PictureKind,
 } from "./wikitext.ts"
 
-// Writes src/map/sites.geojson and src/map/pages.json, the dive site map's
-// sites and their pages' text, from Wikivoyage's dive site list for the Cape
-// Peninsula and False Bay and the pages it links to (CC BY-SA). The
+// Writes src/map/sites.geojson, src/map/pages.json and src/map/images.json,
+// the dive site map's sites, their pages' text and the maps and images each
+// shows (which map:images then downloads), from Wikivoyage's dive site list
+// for the Cape Peninsula and False Bay and the pages it links to (CC BY-SA). The
 // revisions read are pinned in wikivoyage.json, so a rebuild reads the same
 // text; `pnpm --filter @shylog/web map:sites --latest` moves the pins to
 // Wikivoyage's newest. site-fixes.json, written by hand, goes on top.
@@ -49,6 +52,7 @@ const pinsPath = join(import.meta.dirname, "wikivoyage.json")
 const fixesPath = join(import.meta.dirname, "site-fixes.json")
 const sitesPath = join(import.meta.dirname, "../../src/map/sites.geojson")
 const pagesPath = join(import.meta.dirname, "../../src/map/pages.json")
+const imagesPath = join(import.meta.dirname, "../../src/map/images.json")
 
 type Revision = {
   title: string
@@ -413,6 +417,11 @@ function link(inner: string) {
 
 const pageText: Record<string, Part[]> = {}
 const pageWords = new Map<string, string>()
+// Each site's maps and sonar images: those in its own section first, then
+// the ones its page shows outside every site's section, so one of Whittle
+// Rock's pinnacles has its own and the rock's, not the other 39.
+const siteImages: Record<string, string[]> = {}
+const imageFiles: Record<string, { kind: PictureKind; caption: string }> = {}
 
 for (const [name, text] of raw) {
   const body = pageLines(text)
@@ -422,12 +431,17 @@ for (const [name, text] of raw) {
     .filter((each) => each.start >= 0)
     .sort((a, b) => a.start - b.start)
   const parts: Part[] = []
+  // Which sites each line's section belongs to, none for the page's own.
+  const owners: string[][] = body.map(() => [])
   let at = 0
   for (const [i, { site, start }] of ranges.entries()) {
     const same = parts.at(-1)
     if (typeof same === "object" && start < at) {
       // Two sites in one section, as both names of one pinnacle.
       if (!same.sites.includes(site.id)) same.sites.push(site.id)
+      for (let line = 0; line < body.length; line++) {
+        if (owners[line].includes(same.sites[0])) owners[line].push(site.id)
+      }
       continue
     }
     // The next site's start, past any found at this same line.
@@ -437,9 +451,48 @@ for (const [name, text] of raw) {
     const end = Math.min(findEnd(body, start), Math.max(next, start + 1))
     if (start > at) parts.push(body.slice(at, start).join("\n"))
     parts.push({ sites: [site.id], text: body.slice(start, end).join("\n") })
+    for (let line = start; line < end; line++) owners[line] = [site.id]
     at = end
   }
   if (at < body.length) parts.push(body.slice(at).join("\n"))
+  // A picture often sits on its own line just above a site's anchor, so
+  // it goes with that site: always from the end of the section before, and
+  // from the page's shared lines (an area's heading and lead) only where it
+  // names the site, as one there can map the whole area (Dusky Pinnacles).
+  for (const { site, start } of ranges) {
+    const ids = owners[start]
+    const names = [site.name, site.section].flatMap((name) =>
+      name ? [loose(name)] : []
+    )
+    for (let line = start - 1; line >= 0; line--) {
+      if (owners[line].join() === ids.join()) break
+      const text = body[line]
+      if (!text.trim()) continue
+      if (!/^\s*\[\[(?:file|image):.*\]\]\s*$/i.test(text)) break
+      const said = loose(text)
+      if (!owners[line].length && !names.some((name) => said.includes(name)))
+        break
+      owners[line] = ids
+    }
+  }
+  const own = new Map<string, string[]>()
+  const shared: string[] = []
+  for (const [line, text] of body.entries()) {
+    if (!owners[line].length) shared.push(text)
+    for (const id of owners[line]) own.set(id, [...(own.get(id) ?? []), text])
+  }
+  const common = pictures(shared.join("\n"))
+  for (const site of sites.filter((each) => each.page === name)) {
+    const found = [
+      ...pictures((own.get(site.id) ?? []).join("\n")),
+      ...common,
+    ].filter((one, i, all) => all.findIndex((b) => b.file === one.file) === i)
+    if (!found.length) continue
+    siteImages[site.id] = found.map((one) => one.file)
+    for (const { file, kind, caption } of found) {
+      imageFiles[file] ??= { kind, caption }
+    }
+  }
   // Converted whole, so a heading over a site's section isn't taken for an
   // empty one, then split again where the sites were.
   const cut = "\n\nSPLIT-PART\n\n"
@@ -585,6 +638,7 @@ const write = async (path: string, data: unknown) =>
     })
   )
 await write(pagesPath, pageText)
+await write(imagesPath, { sites: siteImages, files: imageFiles })
 await write(pinsPath, pins)
 
 const sections = sites.filter((each) => each.own)
@@ -597,7 +651,9 @@ console.log(
   `${sites.length} sites (${listed.length} of ${markers(list.text).length} markers placed), ` +
     `${Object.keys(pageText).length} pages, ${pins.missing.length} missing; ` +
     `${own.length} of ${sections.length} sections found in their pages; ` +
-    `${sites.filter((each) => each.depth === undefined).length} without a depth`
+    `${sites.filter((each) => each.depth === undefined).length} without a depth; ` +
+    `${Object.keys(imageFiles).length} site maps and sonar images on ` +
+    `${Object.keys(siteImages).length} sites`
 )
 if (written.length) {
   console.log(`Written since the last refresh: ${written.join(", ")}`)

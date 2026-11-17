@@ -1,0 +1,2394 @@
+{
+  "sites": {
+    "13th-apostle": ["13th Apostle Map.png"],
+    "a-frame": [
+      "A-Frame site map.png",
+      "Map of CT dive sites A-Frame and D-frame with grid.png",
+      "A-Frame route.png"
+    ],
+    "alpha-reef": ["Dive sites of Rocklands Point.png", "Alpha Reef Map.png"],
+    "ammunition-barges": ["Phoenix shoal 150dpi.jpg"],
+    "ankers": ["Ankers and Balcony Aerial.jpg"],
+    "anvil-rock/anvil-rock-pinnacle": ["Anvil Rock Reef map.png"],
+    "anvil-rock/anvil-rock-caves": ["Anvil Rock Reef map.png"],
+    "atlantis-reef": ["Atlantis Reef map.png"],
+    "bakoven-rock": ["Bakoven NSRI 300dpi.jpg"],
+    "balcony": ["Ankers and Balcony Aerial.jpg"],
+    "bantry-bay/bantry-bay": ["Bantry Bay Pinnacles map.png"],
+    "bantry-bay/bantry-bay-pinnacles": ["Bantry Bay Pinnacles map.png"],
+    "batsata-rock/banging-rocks-reef": ["Dive sites of Batsata Reef.png"],
+    "batsata-rock/batsata-blinder": ["Dive sites of Batsata Reef.png"],
+    "batsata-rock/batsata-rock": ["Dive sites of Batsata Reef.png"],
+    "batsata-rock/smileys-reef": ["Dive sites of Batsata Reef.png"],
+    "bill-liltveds-reef": ["Whittle Rock and Surrounds.pdf"],
+    "billys-reef": [
+      "Whittle Rock and Surrounds.pdf",
+      "Billy's Reef.png",
+      "3D Wreckless Marine multi-beam sonar image of Billy's Reef, Off Whittle- Southern reefs, False Bay, South Africa.png"
+    ],
+    "blomvlei": ["Blomvlei.png"],
+    "blouklip": ["Blousteen Aerial.jpg"],
+    "blousteen-ridge": ["Blousteen Aerial.jpg"],
+    "blue-flame-reef/north-pinnacles": [
+      "Whittle Rock and Surrounds.pdf",
+      "Blue Flame Reef.png"
+    ],
+    "blue-flame-reef/south-pinnacles": [
+      "Whittle Rock and Surrounds.pdf",
+      "Blue Flame Reef.png"
+    ],
+    "blue-rock-quarry/deep-end": [
+      "Blue Rock Quarry.png",
+      "Blue Rock Quarry Aerial view before filling 994 016 06710 crop.jpg"
+    ],
+    "blue-rock-quarry/floating-jetty": [
+      "Blue Rock Quarry.png",
+      "Blue Rock Quarry Aerial view before filling 994 016 06710 crop.jpg"
+    ],
+    "blue-rock-quarry/west-end": [
+      "Blue Rock Quarry.png",
+      "Blue Rock Quarry Aerial view before filling 994 016 06710 crop.jpg"
+    ],
+    "blue-rock-quarry/dive-and-adventure-corner": [
+      "Blue Rock Quarry.png",
+      "Blue Rock Quarry Aerial view before filling 994 016 06710 crop.jpg"
+    ],
+    "boardroom-pinnacle": ["Boardroom pinnacle map.png"],
+    "boat-rock": ["Bakoven Rock Reef Map.png"],
+    "bordjiesrif": ["Bordjiesrif 300dpi.jpg"],
+    "bruces-mark/north-pinnacle": [
+      "Whittle Rock and Surrounds.pdf",
+      "Bruce's Mark Reef.png"
+    ],
+    "bruces-mark/bruces-mark-west-lobe": [
+      "Whittle Rock and Surrounds.pdf",
+      "Bruce's Mark Reef.png"
+    ],
+    "bruces-mark/caves": [
+      "Whittle Rock and Surrounds.pdf",
+      "Bruce's Mark Reef.png"
+    ],
+    "bruces-mark/bruces-mark": [
+      "Whittle Rock and Surrounds.pdf",
+      "Bruce's Mark Reef.png"
+    ],
+    "brunswick": [
+      "Long Beach map.png",
+      "Bato and Brunswick.jpg",
+      "Brunswick shipwreck.png"
+    ],
+    "canyon": ["Duiker Point Canyon map.png"],
+    "caravan-reef/caravan-central-east-pinnacle": [
+      "Dive sites of Caravan Reef.png",
+      "PMB Pinnacles map.png"
+    ],
+    "caravan-reef/caravan-central-north-pinnacle": [
+      "Dive sites of Caravan Reef.png",
+      "PMB Pinnacles map.png"
+    ],
+    "caravan-reef/inner-caravan": [
+      "Dive sites of Caravan Reef.png",
+      "PMB Pinnacles map.png"
+    ],
+    "caravan-reef/north-caravan": [
+      "Dive sites of Caravan Reef.png",
+      "PMB Pinnacles map.png"
+    ],
+    "caravan-reef/pmb-pinnacles": [
+      "Dive sites of Caravan Reef.png",
+      "PMB Pinnacles map.png"
+    ],
+    "caravan-reef/south-caravan": [
+      "Dive sites of Caravan Reef.png",
+      "PMB Pinnacles map.png"
+    ],
+    "castle-rocks/north-castle": [
+      "Castle Rocks Map.png",
+      "Castle Rocks 150dpi.jpg"
+    ],
+    "castle-rocks/point-reefs": [
+      "Castle Rocks Map.png",
+      "Castle Rocks 150dpi.jpg"
+    ],
+    "castle-rocks/inner-castle": [
+      "Castle Rocks Map.png",
+      "Castle Rocks 150dpi.jpg"
+    ],
+    "castor-rock/central-pinnacle": [
+      "Castor Rock Reef map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "castor-rock/northern-pinnacle": [
+      "Castor Rock Reef map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "castor-rock/romans-rest": [
+      "Castor Rock Reef map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "castor-rock/southeast-pinnacle": [
+      "Castor Rock Reef map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "castor-rock/southwest-pinnacle": [
+      "Castor Rock Reef map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "castor-rock/wonders-pinnacle": [
+      "Castor Rock Reef map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "cleeves-tunnel": ["Cleeve's Tunnel map.png"],
+    "clifton-rocks": ["Clifton Rocks 150dpi.jpg"],
+    "container-bay": ["Container Bay Aerial.jpg"],
+    "coral-gardens-oudekraal/inshore-pinnacle": [
+      "Coral Gardens Oudekraal site map Large.png",
+      "Coral Gardens offshore pinnacles map.png",
+      "Coral Gardens Oudekraal site map Detail.png",
+      "Coral Gardens and Groot Pannekoek 150dpi.jpg"
+    ],
+    "coral-gardens-oudekraal/colins-pinnacle": [
+      "Coral Gardens Oudekraal site map Large.png",
+      "Coral Gardens offshore pinnacles map.png",
+      "Coral Gardens Oudekraal site map Detail.png",
+      "Coral Gardens and Groot Pannekoek 150dpi.jpg"
+    ],
+    "coral-gardens-rooi-els": [
+      "Coral Gardens Rooi-els dive site map.png",
+      "Coral Gardens RE Aerial.jpg"
+    ],
+    "cow-and-calf/cow-and-calf": [
+      "Map of the CT dive site Cow and Calf.png",
+      "Cow and Calf Aerial.jpg"
+    ],
+    "cow-and-calf/stone-dog": [
+      "Map of the CT dive site Cow and Calf.png",
+      "Cow and Calf Aerial.jpg"
+    ],
+    "d-frame": ["Map of CT dive sites A-Frame and D-frame with grid.png"],
+    "dale-brook": ["Dale Brook 300dpi crop.jpg"],
+    "deep-south-whittle-reef": [
+      "Whittle Rock and Surrounds.pdf",
+      "Deep South Ridge.png"
+    ],
+    "dis-cracks/9m-pinnacle": ["Vulcan Rock and Di's Cracks map.png"],
+    "dis-cracks/14m-pinnacle": ["Vulcan Rock and Di's Cracks map.png"],
+    "die-josie": ["Die Josie map.png"],
+    "die-perd": ["Die Perd map.png", "Oakburn Boss400 and Die Perd 300dp1.jpg"],
+    "dome-rock": ["Dome Rock Reef map.png"],
+    "dreadlocks-reef": ["Dreadlocks Reef map.png"],
+    "duiker-island": [
+      "Duiker Island map.png",
+      "Duiker Island and The Sentinel Mountain Peak, Hout Bay, Cape Town, South Africa.jpg"
+    ],
+    "fan-reef": ["Fan Reef Map.png"],
+    "finlays-deep": ["Mont Blanc Reef map.png"],
+    "finlays-point": [
+      "Finlay's Point dive sites.png",
+      "Finlays Point 150dpi.jpg"
+    ],
+    "finlays-point-offshore-pinnacles/carnaby-street-pinnacle": [
+      "Graeme's spot and the Jambles, Carnaby Street and Finlay's Pinnacle map.png"
+    ],
+    "finlays-point-offshore-pinnacles/finlays-pinnacle": [
+      "Graeme's spot and the Jambles, Carnaby Street and Finlay's Pinnacle map.png"
+    ],
+    "finlays-point-offshore-pinnacles/graemes-spot": [
+      "Graeme's spot and the Jambles, Carnaby Street and Finlay's Pinnacle map.png"
+    ],
+    "finlays-point-offshore-pinnacles/the-jambles": [
+      "Graeme's spot and the Jambles, Carnaby Street and Finlay's Pinnacle map.png"
+    ],
+    "fish-hoek-reef": ["Fish Hoek Reef.png"],
+    "fishermans-beach": ["Froggy Pond and Fishermans Beach.jpg"],
+    "friskies-pinnacle": [
+      "Friskies Pinnacle Map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "friskies-pinnacle/north-friskies-pinnacle": [
+      "Friskies Pinnacle Map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "froggy-pond": ["Froggy Pond and Fishermans Beach.jpg"],
+    "gb-reef/west-drop": ["Whittle Rock and Surrounds.pdf", "GB Reef.png"],
+    "gb-reef/gb-reef": ["Whittle Rock and Surrounds.pdf", "GB Reef.png"],
+    "gb-south-reef": ["Whittle Rock and Surrounds.pdf", "South GB.png"],
+    "geldkis": [
+      "North Oudekraal dive sites with routes.png",
+      "Oudekraal Justins and Geldkis 150dpi.jpg"
+    ],
+    "geldkis-blinder": [
+      "North Oudekraal dive sites with routes.png",
+      "Oudekraal Justins and Geldkis 150dpi.jpg"
+    ],
+    "giants-castle": [
+      "Giant's Castle map.png",
+      "Pie Rock, Outer Castle and Giant's Castle reefs map.png"
+    ],
+    "glencairn-barge": ["Quarry 300dpi.jpg", "Glencairn Barge wreck.png"],
+    "glencairn-fan-garden": ["Glencairn Fan Garden site map.png"],
+    "good-hope-reef": ["Smits Wrecks and Good Hope Reef map.png"],
+    "groot-pannekoek": [
+      "Map of CT dive site Coral Gardens Oudekraal and Groot Pannekoek.png",
+      "Coral Gardens and Groot Pannekoek 150dpi.jpg"
+    ],
+    "hakka-reef/die-middelmas": ["Middelmas and Hakka Reef map.png"],
+    "hakka-reef/peets-pinnacle": ["Middelmas and Hakka Reef map.png"],
+    "hakka-reef/southeast-pinnacles": ["Middelmas and Hakka Reef map.png"],
+    "hakka-reef/svens-caves": ["Middelmas and Hakka Reef map.png"],
+    "harvest-capella": ["MFV Harvest Capella wreck map.png"],
+    "het-huis-te-kraaiestein": [
+      "North Oudekraal dive sites with routes.png",
+      "Huis te Kraaiestein sketch map.png"
+    ],
+    "highfields": [
+      "Highfields wreck map.png",
+      "The Highfields.png",
+      "Highfields sonar scan.jpg"
+    ],
+    "hnms-bato": [
+      "Long Beach map.png",
+      "Bato and Brunswick.jpg",
+      "HNMS Bato.png"
+    ],
+    "humpback-ridge": ["Humpback Ridge map.png", "Blue Flash Reefs map.png"],
+    "insanity-reef": [
+      "Map of the CT dive sites at Rocklands Point.png",
+      "Insanity Reef map.png",
+      "Resize of Aerial view of CT dive sites at Rocklands Point - Spaniard rock aerial 2.jpg"
+    ],
+    "joshs-reef/ne-pinnacle": [
+      "Whittle Rock and Surrounds.pdf",
+      "Josh's Reef.png"
+    ],
+    "joshs-reef/central-pinnacle": [
+      "Whittle Rock and Surrounds.pdf",
+      "Josh's Reef.png"
+    ],
+    "joshs-reef/noble-pinnacle": [
+      "Whittle Rock and Surrounds.pdf",
+      "Josh's Reef.png"
+    ],
+    "joshs-reef/sw-pinnacle": [
+      "Whittle Rock and Surrounds.pdf",
+      "Josh's Reef.png"
+    ],
+    "joshs-reef/south-pinnacle": [
+      "Whittle Rock and Surrounds.pdf",
+      "Josh's Reef.png"
+    ],
+    "justins-caves": [
+      "North Oudekraal dive sites with routes.png",
+      "Oudekraal Justins and Geldkis 150dpi.jpg",
+      "Justins Caves route.png"
+    ],
+    "kalk-bay-harbour-wall": [
+      "Map of Kalk Bay Reef and Harbour Wall.png",
+      "Kalk Bay Harbour 300dpi crop.jpg"
+    ],
+    "kanobis-wall": [
+      "Star Walls Reef Complex map.png",
+      "Kanobi's Reef detail map.png"
+    ],
+    "king-emperor": ["King Emperor.png"],
+    "klein-pannekoek": [
+      "Antipolis and Klein Pannekoek.jpg",
+      "Klein Pannekoek 150dpi.jpg"
+    ],
+    "klein-tafelberg": ["Klein Tafelberg Reef map.png"],
+    "kruis": ["Percys and Kruis2.png", "Percys Aerial.jpg"],
+    "ledges": ["Ledges Aerial.jpg"],
+    "livingstone-reef": [
+      "Livingstone reef.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "lonehill-reef": ["Whittle Rock and Surrounds.pdf", "Lonehill Reef.png"],
+    "long-beach-simons-town": [
+      "Long Beach map.png",
+      "Long Beach Aerial View.jpg",
+      "Long Beach 2001.jpg",
+      "Long Beach Orienteering route map.png"
+    ],
+    "lorry-bay": ["Lorry Bay Aerial.jpg"],
+    "maidstone-rock/ammo-reef": ["Maidstone Reef and Rock.png"],
+    "maidstone-rock/anchor-reef": ["Maidstone Reef and Rock.png"],
+    "maidstone-rock/maidstone-rock": ["Maidstone Reef and Rock.png"],
+    "mfv-orotava": [
+      "Smits Wrecks and Good Hope Reef map.png",
+      "MV Orotava general arrangement plan.png",
+      "Oratava.png"
+    ],
+    "mfv-princess-elizabeth": [
+      "Smits Wrecks and Good Hope Reef map.png",
+      "Princess Elizabeth.png",
+      "MV Princess Elizabeth general arrangement plan.png"
+    ],
+    "midway-ridge": ["Whittle Rock and Surrounds.pdf", "Midway Reef.png"],
+    "mooivlei": ["Mooivlei.png"],
+    "muizenberg-trawler-wrecks/bulby": [
+      "Bulby.png",
+      "Muizenberg trawler wrecks.png",
+      "I&J Trawler A (east).jpg",
+      "I&J trawler B (west).jpg"
+    ],
+    "muizenberg-trawler-wrecks/borella": [
+      "Borella.png",
+      "Muizenberg trawler wrecks.png",
+      "I&J Trawler A (east).jpg",
+      "I&J trawler B (west).jpg"
+    ],
+    "muizenberg-trawler-wrecks/iolite": [
+      "Iolite.png",
+      "Muizenberg trawler wrecks.png",
+      "I&J Trawler A (east).jpg",
+      "I&J trawler B (west).jpg"
+    ],
+    "mushroom-pinnacle": [
+      "Mushroom pinnacle sketch.png",
+      "Oudekraal Justins and Geldkis 150dpi.jpg"
+    ],
+    "mv-afrikaner": ["Afrikaner.png"],
+    "mv-antipolis": ["Antipolis and Klein Pannekoek.jpg"],
+    "mv-aster": [
+      "Aster and Katsu Maru.png",
+      "Aster.png",
+      "MV Aster general arrangement.png"
+    ],
+    "mv-daeyang-family": ["MV Daeyang Family wreck map.png"],
+    "mv-gemsbok": ["L.M. Gemsbok.png"],
+    "mv-katsu-maru": [
+      "Katsu Maru sketch.png",
+      "Aster and Katsu Maru.png",
+      "Katsu Maru No. 25.png"
+    ],
+    "mv-ker-yar-vor-and-the-jo-may": ["Ker Yar Vor site map.png"],
+    "mv-rockeater": [
+      "Smits Wrecks and Good Hope Reef map.png",
+      "Rockeater General Arrangement.png",
+      "Rockeater.png"
+    ],
+    "mv-romelia": ["MV Romelia and Sunset Rocks.png"],
+    "mv-seli-1": ["Seli 1.png"],
+    "mv-treasure": ["MV Treasure.png", "MV Treasure wreck map.png"],
+    "mv-winton": ["Winton site map.png"],
+    "noahs-ark/noahs-ark-rock": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/ark-rock-barge-wreck": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/boiler-wreck-1": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/boiler-wreck-2": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/boiler-wreck-3a": [
+      "Boilers heading 300.jpg",
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/boiler-wreck-3b": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/parana-main-section": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/parana-small-section": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/double-row": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/single-row": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/eastern-wreck": [
+      "Wreck east of Ark Rk.jpg",
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/heat-exchanger": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "noahs-ark/twin-barges": [
+      "Ark Rock and wrecks.png",
+      "Noah's Ark 150dpi.jpg",
+      "Ark Rock map.png"
+    ],
+    "north-island-reef": [
+      "Whittle Rock and Surrounds.pdf",
+      "North Island Reef.png"
+    ],
+    "north-paw/barrys-pinnacles": ["North Lion's Paw map.png"],
+    "north-paw/cave-rock": ["North Lion's Paw map.png"],
+    "north-paw/eastern-pinnacle": ["North Lion's Paw map.png"],
+    "north-paw/main-reef": ["North Lion's Paw map.png"],
+    "north-paw/montys-pinnacles": ["North Lion's Paw map.png"],
+    "north-paw/northern-pinnacles": ["North Lion's Paw map.png"],
+    "off-whittle-ridge": [
+      "Whittle Rock and Surrounds.pdf",
+      "Off-Whittle Ridge 2026.png"
+    ],
+    "off-whittle-ridge/bruces-drop": [
+      "Whittle Rock and Surrounds.pdf",
+      "Off-Whittle Ridge 2026.png"
+    ],
+    "omega-reef/omega-north-pinnacle": ["Omega Reef Map.png"],
+    "omega-reef/omega-northwest-pinnacle": ["Omega Reef Map.png"],
+    "omega-reef/omega-central-pinnacle": ["Omega Reef Map.png"],
+    "outer-photographers-reef": ["Outer Photographers and Torch Reefs Map.png"],
+    "p87": ["P87 dive site map.png"],
+    "partridge-point/big-rock": [
+      "Partridge Point reef map.png",
+      "Partridge point 150dpi.jpg",
+      "Fish Tank reef map.png"
+    ],
+    "partridge-point/big-swim-through": [
+      "Partridge Point reef map.png",
+      "Partridge point 150dpi.jpg",
+      "Fish Tank reef map.png"
+    ],
+    "partridge-point/daves-caves": [
+      "Daves Caves detail.png",
+      "Partridge Point reef map.png",
+      "Partridge point 150dpi.jpg",
+      "Fish Tank reef map.png"
+    ],
+    "partridge-point/deep-partridge": [
+      "Partridge Point reef map.png",
+      "Partridge point 150dpi.jpg",
+      "Fish Tank reef map.png"
+    ],
+    "partridge-point/fish-tank": [
+      "Partridge Point reef map.png",
+      "Partridge point 150dpi.jpg",
+      "Fish Tank reef map.png"
+    ],
+    "partridge-point/joes-spot": [
+      "Partridge Point reef map.png",
+      "Partridge point 150dpi.jpg",
+      "Fish Tank reef map.png"
+    ],
+    "partridge-point/partridge-central": [
+      "Partridge Point reef map.png",
+      "Partridge point 150dpi.jpg",
+      "Fish Tank reef map.png"
+    ],
+    "partridge-point/peters-pinnacles": [
+      "Partridge Point reef map.png",
+      "Partridge point 150dpi.jpg",
+      "Fish Tank reef map.png"
+    ],
+    "partridge-point/seal-rock": [
+      "Partridge Point reef map.png",
+      "Partridge point 150dpi.jpg",
+      "Fish Tank reef map.png"
+    ],
+    "penguin-point": [
+      "Boulders Penguin Point and Photographers Reef 150dpi.jpg"
+    ],
+    "percys-hole": [
+      "Percys and Kruis2.png",
+      "Percys Aerial.jpg",
+      "Percys cave.png"
+    ],
+    "phoenix-shoal": ["Phoenix shoal 150dpi.jpg", "Phoenix Shoal map.png"],
+    "phone-reef": ["Phone Reef and Super Fan Reef.png"],
+    "photographers-reef": [
+      "Map of the dive sites Photographers Reef Windmill Beach and Penguin Point.png",
+      "Boulders Penguin Point and Photographers Reef 150dpi.jpg",
+      "Photographer's reef detail.png"
+    ],
+    "pie-rock-and-outer-castle-reefs/east-pie-rock-reef": [
+      "Pie Rock, Outer Castle and Giant's Castle reefs map.png"
+    ],
+    "pie-rock-and-outer-castle-reefs/north-pie-rock": [
+      "Pie Rock, Outer Castle and Giant's Castle reefs map.png"
+    ],
+    "pie-rock-and-outer-castle-reefs/outer-castle": [
+      "Pie Rock, Outer Castle and Giant's Castle reefs map.png"
+    ],
+    "pie-rock-and-outer-castle-reefs/south-pie-rock-pinnacles": [
+      "Pie Rock, Outer Castle and Giant's Castle reefs map.png"
+    ],
+    "pie-rock-and-outer-castle-reefs/west-pie-rock-reef": [
+      "Pie Rock, Outer Castle and Giant's Castle reefs map.png"
+    ],
+    "pinnacle": ["Map of the CT dive site Pinnacle.png"],
+    "pyramid-rock-reef-and-shark-alley/castle-pinnacles": [
+      "Pyramid Rock Reef and Shark Alley.png",
+      "Shark Alley 150dpi.jpg"
+    ],
+    "pyramid-rock-reef-and-shark-alley/pyramid-reef-east-pinnacles": [
+      "Pyramid Rock Reef and Shark Alley.png",
+      "Shark Alley 150dpi.jpg"
+    ],
+    "pyramid-rock-reef-and-shark-alley/pyramid-rock": [
+      "Pyramid Rock Reef and Shark Alley.png",
+      "Shark Alley 150dpi.jpg"
+    ],
+    "pyramid-rock-reef-and-shark-alley/sansui-reef": [
+      "Pyramid Rock Reef and Shark Alley.png",
+      "Shark Alley 150dpi.jpg"
+    ],
+    "pyramid-rock-reef-and-shark-alley/shark-alley": [
+      "Pyramid Rock Reef and Shark Alley.png",
+      "Shark Alley 150dpi.jpg"
+    ],
+    "quarry": ["Quarry 300dpi.jpg"],
+    "rachels-reef": ["Rachel's Reef map.png", "Blue Flash Reefs map.png"],
+    "rambler-rock/hotlips-pinnacle": ["Rambler Rock Reefs map.png"],
+    "rambler-rock/rambler-rock-north-central-reef": [
+      "Rambler Rock Reefs map.png"
+    ],
+    "rambler-rock/rambler-rock-northeast-reefs": ["Rambler Rock Reefs map.png"],
+    "rambler-rock/rambler-rock-northwest-pinnacle": [
+      "Rambler Rock Reefs map.png"
+    ],
+    "rambler-rock/rambler-rock-southern-pinnacles": [
+      "Rambler Rock Reefs map.png"
+    ],
+    "random-rocks-reefs/reef-with-no-name": ["Random Rocks Reefs map.png"],
+    "random-rocks-reefs/rudys-random-rocks": ["Random Rocks Reefs map.png"],
+    "robben-island-steamer-wreck": [
+      "Unidentified steamer off Robben Island.png",
+      "Gilia.png"
+    ],
+    "rocklands-blinder": ["Map of the CT dive sites at Rocklands Point.png"],
+    "rocky-bank/buttress": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/wreckless-rock": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/mossie-se-rif": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/east-pinnacle": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/the-rock": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/gully": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/shoal-point": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/dukes-ridge": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/rocky-ridge-north": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/rocky-ridge": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/rocky-ridge-south": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/pablos-steps": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/ahmeds-bluff": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/the-corner": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bank/deep-ridge": [
+      "Rocky Bank - overview 20260217.pdf",
+      "False Bay Overview Map.pdf",
+      "Rocky Bank - contours (10 m) 20260217.pdf",
+      "Rocky Bank - dive sites 20260217.pdf"
+    ],
+    "rocky-bay": ["Rocky Bay Aerial.jpg"],
+    "rocky-bay/noble-reef": ["Rocky Bay Aerial.jpg"],
+    "roman-rock/roman-rock": [
+      "Roman Rock Reef Map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "roman-rock/roman-rock-north": [
+      "Roman Rock Reef Map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "roman-rock/roman-rock-south": [
+      "Roman Rock Reef Map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "roman-rock/spider-crab-reefs": [
+      "Roman Rock Reef Map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "rooi-els-point": ["Rooi-els Point Aerial.jpg"],
+    "sandy-cove": ["Map of dive site Sandy Cove.png"],
+    "sandy-top-ridge": [
+      "Whittle Rock and Surrounds.pdf",
+      "Sandy-top Ridge.png"
+    ],
+    "sas-bloemfontein": [
+      "SAS Bloemfontein wreck map.png",
+      "SAS Bloemfontein.png"
+    ],
+    "sas-fleur": ["Fleur map.png", "SAS Fleur.png"],
+    "sas-gelderland": ["SAS Gelderland wreck map.png", "SAS Gelderland.png"],
+    "sas-gelderland/plan-b-pinnacle": [
+      "SAS Gelderland wreck map.png",
+      "SAS Gelderland.png"
+    ],
+    "sas-gelderland/plan-c-pinnacle": [
+      "SAS Gelderland wreck map.png",
+      "SAS Gelderland.png"
+    ],
+    "sas-good-hope": [
+      "Smits Wrecks and Good Hope Reef map.png",
+      "Sketch of the wreck of SAS Good Hope.png",
+      "SAS Good Hope shipwreck.png"
+    ],
+    "sas-pietermaritzburg": [
+      "Sketch of the wreck of SAS Pietermaritzburg.png",
+      "Site map of wreck of SAS Pietermaritzburg.png",
+      "SAS Pietermaritzburg.png"
+    ],
+    "sas-transvaal": [
+      "Smits Wrecks and Good Hope Reef map.png",
+      "SAS Transvaal.png"
+    ],
+    "sats-general-botha": [
+      "Sketch of the wreck General Botha.png",
+      "General Botha.png"
+    ],
+    "sea-point-ridge-pinnacles": ["Sea Point Ridge Pinnacle map.png"],
+    "sherwood-forest": ["Sherwood Forest Reef map.png"],
+    "sickle-reef": ["Whittle Rock and Surrounds.pdf", "Sickle Reef.png"],
+    "smits-reef/batsata-maze": ["Smits reef map.png", "Batsata Maze map.png"],
+    "smits-reef/horseshoe-reef": ["Smits reef map.png", "Batsata Maze map.png"],
+    "smits-reef/kreef-reef": ["Smits reef map.png", "Batsata Maze map.png"],
+    "smits-reef/smits-reef": ["Smits reef map.png", "Batsata Maze map.png"],
+    "smits-reef/western-pinnacle": [
+      "Smits reef map.png",
+      "Batsata Maze map.png"
+    ],
+    "south-island-reef": [
+      "Whittle Rock and Surrounds.pdf",
+      "South Island Reef.png"
+    ],
+    "south-paw": ["Map of CT dive site South Paw.png"],
+    "southwoods-corner/north-pinnacle": [
+      "Whittle Rock and Surrounds.pdf",
+      "Southwood's Corner.png"
+    ],
+    "southwoods-corner/central": [
+      "Whittle Rock and Surrounds.pdf",
+      "Southwood's Corner.png"
+    ],
+    "spaniard-rock": [
+      "Map of the CT dive sites at Rocklands Point.png",
+      "Resize of Aerial view of CT dive sites at Rocklands Point - Spaniard rock aerial 2.jpg"
+    ],
+    "ss-cape-matapan": [
+      "Cape Matapan wreck map.png",
+      "Cape Matapan shipwreck.png"
+    ],
+    "ss-clan-stuart": [
+      "Map of the CT dive site Clan Stuart.png",
+      "Clan Stuart.png",
+      "Clan Stuart 300dpi crop.jpg",
+      "Clan Stuart sidescan.jpg"
+    ],
+    "ss-hypatia": ["SS Hypatia wreck map.png", "Hypatia shipwreck.png"],
+    "ss-lusitania/bellows-rock": ["Map of the SS Lusitania wreck site.png"],
+    "ss-lusitania/lusi-pinnacle": ["Map of the SS Lusitania wreck site.png"],
+    "ss-lusitania/lusitania-ridge-pinnacle": [
+      "Map of the SS Lusitania wreck site.png"
+    ],
+    "ss-lusitania/northeast-pinnacle": [
+      "Map of the SS Lusitania wreck site.png"
+    ],
+    "ss-lusitania/wreckless-reef": ["Map of the SS Lusitania wreck site.png"],
+    "ss-lusitania": ["Map of the SS Lusitania wreck site.png"],
+    "ss-maori": ["Map of CT dive site SS Maori.png", "Maori.png"],
+    "ss-oakburn-and-bos-400": [
+      "Oakburn and Bos400 map.png",
+      "BOS 400.png",
+      "Oakburn.png",
+      "Oakburn Boss400 and Die Perd 300dp1.jpg"
+    ],
+    "ss-sa-seafarer": ["S.A. Seafarer.png"],
+    "st-godetia": ["SS Godetia site map.png", "Godetia.png"],
+    "star-of-africa": ["Star of Africa wreck map.png", "Star of Africa.png"],
+    "star-wall/star-walls": [
+      "Star Walls Reef Complex map.png",
+      "Star Walls detail map.png",
+      "Sunfish and Lollipop Pinnacles detail map.png",
+      "M&M Pinnacles detail map.png"
+    ],
+    "star-wall/m-m-cave": [
+      "Star Walls Reef Complex map.png",
+      "Star Walls detail map.png",
+      "Sunfish and Lollipop Pinnacles detail map.png",
+      "M&M Pinnacles detail map.png"
+    ],
+    "star-wall/lollipop-pinnacle": [
+      "Star Walls Reef Complex map.png",
+      "Star Walls detail map.png",
+      "Sunfish and Lollipop Pinnacles detail map.png",
+      "M&M Pinnacles detail map.png"
+    ],
+    "steenbras-ridge/choirboys-reef": [
+      "Choirboys on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/drop-zone": [
+      "Drop Zone (North and South) on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/drop-zone-south": [
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/mossies-reef": [
+      "Mossie's Reef on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/mossies-reef-south": [
+      "Mossie's Reef South on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/snake-ridge": [
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/steenbras-deep-north-pinnacle": [
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/steenbras-deep-south-pinnacle": [
+      "Steenbras Deep South, Snake Reef and Steenbras Koppie.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/steenbras-koppie": [
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/steenbras-ridge-edge": [
+      "Steenbras Ridge Edge Reef.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/steenbras-ridge-outpost": [
+      "Outpost on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/steenbras-ridge-river-mouth-pinnacle": [
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/sterretjies-reef": [
+      "Sterretjies on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/whale-reef": [
+      "Whale Reef on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/no-11-reef": [
+      "Number 11 Reef on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/no-12-reef": [
+      "Number 12 Reef on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/no-8-reef": [
+      "Number 8 Reef on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "steenbras-ridge/inner-ridge-north": [
+      "Inner Ridge North on Steenbras Ridge.png",
+      "Steenbras Ridge Overview Map.pdf",
+      "Steenbras Ridge Contour Map.pdf",
+      "Steenbras Ridge Dive Sites Map.pdf",
+      "Outpost and Steenbras Deep Far North on Steenbras Ridge.png",
+      "Steenbras Deep North on Steenbras Ridge.png"
+    ],
+    "stefs-reef/stefs-reef": [
+      "Whittle Rock and Surrounds.pdf",
+      "Stefan's Reef.png"
+    ],
+    "stefs-reef/stefs-ridge": [
+      "Whittle Rock and Surrounds.pdf",
+      "Stefan's Reef.png"
+    ],
+    "stern-reef": ["Map of the CT dive sites at Rocklands Point.png"],
+    "stonehenge/sponge-pinnacle": [
+      "Stonehenge dive sites (Cape Town) map.png",
+      "Dusky Pinnacles detail map.png"
+    ],
+    "stonehenge/coral-pinnacle": [
+      "Stonehenge dive sites (Cape Town) map.png",
+      "Dusky Pinnacles detail map.png"
+    ],
+    "stonehenge/stonehenge-north": [
+      "Stonehenge dive sites (Cape Town) map.png",
+      "Dusky Pinnacles detail map.png"
+    ],
+    "stonehenge/a360-pinnacle": [
+      "Stonehenge dive sites (Cape Town) map.png",
+      "Dusky Pinnacles detail map.png"
+    ],
+    "stonehenge/stonehenge-central": [
+      "Stonehenge dive sites (Cape Town) map.png",
+      "Dusky Pinnacles detail map.png"
+    ],
+    "stonehenge/stonehenge-south": [
+      "Stonehenge dive sites (Cape Town) map.png",
+      "Dusky Pinnacles detail map.png"
+    ],
+    "stonehenge/stonehenge-wreck": [
+      "Stonehenge dive sites (Cape Town) map.png",
+      "Dusky Pinnacles detail map.png"
+    ],
+    "stonehenge/stonehenge-blinder": [
+      "Stonehenge dive sites (Cape Town) map.png",
+      "Dusky Pinnacles detail map.png"
+    ],
+    "strawberry-rocks": [
+      "North Oudekraal dive sites with routes.png",
+      "Oudekraal Justins and Geldkis 150dpi.jpg"
+    ],
+    "sunfish-pinnacle": [
+      "Star Walls Reef Complex map.png",
+      "Sunfish and Lollipop Pinnacles detail map.png"
+    ],
+    "sunny-cove": ["Sunny Cove 300dpi crop.jpg"],
+    "super-fan-reef": ["Phone Reef and Super Fan Reef.png"],
+    "surg-pinnacles": [
+      "Star Walls Reef Complex map.png",
+      "SURG Pinnacle detail map.png"
+    ],
+    "t-s-mcewan": ["T.S. McEwen.png"],
+    "tafelberg-deep/brittlestar-pinnacle": ["Tafelberg Deep Reef map.png"],
+    "tafelberg-deep/coral-crag": ["Tafelberg Deep Reef map.png"],
+    "tafelberg-deep/macs-mark": ["Tafelberg Deep Reef map.png"],
+    "tafelberg-deep/tafelberg-deep-pinnacle": ["Tafelberg Deep Reef map.png"],
+    "tafelberg-deep/wilhelms-mark": ["Tafelberg Deep Reef map.png"],
+    "tafelberg-reef/cowrie-caves": ["Dive sites of Tafelberg Reef.png"],
+    "tafelberg-reef/tafelberg-reef-north": ["Dive sites of Tafelberg Reef.png"],
+    "tafelberg-reef/tafelberg-reef-west": ["Dive sites of Tafelberg Reef.png"],
+    "target-reef": [
+      "Target Reef Map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "tivoli-pinnacles": [
+      "Tivoli Pinnacles Map.png",
+      "Roman Rambler and Castor rocks map.png"
+    ],
+    "tonys-reef": ["Tonys Reef Aerial.jpg"],
+    "torch-reef": ["Outer Photographers and Torch Reefs Map.png"],
+    "tristania": ["Tristania.png"],
+    "troglodytes-cove": ["Troglodytes Cove Aerial.jpg"],
+    "twin-towers": ["Twin Towers Reef map.png"],
+    "two-oceans-aquarium": [
+      "Two Oceans Aquarium 300dpi crop.jpg",
+      "Two Oceans Aquarium building aerial.jpg"
+    ],
+    "vogelsteen": ["Map of the CT dive site Cow and Calf.png"],
+    "vulcan-rock/vulcan-rock": ["Vulcan Rock and Di's Cracks map.png"],
+    "vulcan-rock/north-ridge-pinnacle": ["Vulcan Rock and Di's Cracks map.png"],
+    "vulcan-rock/west-ridge-pinnacle": ["Vulcan Rock and Di's Cracks map.png"],
+    "vulcan-rock/rocksucker-ridge-west-pinnacle": [
+      "Vulcan Rock and Di's Cracks map.png"
+    ],
+    "vulcan-rock/rocksucker-ridge-east-pinnacle": [
+      "Vulcan Rock and Di's Cracks map.png"
+    ],
+    "western-deep": ["Whittle Rock and Surrounds.pdf", "Western Deep Reef.png"],
+    "whirlpool-cove": ["Whirlpool Aerial.jpg"],
+    "whittle-rock/aoifes-reef": [
+      "Whittle Rock - Aoife's reef.jpg",
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/bruces-reef": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/bus-stop": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/butt-rocks": [
+      "Butt Rocks at Whittle Rock, False Bay, South Africa.jpg",
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/caves-complex": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/criss-cross-cracks": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/deep-south-pinnacles": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/east-ridge-north-pinnacle": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/far-southwest-pinnacle": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/flash-pinnacle": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/fractal-zones": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/georginas-anchor": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/grants-spike": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/grants-wall": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/gullies": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/labyrinth": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/labyrinth-south-pinnacle": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/mossies-cave": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/m-m-tower": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/northwest-corner-pinnacles": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/northwest-passage": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/northwest-pinnacle": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/peters-ridge": [
+      "Peter's Ridge at Whittle Rock, False Bay, South Africa.jpg",
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/shards-cluster": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/southeast-pinnacle": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/table-top-pinnacle": [
+      "3D bathymetric image of Bus-stop overhang.png",
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/ultima-thule": [
+      "Ultima Thule Reef.png",
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/west-pinnacle": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/western-reef-pinnacle": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/whaleback-pinnacles": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/whaleback-rock": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/whittle-rock": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "whittle-rock/wreckless-rock": [
+      "Dive sites of the Whittle Rock area Hi-Res for mobile.png",
+      "Whittle Rock and Surrounds.pdf",
+      "Whittle Rock reef complex, False Bay, South Africa.jpg",
+      "Dive sites of Whittle Rock on multibeam map.jpg",
+      "Whittle Rock - Anchors map.pdf"
+    ],
+    "wilhelms-wall": ["Wilhelms Wall map.png", "Blue Flash Reefs map.png"],
+    "windmill-beach": [
+      "Map of the dive sites Photographers Reef Windmill Beach and Penguin Point.png",
+      "Windmill Beach 300dpi.jpg"
+    ],
+    "windmill-offshore-reefs/dangerous-doug-reef": [
+      "Windmill beach and offshore reefs map.png",
+      "Dangerous Doug Reefs Map.png"
+    ],
+    "windmill-offshore-reefs/lace-reef": [
+      "Windmill beach and offshore reefs map.png",
+      "Dangerous Doug Reefs Map.png"
+    ],
+    "windmill-offshore-reefs/outer-windmill": [
+      "Windmill beach and offshore reefs map.png",
+      "Dangerous Doug Reefs Map.png"
+    ],
+    "windmill-offshore-reefs/three-bears-pinnacle": [
+      "Windmill beach and offshore reefs map.png",
+      "Dangerous Doug Reefs Map.png"
+    ],
+    "windmill-offshore-reefs/windmill-offshore": [
+      "Windmill beach and offshore reefs map.png",
+      "Dangerous Doug Reefs Map.png"
+    ],
+    "windtoy-reef/windtoy-reef": [
+      "Whittle Rock and Surrounds.pdf",
+      "Windtoy Reef.png"
+    ],
+    "windtoy-reef/windtoy-reef-south": [
+      "Whittle Rock and Surrounds.pdf",
+      "Windtoy Reef.png"
+    ],
+    "wreckless-ridge": [
+      "Whittle Rock and Surrounds.pdf",
+      "Wreckless Ridge.png"
+    ],
+    "york-shoal": ["York Shoal Reef map.png"],
+    "zigzag-reef": [
+      "Giant's Castle map.png",
+      "Pie Rock, Outer Castle and Giant's Castle reefs map.png"
+    ]
+  },
+  "files": {
+    "13th Apostle Map.png": { "kind": "map", "caption": "Map of the site" },
+    "A-Frame site map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site A-frame at Oatlands Point"
+    },
+    "Map of CT dive sites A-Frame and D-frame with grid.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Oatlands Point. A-Frame inshore and D-Frame offshore"
+    },
+    "A-Frame route.png": {
+      "kind": "map",
+      "caption": "Possible dive route at A-Frame"
+    },
+    "Dive sites of Rocklands Point.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Rocklands Point, including Alpha Reef."
+    },
+    "Alpha Reef Map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site Alpha Reef"
+    },
+    "Phoenix shoal 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial photo of the dive site Ammunition Barges (photo CDS&M)"
+    },
+    "Ankers and Balcony Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Ankers. (Photo CDS&M)"
+    },
+    "Anvil Rock Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the reef at Anvil Rock"
+    },
+    "Atlantis Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Atlantis Reef"
+    },
+    "Bakoven NSRI 300dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial photograph of the dive site Bakoven Rock. (CDS&M)"
+    },
+    "Bantry Bay Pinnacles map.png": {
+      "kind": "map",
+      "caption": "Map of the offshore pinnacles"
+    },
+    "Dive sites of Batsata Reef.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Batsata Rock reef"
+    },
+    "Whittle Rock and Surrounds.pdf": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar map of Whittle Rock and Surrounds"
+    },
+    "Billy's Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Billy's Reef"
+    },
+    "3D Wreckless Marine multi-beam sonar image of Billy's Reef, Off Whittle- Southern reefs, False Bay, South Africa.png": {
+      "kind": "sonar",
+      "caption": "3D multi-beam sonar image of Billy's Reef"
+    },
+    "Blomvlei.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Blomvlei"
+    },
+    "Blousteen Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Blouklip. (Photo CDS&M)"
+    },
+    "Blue Flame Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Blue Flame Reef"
+    },
+    "Blue Rock Quarry.png": {
+      "kind": "map",
+      "caption": "Chart of the Blue Rock Quarry showing 10 m and 20 m contours and a few spot depths. The red line indicates the overhead ski tow cable."
+    },
+    "Blue Rock Quarry Aerial view before filling 994 016 06710 crop.jpg": {
+      "kind": "aerial",
+      "caption": "Blue Rock Quarry before final filling. (photo CDS&M)"
+    },
+    "Boardroom pinnacle map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Boardroom pinnacle"
+    },
+    "Bakoven Rock Reef Map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Boat Rock"
+    },
+    "Bordjiesrif 300dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial photo of the dive site at Bordjiesrif (Photo CDS&M)"
+    },
+    "Bruce's Mark Reef.png": {
+      "kind": "sonar",
+      "caption": "Ultra high definition multibeam image of Bruce's Mark Reef"
+    },
+    "Long Beach map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Long Beach showing the position of the wreck of the Brunswick"
+    },
+    "Bato and Brunswick.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the Brunswick and Bato dive sites. (Photo CDS&M)"
+    },
+    "Brunswick shipwreck.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of wreckage of the English East-Indiaman Brunswick"
+    },
+    "Duiker Point Canyon map.png": {
+      "kind": "map",
+      "caption": "Map of dive site Canyon between Star Wall and Stonehenge"
+    },
+    "Dive sites of Caravan Reef.png": {
+      "kind": "map",
+      "caption": "Map showing the layout and position of the dive sites at Caravan Reef"
+    },
+    "PMB Pinnacles map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at PMB Pinnacles"
+    },
+    "Castle Rocks Map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Castle Rocks"
+    },
+    "Castle Rocks 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive sites at Castle Rocks and Parson's Nose."
+    },
+    "Castor Rock Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites near Roman Rock."
+    },
+    "Roman Rambler and Castor rocks map.png": {
+      "kind": "map",
+      "caption": "Map showing the position of Castor Rock reef in relation to the surrounding reefs"
+    },
+    "Cleeve's Tunnel map.png": {
+      "kind": "map",
+      "caption": "Map showing the pinnacle at Cleeve's Tunnel"
+    },
+    "Clifton Rocks 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the Clifton Rocks dive site. The site described is around the rocks slightly to the right of upper centre. The entry and exit point is middle right."
+    },
+    "Container Bay Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial photo of the site (Photo DGS&M)"
+    },
+    "Coral Gardens Oudekraal site map Large.png": {
+      "kind": "map",
+      "caption": "Coral Gardens dive site at Oudekraal, including Groot Pannekoek"
+    },
+    "Coral Gardens offshore pinnacles map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at the Coral Gardens offshore pinnacles"
+    },
+    "Coral Gardens Oudekraal site map Detail.png": {
+      "kind": "map",
+      "caption": "Detail of the Coral Gardens site map showing the route from parking area to the pinnacles"
+    },
+    "Coral Gardens and Groot Pannekoek 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site. (photo CDS&M)"
+    },
+    "Coral Gardens Rooi-els dive site map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Coral Gardens, Rooi-els"
+    },
+    "Coral Gardens RE Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Coral Gardens, Rooi-Els. (Photo CDS&M)"
+    },
+    "Map of the CT dive site Cow and Calf.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Cow and Calf, Stone Dog, and Vogelsteen"
+    },
+    "Cow and Calf Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial photograph of the dive sites at Cow and Calf and Vogelsteen. (Photo CDS&M)"
+    },
+    "Dale Brook 300dpi crop.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view showing the location of Dale Brook dive site. (Photo CDS&M)"
+    },
+    "Deep South Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Deep South Ridge"
+    },
+    "Vulcan Rock and Di's Cracks map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Di's Cracks and Vulcan Rock"
+    },
+    "Die Josie map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Die Josie"
+    },
+    "Die Perd map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site \"Die Perd\" off Duiker Point on the Cape Peninsula"
+    },
+    "Oakburn Boss400 and Die Perd 300dp1.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial photo showing the site off Duiker Point, Die Perd is centre left.(photo CDS&M)"
+    },
+    "Dome Rock Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Dome Rock"
+    },
+    "Dreadlocks Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Dreadlocks Reef"
+    },
+    "Duiker Island map.png": {
+      "kind": "map",
+      "caption": "Map showing the dive sites at Duiker Island"
+    },
+    "Duiker Island and The Sentinel Mountain Peak, Hout Bay, Cape Town, South Africa.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the Cape Fur seal colony on Duiker Island, Hout Bay, Cape Town, South Africa. In the background is the Sentinel Mountain peak."
+    },
+    "Fan Reef Map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site Fan Reef."
+    },
+    "Mont Blanc Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Mont Blanc Reef, also known as Finlay's Deep"
+    },
+    "Finlay's Point dive sites.png": {
+      "kind": "map",
+      "caption": "Map showing the reefs and dive sites at Finlay's Point"
+    },
+    "Finlays Point 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Finlay’s Point. (Photo CDS&M))"
+    },
+    "Graeme's spot and the Jambles, Carnaby Street and Finlay's Pinnacle map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Graeme's Spot and The Jambles, Carnaby Street and Finlay's Pinnacle"
+    },
+    "Fish Hoek Reef.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Fish Hoek Reef"
+    },
+    "Froggy Pond and Fishermans Beach.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial photo showing location of the dive sites at Froggy Pond (top) and Fisherman's Beach (bottom). (photo CDS&M)"
+    },
+    "Friskies Pinnacle Map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Friskies Pinnacles"
+    },
+    "GB Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of GB Reef"
+    },
+    "South GB.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of South GB Reef"
+    },
+    "North Oudekraal dive sites with routes.png": {
+      "kind": "map",
+      "caption": "Map showing the location of the dive site Geldkis at North Oudekraal."
+    },
+    "Oudekraal Justins and Geldkis 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of north Oudekraal (photo CDS&M)"
+    },
+    "Giant's Castle map.png": {
+      "kind": "map",
+      "caption": "Detail map of the dive site at Giant's Castle"
+    },
+    "Pie Rock, Outer Castle and Giant's Castle reefs map.png": {
+      "kind": "map",
+      "caption": "Dive site map of the Pie Rock, Outer Castle and Giant's Castle reefs"
+    },
+    "Quarry 300dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial photo of the dive sites at Quarry and Cement Barge"
+    },
+    "Glencairn Barge wreck.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the barge wreck in False Bay at Glencain, near Simon's Town"
+    },
+    "Glencairn Fan Garden site map.png": {
+      "kind": "map",
+      "caption": "Map of the site"
+    },
+    "Smits Wrecks and Good Hope Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites of Smitswinkel Bay including the Good Hope Reef"
+    },
+    "Map of CT dive site Coral Gardens Oudekraal and Groot Pannekoek.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Coral Gardens and Groot Pannekoek."
+    },
+    "Middelmas and Hakka Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Middelmas and Hakka Reef"
+    },
+    "MFV Harvest Capella wreck map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of the MFV Harvest Capella"
+    },
+    "Huis te Kraaiestein sketch map.png": {
+      "kind": "map",
+      "caption": "Sketch map of some wreckage of Het Huis te Kraaiestein"
+    },
+    "Highfields wreck map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of the Highfields"
+    },
+    "The Highfields.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck The Highfields"
+    },
+    "Highfields sonar scan.jpg": {
+      "kind": "sonar",
+      "caption": "Sonar scan of the wreck of the Highfields"
+    },
+    "HNMS Bato.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of HNMS Bato"
+    },
+    "Humpback Ridge map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Humpback Ridge near Duiker Point on the Cape Peninsula"
+    },
+    "Blue Flash Reefs map.png": {
+      "kind": "map",
+      "caption": "Map of the Blue Flash Reefs, showing Humpback Ridge to the south-east"
+    },
+    "Map of the CT dive sites at Rocklands Point.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Rocklands Point, including Insanity Reef."
+    },
+    "Insanity Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site Insanity Reef near Simon's Town"
+    },
+    "Resize of Aerial view of CT dive sites at Rocklands Point - Spaniard rock aerial 2.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the Rocklands point area. (photo CDS&M)"
+    },
+    "Josh's Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Josh's Reef"
+    },
+    "Justins Caves route.png": {
+      "kind": "map",
+      "caption": "Possible dive route at Justin's Caves"
+    },
+    "Map of Kalk Bay Reef and Harbour Wall.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Kalk Bay Reef and Kalk Bay Harbour Wall"
+    },
+    "Kalk Bay Harbour 300dpi crop.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view showing Kalk Bay Harbour Wall dive site. (Photo CDS&M)."
+    },
+    "Star Walls Reef Complex map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at the Star Walls reef complex showing the location of Kanobi's Reef (upper centre)"
+    },
+    "Kanobi's Reef detail map.png": {
+      "kind": "map",
+      "caption": "Detail map of the dive site at Kanobi's Reef"
+    },
+    "King Emperor.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck King Emperor"
+    },
+    "Antipolis and Klein Pannekoek.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive sites at Klein Pannekoek (top left) and MV Antipolis (lower right). (Photo CDS&M, map PBS)"
+    },
+    "Klein Pannekoek 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Klein Pannekoek. (Photo CDS&M)"
+    },
+    "Klein Tafelberg Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site Klein Tafelberg."
+    },
+    "Percys and Kruis2.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites Percy's Hole (upper) and Kruis (lower)."
+    },
+    "Percys Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive sites at Percy's Hole and Kruis (Photo CDS&M)"
+    },
+    "Ledges Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Ledges. (Photo CDS&M)"
+    },
+    "Livingstone reef.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Livingstone Reef"
+    },
+    "Lonehill Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Lonehill Reef"
+    },
+    "Long Beach Aerial View.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial View of the south end of Long Beach in exceptionally good visibility. The barge wreck and pipeline can be seen clearly."
+    },
+    "Long Beach 2001.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Long Beach with the compass navigation route superimposed. (Photo CDS&M, map PBS)"
+    },
+    "Long Beach Orienteering route map.png": {
+      "kind": "map",
+      "caption": "Map of the Compass Navigation Trail at Long Beach"
+    },
+    "Lorry Bay Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Lorry Bay. (Photo CDS&M)"
+    },
+    "Maidstone Reef and Rock.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Maidstone Rock and Maidstone Reef"
+    },
+    "MV Orotava general arrangement plan.png": {
+      "kind": "plan",
+      "caption": "General arrangement plan of the wreck"
+    },
+    "Oratava.png": {
+      "kind": "sonar",
+      "caption": "North up multibeam sonar image of the wreck Oratava"
+    },
+    "Princess Elizabeth.png": {
+      "kind": "sonar",
+      "caption": "North up multibeam sonar image of the wreck of the Princess Elizabeth"
+    },
+    "MV Princess Elizabeth general arrangement plan.png": {
+      "kind": "plan",
+      "caption": "General arrangement plan of the wreck"
+    },
+    "Midway Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Midway Reef"
+    },
+    "Mooivlei.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Mooivlei"
+    },
+    "Bulby.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck Bulby"
+    },
+    "Muizenberg trawler wrecks.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the Muizenberg trawler wrecks"
+    },
+    "I&J Trawler A (east).jpg": {
+      "kind": "sonar",
+      "caption": "Sidescan sonar image of the eastern trawler wreck"
+    },
+    "I&J trawler B (west).jpg": {
+      "kind": "sonar",
+      "caption": "Sidescan sonar image of the western trawler wreck"
+    },
+    "Borella.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Borella"
+    },
+    "Iolite.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Iolite"
+    },
+    "Mushroom pinnacle sketch.png": {
+      "kind": "map",
+      "caption": "Sketch of the Mushroom pinnacle showing position of features."
+    },
+    "Afrikaner.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Afrikaner"
+    },
+    "Aster and Katsu Maru.png": {
+      "kind": "map",
+      "caption": "Map showing the positions and features of the wrecks of the Aster (right) and Katsu Maru (left)"
+    },
+    "Aster.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Aster"
+    },
+    "MV Aster general arrangement.png": {
+      "kind": "plan",
+      "caption": "Warning — This drawing may not be entirely accurate. Use for dive planning at your own risk."
+    },
+    "MV Daeyang Family wreck map.png": {
+      "kind": "map",
+      "caption": "Map of the site at the wreck of the MV Daeyang Family"
+    },
+    "L.M. Gemsbok.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the L.M. Gemsbok"
+    },
+    "Katsu Maru sketch.png": {
+      "kind": "map",
+      "caption": "Sketch of how the wreck lies on the bottom."
+    },
+    "Katsu Maru No. 25.png": {
+      "kind": "sonar",
+      "caption": "North up multibeam sonar image of the wreck of Katsu Maru No. 25"
+    },
+    "Ker Yar Vor site map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wrecks of the Ker Yar Vor and the Jo May"
+    },
+    "Rockeater General Arrangement.png": {
+      "kind": "plan",
+      "caption": "General arrangement of the wreck of the MV Rockeater"
+    },
+    "Rockeater.png": {
+      "kind": "sonar",
+      "caption": "North up multibeam sonar image of the wreck of the Rockeater"
+    },
+    "MV Romelia and Sunset Rocks.png": {
+      "kind": "map",
+      "caption": "Map of the wreck of the Romelia"
+    },
+    "Seli 1.png": {
+      "kind": "sonar",
+      "caption": "North up multibeam sonar image of the wreck of Seli 1"
+    },
+    "MV Treasure.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck MV Treasure"
+    },
+    "MV Treasure wreck map.png": {
+      "kind": "map",
+      "caption": "Map of the wreck of the MV Treasure"
+    },
+    "Winton site map.png": {
+      "kind": "map",
+      "caption": "Map of the wreck of the Winton"
+    },
+    "Ark Rock and wrecks.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites around Noah's Ark Rock"
+    },
+    "Noah's Ark 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive sites around Noah's Ark rock."
+    },
+    "Ark Rock map.png": {
+      "kind": "map",
+      "caption": "Map of the reef and nearest wrecks at Ark Rock."
+    },
+    "Boilers heading 300.jpg": {
+      "kind": "sonar",
+      "caption": "Sidescan sonar image of the boilers and reef at Boiler wreck #3. Boiler #3a is the rectangle to the left of the centreline dead area, and boiler #3b to the right"
+    },
+    "Wreck east of Ark Rk.jpg": {
+      "kind": "sonar",
+      "caption": "Sidescan sonar image of the eastern wreck. Bow is to the right of the picture"
+    },
+    "North Island Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of North Island Reef"
+    },
+    "North Lion's Paw map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at North Lion's Paw"
+    },
+    "Off-Whittle Ridge 2026.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Off-Whittle Ridge"
+    },
+    "Omega Reef Map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Omega Reef"
+    },
+    "Outer Photographers and Torch Reefs Map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Outer Photographer's Reef"
+    },
+    "P87 dive site map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of the P87"
+    },
+    "Partridge Point reef map.png": {
+      "kind": "map",
+      "caption": "Map of the reef at Partridge Point"
+    },
+    "Partridge point 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive sites at Partridge Point and Seal Rock. (Photo CDS&M)."
+    },
+    "Fish Tank reef map.png": {
+      "kind": "map",
+      "caption": "Map of Fish Tank reef"
+    },
+    "Daves Caves detail.png": {
+      "kind": "map",
+      "caption": "Map detail showing the positions of Dave's Caves"
+    },
+    "Boulders Penguin Point and Photographers Reef 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Penguin Point and Boulders beach. (Photo CDS&M)"
+    },
+    "Percys cave.png": {
+      "kind": "map",
+      "caption": "Sketch map of the cave at Percy's Hole"
+    },
+    "Phoenix Shoal map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Phoenix Shoal"
+    },
+    "Phone Reef and Super Fan Reef.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Phone Reef and Super Fan Reef"
+    },
+    "Map of the dive sites Photographers Reef Windmill Beach and Penguin Point.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Photographer’s Reef, Penguin Point and Windmill Beach."
+    },
+    "Photographer's reef detail.png": {
+      "kind": "map",
+      "caption": "Possible dive route at Photographer's Reef"
+    },
+    "Map of the CT dive site Pinnacle.png": {
+      "kind": "map",
+      "caption": "Map of Pinnacle dive site."
+    },
+    "Pyramid Rock Reef and Shark Alley.png": {
+      "kind": "map",
+      "caption": "Map showing the dive sites at Pyramid Reef near Castle Rocks."
+    },
+    "Shark Alley 150dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Pyramid is visible as a small spot of white water at the lower right centre of the aerial photo (CDS&M)."
+    },
+    "Rachel's Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Rachel's Reef near Duiker Point on the Cape Peninsula"
+    },
+    "Rambler Rock Reefs map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Rambler Rock"
+    },
+    "Random Rocks Reefs map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Random Rocks Reefs"
+    },
+    "Unidentified steamer off Robben Island.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of an unidentified steel steamship near Robben Island in the Table Bay approaches"
+    },
+    "Gilia.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Gilia"
+    },
+    "Rocky Bank - overview 20260217.pdf": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar map of Rocky Bank"
+    },
+    "False Bay Overview Map.pdf": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar overview map of False Bay, showing Rocky Bank just outside the mouth of the bay."
+    },
+    "Rocky Bank - contours (10 m) 20260217.pdf": {
+      "kind": "map",
+      "caption": "Rocky Bank topography - 10 m contours"
+    },
+    "Rocky Bank - dive sites 20260217.pdf": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar map of dive sites of Rocky Bank"
+    },
+    "Rocky Bay Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Rocky Bay. (Photo CDS&M)"
+    },
+    "Roman Rock Reef Map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Roman Rocks Reef"
+    },
+    "Rooi-els Point Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Rooi-Els Point and Reef. (Photo CDS&M)"
+    },
+    "Map of dive site Sandy Cove.png": {
+      "kind": "map",
+      "caption": "Map showing location of the north Oudekraal dive site Sandy Cove"
+    },
+    "Sandy-top Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Sandy-top Ridge"
+    },
+    "SAS Bloemfontein wreck map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site SAS Bloemfontein"
+    },
+    "SAS Bloemfontein.png": {
+      "kind": "sonar",
+      "caption": "North up multibeam sonar image of the wreck of SAS Bloemfontein"
+    },
+    "Fleur map.png": {
+      "kind": "map",
+      "caption": "Map of the wreck of the SAS Fleur"
+    },
+    "SAS Fleur.png": {
+      "kind": "sonar",
+      "caption": "North up multibeam sonar image of the wreck of SAS Fleur"
+    },
+    "SAS Gelderland wreck map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of the SAS Gelderland at Duiker Point on the Cape Peninsula"
+    },
+    "SAS Gelderland.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck SAS Gelderland"
+    },
+    "Sketch of the wreck of SAS Good Hope.png": {
+      "kind": "map",
+      "caption": "Sketch plan of the wreck of the SAS Good Hope"
+    },
+    "SAS Good Hope shipwreck.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of SAS Good Hope"
+    },
+    "Sketch of the wreck of SAS Pietermaritzburg.png": {
+      "kind": "map",
+      "caption": "Sketch of the wreckage of the SAS Pietermaritzburg."
+    },
+    "Site map of wreck of SAS Pietermaritzburg.png": {
+      "kind": "map",
+      "caption": "Map showing the position and orientation of the wreck of the SAS Pietermaritzburg."
+    },
+    "SAS Pietermaritzburg.png": {
+      "kind": "sonar",
+      "caption": "North up multibeam sonar image of the wreck of SAS Pietermaritzburg"
+    },
+    "SAS Transvaal.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck SAS Transvaal"
+    },
+    "Sketch of the wreck General Botha.png": {
+      "kind": "map",
+      "caption": "Approximate state of the wreck in June 2006."
+    },
+    "General Botha.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck General Botha."
+    },
+    "Sea Point Ridge Pinnacle map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Sea Point Ridge Pinnacle"
+    },
+    "Sherwood Forest Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the reef at Sherwood Forest"
+    },
+    "Sickle Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Sickle Reef"
+    },
+    "Smits reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Smits Reef."
+    },
+    "Batsata Maze map.png": {
+      "kind": "map",
+      "caption": "Detail map of the Maze area"
+    },
+    "South Island Reef.png": {
+      "kind": "sonar",
+      "caption": "High resolution multibeam sonar image of South Island reef."
+    },
+    "Map of CT dive site South Paw.png": {
+      "kind": "map",
+      "caption": "Map of the dive site South Lion's Paw."
+    },
+    "Southwood's Corner.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Southwood's Corner"
+    },
+    "Cape Matapan wreck map.png": {
+      "kind": "map",
+      "caption": "Map of the debris field of the SS Cape Matapan"
+    },
+    "Cape Matapan shipwreck.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck Cape Matapan"
+    },
+    "Map of the CT dive site Clan Stuart.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of the SS Clan Stuart."
+    },
+    "Clan Stuart.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Clan Stuart"
+    },
+    "Clan Stuart 300dpi crop.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial photograph of the wreck site. (CDS&M)"
+    },
+    "Clan Stuart sidescan.jpg": {
+      "kind": "sonar",
+      "caption": "Sidescan sonar image of the wreck site on heading 215°magnetic"
+    },
+    "SS Hypatia wreck map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of the SS Hypatia"
+    },
+    "Hypatia shipwreck.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck SS Hypatia"
+    },
+    "Map of the SS Lusitania wreck site.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of SS Lusitania"
+    },
+    "Map of CT dive site SS Maori.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of the SS Maori"
+    },
+    "Maori.png": {
+      "kind": "sonar",
+      "caption": "North up multibeam sonar image of the wreck of the Maori"
+    },
+    "Oakburn and Bos400 map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wrecks of the SS Oakburn and the crane barge BOS 400"
+    },
+    "BOS 400.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the BOS 400"
+    },
+    "Oakburn.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Oakburn"
+    },
+    "S.A. Seafarer.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck S.A. Seafarer"
+    },
+    "SS Godetia site map.png": {
+      "kind": "map",
+      "caption": "Site map of the wreck of the SS Godetia off Macassar in False Bay"
+    },
+    "Godetia.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck Godetia"
+    },
+    "Star of Africa wreck map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at the wreck of the Star of Africa"
+    },
+    "Star of Africa.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck Star of Africa"
+    },
+    "Star Walls detail map.png": {
+      "kind": "map",
+      "caption": "Detail map of the dive site Star Walls"
+    },
+    "Sunfish and Lollipop Pinnacles detail map.png": {
+      "kind": "map",
+      "caption": "Detail map of the dive sites Sunfish Pinnacle and Lollipop Pinnacle"
+    },
+    "M&M Pinnacles detail map.png": {
+      "kind": "map",
+      "caption": "Detail map of the dive site at M&M Pinnacles"
+    },
+    "Choirboys on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Choirboys on Steenbras Ridge"
+    },
+    "Steenbras Ridge Overview Map.pdf": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar overview map of Steenbras Ridge"
+    },
+    "Steenbras Ridge Contour Map.pdf": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar contour map of Steenbras Ridge"
+    },
+    "Steenbras Ridge Dive Sites Map.pdf": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar map of Steenbras Ridge dive sites"
+    },
+    "Outpost and Steenbras Deep Far North on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Outpost and Steenbras Ridge River Mouth pinnacle on Steenbras Ridge"
+    },
+    "Steenbras Deep North on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Steenbras Deep North on Steenbras Ridge"
+    },
+    "Drop Zone (North and South) on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Drop Zone (North and South)"
+    },
+    "Mossie's Reef on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Mossie's Reef on Steenbras Ridge"
+    },
+    "Mossie's Reef South on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Mossie's Reef South on Steenbras Ridge"
+    },
+    "Steenbras Deep South, Snake Reef and Steenbras Koppie.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Steenbras Deep South Pinnacle, Snake Ridge Reef and Steenbras Koppie"
+    },
+    "Steenbras Ridge Edge Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Edge Reef"
+    },
+    "Outpost on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Outpost on Steenbras Ridge."
+    },
+    "Sterretjies on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Sterretjies Reef on Steenbras Ridge"
+    },
+    "Whale Reef on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Whale Reef on Steenbras Ridge"
+    },
+    "Number 11 Reef on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Number 11 Reef on Steenbras Ridge"
+    },
+    "Number 12 Reef on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Number 12 Reef on Steenbras Ridge"
+    },
+    "Number 8 Reef on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Number 8 Reef on Steenbras Westidge"
+    },
+    "Inner Ridge North on Steenbras Ridge.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Inner Ridge North on Steenbras Westridge"
+    },
+    "Stefan's Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Stefan's Reef. Stef's Ridge is the diagonal strip of reef across the sand gap from the main section of the reef."
+    },
+    "Stonehenge dive sites (Cape Town) map.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites in the area known as Stonehenge, south of Duiker Point on the Cape Peninsula"
+    },
+    "Dusky Pinnacles detail map.png": {
+      "kind": "map",
+      "caption": "Detail map of the dive sites at Dusky Pinnacles"
+    },
+    "Sunny Cove 300dpi crop.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Sunny Cove. (Photo CDS&M)"
+    },
+    "SURG Pinnacle detail map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at SURG Pinnacles"
+    },
+    "T.S. McEwen.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck T.S. McEwen"
+    },
+    "Tafelberg Deep Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Tafelberg Deep Reef"
+    },
+    "Dive sites of Tafelberg Reef.png": {
+      "kind": "map",
+      "caption": "Map of the dive sites at Tafelberg Reef"
+    },
+    "Target Reef Map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Target Reef"
+    },
+    "Tivoli Pinnacles Map.png": {
+      "kind": "map",
+      "caption": "Map of the reef at the dive site"
+    },
+    "Tonys Reef Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Tony's Reef. (Photo CDS&M)"
+    },
+    "Tristania.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of the wreck of the Tristania"
+    },
+    "Troglodytes Cove Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view if the dive site Troglodyte’s Cove. (Photo CDS&M)"
+    },
+    "Twin Towers Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the granite pinnacle dive site Twin Towers"
+    },
+    "Two Oceans Aquarium 300dpi crop.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the Two Oceans Aquarium at the V&A Waterfront. The Aquarium is the building with the green roof in the middle of the picture. The circular structure is the predator tank. (Photo CDS&M)"
+    },
+    "Two Oceans Aquarium building aerial.jpg": {
+      "kind": "aerial",
+      "caption": "The predator tank is the circular structure and the kelp tank is the dark square right next to it. (Photo CDS&M)"
+    },
+    "Western Deep Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Western Deep"
+    },
+    "Whirlpool Aerial.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Whirlpool Cove. (Photo CDS&M)"
+    },
+    "Whittle Rock - Aoife's reef.jpg": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Aoife's reef"
+    },
+    "Dive sites of the Whittle Rock area Hi-Res for mobile.png": {
+      "kind": "map",
+      "caption": "Map of the Whittle Rock main reef"
+    },
+    "Whittle Rock reef complex, False Bay, South Africa.jpg": {
+      "kind": "sonar",
+      "caption": "High resolution multibeam sonar image of Whittle Rock reef complex"
+    },
+    "Dive sites of Whittle Rock on multibeam map.jpg": {
+      "kind": "sonar",
+      "caption": "Dive sites of Whittle Rock, False Bay"
+    },
+    "Whittle Rock - Anchors map.pdf": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar Whittle Rock Anchors map"
+    },
+    "Butt Rocks at Whittle Rock, False Bay, South Africa.jpg": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Butt Rocks"
+    },
+    "Peter's Ridge at Whittle Rock, False Bay, South Africa.jpg": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Peter's Ridge"
+    },
+    "3D bathymetric image of Bus-stop overhang.png": {
+      "kind": "sonar",
+      "caption": "3D bathymetric image of Bus-stop overhang on Whittle Rock"
+    },
+    "Ultima Thule Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Ultima Thule, off the northwest corner of Whittle Rock reef"
+    },
+    "Wilhelms Wall map.png": {
+      "kind": "map",
+      "caption": "Map of the dive site at Wilhelm's Wall"
+    },
+    "Windmill Beach 300dpi.jpg": {
+      "kind": "aerial",
+      "caption": "Aerial view of the dive site at Windmill Beach. (Photo CDS&M)"
+    },
+    "Windmill beach and offshore reefs map.png": {
+      "kind": "map",
+      "caption": "Map of Windmill Beach and the offshore reefs."
+    },
+    "Dangerous Doug Reefs Map.png": {
+      "kind": "map",
+      "caption": "Detail map of Dangerous Doug Reef"
+    },
+    "Windtoy Reef.png": {
+      "kind": "sonar",
+      "caption": "Multibeam sonar image of Windtoy Reef"
+    },
+    "Wreckless Ridge.png": {
+      "kind": "sonar",
+      "caption": "Ultra high definition multibeam sonar image of Wreckless Ridge"
+    },
+    "York Shoal Reef map.png": {
+      "kind": "map",
+      "caption": "Map of the reef at York Shoal"
+    }
+  }
+}
