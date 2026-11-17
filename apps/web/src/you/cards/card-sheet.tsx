@@ -12,6 +12,7 @@ import { cn } from "cn"
 import {
   BarButton,
   FullSheetContent,
+  keyboardPad,
   SheetBar,
 } from "@/components/pickers/sheet"
 import { DiscardSheet } from "@/components/discard-sheet"
@@ -216,6 +217,7 @@ export function CardSheet({
             mark={<OfflineMark show={!connected} className="mx-1 desk:mx-0" />}
           />
           <div
+            ref={keyboardPad}
             // A drag in the sheet scrolls or reorders, never pulls it down.
             data-base-ui-swipe-ignore=""
             className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 pt-2 pb-[max(2rem,env(safe-area-inset-bottom),var(--keyboard,0px))]"

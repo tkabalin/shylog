@@ -12,6 +12,7 @@ import { countText } from "@/components/pickers/match"
 import {
   BarButton,
   FullSheetContent,
+  keyboardPad,
   SheetBar,
   SheetSearch,
 } from "@/components/pickers/sheet"
@@ -265,7 +266,10 @@ export function DivePicker({
               </p>
             )}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-1 pb-[max(1rem,env(safe-area-inset-bottom),var(--keyboard,0px))]">
+          <div
+            ref={keyboardPad}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-1 pb-[max(1rem,env(safe-area-inset-bottom),var(--keyboard,0px))]"
+          >
             {groups.length === 0 && (
               <p className="px-1 pt-6 text-center text-[15px] text-muted-foreground">
                 {key ? "No dives at a site by that name." : "No dives yet."}

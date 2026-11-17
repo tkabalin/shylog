@@ -1,5 +1,5 @@
 import { act } from "react"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it, onTestFinished, vi } from "vitest"
 
 import {
   button,
@@ -184,5 +184,46 @@ describe("the Unknown site", () => {
       expect(onCreate).not.toHaveBeenCalled()
       cleanup()
     }
+  })
+})
+
+describe("the keyboard's padding", () => {
+  // jsdom has no visualViewport, so a stand-in the test can raise a
+  // keyboard on: 300px of a 768px window covered.
+  function fakeViewport() {
+    const viewport = Object.assign(new EventTarget(), {
+      height: window.innerHeight,
+      offsetTop: 0,
+    })
+    vi.stubGlobal("visualViewport", viewport)
+    onTestFinished(() => void vi.unstubAllGlobals())
+    return viewport
+  }
+  const frame = () =>
+    act(() => new Promise((done) => requestAnimationFrame(() => done(null))))
+  const scroller = () =>
+    document.querySelector<HTMLElement>(
+      "[data-slot=drawer-content] .overflow-y-auto"
+    )
+  const pad = () => scroller()?.style.getPropertyValue("--keyboard")
+
+  it("follows the keyboard, and reaches a view that mounts with it up", async () => {
+    const viewport = fakeViewport()
+    show(sites, false)
+    expect(pad()).toBe("0px")
+    viewport.height = window.innerHeight - 300
+    viewport.dispatchEvent(new Event("resize"))
+    viewport.dispatchEvent(new Event("scroll"))
+    await frame()
+    expect(pad()).toBe("300px")
+    // New site swaps the view, which remounts the scroller.
+    const was = scroller()
+    click(button("New site"))
+    expect(scroller()).not.toBe(was)
+    expect(pad()).toBe("300px")
+    viewport.height = window.innerHeight
+    viewport.dispatchEvent(new Event("resize"))
+    await frame()
+    expect(pad()).toBe("0px")
   })
 })

@@ -330,6 +330,12 @@
   syntax: "*";
   inherits: false;
 }
+/* The same for the keyboard's height as it slides: only a sheet's scroller
+   reads it, and keyboardPad writes it on each one. */
+@property --keyboard {
+  syntax: "*";
+  inherits: false;
+}
 
 .dark {
   color-scheme: dark;

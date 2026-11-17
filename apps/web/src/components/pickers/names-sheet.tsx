@@ -13,7 +13,7 @@ import { Drawer } from "@/components/ui/drawer"
 import { isReturn } from "@/lib/keys"
 
 import { diveCount, Highlighted, matchName, nameLimit, tidyName } from "./match"
-import { BarButton, FullSheetContent, SheetBar } from "./sheet"
+import { BarButton, FullSheetContent, keyboardPad, SheetBar } from "./sheet"
 
 export interface Candidate {
   id: string
@@ -212,7 +212,10 @@ export function NamesSheet({
             />
           )}
         </div>
-        <div className="flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom),var(--keyboard,0px))]">
+        <div
+          ref={keyboardPad}
+          className="flex-1 overflow-y-auto overscroll-contain pb-[max(1rem,env(safe-area-inset-bottom),var(--keyboard,0px))]"
+        >
           {!key && matches.length > 0 && (
             <h3 className="px-4 pt-4 pb-1 text-[13px] font-semibold text-muted-foreground">
               Recent

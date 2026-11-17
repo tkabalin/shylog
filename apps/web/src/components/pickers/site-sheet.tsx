@@ -44,6 +44,7 @@ import {
 import {
   BarButton,
   FullSheetContent,
+  keyboardPad,
   SheetBar,
   SheetSearch,
   SheetSection,
@@ -303,6 +304,7 @@ export function SiteSheet({
         >
           {bar[view]}
           <div
+            ref={keyboardPad}
             // A drag on a new site's fields scrolls, never pulls the sheet.
             data-base-ui-swipe-ignore={view !== "list" ? "" : undefined}
             className="flex-1 overflow-y-auto overscroll-contain px-4 pt-1 pb-[max(1.5rem,env(safe-area-inset-bottom),var(--keyboard,0px))]"
