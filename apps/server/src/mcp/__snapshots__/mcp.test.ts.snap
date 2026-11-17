@@ -30,6 +30,13 @@ exports[`the MCP endpoint > sets a title and every hint on each tool 1`] = `
     "readOnlyHint": true,
     "title": "Get a dive",
   },
+  "get_map_site": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "Get a dive site from the map",
+  },
   "list_entities": {
     "destructiveHint": false,
     "idempotentHint": true,
@@ -57,6 +64,13 @@ exports[`the MCP endpoint > sets a title and every hint on each tool 1`] = `
     "openWorldHint": false,
     "readOnlyHint": true,
     "title": "Search dives",
+  },
+  "search_map_sites": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "Search the dive site map",
   },
 }
 `;

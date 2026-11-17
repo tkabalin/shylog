@@ -41,7 +41,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 - Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
 - Keep a packing checklist to tick off before a dive.
 - Install to the home screen, with one instance per diver.
-- Work with the log from Claude Code and Claude Desktop, through an MCP server on the tailnet: look a dive up by its number, search past dives, log and edit dives, and tidy sites, people, dive centres and trips.
+- Work with the log from Claude Code and Claude Desktop, through an MCP server on the tailnet: look a dive up by its number, search past dives, log and edit dives, tidy sites, people, dive centres and trips, and search Explore's dive sites.
 
 ## Architecture
 
@@ -178,7 +178,7 @@ If the host doesn't use MagicDNS, add `--resolve <TS_HOSTNAME>.<tailnet>.ts.net:
 
 ### Claude
 
-Each instance serves an MCP server at `/mcp`, so Claude Code or Claude Desktop on a device on the tailnet can look dives up by number, search the log, and log and edit dives. Deleting stays in the app. It takes the same allowed login as the app. Add it to Claude Code once per instance:
+Each instance serves an MCP server at `/mcp`, so Claude Code or Claude Desktop on a device on the tailnet can look dives up by number, search the log, log and edit dives, and search Explore's dive sites and read their pages. Deleting stays in the app. It takes the same allowed login as the app. Add it to Claude Code once per instance:
 
 ```bash
 claude mcp add --transport http --scope user shylog-<instance> https://<TS_HOSTNAME>.<tailnet>.ts.net/mcp
