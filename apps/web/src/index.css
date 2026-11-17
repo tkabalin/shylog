@@ -264,7 +264,9 @@
 /* As on iOS, the bottom nav's top line shows only while content runs under
    it. It fades out over the last 1rem of scrolling, and a page too short to
    scroll has no timeline, so it never shows there. A page's own bar on the
-   nav (.bottom-bar) takes the line, so the two never show together. */
+   nav (.bottom-bar) takes the line, so the two never show together. The
+   line is a layer over the transparent border fading by opacity, which
+   runs off the main thread, where a colour change repainted every frame. */
 @supports (animation-timeline: scroll()) {
   [data-slot="sidebar-wrapper"] {
     timeline-scope: --main;
@@ -275,25 +277,37 @@
   .bottom-nav,
   .bottom-bar {
     border-top-color: transparent;
-    animation: bottom-nav-edge linear both;
-    animation-duration: auto;
-    animation-timeline: --main;
-    animation-range: calc(100% - 1rem) 100%;
+    &::before {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      top: -1px;
+      height: 1px;
+      background: var(--border);
+      opacity: 0;
+      pointer-events: none;
+      animation: bottom-nav-edge linear both;
+      animation-duration: auto;
+      animation-timeline: --main;
+      animation-range: calc(100% - 1rem) 100%;
+    }
   }
 }
 /* Whichever screen draws one, while it shows. The bar flags the root, as
    :root:has(.bottom-bar) restyled the page on every insertion. */
 :root[data-bottom-bar] .bottom-nav {
   border-top-color: transparent;
-  animation: none;
+  &::before {
+    animation: none;
+  }
 }
 
 @keyframes bottom-nav-edge {
   from {
-    border-top-color: var(--border);
+    opacity: 1;
   }
   to {
-    border-top-color: transparent;
+    opacity: 0;
   }
 }
 
