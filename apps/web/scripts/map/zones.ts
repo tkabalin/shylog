@@ -372,9 +372,12 @@ async function helderberg() {
       [x0, -34.75],
     ],
   ])
-  return intersect(
-    featureCollection([strip(line.slice(west, east + 1), 0.5), between])
-  )!
+  return {
+    band: intersect(
+      featureCollection([strip(line.slice(west, east + 1), 0.5), between])
+    )!,
+    coast: line,
+  }
 }
 
 // The abalone regulations (R.62 of 2008, their areas replaced by R.6795 of
@@ -455,19 +458,85 @@ const ends = (feature: Area) =>
 // R.6795's area 6: Robben Island out to 1 nautical mile. Its MPA already
 // has you scuba dive only with a business; this also bans snorkelling and
 // freediving, and dive gear on a boat without a permit.
-async function robbenRing() {
-  const island = await coastline("robben-coast", "-33.84,18.34,-33.78,18.40")
-  return buffer(polygon([island]), nauticalMile, {
+const robbenIsland = await coastline(
+  "robben-coast",
+  "-33.84,18.34,-33.78,18.40"
+)
+function robbenRing() {
+  return buffer(polygon([robbenIsland]), nauticalMile, {
     units: "kilometers",
     steps: 32,
   })!
 }
 
+// An edge's stretches at sea, cut where it crosses the coast. OpenStreetMap
+// draws the coast with the land on its left, so a stretch is at sea where
+// it lies right of the coast's nearest segment. The edges that close across
+// the land were left whole for the land layer to hide, which the satellite
+// imagery doesn't draw.
+function seaward(lines: Point[][], coast: Point[]): Point[][] {
+  const segments = coast.slice(1).map((q, i) => [coast[i], q] as const)
+  const atSea = ([x, y]: Point) => {
+    let best = Infinity
+    let side = 0
+    for (const [p, q] of segments) {
+      const [dx, dy] = [q[0] - p[0], q[1] - p[1]]
+      const t = Math.max(
+        0,
+        Math.min(1, ((x - p[0]) * dx + (y - p[1]) * dy) / (dx * dx + dy * dy))
+      )
+      const d = Math.hypot(p[0] + dx * t - x, p[1] + dy * t - y)
+      if (d < best) [best, side] = [d, dx * (y - p[1]) - dy * (x - p[0])]
+    }
+    return side < 0
+  }
+  const parts: Point[][] = []
+  for (const line of lines) {
+    let part: Point[] = []
+    const end = () => {
+      if (part.length > 1) parts.push(part)
+      part = []
+    }
+    for (let k = 1; k < line.length; k++) {
+      const [a, b] = [line[k - 1], line[k]]
+      // Where the segment crosses the coast, as fractions along it.
+      const cuts = [0, 1]
+      for (const [p, q] of segments) {
+        const d = (b[0] - a[0]) * (q[1] - p[1]) - (b[1] - a[1]) * (q[0] - p[0])
+        if (d === 0) continue
+        const t =
+          ((p[0] - a[0]) * (q[1] - p[1]) - (p[1] - a[1]) * (q[0] - p[0])) / d
+        const u =
+          ((p[0] - a[0]) * (b[1] - a[1]) - (p[1] - a[1]) * (b[0] - a[0])) / d
+        if (t > 0 && t < 1 && u >= 0 && u <= 1) cuts.push(t)
+      }
+      cuts.sort((m, n) => m - n)
+      const at = (t: number): Point => [
+        a[0] + (b[0] - a[0]) * t,
+        a[1] + (b[1] - a[1]) * t,
+      ]
+      for (let c = 1; c < cuts.length; c++) {
+        if (!atSea(at((cuts[c - 1] + cuts[c]) / 2))) {
+          end()
+          continue
+        }
+        if (!part.length) part.push(at(cuts[c - 1]))
+        part.push(at(cuts[c]))
+      }
+    }
+    end()
+  }
+  return parts
+}
+
 const [bands, helderbergBand, ring] = [
   await abaloneBands(),
   await helderberg(),
-  await robbenRing(),
+  robbenRing(),
 ]
+// Robben Island's no-diving zone runs its gazetted edge to the island.
+const atSea = (zone: Zone, parts: Point[][]) =>
+  zone.id === "robben-restricted" ? seaward(parts, robbenIsland) : parts
 const ringZone = {
   id: "robben-abalone",
   mpa: "Robben Island",
@@ -500,7 +569,7 @@ const output = {
       {
         type: "Feature",
         properties: helderbergZone,
-        geometry: shape(helderbergBand),
+        geometry: shape(helderbergBand.band),
       },
       { type: "Feature", properties: ringZone, geometry: shape(ring) },
       // Their whole outline is drawn under the land, which hides the
@@ -535,16 +604,19 @@ const output = {
         properties: properties(zone),
         geometry: {
           type: "MultiLineString",
-          coordinates: line(zone).map(round),
+          coordinates: atSea(zone, line(zone)).map(round),
         },
       })),
-      // All of it, as the land drawn over the edges hides the inland half.
+      // Its sea side, without the half inland the fill closes across.
       {
         type: "Feature",
         properties: helderbergZone,
         geometry: {
           type: "MultiLineString",
-          coordinates: rings(helderbergBand),
+          coordinates: seaward(
+            rings(helderbergBand.band) as Point[][],
+            helderbergBand.coast
+          ).map(round),
         },
       },
       {
