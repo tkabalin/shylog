@@ -189,6 +189,22 @@ describe("pages.json", () => {
     }
   })
 
+  // The Table Mountain MPA's dive permit ended in 2024; Robben Island's
+  // pages still say what its MPA asks.
+  it("says no Table Mountain site needs a permit", () => {
+    const told = text.filter((page) =>
+      page
+        .split("\n\n")
+        .some(
+          (paragraph) =>
+            /permit (?:for recreational diving )?is\s+required/.test(
+              paragraph
+            ) && !/\b2019\b|Robben/.test(paragraph)
+        )
+    )
+    expect(told).toEqual([])
+  })
+
   // Each site the list gives a section of a shared page has words of its
   // own, which its sheet shows first.
   it("gives every site with a section a part of its own", () => {

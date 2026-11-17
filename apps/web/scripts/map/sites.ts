@@ -11,6 +11,7 @@ import {
   clean,
   deepest,
   describe,
+  dropPermit,
   findEnd,
   findStart,
   firstSentence,
@@ -496,12 +497,14 @@ for (const [name, text] of raw) {
   // Converted whole, so a heading over a site's section isn't taken for an
   // empty one, then split again where the sites were.
   const cut = "\n\nSPLIT-PART\n\n"
-  const markdown = dropEmptyHeadings(
-    parts
-      .map((part) =>
-        blocks(clean(typeof part === "string" ? part : part.text, link))
-      )
-      .join(cut)
+  const markdown = dropPermit(
+    dropEmptyHeadings(
+      parts
+        .map((part) =>
+          blocks(clean(typeof part === "string" ? part : part.text, link))
+        )
+        .join(cut)
+    )
   )
   const pieces = markdown.split(/\s*SPLIT-PART\s*/)
   pageText[name] = parts
