@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { validateStyleMin } from "@maplibre/maplibre-gl-style-spec"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { mapStyle, oklch, placesZoom } from "./style"
 
@@ -43,6 +43,65 @@ describe("mapStyle", () => {
         if (layer.type !== "symbol") expect(index, layer.id).toBeLessThan(earth)
       }
     }
+  })
+
+  describe("over satellite imagery", () => {
+    const imagery = "https://imagery.example/tile/{z}/{y}/{x}?token=k"
+    const ids = (style: ReturnType<typeof mapStyle>) =>
+      style.layers.map((layer) => layer.id)
+
+    it.each(["light", "dark"] as const)("is a valid %s style", (theme) => {
+      expect(validateStyleMin(mapStyle(theme, tiles, { imagery }))).toEqual([])
+    })
+
+    it("draws the imagery under everything but the sea", () => {
+      const style = mapStyle("light", tiles, { imagery })
+      expect(ids(style).slice(0, 2)).toEqual(["sea", "imagery"])
+      expect(style.sources.imagery).toMatchObject({ tiles: [imagery] })
+    })
+
+    // A level closer on a sharp screen, or a phone shows each pixel 2 to 4
+    // times over, where a desktop's screen shows it about once.
+    it.each([
+      [1, 256],
+      [1.5, 256],
+      [2, 128],
+      [3, 128],
+    ])("asks for tiles to suit a %sx screen", (ratio, tileSize) => {
+      vi.stubGlobal("devicePixelRatio", ratio)
+      const style = mapStyle("light", tiles, { imagery })
+      vi.unstubAllGlobals()
+      expect(style.sources.imagery).toMatchObject({ tileSize })
+    })
+
+    // The shading closes across the land, which no longer hides it.
+    it("leaves out the map's own land and the zones' shading", () => {
+      const layers = ids(mapStyle("light", tiles, { imagery }))
+      const onMap = ids(mapStyle("light", tiles))
+      for (const id of ["earth", "ocean", "road-major", "zone-no-dive"]) {
+        expect(onMap).toContain(id)
+        expect(layers).not.toContain(id)
+      }
+      expect(layers).toEqual(
+        expect.arrayContaining(["mpa-edge", "zone-labels", "places"])
+      )
+      expect(ids(mapStyle("light", tiles))).not.toContain("imagery")
+    })
+
+    it("hides the zones' edges and words with the switch", () => {
+      const style = mapStyle("light", tiles, { imagery, showZones: false })
+      const edge = style.layers.find((layer) => layer.id === "mpa-edge")
+      expect(edge?.layout).toMatchObject({ visibility: "none" })
+    })
+
+    it("draws the same pins in either theme", () => {
+      const pins = (theme: "light" | "dark") =>
+        mapStyle(theme, tiles, { imagery }).layers.find(
+          (layer) => layer.id === "picked"
+        )
+      expect(pins("light")).toBeDefined()
+      expect(pins("light")).toEqual(pins("dark"))
+    })
   })
 
   it("labels places in English where OpenStreetMap has it", () => {
