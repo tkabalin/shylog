@@ -42,7 +42,7 @@ async function pick(page: Page, files: typeof shots) {
 
 // A finger's drag across the page, a real frame a step, as WebKit's frames
 // on a busy runner outlast a timeout. `held` keeps the finger down until it
-// passes, so the release can't land before Motion has taken the last move.
+// passes, so the release can't land before the list has taken the last move.
 async function drag(
   page: Page,
   from: [number, number],
@@ -148,8 +148,8 @@ test("adds two screenshots as one card, swipes, reorders, renames and deletes it
     await page.mouse.move(at[0] + i * 14, at[1])
     await page.evaluate(() => new Promise(requestAnimationFrame))
   }
-  // Held until the strip has swapped, so a release can't land before
-  // Motion has taken the last move.
+  // Held until the strip has swapped, so a release can't land before it
+  // has taken the last move.
   await expect.poll(order).toEqual([...before].reverse())
   await page.mouse.up()
 
@@ -313,7 +313,7 @@ test("puts a new card first and moves one by dragging it @writes", async ({
   await page.goto("/you/certifications")
   const row = (name: string) =>
     page.getByRole("link", { name: new RegExp(`^${name}`) })
-  // The rows as drawn, which Motion reorders mid-drag.
+  // The rows as drawn, which the drag reorders as it goes.
   const shown = () =>
     expect.poll(async () =>
       (await row(prefix).allTextContents()).map((text) =>
@@ -361,6 +361,159 @@ test("puts a new card first and moves one by dragging it @writes", async ({
   await expect(page).toHaveURL(/\/you$/)
   await page.getByRole("link", { name: /^All certifications/ }).click()
   await expect(page).toHaveURL(/\/you\/certifications$/)
+})
+
+// Held still near an edge, a row or page keeps the list scrolling under
+// it and finds its place among the rows that came into view.
+test("scrolls the list under a card held at its edge @writes", async ({
+  page,
+  restore,
+}) => {
+  // Scrolling the whole list at the edge's pace, under parallel stacks.
+  test.slow()
+  const prefix = `Edge ${unique()}`
+  restore(cleanUp(prefix))
+  const names = Array.from(
+    { length: 12 },
+    (_, n) => `${prefix} ${String(n).padStart(2, "0")}`
+  )
+  // Each goes first, so the list shows them last to first.
+  for (const name of names)
+    await putCard(page.request, `card-${unique()}${name.slice(-2)}`, name, [
+      shots[0]!.buffer,
+    ])
+  const listed = [...names].reverse()
+  const ours = async () =>
+    (await getLog(page.request)).cards
+      .map((card) => card.name)
+      .filter((name) => name.startsWith(prefix))
+  // Short, so the twelve rows run well past the screen.
+  await page.setViewportSize({ width: 390, height: 600 })
+  await page.goto("/you/certifications")
+  const rows = page.locator("main ul > li")
+  const drawn = () =>
+    rows.evaluateAll(
+      (all, prefix) =>
+        all
+          .map((row) => row.querySelector(".truncate")!.textContent!)
+          .filter((name) => name.startsWith(prefix)),
+      prefix
+    )
+  await expect.poll(drawn).toEqual(listed)
+  const main = page.locator("#main")
+  const scrolled = () => main.evaluate((node) => node.scrollTop)
+  const edges = await main.evaluate((node) => ({
+    top: node.querySelector("header")!.getBoundingClientRect().bottom,
+    bottom:
+      node.getBoundingClientRect().bottom -
+      parseFloat(getComputedStyle(node).paddingBottom),
+  }))
+
+  // The last row, by its grip, to just under the bar, held still there
+  // until the list has scrolled to its top and the row has gone first.
+  await main.evaluate((node) => (node.scrollTop = node.scrollHeight))
+  await expect.poll(scrolled).toBeGreaterThan(0)
+  const last = page
+    .getByRole("link", { name: new RegExp(`^${names[0]}`) })
+    .locator("[data-grip]")
+  const grip = (await last.boundingBox())!
+  const x = grip.x + grip.width / 2
+  await drag(
+    page,
+    [x, grip.y + grip.height / 2],
+    [x, edges.top + 12],
+    async () => {
+      // Scrolling the whole list at the edge's pace takes a few seconds.
+      await expect.poll(scrolled, { timeout: 10_000 }).toBe(0)
+      await expect.poll(drawn).toEqual([names[0], ...listed.slice(0, -1)])
+    }
+  )
+  await expect.poll(ours).toEqual([names[0], ...listed.slice(0, -1)])
+
+  // And back down to just above the tabs, until it is last again.
+  await expect(rows.first()).not.toHaveAttribute("style", /translate/)
+  const first = (await rows.first().locator("[data-grip]").boundingBox())!
+  await drag(
+    page,
+    [x, first.y + first.height / 2],
+    [x, edges.bottom - 12],
+    async () => {
+      await expect
+        .poll(
+          () =>
+            main.evaluate(
+              (node) => node.scrollHeight - node.clientHeight - node.scrollTop
+            ),
+          { timeout: 10_000 }
+        )
+        .toBeLessThan(1)
+      await expect.poll(drawn).toEqual(listed)
+    }
+  )
+  await expect.poll(ours).toEqual(listed)
+})
+
+test("scrolls the screenshot strip under a page held at its edge @writes", async ({
+  page,
+  restore,
+}) => {
+  // Scrolling the whole strip at the edge's pace, under parallel stacks.
+  test.slow()
+  const name = `E2E Strip ${unique()}`
+  restore(cleanUp(name))
+  const id = `card-e2e-${unique()}`
+  // Eight pages of different colours, more than the strip shows.
+  await putCard(
+    page.request,
+    id,
+    name,
+    Array.from({ length: 8 }, (_, n) => png(300, 600, [n * 30, 90, 160]))
+  )
+  const [card] = (await getLog(page.request)).cards.filter(
+    (one) => one.id === id
+  )
+  await page.goto(`/you/certifications/${id}`)
+  await page.getByRole("button", { name: "Edit card" }).click()
+  const edit = page.getByRole("dialog", { name: "Edit card" })
+  await still(edit)
+  const region = edit.getByRole("region", { name: "Screenshots" })
+  const pages = region.locator("img")
+  await expect
+    .poll(() =>
+      pages.evaluateAll(
+        (all) =>
+          all.filter((one) => (one as HTMLImageElement).naturalWidth > 0).length
+      )
+    )
+    .toBe(8)
+  const strip = region.locator(":scope > div")
+  const room = () =>
+    strip.evaluate(
+      (node) => node.scrollWidth - node.clientWidth - node.scrollLeft
+    )
+  expect(await room()).toBeGreaterThan(0)
+  const order = () =>
+    pages.evaluateAll((all) => all.map((one) => (one as HTMLImageElement).src))
+  const before = await order()
+  const edge = (await strip.boundingBox())!
+  const first = (await pages.first().boundingBox())!
+  const y = first.y + first.height / 2
+
+  // The first page, to the strip's right edge, held there until the strip
+  // has scrolled to its end and the page has gone last.
+  await drag(
+    page,
+    [first.x + first.width / 2, y],
+    [edge.x + edge.width - 12, y],
+    async () => {
+      await expect.poll(room, { timeout: 10_000 }).toBeLessThan(1)
+      await expect.poll(order).toEqual([...before.slice(1), before[0]])
+    }
+  )
+  await edit.getByRole("button", { name: "Save" }).click()
+  await expect(edit).toBeHidden()
+  const saved = (await getLog(page.request)).cards.find((one) => one.id === id)
+  expect(saved!.images).toEqual([...card!.images.slice(1), card!.images[0]])
 })
 
 test("keeps the screen on where the browser can @writes", async ({

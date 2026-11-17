@@ -6,7 +6,7 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react"
-import { AnimatePresence, motion, MotionConfig, Reorder } from "motion/react"
+import { AnimatePresence, motion, MotionConfig } from "motion/react"
 import { cn } from "cn"
 
 import {
@@ -31,6 +31,7 @@ import type { Card } from "@/data/db"
 import { Segmented } from "@/dive/form/rows"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
+import { useDragList } from "@/lib/drag-order"
 import { isReturn } from "@/lib/keys"
 import { useHoldUpdate } from "@/update"
 import { CardThumb, PageImage, type PageSource } from "@/you/cards/card-thumb"
@@ -143,6 +144,15 @@ export function CardSheet({
   const connected = useConnected()
   const ready = changed && named && pages.length > 0 && !tooMany && connected
   useHoldUpdate(open && changed)
+  const pageRow = useRef<HTMLDivElement>(null)
+  const list = useDragList({
+    axis: "x",
+    container: pageRow,
+    values: pages,
+    keyOf: (page) => page.key,
+    onChange: setPages,
+    scroller: () => shots.current,
+  })
 
   const save = async () => {
     setBusy(true)
@@ -231,11 +241,8 @@ export function CardSheet({
               </h3>
               {/* Under reduced motion the pages swap places at once. */}
               <MotionConfig reducedMotion="user">
-                <Reorder.Group
-                  as="div"
-                  axis="x"
-                  values={pages}
-                  onReorder={setPages}
+                <motion.div
+                  // The scroller, which a page held near its edges scrolls.
                   layoutScroll
                   ref={shots}
                   // Each new page widens as its image loads, so the strip
@@ -244,37 +251,46 @@ export function CardSheet({
                   onPointerDown={() => (following.current = false)}
                   // Room above and below for a lifted page and its shadow,
                   // which the scroller would clip, given back by the margin.
-                  className="-mx-4 -mt-3.5 -mb-2.5 flex [scrollbar-width:none] gap-2.5 overflow-x-auto overscroll-x-contain px-4.5 py-4"
+                  className="-mx-4 -mt-3.5 -mb-2.5 [scrollbar-width:none] overflow-x-auto overscroll-x-contain py-4"
                 >
-                  {/* Pages added or removed fade in and out while the rest
-                    slide over, rather than the strip jumping; the pages it
-                    opens with are simply there. */}
-                  <AnimatePresence initial={false} mode="popLayout">
-                    {pages.map((page, i) => (
-                      <Shot
-                        key={page.key}
-                        page={page}
-                        card={card}
-                        label={`Screenshot ${i + 1}`}
-                        onRemove={() =>
-                          setPages((was) => was.filter((one) => one !== page))
-                        }
-                      />
-                    ))}
-                  </AnimatePresence>
-                  {pages.length < cardMaxPages || apart ? (
-                    <motion.button
-                      layout="position"
-                      transition={strip}
-                      type="button"
-                      onClick={() => more.current?.click()}
-                      className="flex h-33 w-23 shrink-0 flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-muted-foreground/50 text-[13px] font-medium text-primary transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
-                    >
-                      <IconPhotoPlus aria-hidden className="size-5.5" />
-                      Add more
-                    </motion.button>
-                  ) : null}
-                </Reorder.Group>
+                  <div
+                    ref={pageRow}
+                    className="relative flex w-max gap-2.5 px-4.5"
+                  >
+                    {/* Pages added or removed fade in and out while the rest
+                      slide over, rather than the strip jumping; the pages it
+                      opens with are simply there. */}
+                    <AnimatePresence initial={false} mode="popLayout">
+                      {pages.map((page, i) => (
+                        <Shot
+                          key={page.key}
+                          page={page}
+                          card={card}
+                          label={`Screenshot ${i + 1}`}
+                          place={i}
+                          held={list.held === page.key}
+                          lifted={list.held === page.key && !list.dropping}
+                          rows={list.rows}
+                          onRemove={() =>
+                            setPages((was) => was.filter((one) => one !== page))
+                          }
+                        />
+                      ))}
+                    </AnimatePresence>
+                    {pages.length < cardMaxPages || apart ? (
+                      <motion.button
+                        layout="position"
+                        transition={strip}
+                        type="button"
+                        onClick={() => more.current?.click()}
+                        className="flex h-33 w-23 shrink-0 flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed border-muted-foreground/50 text-[13px] font-medium text-primary transition-opacity duration-150 hover:opacity-70 active:opacity-50 active:duration-0"
+                      >
+                        <IconPhotoPlus aria-hidden className="size-5.5" />
+                        Add more
+                      </motion.button>
+                    ) : null}
+                  </div>
+                </motion.div>
               </MotionConfig>
               <input
                 ref={more}
@@ -518,6 +534,10 @@ function Shot({
   page,
   card,
   label,
+  place,
+  held,
+  lifted,
+  rows,
   onRemove,
 }: {
   // AnimatePresence's, to take a removed page out of the flow.
@@ -525,19 +545,28 @@ function Shot({
   page: Page
   card?: Card
   label: string
+  // Its place in the strip, which Motion measures it again for.
+  place: number
+  // Held by the finger, or settling from the drop.
+  held: boolean
+  lifted: boolean
+  rows: ReturnType<typeof useDragList>["rows"]
   onRemove: () => void
 }) {
-  const { item, ref: liftRef, lifted } = useLift()
+  const { item, ref: liftRef } = useLift(page.key, rows)
 
   return (
-    <Reorder.Item
-      as="div"
+    <motion.div
       ref={(element: HTMLDivElement | null) => {
         liftRef(element)
         if (typeof ref === "function") ref(element)
         else if (ref) ref.current = element
+        return element ? rows.register(page.key, element) : undefined
       }}
-      value={page}
+      // Its neighbours make room by Motion's layout animation; the page the
+      // finger holds is moved by the drag alone, so it is left out.
+      layout="position"
+      layoutDependency={held ? "held" : place}
       {...item}
       // Added and removed, it fades; opacity alone, which Motion hands to
       // the compositor, as the drag already moves it on the main thread.
@@ -547,9 +576,9 @@ function Shot({
       transition={strip}
       className={cn(
         "relative shrink-0 select-none [-webkit-touch-callout:none]",
-        // Its own layer while dragged, so each frame moves it rather than
-        // repainting its screenshot and shadow.
-        lifted && "z-10 will-change-transform"
+        // Its own layer while dragged and settling, so each frame moves it
+        // rather than repainting its screenshot and shadow.
+        held && "z-10 will-change-transform"
       )}
     >
       {/* Lifted, it grows a little and its deeper shadow fades in, as a
@@ -576,7 +605,7 @@ function Shot({
       >
         <IconX aria-hidden className="size-3.5 stroke-[2.5]" />
       </button>
-    </Reorder.Item>
+    </motion.div>
   )
 }
 
