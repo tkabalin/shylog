@@ -833,3 +833,89 @@ export const tidy = (sentence: string) =>
 // gives way to the opening's short account, as the boards had it.
 export const describe = (sentence: string, lead: string) =>
   sentence && sentence.length <= 220 ? tidy(sentence) : fromLead(lead)
+
+// ---- Site maps, sonar images, aerial photos and wrecks' plans
+
+export type PictureKind = "map" | "sonar" | "aerial" | "plan"
+export type Picture = { file: string; kind: PictureKind; caption: string }
+
+// What a picture's name and caption say it is. Sonar first, as many sonar
+// images are maps too ("Dive sites of Whittle Rock on multibeam map"). A
+// route drawn on a map is a PNG; a JPEG "showing the route" is a photo
+// from the shore, which isn't taken, nor are photos of sea life.
+function kindOf(file: string, caption: string): PictureKind | undefined {
+  const said = `${file} ${caption}`
+  if (/sonar|multi-?beam|bathymetr|side-?scan/i.test(said)) return "sonar"
+  if (/aerial/i.test(said)) return "aerial"
+  if (/general arrangement/i.test(said)) return "plan"
+  if (/\bmap\b|sketch|\bchart\b|contours/i.test(said)) return "map"
+  if (/\broute\b/i.test(said) && /\.(?:png|svg)$/i.test(file)) return "map"
+}
+
+const options =
+  /^(?:thumb|thumbnail|frame|frameless|border|left|right|center|centre|none|upright|\d*x?\d+px)$/i
+
+// Commons' own spelling of a file's name: escapes read as UTF-8 (one
+// that isn't a valid escape is left as it is), a capital first, spaces
+// for _.
+const unescape = (text: string) => {
+  try {
+    return decodeURIComponent(text)
+  } catch {
+    return text
+  }
+}
+const commonsName = (file: string) =>
+  capital(unescape(file.trim()).replace(/_/g, " "))
+
+const plainCaption = (caption: string) =>
+  decode(
+    caption
+      .replace(/\[\[(?:[^|\]]*\|)?([^\]]*)\]\]/g, "$1")
+      .replace(/'{2,}/g, "")
+  )
+    .replace(/\s+/g, " ")
+    .trim()
+
+// The pictures a page shows inline, in page order, with their captions as
+// plain words: [[File:…]] links, and the area map the dive guide's
+// templates draw at a page's top. A name with no extension is the page
+// template's placeholder. Galleries hold only photos of sea life.
+export function pictures(wikitext: string) {
+  const text = uncomment(wikitext).replace(
+    /<gallery[^>]*>[\s\S]*?<\/gallery>/gi,
+    ""
+  )
+  const named: { at: number; file: string; caption: string }[] = []
+  for (const [start, end] of spans(text, "[[", "]]")) {
+    const inner = text.slice(start + 2, end - 2)
+    // The name as written: template() lowercases it.
+    const file = /^\s*(?:file|image)\s*:\s*([^|]+)/i.exec(inner)?.[1]
+    if (!file) continue
+    const words = Object.entries(template(inner).args)
+      .filter(([key, value]) => /^\d+$/.test(key) && !options.test(value))
+      .map(([, value]) => value)
+    named.push({ at: start, file, caption: words.at(-1) ?? "" })
+  }
+  for (const [start, end] of spans(text, "{{", "}}")) {
+    const { name, args } = template(text.slice(start + 2, end - 2))
+    if (!["toggle dive maps", "regionlist"].includes(name)) continue
+    if (args.regionmap) {
+      named.push({
+        at: start,
+        file: args.regionmap,
+        caption: args.regionmaptext ?? "",
+      })
+    }
+  }
+  const found: Picture[] = []
+  for (const each of named.sort((a, b) => a.at - b.at)) {
+    const file = commonsName(each.file)
+    const caption = plainCaption(each.caption)
+    const kind = /\.\w{3,4}$/.test(file) && kindOf(file, caption)
+    if (kind && !found.some((one) => one.file === file)) {
+      found.push({ file, kind, caption })
+    }
+  }
+  return found
+}
