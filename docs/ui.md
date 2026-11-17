@@ -137,7 +137,7 @@ No screen explains being offline in a sentence. Whatever needs the server is dis
 
 ## Accessibility
 
-- **Every chart has a table alternative.** The profile chart and each Statistics chart render a screen-reader table beside the drawing; an `aria-label` summary was not enough to read a dive's profile.
+- **Small charts have a table alternative.** Statistics' bars and strips render a screen-reader table beside the drawing. The dive profile and the SAC trend don't: their tables, a row for every point and for every dive, slowed the charts, and in an app built for one diver the charts' speed comes first.
 - **States never rely on colour alone.** Each sync state (offline, can't reach the server, server problem, syncing, not synced, paused) has its own icon and is named for screen readers, and in words on You's sync card. An unsynced dive's outline comes with an icon and screen-reader text, and an ignored dive shows an eye-off icon read as "Ignored".
 - **Icon-only controls are named.** The tab bar, the sidebar rail and icon buttons carry labels or tooltips.
 - **Zoom is locked app-wide** for an installed-app feel: the viewport sets `user-scalable=no`, which iOS Safari ignores, so `touch-action: pan-x pan-y` on the root does the work there. The certification card viewer brings its own pinch to zoom, since the cards are the one thing that needs it. Text sizes, the 16 px inputs and the 44 px targets are chosen so that nothing else does.

@@ -188,7 +188,7 @@ test("a tag opens the Log filtered by it and the year", async ({
   expect(await page.evaluate(() => history.length)).toBe(entries)
 })
 
-test("each chart has a table alternative", async ({ page }) => {
+test("the bars and strips have table alternatives", async ({ page }) => {
   await page.goto("/stats")
   await expect(header(page)).toContainText("42dives")
   for (const caption of ["Dives per year", "Dives by maximum depth"])

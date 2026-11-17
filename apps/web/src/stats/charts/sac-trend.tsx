@@ -15,12 +15,11 @@ import {
 
 import { useSize } from "@/chart/size"
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
-import { dayMonth } from "@/format/dates"
 import type { Dive } from "@/data/db"
 import type { Statistics } from "@/stats/figures"
 import { numberAxis, rateScale, timeAxis } from "@/stats/trend"
 
-import { rate, SrTable } from "./parts"
+import { rate } from "./parts"
 
 const config = {
   sac: { label: "Each dive", color: "var(--muted-foreground)" },
@@ -86,115 +85,104 @@ export const SacTrend = memo(function SacTrend({
     axis.ticks.find((tick) => tick.value === value)?.label ?? ""
 
   return (
-    <>
-      <div
-        ref={box}
-        aria-hidden
-        // A long press neither selects the labels nor opens a menu.
-        className="h-42 w-full select-none [-webkit-touch-callout:none]"
-      >
-        {/* Drawn once at the measured width, in the first frame: a
+    <div
+      ref={box}
+      aria-hidden
+      // A long press neither selects the labels nor opens a menu.
+      className="h-42 w-full select-none [-webkit-touch-callout:none]"
+    >
+      {/* Drawn once at the measured width, in the first frame: a
             responsive container drew it at a guessed size, then again. */}
-        {width > 0 && (
-          <ChartContainer
-            config={config}
-            fixed
-            // A label on the last dive number can reach past the svg's edge
-            // ("1000" on a big log) into the card's padding, so it isn't cut.
-            className="aspect-auto size-full [&_.recharts-surface]:overflow-visible"
+      {width > 0 && (
+        <ChartContainer
+          config={config}
+          fixed
+          // A label on the last dive number can reach past the svg's edge
+          // ("1000" on a big log) into the card's padding, so it isn't cut.
+          className="aspect-auto size-full [&_.recharts-surface]:overflow-visible"
+        >
+          <ComposedChart
+            width={width}
+            height={height}
+            // Drawn for the eye only, so not a tab stop.
+            accessibilityLayer={false}
+            data={data}
+            margin={{ top: 8, right: 4, bottom: 0, left: 0 }}
           >
-            <ComposedChart
-              width={width}
-              height={height}
-              // Hidden from screen readers, which read the table, so not a tab stop.
-              accessibilityLayer={false}
-              data={data}
-              margin={{ top: 8, right: 4, bottom: 0, left: 0 }}
-            >
-              {/* At the labelled values only, not also at the plot's edges. No
+            {/* At the labelled values only, not also at the plot's edges. No
               vertical lines, and nothing to place them: unasked, the grid
               measured a tick per dive in the DOM (about 3 s on a big log). */}
-              <CartesianGrid
-                vertical={false}
-                verticalCoordinatesGenerator={() => []}
-                horizontalValues={gridlines}
-              />
-              <XAxis
-                dataKey="x"
-                type="number"
-                domain={[...axis.domain]}
-                ticks={ticks}
-                tick={(props: XAxisTickContentProps) => (
-                  <text
-                    x={props.x}
-                    y={props.y}
-                    dy="0.71em"
-                    textAnchor="middle"
-                    className={tickText}
-                  >
-                    {tickLabel(Number(props.payload.value))}
-                  </text>
-                )}
-                tickLine={false}
-                axisLine={false}
-                interval={0}
-              />
-              <YAxis
-                type="number"
-                domain={[low, high]}
-                ticks={gridlines}
-                tick={(props: YAxisTickContentProps) => (
-                  <text
-                    x={props.x}
-                    y={props.y}
-                    dy="0.355em"
-                    textAnchor="end"
-                    className={tickText}
-                  >
-                    {props.payload.value}
-                  </text>
-                )}
-                tickLine={false}
-                axisLine={false}
-                // Every given tick shows, so none is measured to see if it fits.
-                interval={0}
-                width={24}
-                // The hidden line's scale, for a lone dive's dot.
-                includeHidden
-              />
-              {/* Over the line and axes, where a Scatter draws. */}
-              <ZIndexLayer zIndex={DefaultZIndexes.scatter}>
-                <Dots data={data} width={width} />
-              </ZIndexLayer>
-              <Line
-                dataKey="average"
-                // One dive has no line, only its dot. Hidden rather than left
-                // out, as the y axis takes its scale from a series.
-                hide={trend.length < 2}
-                // Curved, as a rolling average stands for a gradual trend.
-                // Monotone passes through every average without overshooting,
-                // so it never draws a peak or dip the dives don't have.
-                type="monotone"
-                stroke="var(--color-average)"
-                strokeWidth={2}
-                dot={false}
-                activeDot={false}
-                isAnimationActive={false}
-              />
-            </ComposedChart>
-          </ChartContainer>
-        )}
-      </div>
-      <SrTable
-        caption="SAC rate per dive, in litres per minute"
-        head={["Dive", "SAC rate", "Average of last 5"]}
-        rows={trend.map((point) => [
-          `${dayMonth(point.dive.startTime)} ${point.dive.startTime.slice(0, 4)}`,
-          `${rate(point.sac)} L/min`,
-          `${rate(point.average)} L/min`,
-        ])}
-      />
-    </>
+            <CartesianGrid
+              vertical={false}
+              verticalCoordinatesGenerator={() => []}
+              horizontalValues={gridlines}
+            />
+            <XAxis
+              dataKey="x"
+              type="number"
+              domain={[...axis.domain]}
+              ticks={ticks}
+              tick={(props: XAxisTickContentProps) => (
+                <text
+                  x={props.x}
+                  y={props.y}
+                  dy="0.71em"
+                  textAnchor="middle"
+                  className={tickText}
+                >
+                  {tickLabel(Number(props.payload.value))}
+                </text>
+              )}
+              tickLine={false}
+              axisLine={false}
+              interval={0}
+            />
+            <YAxis
+              type="number"
+              domain={[low, high]}
+              ticks={gridlines}
+              tick={(props: YAxisTickContentProps) => (
+                <text
+                  x={props.x}
+                  y={props.y}
+                  dy="0.355em"
+                  textAnchor="end"
+                  className={tickText}
+                >
+                  {props.payload.value}
+                </text>
+              )}
+              tickLine={false}
+              axisLine={false}
+              // Every given tick shows, so none is measured to see if it fits.
+              interval={0}
+              width={24}
+              // The hidden line's scale, for a lone dive's dot.
+              includeHidden
+            />
+            {/* Over the line and axes, where a Scatter draws. */}
+            <ZIndexLayer zIndex={DefaultZIndexes.scatter}>
+              <Dots data={data} width={width} />
+            </ZIndexLayer>
+            <Line
+              dataKey="average"
+              // One dive has no line, only its dot. Hidden rather than left
+              // out, as the y axis takes its scale from a series.
+              hide={trend.length < 2}
+              // Curved, as a rolling average stands for a gradual trend.
+              // Monotone passes through every average without overshooting,
+              // so it never draws a peak or dip the dives don't have.
+              type="monotone"
+              stroke="var(--color-average)"
+              strokeWidth={2}
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+            />
+          </ComposedChart>
+        </ChartContainer>
+      )}
+    </div>
   )
 })
 

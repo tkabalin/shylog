@@ -24,6 +24,7 @@ const trend = (rates: number[]) =>
 
 const svg = (container: HTMLElement) =>
   container.querySelector("svg.recharts-surface")!
+const average = 'path[stroke="var(--color-average)"]'
 
 test("draws a dot per dive and a caret with its rate for one off the top", () => {
   // 60 L/min is past the fence, so it sits on the top edge.
@@ -48,6 +49,8 @@ test("draws a dot per dive and a caret with its rate for one off the top", () =>
   const tip = carets[0]!.getAttribute("d")!.split("L")[1]!.split(" ")
   expect(Number(tip[1]) + 2).toBe(8)
   expect(svg(container).textContent).toContain("60.0")
+  // The five-dive average, one curve.
+  expect(svg(container).querySelectorAll(average)).toHaveLength(1)
   unmount()
 })
 
@@ -59,6 +62,6 @@ test("draws a lone dive's dot and the rate axis, with no line", () => {
   expect(
     svg(container).querySelector(".recharts-yAxis-tick-labels text")
   ).not.toBeNull()
-  expect(svg(container).querySelector(".recharts-line")).toBeNull()
+  expect(svg(container).querySelector(average)).toBeNull()
   unmount()
 })

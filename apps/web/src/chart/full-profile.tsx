@@ -8,7 +8,6 @@ import { profileMaxDepth } from "@/dive/figures"
 
 import { plotTop, timeAxisHeight } from "./layout"
 import { profileGutter, profileModel } from "./model"
-import { ProfileTable } from "./profile-table"
 import { useSize } from "./size"
 import { DepthView, LaneView, Readout, useCrosshair } from "./view"
 
@@ -85,7 +84,6 @@ export function FullProfile({
         handlers={handlers}
         free
       />
-      {model && <ProfileTable model={model} />}
     </div>
   )
 }

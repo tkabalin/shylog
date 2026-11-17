@@ -1,4 +1,4 @@
-// Elapsed time in the dive as m:ss, for the readout, alarms and table.
+// Elapsed time in the dive as m:ss, for the readout and alarms.
 export function clock(seconds: number) {
   const whole = Math.round(seconds)
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`

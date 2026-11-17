@@ -367,11 +367,9 @@ describe("the smoothed temperature lane", () => {
 
   it("draws the water's temperature, and its axis and labels follow", () => {
     expect(model(true)).toMatchObject({
-      smoothed: true,
       water: { min: 17, max: 17 },
     })
     expect(model(false)).toMatchObject({
-      smoothed: false,
       water: { min: 17, max: 20 },
     })
   })

@@ -70,7 +70,7 @@ test("keeps a scrolled dive where it is when its profile draws", async ({
   const scrolled = await main.evaluate((el) => el.scrollTop)
   release()
   await expect(
-    page.getByRole("table", { name: /Every point of the depth profile/ })
+    page.locator("[data-slot=profile] .recharts-wrapper").first()
   ).toBeAttached()
   // A couple of frames on, as the jump came a frame after the chart.
   const after = await main.evaluate(async (el) => {

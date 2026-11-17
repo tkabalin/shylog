@@ -143,8 +143,8 @@ export function SrTable({
   // for: separate deferrals landed as separate commits mid-reveal.
   now?: boolean
 }) {
-  // Its rows come a painted frame after the screen: unseen, they were most
-  // of a big log's first frame (the SAC table has a row per dive).
+  // Its rows come a painted frame after the screen, which they would
+  // otherwise hold back unseen.
   const painted = usePainted() || now
   // A table ignores the height sr-only gives it, so a long log's stretched
   // the page; the wrapper clips it.
