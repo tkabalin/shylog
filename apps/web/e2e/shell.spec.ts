@@ -147,12 +147,13 @@ test.describe("at phone width", () => {
       for (const child of el.children)
         (child as HTMLElement).style.display = "none"
     })
-    const line = () => nav.evaluate((el) => getComputedStyle(el).borderTopColor)
-    // Any colour space, so long as the alpha is zero
-    const none = /[/,] 0\)$/
+    // The line is the nav's ::before, faded by opacity.
+    const line = () =>
+      nav.evaluate((el) => getComputedStyle(el, "::before").opacity)
+    const none = "0"
 
     // Too short to scroll
-    await expect.poll(line).toMatch(none)
+    await expect.poll(line).toBe(none)
 
     await main.evaluate((el) => {
       el.append(
@@ -161,10 +162,10 @@ test.describe("at phone width", () => {
         })
       )
     })
-    await expect.poll(line).not.toMatch(none)
+    await expect.poll(line).not.toBe(none)
 
     await main.evaluate((el) => (el.scrollTop = el.scrollHeight))
-    await expect.poll(line).toMatch(none)
+    await expect.poll(line).toBe(none)
   })
 
   // Import's bar of dive computer buttons sits on the nav, so content never
@@ -181,15 +182,15 @@ test.describe("at phone width", () => {
     const nav = page.getByRole("navigation", { name: "Main" })
     const bar = page.locator(".bottom-bar")
     const main = page.locator("main")
-    const line = (el: Element) => getComputedStyle(el).borderTopColor
-    const none = /[/,] 0\)$/
+    const line = (el: Element) => getComputedStyle(el, "::before").opacity
+    const none = "0"
 
-    await expect.poll(() => bar.evaluate(line)).not.toMatch(none)
-    expect(await nav.evaluate(line)).toMatch(none)
+    await expect.poll(() => bar.evaluate(line)).not.toBe(none)
+    expect(await nav.evaluate(line)).toBe(none)
 
     await main.evaluate((el) => (el.scrollTop = el.scrollHeight))
-    await expect.poll(() => bar.evaluate(line)).toMatch(none)
-    expect(await nav.evaluate(line)).toMatch(none)
+    await expect.poll(() => bar.evaluate(line)).toBe(none)
+    expect(await nav.evaluate(line)).toBe(none)
   })
 
   // Without the cable Import has no bar, so the nav keeps its own line.
@@ -213,7 +214,7 @@ test.describe("at phone width", () => {
     await expect(page.locator(".bottom-bar")).toHaveCount(0)
     const nav = page.getByRole("navigation", { name: "Main" })
     expect(
-      await nav.evaluate((el) => getComputedStyle(el).animationName)
+      await nav.evaluate((el) => getComputedStyle(el, "::before").animationName)
     ).not.toBe("none")
   })
 

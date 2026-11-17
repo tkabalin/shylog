@@ -83,5 +83,7 @@
    the root, as :root:has() restyled the page on every insertion. */
 :root[data-map] .bottom-nav {
   border-top-color: var(--border);
+}
+:root[data-map] .bottom-nav::before {
   animation: none;
 }
