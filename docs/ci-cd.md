@@ -68,6 +68,7 @@ The `image` job runs on every pull request, so a broken Dockerfile fails the pul
 - `/api/health` reports an integrity check of `ok` on an empty log.
 - Every log line is JSON naming the instance, and the startup line carries the commit the image was built from.
 - The web app is served with its title and manifest from `SHYLOG_APP_NAME`, its assets load, and the service worker precaches them.
+- A UDDF download comes back, which proves the export's worker thread ships in the build and the bundle finds it.
 - The commit reached the bundle, so You's About doesn't say `dev`.
 - The MCP endpoint answers a tool call, which proves the MCP SDK resolves in the production install.
 - The time zone works from Node's own ICU data, as the slim image has no `tzdata`.

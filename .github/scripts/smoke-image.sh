@@ -48,6 +48,9 @@ docker logs "$container" 2>/dev/null | jq -se --arg rev "${revision:-dev}" '
   (map(select(.event == "listening")) | length == 1 and .[0].version == $rev)
   and all(.[]; .instance == "shylog")'
 get /manifest.webmanifest | jq -e '.name == "Shylog CI"'
+# A UDDF download, which the export's worker thread builds from its own
+# entry in dist, so the file ships and the bundle finds it.
+get /api/export/uddf | grep -q '<uddf xmlns="http://www.streit.cc/uddf/3.2/"'
 # Claude's MCP endpoint answers a tool call from the built server, which
 # proves the SDK resolves in the production install. The reply may come as
 # one server-sent event.

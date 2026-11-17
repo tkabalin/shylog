@@ -179,7 +179,7 @@ export async function nightly(
   if (integrity === "failed") return
   start = performance.now()
   try {
-    const written = writeExport(db, dataDir, integrity, now)
+    const written = await writeExport(db, dataDir, integrity, now)
     logger.info(
       {
         event: "export",

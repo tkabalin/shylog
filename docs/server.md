@@ -4,7 +4,7 @@ How the server keeps a dive log safe and makes its health visible: how every wri
 
 ## One process, one writer
 
-One Node process runs Hono, serves the built app and the API, and is the only thing that ever writes `shylog.db`. A dive log has one diver and a few devices, so a single writer is never a bottleneck, and it removes every question about concurrent writers: there is no connection pool, no lock to take, and nothing else that could hold a stale view of the data.
+One Node process runs Hono, serves the built app and the API, and is the only thing that ever writes `shylog.db`. A dive log has one diver and a few devices, so a single writer is never a bottleneck, and it removes every question about concurrent writers: there is no connection pool, no lock to take, and nothing else that could hold a stale view of the data. The one other connection is the exports' own, read-only, in a worker thread (see [Nightly backups](#nightly-backups)).
 
 The database is opened with SQLite's write-ahead log (`journal_mode=WAL`), so reads never wait for a write; `synchronous=FULL`, so a commit is on disk before the server replies; foreign keys on and never deferred; and a five-second busy timeout for the backup tools that open the file alongside the server.
 
@@ -64,6 +64,10 @@ At midnight in the server's local time zone, the server runs one job:
 4. Writes the UDDF and CSV exports from one read transaction, each to a temporary file that is flushed and checked (the UDDF parsed a dive at a time and its dives counted, the CSV read back and its rows counted), and renames both only once both pass.
 
 A failed snapshot or export is logged and leaves the previous file in place, and a failed export shows on the You tab until an export succeeds. A server that was stopped over midnight runs the job when it starts. The data folder, with the snapshots, the exports and the certification card images, sits under one parent folder that the home server's off-site backup covers, and every format is open: the snapshot opens in any SQLite tool, the UDDF export in Subsurface, the CSV in a spreadsheet. The exports themselves are described in [export.md](export.md).
+
+**Exports run beside the server.** An export of a thousand imported dives takes several seconds, most of it spent passing through what the import kept of each dive and checking the result. On the server's own thread every other request would wait that long, and an export that ran out of memory would end the server before it could record the failure. So the nightly export, Export now and Download UDDF each run in a worker thread with a read-only connection of its own. Write-ahead logging lets it read beside the server's writes, and one read transaction gives it the log as it was when the export began. The check parses each dive on its own, then the rest of the file without them, as one parse of the whole 20 MB file needs more memory than the container's 1 GB allows; that keeps the same guarantee, a well-formed file holding every dive.
+
+**One export at a time, with a heap cap.** The worker's heap is capped at three eighths of the container's memory, 384 MB of the default 1 GB, where a thousand dives need about 64 MB. An export that outgrows it ends the worker alone and fails like any other, leaving the last files in place. Export now or a download during the nightly run waits for it and then reads the log afresh, as two exports at once would double the memory.
 
 Losing at most a day of changes is the accepted worst case: dives logged by hand can be re-entered, and the dive computers keep their profiles until they are downloaded again.
 

@@ -12,6 +12,7 @@ import {
   writeFileSync,
 } from "node:fs"
 import { join } from "node:path"
+import { Worker, type ResourceLimits } from "node:worker_threads"
 
 import { DOMParser, onErrorStopParsing } from "@xmldom/xmldom"
 import { parse } from "csv-parse/sync"
@@ -73,10 +74,10 @@ export function refuseDamaged(integrity: Integrity) {
 }
 
 // Written and flushed, so a crash can't leave a half-written file to rename.
-function writeFlushed(file: string, parts: string[]) {
+function writeFlushed(file: string, data: string | Uint8Array) {
   const fd = openSync(file, "w")
   try {
-    for (const part of parts) writeFileSync(fd, part)
+    writeFileSync(fd, data)
     fsyncSync(fd)
   } finally {
     closeSync(fd)
@@ -122,27 +123,20 @@ export function checkCsv(csv: string, dives: number) {
 // Replaces export/dives.uddf and dives.csv from one read: the UDDF is
 // checked as built, each is written and flushed, and the CSV read back,
 // before either is renamed over the last, so a failed check leaves both
-// files.
-export function writeExport(
-  db: Db,
-  dataDir: string,
-  integrity: Integrity,
-  now = new Date()
-) {
-  refuseDamaged(integrity)
+// files. Run by the export worker.
+export function writeFiles(db: Db, dataDir: string, now: Date) {
   const { uddf, csv } = db.transaction(() => ({
     uddf: writeUddfParts(db),
     csv: writeCsv(db),
   }))()
   checkUddf(uddf)
+  const file = encodeUddf(uddf)
   sweepTemps(dataDir, now)
   const temp = tempName(dataDir, ".uddf")
   const csvTemp = tempName(dataDir, ".csv")
-  // Written a part at a time, as joining them copies the whole file again.
-  const parts = [uddf.head, ...uddf.groups, uddf.tail]
   try {
-    writeFlushed(temp, parts)
-    writeFlushed(csvTemp, [csv.csv])
+    writeFlushed(temp, file)
+    writeFlushed(csvTemp, csv.csv)
     checkCsv(readFileSync(csvTemp, "utf8"), csv.dives)
     renameSync(temp, exportFile(dataDir))
     renameSync(csvTemp, csvFile(dataDir))
@@ -151,6 +145,110 @@ export function writeExport(
     rmSync(temp, { force: true })
     rmSync(csvTemp, { force: true })
   }
+  return {
+    dives: uddf.groups.length,
+    uddfBytes: file.byteLength,
+    csvBytes: Buffer.byteLength(csv.csv),
+  }
+}
+
+// Encoded a part at a time outside the heap: one 20 MB string could pass
+// the 16 MB an ending worker may still allocate, which aborts the process.
+function encodeUddf(uddf: UddfParts) {
+  const parts = [uddf.head, ...uddf.groups, uddf.tail]
+  const file = new Uint8Array(
+    parts.reduce((sum, part) => sum + Buffer.byteLength(part), 0)
+  )
+  const encoder = new TextEncoder()
+  let at = 0
+  for (const part of parts) {
+    at += encoder.encodeInto(part, file.subarray(at)).written
+  }
+  return file
+}
+
+// A fresh UDDF file for a download, checked as the nightly one is. Run by
+// the worker, which hands the bytes over without a copy.
+export function buildUddf(db: Db) {
+  const uddf = writeUddfParts(db)
+  checkUddf(uddf)
+  return encodeUddf(uddf)
+}
+
+export type ExportJob =
+  { kind: "files"; dataDir: string; now: Date } | { kind: "uddf" }
+
+export interface WorkerData {
+  // The database file, or a copy of an in-memory one (the tests'), which
+  // can't be opened twice.
+  source: string | Uint8Array
+  job: ExportJob
+}
+
+// The worker's heap cap, 3/8 of the container's memory (384 MB of 1 GB;
+// 1000 dives need 64 MB): an export past it ends the worker, not the
+// server. An unknown limit (0) counts as none, as a 0 MB cap aborts too.
+const heapLimitMb = Math.round(
+  Math.min(1024, (process.constrainedMemory() || Infinity) / 2 ** 20) * 0.375
+)
+
+// The source beside this file under tsx and Vitest, and in the build its
+// own entry beside the bundle (tsup.config.ts).
+const workerUrl = new URL(
+  import.meta.url.endsWith(".ts") ? "./export-worker.ts" : "./export-worker.js",
+  import.meta.url
+)
+
+// One export at a time, as two at once would double the memory. Export
+// now or a download during the nightly run waits for it, then reads the
+// log afresh, so neither gets a copy older than the request.
+let queue: Promise<unknown> = Promise.resolve()
+
+// Tests pass a smaller cap, to run out of it on purpose.
+export function inWorker<R>(
+  db: Db,
+  job: ExportJob,
+  resourceLimits: ResourceLimits = { maxOldGenerationSizeMb: heapLimitMb }
+): Promise<R> {
+  const run = queue.then(
+    () =>
+      new Promise<R>((resolve, reject) => {
+        const workerData: WorkerData = {
+          source: db.memory ? db.serialize() : db.name,
+          job,
+        }
+        const worker = new Worker(workerUrl, { workerData, resourceLimits })
+        let result: { value: R } | undefined
+        let failure: unknown
+        worker.once("message", (value: R) => (result = { value }))
+        // A throw or ERR_WORKER_OUT_OF_MEMORY, which comes before the exit.
+        worker.once("error", (error) => (failure ??= error))
+        // Settled once it has gone, so the next export never runs beside it.
+        worker.once("exit", (code) => {
+          if (failure) reject(failure)
+          else if (result) resolve(result.value)
+          else reject(new Error(`The export worker stopped with code ${code}`))
+        })
+      })
+  )
+  queue = run.catch(() => {})
+  return run
+}
+
+// The nightly job's and Export now's write, then the time recorded on the
+// server's own connection, as the worker's is read-only.
+export async function writeExport(
+  db: Db,
+  dataDir: string,
+  integrity: Integrity,
+  now = new Date()
+) {
+  refuseDamaged(integrity)
+  const written = await inWorker<ReturnType<typeof writeFiles>>(db, {
+    kind: "files",
+    dataDir,
+    now,
+  })
   // Outside the journal, as the snapshot's time is. A success clears a
   // failed night's alert, by Export now or the next night. The files are
   // already in place, so a full disk refusing these only leaves the times.
@@ -163,9 +261,11 @@ export function writeExport(
       "Couldn’t record the export’s time"
     )
   }
-  return {
-    dives: uddf.groups.length,
-    uddfBytes: parts.reduce((sum, part) => sum + Buffer.byteLength(part), 0),
-    csvBytes: Buffer.byteLength(csv.csv),
-  }
+  return written
+}
+
+// Download UDDF's file, built in the worker for the download alone.
+export async function exportUddf(db: Db, integrity: Integrity) {
+  refuseDamaged(integrity)
+  return inWorker<Uint8Array<ArrayBuffer>>(db, { kind: "uddf" })
 }

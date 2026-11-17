@@ -8,8 +8,14 @@ const nodeMajor = pkg.engines.node.match(/\d+/)?.[0]
 if (!nodeMajor) throw new Error(`No Node version in "${pkg.engines.node}"`)
 
 export default defineConfig({
-  // The server, and the backup tools the scripts run in its container.
-  entry: ["src/index.ts", "src/cli.ts"],
+  // The server, the backup tools the scripts run in its container, and the
+  // export's worker thread, which jobs/export.ts finds beside its own bundle
+  // in dist/.
+  entry: {
+    index: "src/index.ts",
+    cli: "src/cli.ts",
+    "export-worker": "src/jobs/export-worker.ts",
+  },
   format: "esm",
   target: `node${nodeMajor}`,
   clean: true,

@@ -27,7 +27,7 @@ import {
   csvFile,
   exportDir,
   exportFile,
-  writeExport,
+  writeFiles,
 } from "./export.ts"
 import {
   checkedSnapshot,
@@ -179,11 +179,19 @@ describe("nightly", () => {
     const prepare = db.prepare.bind(db)
     const spy = vi.spyOn(db, "prepare").mockImplementation(((sql: string) => {
       if (sql.startsWith("VACUUM INTO")) order.push("snapshot")
-      if (sql.includes("FROM dives WHERE deleted_at IS NULL ORDER BY"))
-        order.push("export")
       return prepare(sql)
     }) as typeof db.prepare)
-    onTestFinished(() => spy.mockRestore())
+    // The export's worker reads a copy of an in-memory database, taken as
+    // it starts.
+    const serialize = db.serialize.bind(db)
+    const copy = vi.spyOn(db, "serialize").mockImplementation(() => {
+      order.push("export")
+      return serialize()
+    })
+    onTestFinished(() => {
+      spy.mockRestore()
+      copy.mockRestore()
+    })
     await nightly(db, dir, "ok", now)
 
     expect(order).toEqual(["snapshot", "export"])
@@ -202,7 +210,7 @@ describe("nightly", () => {
     expect(meta("last_export_at")).toBe(now.toISOString())
   })
 
-  it("keeps the last export when one fails, says so in health, and retries", async () => {
+  it("says in health when an export fails, and clears it on the next", async () => {
     const dir = dataDir()
     const db = seededDb()
     const app = testApp({ db })
@@ -215,80 +223,37 @@ describe("nightly", () => {
       }
     const first = new Date(2026, 9, 21)
     await nightly(db, dir, "ok", first)
-    const good = readFileSync(exportFile(dir), "utf8")
-    const goodCsv = readFileSync(csvFile(dir), "utf8")
 
     // A change the next good export should carry.
     const id = db.prepare("SELECT id FROM dives LIMIT 1").pluck().get()
     db.prepare("UPDATE dives SET notes = ? WHERE id = ?").run("ok", id)
-    // The check refusing the file.
-    const parse = vi
-      .spyOn(DOMParser.prototype, "parseFromString")
-      .mockImplementation(() => {
-        throw new Error("unreadable")
-      })
+    // A file where the folder should be fails the worker's write.
+    rmSync(exportDir(dir), { recursive: true })
+    writeFileSync(exportDir(dir), "")
     const lines = captureLog()
     const second = new Date(2026, 9, 22)
     await nightly(db, dir, "ok", second)
-    parse.mockRestore()
 
     expect(lines).toContainEqual(
-      expect.objectContaining({ level: "error", event: "export_failed" })
+      expect.objectContaining({
+        level: "error",
+        event: "export_failed",
+        err: expect.objectContaining({ stack: expect.any(String) }),
+      })
     )
-    expect(readFileSync(exportFile(dir), "utf8")).toBe(good)
-    // The CSV isn't swapped in without the UDDF beside it.
-    expect(readFileSync(csvFile(dir), "utf8")).toBe(goodCsv)
-    expect(readdirSync(exportDir(dir)).sort()).toEqual([
-      "dives.csv",
-      "dives.uddf",
-    ])
     expect(await exportHealth()).toMatchObject({
       lastExportAt: first.toISOString(),
       exportFailedAt: second.toISOString(),
     })
 
+    rmSync(exportDir(dir))
     const third = new Date(2026, 9, 23)
     await nightly(db, dir, "ok", third)
     expect(readFileSync(exportFile(dir), "utf8")).toContain("<para>ok</para>")
-    expect(readFileSync(csvFile(dir), "utf8")).not.toBe(goodCsv)
     expect(await exportHealth()).toMatchObject({
       lastExportAt: third.toISOString(),
       exportFailedAt: null,
     })
-  })
-
-  it("keeps both files when the CSV fails its check after the UDDF passed", async () => {
-    const dir = dataDir()
-    const db = seededDb()
-    await nightly(db, dir, "ok", new Date(2026, 9, 21))
-    const good = readFileSync(exportFile(dir), "utf8")
-    const goodCsv = readFileSync(csvFile(dir), "utf8")
-
-    const id = db.prepare("SELECT id FROM dives LIMIT 1").pluck().get()
-    db.prepare("UPDATE dives SET notes = ? WHERE id = ?").run("ok", id)
-    csvCheck.fail = true
-    onTestFinished(() => {
-      csvCheck.fail = false
-    })
-    const lines = captureLog()
-    const second = new Date(2026, 9, 22)
-    await nightly(db, dir, "ok", second)
-
-    expect(lines).toContainEqual(
-      expect.objectContaining({ level: "error", event: "export_failed" })
-    )
-    expect(readFileSync(exportFile(dir), "utf8")).toBe(good)
-    expect(readFileSync(csvFile(dir), "utf8")).toBe(goodCsv)
-    expect(readdirSync(exportDir(dir)).sort()).toEqual([
-      "dives.csv",
-      "dives.uddf",
-    ])
-    expect(
-      db
-        .prepare("SELECT value FROM meta WHERE key = 'export_failed_at'")
-        .pluck()
-        .get()
-    ).toBe(second.toISOString())
   })
 
   it("runs at each local midnight", () => {
@@ -374,6 +339,56 @@ describe("nightly", () => {
         .pluck()
         .get()
     ).toBeUndefined()
+  })
+})
+
+// The worker's side of the export, run here so a test can break its checks.
+describe("export files", () => {
+  function written() {
+    const dir = dataDir()
+    const db = seededDb()
+    writeFiles(db, dir, new Date(2026, 9, 21))
+    const good = readFileSync(exportFile(dir), "utf8")
+    const goodCsv = readFileSync(csvFile(dir), "utf8")
+    // A change a failed export mustn't carry.
+    const id = db.prepare("SELECT id FROM dives LIMIT 1").pluck().get()
+    db.prepare("UPDATE dives SET notes = ? WHERE id = ?").run("ok", id)
+    return { dir, db, good, goodCsv }
+  }
+  const kept = (dir: string, good: string, goodCsv: string) => {
+    expect(readFileSync(exportFile(dir), "utf8")).toBe(good)
+    // The CSV isn't swapped in without the UDDF beside it.
+    expect(readFileSync(csvFile(dir), "utf8")).toBe(goodCsv)
+    expect(readdirSync(exportDir(dir)).sort()).toEqual([
+      "dives.csv",
+      "dives.uddf",
+    ])
+  }
+
+  it("keeps both files when the UDDF fails its check", () => {
+    const { dir, db, good, goodCsv } = written()
+    const parse = vi
+      .spyOn(DOMParser.prototype, "parseFromString")
+      .mockImplementation(() => {
+        throw new Error("unreadable")
+      })
+    onTestFinished(() => parse.mockRestore())
+    expect(() => writeFiles(db, dir, new Date(2026, 9, 22))).toThrow(
+      "unreadable"
+    )
+    kept(dir, good, goodCsv)
+  })
+
+  it("keeps both files when the CSV fails its check after the UDDF passed", () => {
+    const { dir, db, good, goodCsv } = written()
+    csvCheck.fail = true
+    onTestFinished(() => {
+      csvCheck.fail = false
+    })
+    expect(() => writeFiles(db, dir, new Date(2026, 9, 22))).toThrow(
+      "unreadable"
+    )
+    kept(dir, good, goodCsv)
   })
 })
 
@@ -493,7 +508,7 @@ describe("export checks", () => {
   it("parses the export a dive at a time", () => {
     const parse = vi.spyOn(DOMParser.prototype, "parseFromString")
     onTestFinished(() => parse.mockRestore())
-    writeExport(seededDb(), dataDir(), "ok", new Date(2026, 9, 22))
+    writeFiles(seededDb(), dataDir(), new Date(2026, 9, 22))
 
     const dives = parse.mock.calls.map(
       ([xml]) => xml.split("<dive ").length - 1
