@@ -46,6 +46,17 @@ export default defineConfig({
               expiration: { maxEntries: 1 },
             },
           },
+          // The dive sites' maps and images, about 48 MB, kept once the
+          // app downloads them (src/map/keep-images.ts, which also drops
+          // the ones a new version no longer has).
+          {
+            urlPattern: /\/assets\/site-[\w-]+\.webp$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "map-images",
+              cacheableResponse: { statuses: [200] },
+            },
+          },
         ],
       },
     }),
@@ -60,7 +71,13 @@ export default defineConfig({
   // A little above the map's chunk, about 1.47 MB with MapLibre, the dive
   // sites and the Markdown renderer, so a change that grows it warns and
   // raises this on purpose. A precached file over 2 MiB fails the build.
-  build: { chunkSizeWarningLimit: 1550 },
+  build: {
+    chunkSizeWarningLimit: 1550,
+    // Every site image a file of its own, however small, as the service
+    // worker keeps them by their addresses.
+    assetsInlineLimit: (file) =>
+      file.includes("/src/map/images/") ? false : undefined,
+  },
   // The Hono server, which listens on 127.0.0.1 only. It writes the
   // manifest too, with the instance's name, so Vite mustn't answer it with
   // the app's HTML, and serves /mcp, which Claude Desktop on Windows reaches
