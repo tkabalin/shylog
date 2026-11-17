@@ -1,9 +1,14 @@
 import { createContext, memo, useContext, useEffect, useState } from "react"
-import { IconWifiOff } from "@tabler/icons-react"
+import { IconChevronDown, IconWifiOff } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
 import Markdown, { type MarkdownToJSX } from "markdown-to-jsx/react"
 import { cn } from "cn"
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -86,8 +91,11 @@ function Waiting({
   )
 }
 
-// The site whose sheet this is, so a link to it reads as plain words.
-const Showing = createContext<string | undefined>(undefined)
+// The site whose sheet this is, so a link to it reads as plain words, and
+// what the sheet does as a link opens another, so it can come back.
+const Showing = createContext<{ id?: string; onFollow?: (id: string) => void }>(
+  {}
+)
 
 // A link to another dive site opens it, in place of this one.
 function SiteLink({
@@ -99,7 +107,7 @@ function SiteLink({
 }) {
   const showing = useContext(Showing)
   const id = href?.startsWith("site:") ? href.slice(5) : undefined
-  if (!id || id === showing) return <>{children}</>
+  if (!id || id === showing.id) return <>{children}</>
   // A short name stays on one line ("D-Frame" never breaks at its hyphen),
   // and the link's padding, which moves nothing, makes it easier to tap.
   const words = [children].flat().filter((each) => typeof each === "string")
@@ -108,6 +116,7 @@ function SiteLink({
       to="/explore"
       search={{ site: id }}
       replace
+      onClick={() => showing.onFollow?.(id)}
       className={cn(
         "rounded-[3px] box-decoration-clone py-1 font-medium text-primary underline-offset-2 hover:underline data-press:bg-primary/10 data-press:duration-0",
         words.join("").length <= 20 && "whitespace-nowrap"
@@ -142,14 +151,80 @@ const options: MarkdownToJSX.Options = {
   },
 }
 
+const headingOptions: MarkdownToJSX.Options = {
+  ...options,
+  forceBlock: false,
+  forceInline: true,
+}
+
+// The sections opened on each site this session, so coming back to one
+// finds it as it was left.
+const opened = new Map<string, Set<string>>()
+
+// The page's own sections fold, so a long page (Whittle Rock's runs to 40
+// screens) reads as a list of what it covers. Its opening words stay out.
+function Sections({ id, markdown }: { id: string; markdown: string }) {
+  const [lead, ...sections] = markdown.split(/^(?=## )/m)
+  const all = lead.startsWith("## ") ? [lead, ...sections] : sections
+  const [open, setOpen] = useState(() => opened.get(id) ?? new Set<string>())
+  const toggle = (heading: string, now: boolean) => {
+    const next = new Set(open)
+    if (now) next.add(heading)
+    else next.delete(heading)
+    opened.set(id, next)
+    setOpen(next)
+  }
+  return (
+    <>
+      {!lead.startsWith("## ") && lead.trim() && (
+        <Markdown options={options}>{lead}</Markdown>
+      )}
+      {all.length > 0 && (
+        <div className="mt-4 border-b">
+          {all.map((section) => {
+            const [line, ...body] = section.split("\n")
+            const heading = line.slice(3).trim()
+            return (
+              <Collapsible
+                key={heading}
+                open={open.has(heading)}
+                onOpenChange={(now) => toggle(heading, now)}
+                className="border-t"
+              >
+                <h3 className="mt-0!">
+                  <CollapsibleTrigger className="group/section flex min-h-12 w-full items-center justify-between gap-3 py-2 text-left transition-opacity duration-150 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-press:opacity-50 data-press:duration-0 desk:min-h-10">
+                    <span>
+                      <Markdown options={headingOptions}>{heading}</Markdown>
+                    </span>
+                    <IconChevronDown className="size-4.5 shrink-0 text-muted-foreground transition-transform duration-150 ease-out group-data-panel-open/section:rotate-180 motion-reduce:transition-none" />
+                  </CollapsibleTrigger>
+                </h3>
+                <CollapsibleContent className="pb-5 *:first:mt-0">
+                  <Markdown options={options}>{body.join("\n")}</Markdown>
+                </CollapsibleContent>
+              </Collapsible>
+            )
+          })}
+        </div>
+      )}
+    </>
+  )
+}
+
 // Memoised, as parsing a long page is slow and the card re-renders on
 // every move of a drag on its edge.
 export const SiteText = memo(function SiteText({
   site,
   className,
+  onFollow,
+  end,
 }: {
   site: Site
   className?: string
+  // A link in the text opens another site.
+  onFollow?: (id: string) => void
+  // The phone's Read on Wikivoyage, after the text.
+  end?: React.ReactNode
 }) {
   const { loaded, failed } = usePages(site.id)
   if (!site.page) return null
@@ -158,7 +233,7 @@ export const SiteText = memo(function SiteText({
   if (!parts) return null
   const { own, rest } = siteText(parts, site.id)
   return (
-    <Showing.Provider value={site.id}>
+    <Showing.Provider value={{ id: site.id, onFollow }}>
       <div
         className={cn(
           "text-[15px] leading-[21px] desk:text-sm",
@@ -179,7 +254,8 @@ export const SiteText = memo(function SiteText({
             {site.page}
           </h3>
         )}
-        <Markdown options={options}>{rest}</Markdown>
+        <Sections key={site.id} id={site.id} markdown={rest} />
+        {end}
         {/* The licence asks for the credit, and to say it was changed. */}
         <p className="mt-8! text-xs text-muted-foreground">
           Text from{" "}

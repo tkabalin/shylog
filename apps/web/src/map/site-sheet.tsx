@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -7,9 +8,16 @@ import {
   useSyncExternalStore,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
+  type RefObject,
 } from "react"
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer"
-import { IconExternalLink, IconFish, IconX } from "@tabler/icons-react"
+import {
+  IconChevronLeft,
+  IconExternalLink,
+  IconFish,
+  IconWifiOff,
+  IconX,
+} from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
@@ -22,11 +30,12 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
+import { useOnline } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import { localValue } from "@/lib/local-value"
 
 import { SiteText } from "./site-text"
-import { areas, siteTypes, wikivoyage, type Site } from "./sites"
+import { areas, siteById, siteTypes, wikivoyage, type Site } from "./sites"
 import { zoneAt } from "./zone-at"
 import { zoneRules } from "./zone-rules"
 
@@ -54,6 +63,57 @@ export function SiteSheet(props: SheetProps) {
   ) : null
 }
 
+// A link in the text opens another site in place of this one, so the sheet
+// keeps the way back: each step's site and how far down its text it was.
+type Step = { from: string; to: string; scroll: number }
+function useTrail(
+  id: string | undefined,
+  scroller: RefObject<HTMLElement | null>,
+  // Runs as the site gone back to shows, in the same render, so it opens
+  // raised with nothing in between.
+  arrive: (id: string) => void
+) {
+  const [trail, setTrail] = useState<Step[]>([])
+  // The step gone back along, taken off once its site shows, so the back
+  // row stays until then.
+  const [leaving, setLeaving] = useState<Step>()
+  const [seen, setSeen] = useState(id)
+  if (id !== seen) {
+    setSeen(id)
+    setLeaving(undefined)
+    if (leaving && id === leaving.from) {
+      setTrail(trail.slice(0, -1))
+      arrive(id)
+    } else if (trail.length && trail.at(-1)!.to !== id) {
+      // A site reached any other way, from a pin or after a close, ends it.
+      setTrail([])
+    }
+  }
+  const follow = useCallback(
+    (to: string) => {
+      if (!id) return
+      const step = { from: id, to, scroll: scroller.current?.scrollTop ?? 0 }
+      setTrail((steps) => [...(steps.at(-1)?.to === id ? steps : []), step])
+    },
+    [id, scroller]
+  )
+  const back = trail.at(-1)?.to === id ? trail.at(-1) : undefined
+  const restore = useRef<Step>(undefined)
+  const goBack = () => {
+    restore.current = back
+    setLeaving(back)
+  }
+  // Back at the same place in its text once that site shows. The back
+  // links don't let the router put the scroller at its top.
+  useLayoutEffect(() => {
+    const step = restore.current
+    if (!step || step.from !== id) return
+    restore.current = undefined
+    scroller.current?.scrollTo({ top: step.scroll })
+  }, [id, scroller])
+  return { back, follow, goBack }
+}
+
 function PhoneSheet({ site, container, onCover, onClose }: SheetProps) {
   // The last site shown, kept while the sheet slides away.
   const [shown, setShown] = useState(site)
@@ -70,14 +130,18 @@ function PhoneSheet({ site, container, onCover, onClose }: SheetProps) {
   const raised = !!site && raisedFor === site.id
   // Put down, it forgets, so the same site picked again opens at its peek.
   if (!site && raisedFor) setRaisedFor(undefined)
+  const { back, follow, goBack } = useTrail(site?.id, content, setRaisedFor)
+  const [title, setTitle] = useState<HTMLElement | null>(null)
+  // A new element each render would undo SiteText's memo.
+  const end = useMemo(() => shown && <WikivoyageRow site={shown} />, [shown])
+  const backTo = back && { id: back.from, onClick: goBack }
 
-  // Measured before it paints, so the sheet opens at its peek, and again as
-  // the summary changes height (a longer description, a zone row).
-  // Layout sizes, which the sheet's slide doesn't move: from the sheet's
-  // top, past the grabber, to the summary's end.
+  // The peek, from the sheet's top to the summary's end, measured before it
+  // paints and as the summary rewraps; not while raised, when the
+  // description is whole and Read more goes. Layout sizes the slide can't move.
   const shownId = shown?.id
   useLayoutEffect(() => {
-    if (!summary || !shownId) return
+    if (!summary || !shownId || raised) return
     const measure = () => {
       const height = summary.offsetTop + summary.offsetHeight
       setPeek(`${height}px`)
@@ -87,7 +151,7 @@ function PhoneSheet({ site, container, onCover, onClose }: SheetProps) {
     const observer = new ResizeObserver(measure)
     observer.observe(summary)
     return () => observer.disconnect()
-  }, [summary, onCover, shownId])
+  }, [summary, onCover, shownId, raised])
 
   // At the top of its text whenever it's at its peek, lowered after
   // reading or showing another site.
@@ -134,6 +198,15 @@ function PhoneSheet({ site, container, onCover, onClose }: SheetProps) {
               aria-hidden="true"
               className="flex h-3 shrink-0 items-end justify-center after:block after:h-1.25 after:w-9 after:rounded-full after:bg-muted-foreground/30"
             />
+            {shown && (
+              <CompactBar
+                site={shown}
+                raised={raised}
+                scroller={content}
+                title={title}
+                back={backTo}
+              />
+            )}
             <DrawerPrimitive.Content
               ref={content}
               data-scroll-top
@@ -148,9 +221,20 @@ function PhoneSheet({ site, container, onCover, onClose }: SheetProps) {
               {shown && (
                 <>
                   <div ref={setSummary} className="pt-2 pb-3.5">
-                    <Summary site={shown} />
+                    <Summary
+                      site={shown}
+                      titleRef={setTitle}
+                      clamp={!raised}
+                      back={backTo}
+                      raise={raised ? undefined : () => setRaisedFor(shown.id)}
+                    />
                   </div>
-                  <SiteText site={shown} className="pt-2 pb-8" />
+                  <SiteText
+                    site={shown}
+                    className="pt-2 pb-8"
+                    onFollow={follow}
+                    end={end}
+                  />
                 </>
               )}
             </DrawerPrimitive.Content>
@@ -190,6 +274,8 @@ function SiteCard({
   const more = moreFor === site.id
   const close = useRef<HTMLAnchorElement>(null)
   const scroller = useRef<HTMLDivElement>(null)
+  const { back, follow, goBack } = useTrail(site.id, scroller, setMoreFor)
+  const online = useOnline()
   const stored = useSyncExternalStore(cardWidth.subscribe, cardWidth.get)
   // Held while the edge is dragged, and stored once it's let go.
   const [dragged, setDragged] = useState<number>()
@@ -300,6 +386,7 @@ function SiteCard({
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
+          {!online && <Offline />}
           <Button
             variant="ghost"
             size="icon-sm"
@@ -322,6 +409,7 @@ function SiteCard({
           <Summary
             site={site}
             desk
+            back={back && { id: back.from, onClick: goBack }}
             more={
               <Button
                 variant="outline"
@@ -344,7 +432,7 @@ function SiteCard({
               </Button>
             }
           />
-          {more && <SiteText site={site} className="mt-5" />}
+          {more && <SiteText site={site} className="mt-5" onFollow={follow} />}
         </div>
       </section>
       {/* shadcn's resizable handle with its grip: a pill on the card's
@@ -369,31 +457,230 @@ function SiteCard({
   )
 }
 
+type Back = { id: string; onClick: () => void }
+
+// Back to the site a link came from, which keeps its own place in the text,
+// so the router mustn't put the scroller at its top.
+function BackLink({
+  back,
+  ...props
+}: { back: Back } & Omit<React.ComponentProps<"a">, "href">) {
+  return (
+    <Link
+      to="/explore"
+      search={{ site: back.id }}
+      replace
+      resetScroll={false}
+      onClick={back.onClick}
+      {...props}
+    />
+  )
+}
+
+// Raised, the title scrolls away under a bar with the name and close, and
+// the way back. It fades as the scroll decides, and goes at once when the
+// sheet lowers or shows another site, so it never lies over a summary.
+function CompactBar({
+  site,
+  raised,
+  scroller,
+  title,
+  back,
+}: {
+  site: Site
+  raised: boolean
+  scroller: RefObject<HTMLElement | null>
+  title: HTMLElement | null
+  back?: Back
+}) {
+  const [titleGone, setTitleGone] = useState(false)
+  useEffect(() => {
+    const root = scroller.current
+    if (!title || !root) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setTitleGone(!entry.isIntersecting),
+      // Gone once it's under the bar.
+      { root, rootMargin: "-44px 0px 0px 0px" }
+    )
+    observer.observe(title)
+    return () => observer.disconnect()
+  }, [title, scroller])
+  const shown = raised && titleGone
+  return (
+    <div
+      aria-hidden={!shown}
+      inert={!shown}
+      className={cn(
+        "absolute inset-x-0 top-3 z-10 flex h-11 items-center gap-1 border-b bg-popover pr-1 pl-4 transition-[opacity,visibility] duration-150 ease-out",
+        back && "pl-1",
+        !raised && "duration-0",
+        !shown && "invisible opacity-0"
+      )}
+    >
+      {back && (
+        <BackLink
+          back={back}
+          aria-label={`Back to ${siteById.get(back.id)?.name}`}
+          className="grid size-11 shrink-0 place-items-center rounded-full text-primary active:opacity-50 active:duration-0"
+        >
+          <IconChevronLeft className="size-5.5" />
+        </BackLink>
+      )}
+      <p className="min-w-0 flex-1 truncate text-[17px] font-semibold tracking-[-0.01em]">
+        {site.name}
+      </p>
+      <Close />
+    </div>
+  )
+}
+
+// Puts the site down, which the sheet follows from the address.
+function Close() {
+  const online = useOnline()
+  return (
+    <>
+      {!online && <Offline />}
+      <Link
+        to="/explore"
+        search={{ site: undefined }}
+        replace
+        aria-label="Close"
+        className="grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground active:bg-muted"
+      >
+        <IconX className="size-5" />
+      </Link>
+    </>
+  )
+}
+
+// Wikivoyage needs signal, so with none it's there but can't be pressed.
+function Offline() {
+  return (
+    <IconWifiOff
+      role="img"
+      aria-label="Offline"
+      className="size-4 shrink-0 text-muted-foreground"
+    />
+  )
+}
+
+// The phone's Read on Wikivoyage, after the text, which reads offline.
+function WikivoyageRow({ site }: { site: Site }) {
+  const online = useOnline()
+  const page = wikivoyage(site)
+  if (!page) return null
+  return (
+    <a
+      href={online ? page : undefined}
+      // With no href it's no longer a link to a screen reader.
+      role={online ? undefined : "link"}
+      aria-disabled={!online || undefined}
+      target="_blank"
+      rel="noopener"
+      className="mt-8 flex h-11 items-center justify-between rounded-[10px] bg-muted px-3 text-[15px] font-medium select-none active:opacity-70 aria-disabled:opacity-50"
+    >
+      Read on Wikivoyage
+      <IconExternalLink className="size-4.5 text-muted-foreground" />
+    </a>
+  )
+}
+
 function Summary({
   site,
   desk = false,
   more,
+  raise,
+  back,
+  clamp = false,
+  titleRef,
 }: {
   site: Site
   desk?: boolean
-  // The desktop card's Read more, beside Read on Wikivoyage, and like it
-  // left out for a site with no page.
+  // Read more on the desktop card, a button beside Read on Wikivoyage.
+  // Left out, as raise is, for a site with no page.
   more?: React.ReactNode
+  // On a phone at its peek: Read more at the description's end raises it.
+  raise?: () => void
+  // The site a link in the text came from, in place of the area line.
+  back?: Back
+  // The description to three lines, at the phone's peek.
+  clamp?: boolean
+  titleRef?: (element: HTMLElement | null) => void
 }) {
   // Kept per site: the card re-renders on every move of a drag on its edge.
   const zone = useMemo(() => zoneAt([site.lon, site.lat]), [site])
   const rule = zone && zoneRules[zone.id]
   const noDive = zone?.kind === "no-dive"
   const page = wikivoyage(site)
+  const online = useOnline()
+  const read = page ? raise : undefined
+  // Whether the clamp hides Read more at the description's end, which then
+  // ends in "more" over its last line, as on the App Store. Measured for
+  // each site, as a cut one and a whole one can be the same height.
+  const [description, setDescription] = useState<HTMLElement | null>(null)
+  const [inline, setInline] = useState<HTMLElement | null>(null)
+  const [cut, setCut] = useState(false)
+  useLayoutEffect(() => {
+    if (!description || !inline) return
+    const observer = new ResizeObserver(() =>
+      setCut(
+        inline.getBoundingClientRect().bottom >
+          description.getBoundingClientRect().bottom + 1
+      )
+    )
+    observer.observe(description)
+    return () => observer.disconnect()
+  }, [description, inline, site.id, clamp])
+  const readMore = (
+    label: string,
+    className?: string,
+    ref?: (element: HTMLElement | null) => void
+  ) =>
+    read && (
+      <button
+        ref={ref}
+        type="button"
+        aria-label="Read more"
+        onClick={read}
+        // A finger's reach past the words.
+        className={cn(
+          "relative font-medium text-primary after:absolute after:-inset-x-2 after:-inset-y-3 active:opacity-50 active:duration-0",
+          className
+        )}
+      >
+        {label}
+      </button>
+    )
   const Title = desk ? "h2" : DrawerPrimitive.Title
+  // A site on a shared page, named for a part of it ("Deep End"), says
+  // which page: the reef or wreck it's on.
+  const on =
+    site.section &&
+    site.page &&
+    !site.name.toLowerCase().includes(site.page.toLowerCase())
+      ? site.page
+      : undefined
   return (
     <>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] text-muted-foreground">
-            {areas[site.area]}
-          </p>
+          {back ? (
+            // 44 px tall, over the title's top, for a wet finger.
+            <BackLink
+              back={back}
+              className="relative z-10 -mx-1 -my-[13px] flex w-fit max-w-full items-center rounded-sm px-1 py-[13px] text-[13px] leading-[18px] font-medium text-primary outline-offset-2 active:opacity-50 active:duration-0"
+            >
+              <IconChevronLeft className="-ml-1 size-4 shrink-0" />
+              <span className="truncate">{siteById.get(back.id)?.name}</span>
+            </BackLink>
+          ) : (
+            <p className="text-[13px] text-pretty text-muted-foreground">
+              {areas[site.area]}
+              {on && ` · ${on}`}
+            </p>
+          )}
           <Title
+            ref={titleRef}
             id={desk ? "site-name" : undefined}
             className={cn(
               "mt-0.5 font-semibold tracking-[-0.02em] text-balance",
@@ -403,17 +690,10 @@ function Summary({
             {site.name}
           </Title>
         </div>
-        {/* Puts the site down, which the sheet follows from the address. */}
         {!desk && (
-          <Link
-            to="/explore"
-            search={{ site: undefined }}
-            replace
-            aria-label="Close"
-            className="-mt-2 -mr-3 grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground active:bg-muted"
-          >
-            <IconX className="size-5" />
-          </Link>
+          <div className="-mt-2 -mr-3 flex items-center gap-1">
+            <Close />
+          </div>
         )}
       </div>
       <dl
@@ -446,14 +726,31 @@ function Summary({
           </dd>
         </div>
       </dl>
-      {site.description && (
-        <p
-          className={cn(
-            desk ? "text-sm leading-[21px]" : "text-[15px] leading-[21px]"
-          )}
-        >
-          {site.description}
-        </p>
+      {site.description ? (
+        <div className="relative">
+          <p
+            ref={setDescription}
+            className={cn(
+              desk ? "text-sm leading-[21px]" : "text-[15px] leading-[21px]",
+              clamp && "line-clamp-3"
+            )}
+          >
+            {site.description}
+            {/* Kept in the line while the clamp hides it, so a cut can't
+                come and go as it shows. */}
+            {read && " "}
+            {readMore("Read more", cut ? "invisible" : undefined, setInline)}
+          </p>
+          {cut &&
+            readMore(
+              "more",
+              "absolute right-0 bottom-0 bg-[linear-gradient(to_right,transparent,var(--color-popover)_2.5rem)] pl-10 text-[15px] leading-[21px]"
+            )}
+        </div>
+      ) : (
+        read && (
+          <p className="text-[15px] leading-[21px]">{readMore("Read more")}</p>
+        )
       )}
       {rule && (
         <div
@@ -472,20 +769,24 @@ function Summary({
                 noDive ? "text-warn" : "text-foreground"
               )}
             >
-              {rule.name}
+              {rule.title ?? rule.name}
             </b>
+            {rule.title && `${rule.name}. `}
             {rule.rule}
           </div>
         </div>
       )}
       {/* Nothing to read where Wikivoyage has no page. */}
-      {!page ? null : desk ? (
+      {page && desk && (
         <div className="mt-3.5 flex gap-2">
           {more}
           <Button
             variant="outline"
-            render={<a href={page} target="_blank" rel="noopener" />}
-            nativeButton={false}
+            disabled={!online}
+            {...(online && {
+              render: <a href={page} target="_blank" rel="noopener" />,
+              nativeButton: false,
+            })}
           >
             Read on Wikivoyage
             <IconExternalLink
@@ -494,16 +795,6 @@ function Summary({
             />
           </Button>
         </div>
-      ) : (
-        <a
-          href={page}
-          target="_blank"
-          rel="noopener"
-          className="mt-3 flex h-11 items-center justify-between rounded-[10px] bg-muted px-3 text-[15px] font-medium active:opacity-70"
-        >
-          Read on Wikivoyage
-          <IconExternalLink className="size-4.5 text-muted-foreground" />
-        </a>
       )}
     </>
   )

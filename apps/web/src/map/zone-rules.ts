@@ -105,35 +105,40 @@ export const mpaRules: MpaRules[] = [
   },
 ]
 
-// The line a site's sheet shows for the zone it lies in.
-export const zoneRules: Record<string, { name: string; rule: string }> = {
+// The row a site's sheet shows for the zone it lies in, which first says
+// whether it can be dived. Where it can't, or only from the shore, that's
+// the row's title, with the zone's name under it.
+export const zoneRules: Record<
+  string,
+  { name: string; rule: string; title?: string }
+> = {
   "table-mountain": {
     name: "Table Mountain marine protected area",
-    rule: "Fishing and collecting need a permit.",
+    rule: "Diving allowed. Fishing and collecting need a permit.",
   },
   karbonkelberg: {
     name: "Karbonkelberg no-take zone",
-    rule: "No fishing, spearfishing or collecting.",
+    rule: "Diving allowed. No fishing, spearfishing or collecting.",
   },
   "cape-of-good-hope": {
     name: "Cape of Good Hope no-take zone",
-    rule: "No fishing, spearfishing or collecting.",
+    rule: "Diving allowed. No fishing, spearfishing or collecting.",
   },
   paulsberg: {
     name: "Paulsberg no-take zone",
-    rule: "No fishing, spearfishing or collecting.",
+    rule: "Diving allowed. No fishing, spearfishing or collecting.",
   },
   "castle-rock": {
     name: "Castle Rock no-take zone",
-    rule: "No fishing, spearfishing or collecting.",
+    rule: "Diving allowed. No fishing, spearfishing or collecting.",
   },
   boulders: {
     name: "Boulders no-take zone",
-    rule: "No fishing, spearfishing or collecting.",
+    rule: "Diving allowed. No fishing, spearfishing or collecting.",
   },
   "st-james": {
     name: "St James no-take zone",
-    rule: "No fishing, spearfishing or collecting.",
+    rule: "Diving allowed. No fishing, spearfishing or collecting.",
   },
   "robben-island": {
     name: "Robben Island marine protected area",
@@ -145,22 +150,25 @@ export const zoneRules: Record<string, { name: string; rule: string }> = {
   },
   "robben-restricted": {
     name: "Robben Island restricted zone",
-    rule: "No fishing. No diving without a SANParks permit for research, photography or salvage.",
+    title: "No diving",
+    rule: "Only with a SANParks permit for research, photography or salvage. No fishing.",
   },
   "bettys-bay": {
     name: "Betty's Bay marine protected area",
-    rule: "No fishing except recreational shore-angling for linefish.",
+    rule: "Diving allowed. No fishing except recreational shore-angling for linefish.",
   },
   helderberg: {
     name: "Helderberg marine protected area",
-    rule: "No fishing or collecting.",
+    rule: "Diving allowed. No fishing or collecting.",
   },
   "cape-point-no-dive": {
     name: "Cape Point abalone area",
-    rule: "No diving or snorkelling, and no dive gear on boats.",
+    title: "No diving",
+    rule: "No snorkelling either, and no dive gear on boats.",
   },
   "cape-point-shore-only": {
     name: "Cape Point abalone area",
-    rule: "Dive from the shore only, in park hours. No dive gear on boats.",
+    title: "Shore dives only",
+    rule: "In the park's opening hours. No dive gear on boats.",
   },
 }
