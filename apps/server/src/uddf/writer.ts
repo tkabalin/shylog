@@ -137,8 +137,22 @@ function inPlace(order: readonly string[], children: (Xml | null)[]) {
 }
 const lines = (passed: Passed[] = []) => passed.map((item) => [item.xml])
 
-export function writeUddf(db: Db): { xml: string; dives: number } {
+// The file as the text before the dives, each dive's repetition group and
+// the text after, which join into it. The export's check parses a dive at a
+// time, as one DOM of a whole 1000-dive log outgrew the server's memory.
+export interface UddfParts {
+  head: string
+  groups: string[]
+  tail: string
+}
+
+export function writeUddfParts(db: Db): UddfParts {
   return db.transaction(() => build(db))()
+}
+
+export function writeUddf(db: Db): { xml: string; dives: number } {
+  const { head, groups, tail } = writeUddfParts(db)
+  return { xml: head + groups.join("") + tail, dives: groups.length }
 }
 
 function build(db: Db) {
@@ -316,6 +330,8 @@ function build(db: Db) {
     return id
   }
 
+  // As text, indented for its place under <profiledata>, so each dive's
+  // lines can go once it's written.
   const groups = dives.map((dive) =>
     element(
       "repetitiongroup",
@@ -323,6 +339,8 @@ function build(db: Db) {
       // Each dive in its own group, named after it so the id is stable.
       ` id="group-${dive.id}"`
     )
+      .map((line) => `    ${line}\n`)
+      .join("")
   )
 
   // After the dives, which add the mixes their gas switches name.
@@ -536,14 +554,17 @@ function build(db: Db) {
       element("diver", [owner, ...people]),
       element("divesite", sites),
       // Both must hold at least one child, so a log with no dives yet
-      // leaves them out.
+      // leaves them out. The groups go between these two lines.
       mixes.length ? element("gasdefinitions", mixes) : null,
-      groups.length ? element("profiledata", groups) : null,
+      groups.length ? ["<profiledata>", "</profiledata>"] : null,
     ],
     ` xmlns="${uddfNamespace}" version="3.2.1"`
   )
+  const text = (from: Xml) => from.map((line) => `${line}\n`).join("")
+  const cut = groups.length ? uddf.length - 2 : uddf.length
   return {
-    xml: `<?xml version="1.0" encoding="utf-8"?>\n${uddf.join("\n")}\n`,
-    dives: dives.length,
+    head: `<?xml version="1.0" encoding="utf-8"?>\n${text(uddf.slice(0, cut))}`,
+    groups,
+    tail: text(uddf.slice(cut)),
   }
 }

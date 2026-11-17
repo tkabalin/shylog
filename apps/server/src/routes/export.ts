@@ -11,7 +11,7 @@ import {
   writeExport,
 } from "../jobs/export.ts"
 import { localDate } from "../jobs/nightly.ts"
-import { writeUddf } from "../uddf/writer.ts"
+import { writeUddfParts } from "../uddf/writer.ts"
 
 const attachment = (name: string) => `attachment; filename="${name}"`
 
@@ -29,9 +29,9 @@ export const exports = factory
   .get("/export/uddf", (c) => {
     const { db, state } = c.var.deps
     refuseDamaged(state.integrity)
-    const { xml, dives } = writeUddf(db)
-    checkUddf(xml, dives)
-    return c.body(xml, 200, {
+    const uddf = writeUddfParts(db)
+    checkUddf(uddf)
+    return c.body(uddf.head + uddf.groups.join("") + uddf.tail, 200, {
       "Content-Type": "application/xml; charset=utf-8",
       "Content-Disposition": attachment(`shylog-${localDate(new Date())}.uddf`),
     })

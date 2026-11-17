@@ -61,7 +61,7 @@ At midnight in the server's local time zone, the server runs one job:
 1. Deletes expired import previews.
 2. Writes a consistent snapshot with `VACUUM INTO` to a temporary name, compresses it, flushes it and renames it to `snapshots/shylog-<date>.db.gz` only once complete. A crash part-way never leaves a half-written file under a real name.
 3. Prunes snapshots to keep the daily ones for 90 days, the newest of each week for two years and the newest of each month forever. Keeping the newest of each period gives the same set whether pruning runs every night or after a gap. Pre-migration snapshots are never pruned.
-4. Writes the UDDF and CSV exports from one read transaction, each to a temporary file that is flushed, read back and checked (the UDDF re-parsed and its dives counted, the CSV parsed and its rows counted), and renames both only once both pass.
+4. Writes the UDDF and CSV exports from one read transaction, each to a temporary file that is flushed and checked (the UDDF parsed a dive at a time and its dives counted, the CSV read back and its rows counted), and renames both only once both pass.
 
 A failed snapshot or export is logged and leaves the previous file in place, and a failed export shows on the You tab until an export succeeds. A server that was stopped over midnight runs the job when it starts. The data folder, with the snapshots, the exports and the certification card images, sits under one parent folder that the home server's off-site backup covers, and every format is open: the snapshot opens in any SQLite tool, the UDDF export in Subsurface, the CSV in a spreadsheet. The exports themselves are described in [export.md](export.md).
 
