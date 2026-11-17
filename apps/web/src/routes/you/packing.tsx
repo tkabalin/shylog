@@ -259,13 +259,14 @@ function TickRow({
         "relative gap-3 text-base tracking-[-0.01em] has-data-press:bg-muted has-data-press:duration-0"
       )}
     >
+      {/* The ring is drawn once and fades out as the fill comes in:
+          opacity, which the compositor draws, not a box-shadow repainted
+          each frame. */}
       <span
         aria-hidden
         className={cn(
-          "inline-flex size-6 shrink-0 items-center justify-center rounded-full transition-[background-color,box-shadow] duration-150 ease-out",
-          on
-            ? "bg-primary text-primary-foreground"
-            : "ring-[1.75px] ring-muted-foreground/55 ring-inset"
+          "relative inline-flex size-6 shrink-0 items-center justify-center rounded-full transition-[background-color] duration-150 ease-out after:absolute after:inset-0 after:rounded-full after:ring-[1.75px] after:ring-muted-foreground/55 after:transition-opacity after:duration-150 after:ease-out after:ring-inset",
+          on && "bg-primary text-primary-foreground after:opacity-0"
         )}
       >
         <IconCheck
