@@ -52,7 +52,10 @@ export function FullProfile({
         : null,
     [profile, depth, mod, smooth, dive.safetyStop, width, height, plotHeight]
   )
-  const { index, handlers } = useCrosshair(model, { free: true, turned })
+  const { cursor, handlers } = useCrosshair(model, {
+    free: true,
+    turned,
+  })
 
   return (
     <div
@@ -64,13 +67,13 @@ export function FullProfile({
       <div className="flex items-end gap-4">
         {bar}
         {/* Whole, as on the card; a long site name in the bar gives way. */}
-        <Readout model={model} index={index} className="shrink-0" />
+        <Readout model={model} cursor={cursor} className="shrink-0" />
       </div>
       <div ref={ref} className="min-h-0 flex-1">
         {model && (
           <DepthView
             model={model}
-            index={index}
+            cursor={cursor}
             width={width}
             handlers={handlers}
             free
@@ -79,7 +82,7 @@ export function FullProfile({
       </div>
       <LaneView
         model={model}
-        index={index}
+        cursor={cursor}
         width={width}
         handlers={handlers}
         free

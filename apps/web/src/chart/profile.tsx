@@ -48,7 +48,7 @@ export default function Profile({
         : null,
     [profile, depth, mod, smooth, dive.safetyStop, width]
   )
-  const { index, setChosen, handlers } = useCrosshair(model)
+  const { cursor, handlers } = useCrosshair(model)
 
   return (
     <div
@@ -60,16 +60,16 @@ export default function Profile({
     >
       {model ? (
         <>
-          <Readout model={model} index={index} />
+          <Readout model={model} cursor={cursor} />
           <DepthView
             model={model}
-            index={index}
+            cursor={cursor}
             width={width}
             handlers={handlers}
           />
           <LaneView
             model={model}
-            index={index}
+            cursor={cursor}
             width={width}
             handlers={handlers}
           />
@@ -77,7 +77,7 @@ export default function Profile({
             alarms={model.alarms}
             mandatory={model.mandatoryStops}
             stop={model.safetyStop}
-            onShow={setChosen}
+            onShow={cursor.set}
           />
         </>
       ) : (
