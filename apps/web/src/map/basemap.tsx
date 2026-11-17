@@ -14,12 +14,16 @@ import {
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url"
 import { Protocol } from "pmtiles"
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useEffectEvent,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react"
 import { IconMinus, IconPlus } from "@tabler/icons-react"
 import { cn } from "cn"
@@ -29,14 +33,16 @@ import { Button } from "@/components/ui/button"
 import { useDesk } from "@/hooks/use-desk"
 
 import { extractUrl } from "./extract"
-import { SiteSheet, type Cover } from "./site-sheet"
-import { siteById, type Site } from "./sites"
+import { areas, siteById, sites, type Area, type Site } from "./sites"
 import {
+  areaData,
   areaSource,
   clusterLayers,
   drawHatch,
   drawPin,
   hatchImage,
+  hoveredSource,
+  isZoneLayer,
   mapStyle,
   nameLayers,
   pickedData,
@@ -80,6 +86,71 @@ function useMapTheme() {
 
 export type MapState = "drawn" | "failed"
 
+// The desktop's list card, which the first fit aims beside: its inset from
+// the map's edge and its width.
+export const listCard = { inset: 12, width: 360 }
+
+// How much of the map the sheet or card hides, which camera moves aim
+// beside: the phone's sheet from the bottom, the desktop card from the left.
+export type Cover = { left: number; bottom: number }
+
+// What the sheet and cards over the map need from it: the map's box, which
+// the phone's sheet stays inside, and a way to say what they cover, for the
+// site they show (none for the desktop's list).
+type Frame = {
+  container: HTMLElement | null
+  onCover: (cover: Cover, site?: string) => void
+}
+const FrameContext = createContext<Frame>({
+  container: null,
+  onCover: () => {},
+})
+export const useMapFrame = () => useContext(FrameContext)
+
+// The sites the filters leave and whether the zones show, kept with the map
+// so a new style (a theme change) draws them as they were.
+let shownSites: readonly Site[] = sites
+let zonesOn = true
+// The list row's site the map rings, kept so a new style rings it too.
+let hoveredSite: Site | undefined
+// What the current style was built with: a change made before it loaded
+// had no source or layer to go to, so it is applied once it has.
+const built = { shown: sites as readonly Site[], zones: true }
+function styleNow(theme: MapTheme, picked?: Site) {
+  built.shown = shownSites
+  built.zones = zonesOn
+  return mapStyle(theme, tiles, {
+    picked,
+    shown: shownSites,
+    showZones: zonesOn,
+    hovered: hoveredSite,
+  })
+}
+
+function applyShown(map: MapLibre) {
+  if (!map.getSource(areaSource("atlantic"))) return
+  built.shown = shownSites
+  for (const area of Object.keys(areas) as Area[]) {
+    void map
+      .getSource<GeoJSONSource>(areaSource(area))
+      ?.setData(areaData(area, shownSites))
+      .then(() => mark(map, marked.current, true))
+      .catch(() => {})
+  }
+}
+
+function applyZones(map: MapLibre) {
+  if (!map.getSource(areaSource("atlantic"))) return
+  built.zones = zonesOn
+  // By id, as getStyle() would copy every source's data to list them.
+  for (const id of map.getLayersOrder()) {
+    if (!isZoneLayer(map.getLayer(id))) continue
+    map.setLayoutProperty(id, "visibility", zonesOn ? "visible" : "none")
+  }
+}
+const sameSites = (a: readonly Site[], b: readonly Site[]) =>
+  a === b || (a.length === b.length && a.every((site, i) => site === b[i]))
+
 // A site's name shown as picked, or not, by feature state.
 function mark(map: MapLibre, id: string | undefined, picked: boolean) {
   const site = id ? siteById.get(id) : undefined
@@ -92,6 +163,41 @@ function mark(map: MapLibre, id: string | undefined, picked: boolean) {
 
 // A finger's reach around a tap, in pixels, so wet hands still hit a pin.
 const reach = 18
+// The list row's site, ringed: its pin over everything, or, while it's in
+// a cluster, the cluster's bubble, so the ring never cuts a count in half.
+async function ringHovered(map: MapLibre) {
+  const site = hoveredSite
+  const source = map.getSource<GeoJSONSource>(hoveredSource)
+  if (!source) return
+  let data = pickedData(site)
+  if (site) {
+    const area = map.getSource<GeoJSONSource>(areaSource(site.area))
+    const clusters = map.queryRenderedFeatures({
+      layers: [`clusters-${site.area}`],
+    })
+    for (const cluster of clusters) {
+      const leaves = await area
+        ?.getClusterLeaves(cluster.properties.cluster_id as number, Infinity, 0)
+        .catch(() => [])
+      if (!leaves?.some((leaf) => leaf.properties?.id === site.id)) continue
+      data = {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            geometry: { type: "Point", coordinates: pointOf(cluster) },
+            properties: { point_count: cluster.properties.point_count },
+          },
+        ],
+      } as unknown as typeof data
+      break
+    }
+  }
+  // Moved on meanwhile.
+  if (site !== hoveredSite) return
+  await source.setData(data).catch(() => {})
+}
+
 const pointOf = (feature: MapGeoJSONFeature) =>
   (feature.geometry as { coordinates: [number, number] }).coordinates
 // Close enough to tell a site's neighbours apart, opening one.
@@ -130,13 +236,21 @@ const away = () => {}
 // picked site the map shows and the one whose pin it has marked, which
 // waits for the picked layer to have the site. Kept with the map.
 const held: { current?: Site } = {}
+// How far the desktop's card reaches over the map, which a cluster's zoom
+// aims beside.
+let coverLeft = 0
 const shownPick: { current?: string } = {}
 const marked: { current?: string } = {}
 
-function create(element: HTMLDivElement, theme: MapTheme, picked?: Site) {
+function create(
+  element: HTMLDivElement,
+  theme: MapTheme,
+  picked: Site | undefined,
+  desk: boolean
+) {
   const created = new MapLibre({
     container: element,
-    style: mapStyle(theme, tiles, picked),
+    style: styleNow(theme, picked),
     attributionControl: { compact: true },
     // Fitted to the coast's dive sites, not the metro. Upright, as on a
     // phone, by height from Robben Island to Cape Point, False Bay's east
@@ -157,7 +271,21 @@ function create(element: HTMLDivElement, theme: MapTheme, picked?: Site) {
                 [18.3, -34.43],
                 [18.93, -33.78],
               ],
-        fitBoundsOptions: { padding: 8 },
+        // Beside the desktop's list card, 12 px in and 360 px wide.
+        fitBoundsOptions: {
+          padding: desk
+            ? {
+                left:
+                  Math.min(
+                    listCard.inset + listCard.width,
+                    element.clientWidth * 0.6
+                  ) + 8,
+                top: 8,
+                right: 8,
+                bottom: 8,
+              }
+            : 8,
+        },
       }),
     maxBounds: [
       [17.9, -34.75],
@@ -221,6 +349,8 @@ function create(element: HTMLDivElement, theme: MapTheme, picked?: Site) {
     // layer to wait for.
     marked.current = shownPick.current
     mark(created, marked.current, true)
+    if (built.shown !== shownSites) applyShown(created)
+    if (built.zones !== zonesOn) applyZones(created)
   })
   // A tap opens the nearest pin within a finger's reach, else the site
   // whose name it lands on, or zooms into a cluster; one on open water puts
@@ -267,9 +397,11 @@ function create(element: HTMLDivElement, theme: MapTheme, picked?: Site) {
     // Left unanswered if the map was dropped meanwhile.
     if (zoom === undefined || kept?.map !== created) return
     held.current = undefined
+    // Aimed at the middle of the map beside the desktop's card.
     created.easeTo({
       center: pointOf(cluster),
       zoom: zoom + 0.3,
+      offset: [coverLeft / 2, 0],
     })
   })
   // One target for every layer, so moving from a name onto its pin
@@ -325,11 +457,22 @@ export default function Basemap({
   onState,
   site,
   onPick,
+  filtered = sites,
+  zones = true,
+  hovered,
+  children,
 }: {
   onState?: (state: MapState) => void
   // The picked site's id, from the address, and a tap's choice.
   site?: string
   onPick?: (id: string | undefined) => void
+  // The sites the filters leave, whether the zones show, and the site whose
+  // list row is under the mouse, ringed.
+  filtered?: readonly Site[]
+  zones?: boolean
+  hovered?: string
+  // The controls, sheet and cards over the map.
+  children?: ReactNode
 }) {
   const picked = site ? siteById.get(site) : undefined
   const map = useRef<MapLibre | null>(null)
@@ -342,9 +485,7 @@ export default function Basemap({
   const report = useEffectEvent((state: MapState) => onState?.(state))
   const pick = useEffectEvent((id: string | undefined) => onPick?.(id))
   // A theme change redraws the style with the pick as it stands.
-  const styleFor = useEffectEvent((look: MapTheme) =>
-    mapStyle(look, tiles, picked)
-  )
+  const styleFor = useEffectEvent((look: MapTheme) => styleNow(look, picked))
   // The map's box, which the phone's sheet also stays inside: a ref too,
   // so the map is there on the first commit, before the pick's effect.
   const box = useRef<HTMLDivElement>(null)
@@ -364,9 +505,11 @@ export default function Basemap({
     if (!kept) {
       const element = document.createElement("div")
       element.className = "size-full"
-      wrapper.prepend(element)
+      wrapper.append(element)
+      shownSites = filtered
+      zonesOn = zones
       kept = {
-        map: create(element, theme, picked),
+        map: create(element, theme, picked, desk),
         theme,
         drawn: false,
         pick: away,
@@ -376,7 +519,7 @@ export default function Basemap({
     }
     const current = kept
     const element = current.map.getContainer()
-    wrapper.prepend(element)
+    wrapper.append(element)
     current.pick = (id) => pick(id)
     current.report = (state) => report(state)
     current.reveal = () => setShown(true)
@@ -432,20 +575,57 @@ export default function Basemap({
   // first pick, and until the map is moved by hand keeps the site in the
   // middle of what's left as that changes (a peek rewrapped, a wider card).
   const onCover = useCallback(
-    (covered: Cover, site: string) => {
+    (covered: Cover, site?: string) => {
       const before = cover.current
       cover.current = { ...covered, site }
+      coverLeft = covered.left
       const next = waiting.current
-      if (next?.site.id === site) {
+      if (site && next?.site.id === site) {
         waiting.current = undefined
         return aim(next.site, next.jump)
       }
       const moved =
         before.left !== covered.left || before.bottom !== covered.bottom
-      if (moved && held.current?.id === site) aim(held.current, false)
+      if (site && moved && held.current?.id === site) aim(held.current, false)
     },
     [aim]
   )
+  // Below desk: no card covers the map's side, so a cluster's zoom aims at
+  // the middle again after the window narrows.
+  useEffect(() => {
+    if (desk) return
+    coverLeft = 0
+    cover.current = { ...cover.current, left: 0 }
+  }, [desk])
+  // The filters' sites, each area's clusters counted again. Kept with the
+  // map, so coming back with the same filters (a new array) changes nothing.
+  useEffect(() => {
+    const current = map.current
+    if (!current || sameSites(filtered, shownSites)) return
+    shownSites = filtered
+    applyShown(current)
+  }, [filtered])
+  useEffect(() => {
+    const current = map.current
+    if (!current || zones === zonesOn) return
+    zonesOn = zones
+    applyZones(current)
+  }, [zones])
+  useEffect(() => {
+    hoveredSite = hovered ? siteById.get(hovered) : undefined
+    const current = map.current
+    if (!current) return
+    void ringHovered(current)
+    // A zoom can take the site into a cluster or out of one.
+    const follow = () => void ringHovered(current)
+    current.on("moveend", follow)
+    return () => void current.off("moveend", follow)
+  }, [hovered])
+  const frame = useMemo(
+    () => ({ container: sheetBox, onCover }),
+    [sheetBox, onCover]
+  )
+
   const placed = useRef(false)
   useEffect(() => {
     const current = map.current
@@ -478,54 +658,54 @@ export default function Basemap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picked])
 
-  // Hidden on a wrapper, which the map's own element goes into first: React
-  // never draws that element, so it can't drop the classes MapLibre adds.
+  // Hidden on a wrapper, which the map's own element goes into after what
+  // floats over it, so the controls and cards come first in the tab order:
+  // React never draws that element, so it can't drop the classes MapLibre
+  // adds, and draws only into the one box before it.
   return (
     <div
       ref={setBox}
       className={cn("relative size-full", !shown && "opacity-0")}
     >
-      {/* A mouse has no pinch, so desktop gets buttons, bottom right as on
-          most maps, just above the credit. */}
-      {desk && (
-        <div
-          role="group"
-          aria-label="Zoom"
-          className="absolute right-2.5 bottom-13 flex flex-col overflow-hidden rounded-[10px] border bg-background shadow-xs select-none"
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-none"
-            aria-label="Zoom in"
-            onClick={() => {
-              // Moved by hand, as a pinch is, so the camera stops following.
-              held.current = undefined
-              map.current?.zoomIn()
-            }}
+      <div className="contents">
+        <FrameContext value={frame}>{children}</FrameContext>
+        {/* A mouse has no pinch, so desktop gets buttons, bottom right as
+            on most maps, just above the credit, and after the card in the
+            tab order. */}
+        {desk && (
+          <div
+            role="group"
+            aria-label="Zoom"
+            className="absolute right-2.5 bottom-13 z-10 flex flex-col overflow-hidden rounded-[10px] border bg-background shadow-xs select-none"
           >
-            <IconPlus />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-none border-t-border"
-            aria-label="Zoom out"
-            onClick={() => {
-              held.current = undefined
-              map.current?.zoomOut()
-            }}
-          >
-            <IconMinus />
-          </Button>
-        </div>
-      )}
-      <SiteSheet
-        site={picked}
-        container={sheetBox}
-        onCover={onCover}
-        onClose={() => onPick?.(undefined)}
-      />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-none"
+              aria-label="Zoom in"
+              onClick={() => {
+                // Moved by hand, as a pinch is, so the camera stops following.
+                held.current = undefined
+                map.current?.zoomIn()
+              }}
+            >
+              <IconPlus />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-none border-t-border"
+              aria-label="Zoom out"
+              onClick={() => {
+                held.current = undefined
+                map.current?.zoomOut()
+              }}
+            >
+              <IconMinus />
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

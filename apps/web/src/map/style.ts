@@ -167,7 +167,23 @@ export const clusterLayers = Object.keys(areas).map(
 )
 export const pickedSource = "picked"
 export const pickedData = (site?: Site) => siteFeatures(site ? [site] : [])
+// The pin of the list row under the mouse, ringed on the desktop.
+export const hoveredSource = "hovered"
+// Each area's sites that pass the filters.
+export const areaData = (area: Area, shown: readonly Site[]) =>
+  siteFeatures(shown.filter((site) => site.area === area))
+const zoneSources = ["fills", "edges"]
 const unclustered: ExpressionSpecification = ["!", ["has", "point_count"]]
+// A cluster's bubble grows with its count.
+const clusterRadius: ExpressionSpecification = [
+  "step",
+  ["get", "point_count"],
+  13,
+  10,
+  16,
+  40,
+  19,
+]
 // The picked site shows again in a layer of its own, bigger, with its name
 // always there. Its name here is hidden by feature state, which needs no new
 // layout, and its pin stays under the picked one, so a tap finds it at once.
@@ -262,7 +278,17 @@ const sitesAttribution =
 export function mapStyle(
   theme: MapTheme,
   tiles: string,
-  picked?: Site
+  {
+    picked,
+    shown = sites,
+    showZones = true,
+    hovered,
+  }: {
+    picked?: Site
+    shown?: readonly Site[]
+    showZones?: boolean
+    hovered?: Site
+  } = {}
 ): StyleSpecification {
   const p = palette[theme]
   const shape = (isPicked: boolean): ExpressionSpecification => [
@@ -274,7 +300,7 @@ export function mapStyle(
   // Names in the land's colour as their halo, so a name over the shore has
   // no blue rim.
   const siteName = { "text-color": p.pinText, "text-halo-color": p.land }
-  return {
+  const style: StyleSpecification = {
     version: 8,
     // A theme change swaps the colours at once, as the rest of the app does.
     transition: { duration: 0, delay: 0 },
@@ -306,7 +332,7 @@ export function mapStyle(
           areaSource(area),
           {
             type: "geojson",
-            data: siteFeatures(sites.filter((site) => site.area === area)),
+            data: areaData(area, shown),
             cluster: true,
             clusterMaxZoom: 11,
             clusterRadius: 34,
@@ -316,6 +342,7 @@ export function mapStyle(
         ])
       ),
       [pickedSource]: { type: "geojson", data: pickedData(picked) },
+      [hoveredSource]: { type: "geojson", data: pickedData(hovered) },
     },
     layers: [
       { id: "sea", type: "background", paint: { "background-color": p.sea } },
@@ -745,15 +772,7 @@ export function mapStyle(
               "circle-color": p.cluster,
               "circle-stroke-color": p.clusterRing,
               "circle-stroke-width": 1,
-              "circle-radius": [
-                "step",
-                ["get", "point_count"],
-                13,
-                10,
-                16,
-                40,
-                19,
-              ],
+              "circle-radius": clusterRadius,
             },
           },
           {
@@ -774,6 +793,41 @@ export function mapStyle(
           },
         ]
       ),
+      // The pin of the list row under the mouse, ringed and drawn over any
+      // cluster it's in, so the row shows where the site is at any zoom.
+      {
+        id: "hovered",
+        type: "circle",
+        source: hoveredSource,
+        // Round a cluster's bubble, 4 px out, leaving its count clear.
+        paint: {
+          "circle-radius": [
+            "case",
+            ["has", "point_count"],
+            ["+", clusterRadius, 4],
+            10,
+          ],
+          "circle-color": [
+            "case",
+            ["has", "point_count"],
+            "rgba(0,0,0,0)",
+            p.cluster,
+          ],
+          "circle-stroke-color": p.picked,
+          "circle-stroke-width": 2,
+        },
+      },
+      {
+        id: "hovered-pin",
+        type: "symbol",
+        source: hoveredSource,
+        filter: unclustered,
+        layout: {
+          "icon-image": shape(false),
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+        },
+      },
       {
         id: "picked",
         type: "symbol",
@@ -795,4 +849,14 @@ export function mapStyle(
       },
     ],
   }
+  if (!showZones) {
+    for (const layer of style.layers.filter(isZoneLayer)) {
+      layer.layout = { ...layer.layout, visibility: "none" } as never
+    }
+  }
+  return style
 }
+
+// The zones and their words, which the Map options switch hides.
+export const isZoneLayer = (layer?: object) =>
+  !!layer && "source" in layer && zoneSources.includes(layer.source as string)

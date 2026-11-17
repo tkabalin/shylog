@@ -21,6 +21,7 @@ import {
 
 import { siteText, type Part } from "./page-text"
 import pagesUrl from "./pages.json?url"
+import { withSite } from "./search"
 import { wikivoyage, type Site } from "./sites"
 
 // The pages' text, 1.6 MB, a file the service worker keeps with the app,
@@ -114,7 +115,7 @@ function SiteLink({
   return (
     <Link
       to="/explore"
-      search={{ site: id }}
+      search={withSite(id)}
       replace
       onClick={() => showing.onFollow?.(id)}
       className={cn(

@@ -11,16 +11,24 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { searchText as text } from "@/log/filters"
 import { exploreOn } from "@/map/enabled"
-import { LazyMap, preloadMap } from "@/map/lazy"
+import { LazyExplore, preloadMap } from "@/map/lazy"
+import { mpas, type ExploreSearch } from "@/map/search"
 import { sea } from "@/map/sea"
 
-type ExploreSearch = { site?: string }
-
 export const Route = createFileRoute("/explore")({
-  // The picked site, so a reload or a link opens it.
+  // The picked site, the filters and the phone's screen, so a reload or a
+  // link opens them. The map's own code checks them against its data.
   validateSearch: (search: Record<string, unknown>): ExploreSearch => ({
-    site: typeof search.site === "string" ? search.site : undefined,
+    site: text(search.site),
+    types: text(search.types),
+    depth: text(search.depth),
+    view:
+      search.view === "list" || search.view === "rules"
+        ? search.view
+        : undefined,
+    mpa: mpas.find((mpa) => mpa === search.mpa),
   }),
   // An old link or bookmark on an instance with Explore off opens the Log.
   beforeLoad: () => {
@@ -39,15 +47,6 @@ const seaColour = {
 // The map fills the tab below the status bar's strip, with no header bar:
 // its controls float over it. From desk: up it runs to the window's top.
 function ExplorePage() {
-  const { site } = Route.useSearch()
-  const navigate = Route.useNavigate()
-  // In place, as a picker is: Back leaves Explore rather than stepping
-  // through every site looked at.
-  const pick = useCallback(
-    (id: string | undefined) =>
-      void navigate({ search: { site: id }, replace: true }),
-    [navigate]
-  )
   const [state, setState] = useState<"loading" | "drawn" | "failed">("loading")
   const [attempt, setAttempt] = useState(0)
   const retry = useCallback(() => {
@@ -71,7 +70,7 @@ function ExplorePage() {
     return () => window.removeEventListener("online", retry)
   }, [state, retry])
   return (
-    <div className="flex h-full flex-col pt-[max(0.75rem,env(safe-area-inset-top))] desk:pt-0">
+    <div className="relative flex h-full flex-col pt-[max(0.75rem,env(safe-area-inset-top))] desk:pt-0">
       <h1 className="sr-only">Explore</h1>
       {state === "failed" ? (
         <Empty className="flex-1">
@@ -98,7 +97,7 @@ function ExplorePage() {
           style={seaColour}
           className="min-h-0 flex-1 bg-(--sea) dark:bg-(--sea-dark)"
         >
-          <LazyMap key={attempt} onState={setState} site={site} onPick={pick} />
+          <LazyExplore key={attempt} onState={setState} />
         </div>
       )}
     </div>
