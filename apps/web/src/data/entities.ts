@@ -295,6 +295,13 @@ export function isUnknown(log: LogView, siteId: string) {
   return site != null && isUnknownSite(site)
 }
 
+// The ids isUnknown says yes to, for a check on every dive of a big log
+// without normalising its site's name each time.
+export const unknownSiteIds = (log: LogView) =>
+  new Set(
+    [...log.sites].filter(([, site]) => isUnknownSite(site)).map(([id]) => id)
+  )
+
 // Whether two entities can be merged: regions only within a country (Rules
 // for edits), and neither one only a draft has, which the server can't
 // find yet, nor the Unknown site.
