@@ -20,7 +20,7 @@ import {
   type Trip,
 } from "./db"
 import { pruneCardImages } from "./cards"
-import { pruneProfiles } from "./samples"
+import { dropProfiles, pruneProfiles } from "./samples"
 
 // The mirror's tables held in memory, each row under its key, as IndexedDB
 // holds them at meta.version.
@@ -218,8 +218,7 @@ async function writeChanges(db: LogDb, last: Mirror, next: Mirror) {
       writes.push(tableOf(db, name).bulkPut(put.map(([, row]) => row)))
     if (gone.length) writes.push(tableOf(db, name).bulkDelete(gone))
     // The kept profiles of dives the log no longer has.
-    if (name === "dives" && gone.length)
-      writes.push(db.profiles.bulkDelete(gone))
+    if (name === "dives" && gone.length) writes.push(dropProfiles(db, gone))
   }
   await Promise.all(writes)
 }

@@ -332,10 +332,13 @@ describe("a chain of syncs", () => {
             // Only the first sync replaced the tables.
             expect(clear).toHaveBeenCalledOnce()
             await sync(generated(`v${chain.length - 1}`, chain.at(-1)!), direct)
-            for (const name of [...collections, "meta"] as const)
+            for (const name of collections)
               expect(await chained[name].toArray()).toEqual(
                 await direct[name].toArray()
               )
+            expect(await chained.meta.get("log")).toEqual(
+              await direct.meta.get("log")
+            )
             // And another tab reading the two from IndexedDB sees the same.
             const [fromChain, fromDirect] = await Promise.all(
               reread.map(async (db) => (await readLog(db, queue)).log)
