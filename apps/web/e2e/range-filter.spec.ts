@@ -23,8 +23,8 @@ test("narrows the Log to a depth range", async ({ page, request }) => {
   const min = sheet.getByRole("slider", { name: "Minimum depth" })
   const max = sheet.getByRole("slider", { name: "Maximum depth" })
   await expect(min).toHaveAttribute("aria-valuetext", "0 metres")
-  await expect(max).toHaveAttribute("aria-valuetext", "More than 40 metres")
-  await expect(sheet.getByText("> 40 m")).toBeVisible()
+  await expect(max).toHaveAttribute("aria-valuetext", "40 metres or more")
+  await expect(sheet.getByText("40+ m")).toBeVisible()
   const reset = sheet.getByRole("button", { name: "Reset" })
   await expect(reset).toBeDisabled()
 
@@ -64,7 +64,7 @@ test("narrows the Log to a depth range", async ({ page, request }) => {
   await active.click()
   await sheet.getByRole("button", { name: "Reset" }).click()
   await expect(min).toHaveAttribute("aria-valuetext", "0 metres")
-  await expect(max).toHaveAttribute("aria-valuetext", "More than 40 metres")
+  await expect(max).toHaveAttribute("aria-valuetext", "40 metres or more")
   await sheet.getByRole("button", { name: "Apply" }).click()
   await expect.poll(() => listed(page)).toBe(42)
   await expect(page.getByRole("button", { name: "Depth" })).not.toHaveAttribute(
@@ -88,7 +88,7 @@ test("keeps the longest dives when the duration range is open-ended", async ({
   for (let i = 0; i < 10; i++) await page.keyboard.press("ArrowRight")
   await sheet.getByRole("button", { name: "Apply" }).click()
   await expect(
-    page.getByRole("button", { name: "Duration, ≥ 50 min" })
+    page.getByRole("button", { name: "Duration, 50+ min" })
   ).toBeVisible()
   await expect.poll(() => listed(page)).toBe(expected)
 })
