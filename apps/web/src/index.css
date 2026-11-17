@@ -275,8 +275,9 @@
     animation-range: calc(100% - 1rem) 100%;
   }
 }
-/* Whichever screen draws one, while it shows. */
-:root:has(.bottom-bar) .bottom-nav {
+/* Whichever screen draws one, while it shows. The bar flags the root, as
+   :root:has(.bottom-bar) restyled the page on every insertion. */
+:root[data-bottom-bar] .bottom-nav {
   border-top-color: transparent;
   animation: none;
 }

@@ -72,8 +72,9 @@
 }
 
 /* The map meets the tab bar all along it, and its land is the bar's
-   colour, so the bar keeps its top line while a map shows. */
-:root:has(.maplibregl-map) .bottom-nav {
+   colour, so the bar keeps its top line while a map shows. The map flags
+   the root, as :root:has() restyled the page on every insertion. */
+:root[data-map] .bottom-nav {
   border-top-color: var(--border);
   animation: none;
 }
