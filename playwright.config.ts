@@ -94,6 +94,9 @@ export default defineConfig({
           SHYLOG_API_ORIGIN: `http://127.0.0.1:${api}`,
           VITE_CACHE_DIR: `node_modules/.vite-e2e-${web}`,
           E2E_NO_HMR: "1",
+          // No key, whatever the repo's .env holds: the specs give one
+          // where they want the satellite.
+          SHYLOG_ARCGIS_KEY: "",
         } as Env,
         reuseExistingServer: false,
       },
@@ -109,6 +112,8 @@ export default defineConfig({
               E2E_BUILD: "1",
               // Checked as the offline page's title, which only the server writes.
               SHYLOG_APP_NAME: "Shylog e2e",
+              // As for the dev servers: no key from the developer's shell.
+              SHYLOG_ARCGIS_KEY: "",
             } as Env,
             reuseExistingServer: false,
             gracefulShutdown: { signal: "SIGTERM" as const, timeout: 5000 },

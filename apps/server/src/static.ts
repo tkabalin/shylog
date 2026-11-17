@@ -12,11 +12,18 @@ export const defaultWebRoot = fileURLToPath(
 
 const escapeHtml = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+const escapeAttribute = (text: string) =>
+  escapeHtml(text).replace(/"/g, "&quot;")
 
 // The PWA. The page title and manifest name come from SHYLOG_APP_NAME at
 // run time, so two instances installed on one phone are told apart. None of
 // this passes the /api checks: the browser fetches it without the header.
-export function web(root: string, appName: string, explore: "on" | "off") {
+export function web(
+  root: string,
+  appName: string,
+  explore: "on" | "off",
+  arcgisKey = ""
+) {
   let page: string | undefined
   const index = () =>
     (page ??= readFileSync(join(root, "index.html"), "utf8")
@@ -28,14 +35,16 @@ export function web(root: string, appName: string, explore: "on" | "off") {
       // iOS names a Home Screen icon from this, not the manifest.
       .replace(
         /(<meta name="apple-mobile-web-app-title" content=")[^"]*"/,
-        (_, start: string) =>
-          `${start}${escapeHtml(appName).replace(/"/g, "&quot;")}"`
+        (_, start: string) => `${start}${escapeAttribute(appName)}"`
       )
       // Read before the app draws its nav, which an API call would be too
       // late for, and kept offline with the page.
+      .replace(/(<meta name="shylog-explore" content=")[^"]*"/, `$1${explore}"`)
+      // The satellite imagery's key, which the browser sends to Esri with
+      // each request anyway; Esri checks the page's address.
       .replace(
-        /(<meta name="shylog-explore" content=")[^"]*"/,
-        `$1${explore}"`
+        /(<meta name="shylog-arcgis-key" content=")[^"]*"/,
+        (_, start: string) => `${start}${escapeAttribute(arcgisKey)}"`
       ))
 
   return (

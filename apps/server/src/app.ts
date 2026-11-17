@@ -99,7 +99,12 @@ export function createApp(deps: Deps) {
       .route("/mcp", mcp(deps))
       .route(
         "/",
-        web(deps.webRoot, deps.env.SHYLOG_APP_NAME, deps.env.SHYLOG_EXPLORE)
+        web(
+          deps.webRoot,
+          deps.env.SHYLOG_APP_NAME,
+          deps.env.SHYLOG_EXPLORE,
+          deps.env.SHYLOG_ARCGIS_KEY
+        )
       )
       // A refused write has rolled back; the reason goes to the draft's
       // card or the form.

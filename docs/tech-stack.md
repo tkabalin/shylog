@@ -126,6 +126,7 @@ Everything is TypeScript, in a pnpm workspace of four packages:
 | `SHYLOG_DATA_DIR`       | The one folder holding `shylog.db`, `export/`, `snapshots/`, `cards/` and the sidecar's state                  |
 | `SHYLOG_APP_NAME`       | The page title, Home Screen name and manifest name, served at run time so two installed apps can be told apart |
 | `SHYLOG_EXPLORE`        | `off` hides Explore, whose map covers only Cape Town, for a diver who dives elsewhere                          |
+| `SHYLOG_ARCGIS_KEY`     | An Esri key for Explore's satellite imagery, written into the page like the name; unset, the map has none      |
 | `COMPOSE_PROJECT_NAME`  | The Compose project, required so a copied env file can't take over another instance's containers               |
 | `SHYLOG_DC_DEVICE`      | The dive computer cable, set by an optional Compose override; unset, Import only uploads files                 |
 | `SHYLOG_DEV_LOGIN`      | Development only: stands in for the Tailscale login, and the server refuses to start with it in production     |
