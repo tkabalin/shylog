@@ -50,10 +50,12 @@ export const fullMonths =
 export const dives = diveCount
 
 // True from the frame after the first paint: what isn't seen at first can
-// render then, so the tap that opened the screen shows it sooner.
-export function usePainted() {
+// render then, so the tap that opened the screen shows it sooner. Waits
+// for `ready`, to come a frame after another deferral.
+export function usePainted(ready = true) {
   const [painted, setPainted] = useState(false)
   useEffect(() => {
+    if (!ready) return
     let timeout = 0
     const frame = requestAnimationFrame(() => {
       timeout = window.setTimeout(() => setPainted(true))
@@ -62,7 +64,7 @@ export function usePainted() {
       cancelAnimationFrame(frame)
       clearTimeout(timeout)
     }
-  }, [])
+  }, [ready])
   return painted
 }
 
