@@ -76,7 +76,7 @@ export const DepthChart = memo(function DepthChart({
         height={height}
         data={points}
         margin={{ top: plotTop, right: 0, bottom: 0, left: model.left }}
-        // The table under the chart is its screen-reader alternative.
+        // Drawn for the eye only, so not a tab stop.
         accessibilityLayer={false}
       >
         <defs>

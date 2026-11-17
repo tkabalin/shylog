@@ -51,7 +51,7 @@ export const TemperatureLane = memo(function TemperatureLane({
           bottom: laneBottom,
           left: model.left,
         }}
-        // The table under the chart is its screen-reader alternative.
+        // Drawn for the eye only, so not a tab stop.
         accessibilityLayer={false}
       >
         <XAxis

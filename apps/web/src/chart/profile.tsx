@@ -9,15 +9,14 @@ import { profileMaxDepth } from "@/dive/figures"
 import { Events } from "./events"
 import { profileGutter, profileModel } from "./model"
 import { eventCount, ProfilePlaceholder } from "./placeholder"
-import { ProfileTable } from "./profile-table"
 import { useSize } from "./size"
 import { DepthView, LaneView, Readout, useCrosshair } from "./view"
 
 export { FullProfile } from "./full-profile"
 
 // The Profile card's body, the chart's lazy chunk: the crosshair readout,
-// the depth chart, the temperature lane, the events and the table
-// alternative, drawn once the card has the dive's samples.
+// the depth chart, the temperature lane and the events, drawn once the card
+// has the dive's samples.
 export default function Profile({
   dive,
   mod,
@@ -80,7 +79,6 @@ export default function Profile({
             stop={model.safetyStop}
             onShow={setChosen}
           />
-          <ProfileTable model={model} />
         </>
       ) : (
         // Every section's height while the width is measured: laid out

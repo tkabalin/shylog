@@ -148,4 +148,4 @@ SAC rate has a relative minimum as well as a fixed one, because 1.5 L/min is a b
 
 **Below the records, the screen paints a frame later.** The header, Air consumption and Records and averages render first; everything below them, Patterns included, renders on the frame after, behind placeholder cards at their final size, so nothing jumps when it lands. With both fixes, a first open takes about 100 ms and a re-open under 60 ms on either log size. Coming back to Statistics from a record's dive restores the scroll position and any rows that were open, which the router's own scroll restore couldn't do while the lower sections were still waiting for their frame.
 
-Every chart has a table alternative for screen readers, as everywhere in the app.
+The bars and strips have a table alternative for screen readers. The SAC trend has none: its table, a row per dive, added about 4,000 elements and a task of 200 to 300 ms at 4x CPU slowdown after every open of a 1000-dive log, and in an app built for one diver the charts' speed comes first.

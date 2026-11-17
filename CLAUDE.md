@@ -50,7 +50,7 @@ The topic docs in `docs/` (and the README) are the public write-up for the owner
 - Use Tailwind's colour palette everywhere (shadcn uses it too), unless something specific needs a colour Tailwind doesn't have.
 - shadcn components in `apps/web/src/components/ui/` are edited in place, never re-added; see `.claude/rules/shadcn.md`.
 - Native date and time inputs on touch screens; from `desk:` up a shadcn Calendar popover and an hours/minutes popover, as native pickers are poor on Windows. `inputmode="decimal"` for decimals, water temperature included (the decimal pad has no minus, so a sub-zero temperature can't be typed, only imported), `inputmode="numeric"` for whole numbers. Accept a comma as the decimal separator.
-- Every chart has a table alternative for screen readers. Sync states each have their own icon (words on You's sync card and for screen readers), not colour alone.
+- Small charts have a table alternative for screen readers. The dive profile and the SAC trend don't, as their tables slowed the charts and chart speed comes first. Sync states each have their own icon (words on You's sync card and for screen readers), not colour alone.
 - Statistics, the profile chart and the map are lazy-loaded chunks.
 
 ## Workflow

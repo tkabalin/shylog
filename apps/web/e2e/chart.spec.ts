@@ -65,9 +65,6 @@ test("lists dive 54's safety stop, marks it and moves the crosshair to it", asyn
   await stop.click()
   await expect(readout(page)).toContainText("at 19:40")
   await expect(readout(page)).toContainText("Safety stop")
-  await expect(
-    page.getByRole("row").filter({ hasText: "Safety stop" }).first()
-  ).toContainText("19:40")
 })
 
 test("has no Events section on a dive with no alarm or stop", async ({
@@ -125,7 +122,6 @@ test("smooths the water temperature, and its caption picks the recorded line", a
   await expect(caption).toHaveAttribute("aria-expanded", "false")
   // The computer read 20 °C on the way down.
   await expect(labels).toHaveText(["17°", "20°"])
-  await expect(page.getByRole("table", { name: /as recorded/ })).toBeAttached()
 
   // Kept on the phone.
   await page.reload()
@@ -184,26 +180,6 @@ test("moves the crosshair with a pointer over the time labels", async ({
     box.y + box.height - 8
   )
   await expect(readout(page)).toContainText("at 21:00")
-})
-
-test("has a table of every point for screen readers", async ({
-  page,
-  request,
-}) => {
-  await page.goto(`/dive/${await diveId(request, 63)}`)
-  const table = page.getByRole("table", { name: /Every point/ })
-  await expect(table).toBeAttached()
-  const caption = await table.locator("caption").textContent()
-  const count = Number(caption!.match(/(\d+) rows/)![1])
-  expect(count).toBeGreaterThan(250)
-  await expect(table.locator("tbody tr")).toHaveCount(count)
-  await expect(table.getByRole("columnheader")).toHaveText([
-    "Time",
-    "Depth (m)",
-    "Water temperature (°C)",
-    "Vertical rate (m/min, ascending positive)",
-    "Event",
-  ])
 })
 
 test("loads the chart's code once the Log is idle", async ({ page }) => {

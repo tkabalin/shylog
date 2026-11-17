@@ -226,8 +226,8 @@ export function DepthView({
 }
 
 // The temperature lane under its header: the caption, which picks the line
-// once there is one, and the crosshair's reading, which the table
-// alternative reads out, so it is hidden.
+// once there is one, and the crosshair's reading, hidden from screen
+// readers as the readout is.
 export function LaneView({
   model,
   index,

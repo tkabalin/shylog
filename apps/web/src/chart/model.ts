@@ -199,7 +199,6 @@ export function profileModel(
     // which the lane's gutter labels.
     temperature,
     water: temperature && { min: temperature.min, max: temperature.highest },
-    smoothed: smooth,
     depthLabels: depthLabels(all, inView, interval),
     events: shown,
     alarms,
