@@ -37,6 +37,9 @@ const schema = z
     // libdivecomputer's dctool, which the image installs; a stand-in in
     // tests.
     SHYLOG_DCTOOL: z.string().min(1).default("dctool"),
+    // Explore's map and sites cover only Cape Town, so an instance whose
+    // diver dives elsewhere turns the tab and its map download off.
+    SHYLOG_EXPLORE: z.enum(["on", "off"]).default("on"),
     // The commit the image was built from (the Dockerfile sets it), which
     // every log line carries.
     SHYLOG_REVISION: z.string().min(1).default("dev"),

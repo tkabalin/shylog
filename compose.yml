@@ -53,6 +53,7 @@ services:
       SHYLOG_ORIGIN: ${SHYLOG_ORIGIN:?}
       SHYLOG_DATA_DIR: ${SHYLOG_DATA_DIR:?}
       SHYLOG_APP_NAME: ${SHYLOG_APP_NAME:-Shylog}
+      SHYLOG_EXPLORE: ${SHYLOG_EXPLORE:-}
       TS_HOSTNAME: ${TS_HOSTNAME:-shylog}
       # Where tailscale/serve.json forwards; fixed, as each instance has its
       # own network namespace.

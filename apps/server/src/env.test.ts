@@ -53,12 +53,23 @@ describe("parseEnv", () => {
       PORT: "",
       SHYLOG_APP_NAME: "",
       SHYLOG_DEV_LOGIN: "",
+      SHYLOG_EXPLORE: "",
     })
     expect(env.PORT).toBe(3000)
     expect(env.SHYLOG_APP_NAME).toBe("Shylog")
+    expect(env.SHYLOG_EXPLORE).toBe("on")
     expect(env.SHYLOG_DEV_LOGIN).toBeUndefined()
     expect(() => parseEnv({ ...base, SHYLOG_DATA_DIR: "" })).toThrow(
       /SHYLOG_DATA_DIR/
+    )
+  })
+
+  it("turns Explore off only with off", () => {
+    expect(parseEnv({ ...base, SHYLOG_EXPLORE: "off" }).SHYLOG_EXPLORE).toBe(
+      "off"
+    )
+    expect(() => parseEnv({ ...base, SHYLOG_EXPLORE: "false" })).toThrow(
+      /SHYLOG_EXPLORE/
     )
   })
 

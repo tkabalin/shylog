@@ -25,6 +25,16 @@ describe("the web app", () => {
     )
   })
 
+  it("tells the app whether Explore is on", async () => {
+    const tag = (content: string) =>
+      `<meta name="shylog-explore" content="${content}" />`
+    expect(await (await app.request("/")).text()).toContain(tag("on"))
+    const off = testApp({ env: { SHYLOG_EXPLORE: "off" } })
+    expect(await (await off.request("/")).text()).toContain(tag("off"))
+    // A client-side route gets the same page, which the worker keeps.
+    expect(await (await off.request("/explore")).text()).toContain(tag("off"))
+  })
+
   it("serves client-side routes the app, but not missing files or API paths", async () => {
     expect(await (await app.request("/dive/dive-a")).text()).toContain(
       "<title>"

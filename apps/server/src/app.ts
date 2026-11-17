@@ -97,7 +97,10 @@ export function createApp(deps: Deps) {
       .route("/api", health)
       // Ahead of the app's pages, whose catch-all answers any GET.
       .route("/mcp", mcp(deps))
-      .route("/", web(deps.webRoot, deps.env.SHYLOG_APP_NAME))
+      .route(
+        "/",
+        web(deps.webRoot, deps.env.SHYLOG_APP_NAME, deps.env.SHYLOG_EXPLORE)
+      )
       // A refused write has rolled back; the reason goes to the draft's
       // card or the form.
       .onError((error, c) => {
