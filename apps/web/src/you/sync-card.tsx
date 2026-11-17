@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react"
+import { useRef, useState, type ReactNode } from "react"
 import {
   IconAlertTriangle,
   IconCloudCheck,
@@ -13,7 +13,7 @@ import {
 } from "@tabler/icons-react"
 import { cn } from "cn"
 
-import { Fold, foldMs } from "@/components/fold"
+import { Fold } from "@/components/fold"
 import { Card } from "@/components/ui/card"
 import type { Dive } from "@/data/db"
 import { useQueueCounts } from "@/data/drafts"
@@ -132,14 +132,14 @@ function RowFold({ show, children }: { show: boolean; children: ReactNode }) {
       setDrawn(false)
     }
   }
-  useEffect(() => {
-    if (show) return
-    const gone = setTimeout(() => setMounted(false), foldMs)
-    return () => clearTimeout(gone)
-  }, [show])
   if (!mounted) return null
   return (
-    <Fold key={round} open={show} appear={!drawn} gap="0px">
+    <Fold
+      key={round}
+      open={show}
+      appear={!drawn}
+      onFolded={() => setMounted(false)}
+    >
       {children}
     </Fold>
   )
