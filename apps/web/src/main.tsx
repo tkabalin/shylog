@@ -15,6 +15,7 @@ import { protectOnFirstLaunch } from "@/data/storage"
 import { startPress } from "@/lib/press"
 import { exploreOn } from "@/map/enabled"
 import { dropExtract, keepExtract } from "@/map/extract"
+import { dropImages, keepImages } from "@/map/keep-images"
 import { startWorker } from "@/pwa"
 import { routeTree } from "./routeTree.gen.ts"
 
@@ -45,9 +46,15 @@ void loadDiveComputer()
 // Asks the browser to keep the drafts and the log's copy (see storage.ts).
 void protectOnFirstLaunch()
 startWorker()
-// The map's extract, downloaded ahead so Explore works with no signal.
-if (exploreOn) keepExtract()
-else dropExtract()
+// The map's extract and site images, downloaded ahead so Explore works
+// with no signal.
+if (exploreOn) {
+  keepExtract()
+  keepImages()
+} else {
+  dropExtract()
+  dropImages()
+}
 // Rows tint on a held press, not on a touch that turns into a scroll.
 startPress()
 
