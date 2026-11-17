@@ -39,9 +39,14 @@ export interface Entry {
   reason: LeftOutReason | null
 }
 
+const entryCache = new WeakMap<ImportPreview, ReadonlyMap<string, Entry>>()
+
 // Every computer dive the review offers, by its ref, newest first, as the
-// Log lists dives.
-export function entries(preview: ImportPreview) {
+// Log lists dives. The same objects for a preview each time, so the review's
+// memoised rows skip all but the row a tap changed.
+export function entries(preview: ImportPreview): ReadonlyMap<string, Entry> {
+  const cached = entryCache.get(preview)
+  if (cached) return cached
   const all: Entry[] = [
     ...preview.pairs.map(({ computerDive }) => ({
       dive: computerDive,
@@ -51,7 +56,9 @@ export function entries(preview: ImportPreview) {
     ...preview.newDives.map((dive) => ({ dive, reason: null })),
     ...preview.leftOut.map(({ reason, ...dive }) => ({ dive, reason })),
   ].sort((a, b) => b.dive.startTime.localeCompare(a.dive.startTime))
-  return new Map(all.map((entry) => [entry.dive.ref, entry]))
+  const byRef = new Map(all.map((entry) => [entry.dive.ref, entry]))
+  entryCache.set(preview, byRef)
+  return byRef
 }
 
 function proposed(preview: ImportPreview) {

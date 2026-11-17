@@ -6,6 +6,7 @@ import {
   IconPlus,
   IconSelector,
 } from "@tabler/icons-react"
+import type { ImportPreview } from "@shylog/core"
 import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
@@ -24,7 +25,13 @@ import { longDate } from "@/format/dates"
 import { useDesk } from "@/hooks/use-desk"
 
 import { bigButton } from "./parts"
-import { capital, clockDay, offsetText, stepOffset } from "./review"
+import {
+  capital,
+  clockDay,
+  offsetText,
+  stepOffset,
+  type Overrides,
+} from "./review"
 
 interface Wanted {
   date: string
@@ -59,7 +66,6 @@ export function ClockSheet({
 
   const day = preview?.days.find((found) => found.date === date)
   if (!preview || !day || !date) return null
-  const line = clockDay(preview, overrides, date)
   const offset = wanted?.date === date ? wanted.offset : day.offset
 
   const send = async () => {
@@ -92,14 +98,87 @@ export function ClockSheet({
     void send()
   }
 
+  const title = `${capital(computer)} clock`
+
+  return (
+    <Drawer showSwipeHandle open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader className="pb-4">
+          <DrawerTitle className="inline-flex items-center justify-center gap-1.5 desk:justify-start">
+            {/* 18 px, so it centres in the title's 24 px line on a whole
+                pixel rather than shifting as the sheet's transition ends. */}
+            <IconClockEdit
+              aria-hidden
+              className="size-4.5 shrink-0 text-muted-foreground"
+            />
+            {title}
+          </DrawerTitle>
+          <DrawerDescription>
+            Shift its times on one day so they line up with your log. Other days
+            don’t change.
+          </DrawerDescription>
+        </DrawerHeader>
+        {/* Inside the content, which mounts only while the sheet is open,
+            so a closed sheet works out none of its days or pairs on every
+            tap behind it. */}
+        <ClockBody
+          preview={preview}
+          overrides={overrides}
+          date={date}
+          day={day}
+          offset={offset}
+          wanted={wanted}
+          error={error}
+          title={title}
+          desk={desk}
+          move={move}
+          onDateChange={onDateChange}
+        />
+        <DrawerFooter className="pt-5 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <Button
+            className={desk ? undefined : bigButton}
+            onClick={() => onOpenChange(false)}
+          >
+            Done
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function ClockBody({
+  preview,
+  overrides,
+  date,
+  day,
+  offset,
+  wanted,
+  error,
+  title,
+  desk,
+  move,
+  onDateChange,
+}: {
+  preview: ImportPreview
+  overrides: Overrides
+  date: string
+  day: ImportPreview["days"][number]
+  offset: number
+  wanted: Wanted | null
+  error: string | undefined
+  title: string
+  desk: boolean
+  move: (offset: number) => void
+  onDateChange: (date: string) => void
+}) {
+  const line = clockDay(preview, overrides, date)
   // Newest first, as every list of days and dives runs.
   const days = preview.days.toReversed().map((found) => ({
     value: found.date,
     label: `${longDate(found.date)}${found.offset ? ` · ${offsetText(found.offset)}` : ""}`,
   }))
-  const title = `${capital(computer)} clock`
-
-  const body = (
+  return (
     <div className="flex flex-col gap-5 px-4">
       {desk ? (
         <Card className="gap-0 py-0">
@@ -203,36 +282,5 @@ export function ClockSheet({
         </p>
       )}
     </div>
-  )
-
-  return (
-    <Drawer showSwipeHandle open={open} onOpenChange={onOpenChange}>
-      <DrawerContent>
-        <DrawerHeader className="pb-4">
-          <DrawerTitle className="inline-flex items-center justify-center gap-1.5 desk:justify-start">
-            {/* 18 px, so it centres in the title's 24 px line on a whole
-                pixel rather than shifting as the sheet's transition ends. */}
-            <IconClockEdit
-              aria-hidden
-              className="size-4.5 shrink-0 text-muted-foreground"
-            />
-            {title}
-          </DrawerTitle>
-          <DrawerDescription>
-            Shift its times on one day so they line up with your log. Other days
-            don’t change.
-          </DrawerDescription>
-        </DrawerHeader>
-        {body}
-        <DrawerFooter className="pt-5 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <Button
-            className={desk ? undefined : bigButton}
-            onClick={() => onOpenChange(false)}
-          >
-            Done
-          </Button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
   )
 }
