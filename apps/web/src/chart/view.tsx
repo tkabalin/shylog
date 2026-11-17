@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent } from "react"
+import { useMemo, useRef, useState, type PointerEvent } from "react"
 import { speedBand, speedBands } from "@shylog/core"
 import {
   IconAlertTriangle,
@@ -10,7 +10,12 @@ import { cn } from "cn"
 
 import { depth, temperature } from "@/format/figures"
 
-import { Crosshair } from "./crosshair"
+import {
+  Crosshair,
+  cursor as newCursor,
+  useIndex,
+  type Cursor,
+} from "./crosshair"
 import { DepthChart } from "./depth-chart"
 import { clock, rateLabel } from "./format"
 import { laneHeaderHeight, laneHeight, readoutHeight } from "./layout"
@@ -42,64 +47,66 @@ export function useCrosshair(
   model: ProfileModel | null,
   { free = false, turned = false } = {}
 ) {
-  const [chosen, setChosen] = useState<number | null>(null)
-  const index = model
-    ? Math.min(chosen ?? model.deepest, model.points.length - 1)
-    : 0
+  const [cursor] = useState(newCursor)
   const start = useRef<{ x: number; y: number } | null>(null)
   const scrubbing = useRef(false)
-
-  const scrub = (event: PointerEvent<HTMLDivElement>) => {
-    if (!model) return
-    // Measured within the plot, past the depth labels' gutter.
-    const box = event.currentTarget.getBoundingClientRect()
-    const part = turned
-      ? (event.clientY - box.top - model.left) / (box.height - model.left)
-      : (event.clientX - box.left - model.left) / (box.width - model.left)
-    const seconds = Math.min(Math.max(part, 0), 1) * model.time.max
-    setChosen(pointAt(model.points, seconds))
-  }
-  const handlers = {
-    onPointerDown(event: PointerEvent<HTMLDivElement>) {
-      if (free || event.pointerType === "mouse") scrub(event)
-      else start.current = { x: event.clientX, y: event.clientY }
-    },
-    onPointerMove(event: PointerEvent<HTMLDivElement>) {
-      const from = start.current
-      // A few pixels of slop first, so a swipe's first sideways jitter
-      // doesn't scrub before the page takes the scroll; once sideways, it
-      // keeps scrubbing however the finger drifts.
-      const sideways = from ? Math.abs(event.clientX - from.x) : 0
-      if (from && sideways > 6 && sideways > Math.abs(event.clientY - from.y))
-        scrubbing.current = true
-      // A touch moves only while down, so full screen any move scrubs.
-      if (event.pointerType === "mouse" || scrubbing.current || free)
-        scrub(event)
-    },
-    onPointerUp(event: PointerEvent<HTMLDivElement>) {
-      if (!free && event.pointerType !== "mouse" && start.current) scrub(event)
-      start.current = null
-      scrubbing.current = false
-    },
-    onPointerCancel() {
-      start.current = null
-      scrubbing.current = false
-    },
-  }
-  return { index, setChosen, handlers }
+  // The same handlers while the chart stands, so nothing but the readouts
+  // renders again as the crosshair moves.
+  const handlers = useMemo(() => {
+    const scrub = (event: PointerEvent<HTMLDivElement>) => {
+      if (!model) return
+      // Measured within the plot, past the depth labels' gutter.
+      const box = event.currentTarget.getBoundingClientRect()
+      const part = turned
+        ? (event.clientY - box.top - model.left) / (box.height - model.left)
+        : (event.clientX - box.left - model.left) / (box.width - model.left)
+      const seconds = Math.min(Math.max(part, 0), 1) * model.time.max
+      cursor.set(pointAt(model.points, seconds))
+    }
+    return {
+      onPointerDown(event: PointerEvent<HTMLDivElement>) {
+        if (free || event.pointerType === "mouse") scrub(event)
+        else start.current = { x: event.clientX, y: event.clientY }
+      },
+      onPointerMove(event: PointerEvent<HTMLDivElement>) {
+        const from = start.current
+        // A few pixels of slop first, so a swipe's first sideways jitter
+        // doesn't scrub before the page takes the scroll; once sideways, it
+        // keeps scrubbing however the finger drifts.
+        const sideways = from ? Math.abs(event.clientX - from.x) : 0
+        if (from && sideways > 6 && sideways > Math.abs(event.clientY - from.y))
+          scrubbing.current = true
+        // A touch moves only while down, so full screen any move scrubs.
+        if (event.pointerType === "mouse" || scrubbing.current || free)
+          scrub(event)
+      },
+      onPointerUp(event: PointerEvent<HTMLDivElement>) {
+        if (!free && event.pointerType !== "mouse" && start.current)
+          scrub(event)
+        start.current = null
+        scrubbing.current = false
+      },
+      onPointerCancel() {
+        start.current = null
+        scrubbing.current = false
+      },
+    }
+  }, [model, free, turned, cursor])
+  return { cursor, handlers }
 }
 
 // The crosshair's point: depth and time, any alarm or safety stop it sits
 // in, the rate.
 export function Readout({
   model,
-  index,
+  cursor,
   className,
 }: {
   model: ProfileModel | null
-  index: number
+  cursor: Cursor
   className?: string
 }) {
+  const index = useIndex(model, cursor)
   const point = model?.points[index]
   const speed = model?.speeds[index].speed ?? 0
   const band = speedBand(speed)
@@ -204,22 +211,22 @@ const overlay = (free: boolean) =>
 // still moves the crosshair.
 export function DepthView({
   model,
-  index,
+  cursor,
   width,
   handlers,
   free = false,
 }: {
   model: ProfileModel
-  index: number
+  cursor: Cursor
   width: number
   handlers: Handlers
   free?: boolean
 }) {
   return (
     <div className="relative isolate">
-      <Crosshair model={model} index={index} width={width} layer="line" />
+      <Crosshair model={model} cursor={cursor} width={width} layer="line" />
       <DepthChart model={model} width={width} />
-      <Crosshair model={model} index={index} width={width} layer="dot" />
+      <Crosshair model={model} cursor={cursor} width={width} layer="dot" />
       <div aria-hidden className={cn(overlay(free), "inset-0")} {...handlers} />
     </div>
   )
@@ -230,18 +237,17 @@ export function DepthView({
 // readers as the readout is.
 export function LaneView({
   model,
-  index,
+  cursor,
   width,
   handlers,
   free = false,
 }: {
   model: ProfileModel | null
-  index: number
+  cursor: Cursor
   width: number
   handlers: Handlers
   free?: boolean
 }) {
-  const point = model?.points[index]
   return (
     <div className="mt-1 flex flex-col gap-3">
       <div
@@ -253,18 +259,14 @@ export function LaneView({
         ) : (
           <span aria-hidden>Water temperature</span>
         )}
-        {point?.temperature != null && (
-          <span aria-hidden className="font-medium text-foreground">
-            {temperature(point.temperature)} °C
-          </span>
-        )}
+        <LaneReading model={model} cursor={cursor} />
       </div>
       <div className="relative isolate" style={{ height: laneHeight }}>
         {model?.temperature ? (
           <>
             <Crosshair
               model={model}
-              index={index}
+              cursor={cursor}
               width={width}
               lane
               layer="line"
@@ -272,7 +274,7 @@ export function LaneView({
             <TemperatureLane model={model} width={width} />
             <Crosshair
               model={model}
-              index={index}
+              cursor={cursor}
               width={width}
               lane
               layer="dot"
@@ -290,5 +292,24 @@ export function LaneView({
         )}
       </div>
     </div>
+  )
+}
+
+// The lane's reading at the crosshair, which alone follows it.
+function LaneReading({
+  model,
+  cursor,
+}: {
+  model: ProfileModel | null
+  cursor: Cursor
+}) {
+  const index = useIndex(model, cursor)
+  const point = model?.points[index]
+  return (
+    point?.temperature != null && (
+      <span aria-hidden className="font-medium text-foreground">
+        {temperature(point.temperature)} °C
+      </span>
+    )
   )
 }
