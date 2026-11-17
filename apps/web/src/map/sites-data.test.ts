@@ -4,8 +4,10 @@ import { describe, expect, it } from "vitest"
 
 import { apart, printed } from "../../scripts/map/wikitext"
 import pins from "../../scripts/map/wikivoyage.json"
+import features from "./features.json"
 import pages from "./pages.json"
 import type { Part } from "./page-text"
+import type { SiteFeature } from "./sites"
 import raw from "./sites.geojson?raw"
 
 // What the refresh script writes, checked as it lands in a pull request.
@@ -179,6 +181,36 @@ describe("sites.geojson", () => {
       if (description === undefined) continue
       expect(description, id).not.toMatch(/&#?\w+;|[*[\]{}<>|]|''/)
       expect(description, id).toMatch(/^[A-Z"“‘0-9]/)
+    }
+  })
+})
+
+describe("features.json", () => {
+  const byId = new Map(sites.map((site) => [site.properties.id, site]))
+  const all = Object.entries(features as Record<string, SiteFeature[]>)
+
+  it("puts each feature on a site, near it", () => {
+    expect(all.length).toBeGreaterThan(30)
+    for (const [id, list] of all) {
+      const site = byId.get(id)
+      expect(site, id).toBeDefined()
+      for (const feature of list) {
+        // Rocky Bank's and Whittle Rock's span a few kilometres.
+        expect(
+          apart(site!.geometry.coordinates, [feature.lon, feature.lat]),
+          feature.name
+        ).toBeLessThan(5000)
+      }
+    }
+  })
+
+  // A site's own marker isn't a feature inside it.
+  it("names no feature after its site", () => {
+    for (const [id, list] of all) {
+      const name = String(byId.get(id)!.properties.name).toLowerCase()
+      for (const feature of list) {
+        expect(feature.name.toLowerCase(), id).not.toBe(name)
+      }
     }
   })
 })

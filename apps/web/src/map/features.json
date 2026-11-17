@@ -1,0 +1,378 @@
+{
+  "atlantis-reef": [
+    {
+      "name": "Santorini pinnacles",
+      "lon": 18.482133,
+      "lat": -34.250616,
+      "text": "About 150 m on a bearing of 145°magnetic from the western pillar, there is another somewhat lower pinnacle, rising to 10 m depth."
+    }
+  ],
+  "blue-flame-reef/south-pinnacles": [
+    {
+      "name": "Blue Flame East Pinnacle",
+      "lon": 18.559017,
+      "lat": -34.214417,
+      "text": "There are no reports available on this area."
+    }
+  ],
+  "boat-rock": [
+    {
+      "name": "Festival Pinnacle",
+      "lon": 18.483583,
+      "lat": -34.235667,
+      "text": "A compact pinnacle and patch of reef south of Boat Rock, across a small sand gap. The pinnacle is a fairly large granite outcrop, about 20 m long, rising from a sand bottom at 18 m to just above 12 m."
+    }
+  ],
+  "canyon": [
+    { "name": "Canyon 19 m pinnacle", "lon": 18.301217, "lat": -34.04325 },
+    {
+      "name": "Canyon south pinnacle",
+      "lon": 18.30125,
+      "lat": -34.04345,
+      "text": "The south pinnacle comes up to 22 m"
+    }
+  ],
+  "clifton-rocks": [
+    { "name": "Entry point", "lon": 18.37285, "lat": -33.9408 },
+    { "name": "Parking area", "lon": 18.373583, "lat": -33.94145 }
+  ],
+  "coral-gardens-oudekraal/colins-pinnacle": [
+    {
+      "name": "Coral Gardens Offshore Pinnacle -Exposed rock",
+      "lon": 18.341,
+      "lat": -33.98603
+    },
+    {
+      "name": "Coral Gardens Offshore Pinnacle - 4 m pinnacle",
+      "lon": 18.340133,
+      "lat": -33.986383
+    },
+    {
+      "name": "Coral Gardens Offshore Pinnacle - 7 m pinnacle",
+      "lon": 18.340233,
+      "lat": -33.98655
+    },
+    {
+      "name": "Coral Gardens Offshore Pinnacle - 10 m pinnacle",
+      "lon": 18.339633,
+      "lat": -33.98675
+    }
+  ],
+  "coral-gardens-oudekraal/inshore-pinnacle": [
+    {
+      "name": "Coral Gardens western cove entry point",
+      "lon": 18.348683,
+      "lat": -33.98745
+    }
+  ],
+  "coral-gardens-rooi-els": [
+    {
+      "name": "Northern pinnacle",
+      "lon": 18.8112,
+      "lat": -34.30195,
+      "text": "12 m."
+    },
+    { "name": "Central pinnacle", "lon": 18.8114, "lat": -34.3021 },
+    { "name": "Southern pinnacle", "lon": 18.811517, "lat": -34.302717 }
+  ],
+  "d-frame": [
+    { "name": "North reef", "lon": 18.464517, "lat": -34.205333 },
+    { "name": "South reef", "lon": 18.466067, "lat": -34.206283 },
+    {
+      "name": "End of deep reef",
+      "lon": 18.468533,
+      "lat": -34.20555,
+      "text": "29 m deep"
+    }
+  ],
+  "duiker-island": [
+    { "name": "G's sandy pool", "lon": 18.328883, "lat": -34.062217 }
+  ],
+  "finlays-point": [
+    {
+      "name": "Finlay's Point Swimthroughs",
+      "lon": 18.476667,
+      "lat": -34.24775,
+      "text": "To the north of the point is a group of 3 big boulders which extend above the water near the shore entry point."
+    }
+  ],
+  "highfields": [
+    { "name": "Highfields bow", "lon": 18.431, "lat": -33.885867 },
+    { "name": "Highfields stern", "lon": 18.430167, "lat": -33.885917 }
+  ],
+  "justins-caves": [
+    {
+      "name": "Justin's Caves swimthrough",
+      "lon": 18.357883,
+      "lat": -33.9808,
+      "text": "Shoreward entrance to the main cave"
+    }
+  ],
+  "kalk-bay-harbour-wall": [
+    {
+      "name": "Kalk Bay Reef",
+      "lon": 18.45208,
+      "lat": -34.13125,
+      "text": "This is the sandstone reef off the point to the south of the harbour."
+    }
+  ],
+  "klein-tafelberg": [
+    { "name": "Yacht Patti wreck", "lon": 18.31975, "lat": -34.07393 },
+    { "name": "Table Top pinnacle", "lon": 18.319633, "lat": -34.07405 },
+    { "name": "42 m sand patch", "lon": 18.320533, "lat": -34.074233 }
+  ],
+  "long-beach-simons-town": [
+    {
+      "name": "Ferroconcrete yacht wreck",
+      "lon": 18.428583,
+      "lat": -34.187317
+    },
+    { "name": "Wooden launch wreck", "lon": 18.427533, "lat": -34.1862 }
+  ],
+  "mv-daeyang-family": [
+    {
+      "name": "MV Daeyang Family - not a lifeboat wreck",
+      "lon": 18.386583,
+      "lat": -33.840267,
+      "text": "There is the relatively intact wreck of an 18 m long vessel with a relatively large deck opening to the east of the main wreckage, which was thought to be a lifeboat, but further investigations suggest that it is more likely a lighter or barge, considerably older than the Daeyang Family, and wrecked previously."
+    }
+  ],
+  "mv-katsu-maru": [
+    { "name": "Bow of the Katsu Maru", "lon": 18.349283, "lat": -34.065283 },
+    { "name": "Stern of the Katsu Maru", "lon": 18.3488, "lat": -34.065067 }
+  ],
+  "mv-rockeater": [
+    { "name": "MV Rockeater wreck (Bow)", "lon": 18.480917, "lat": -34.268917 }
+  ],
+  "mv-treasure": [
+    {
+      "name": "MV Treasure - Bow 32 m drop",
+      "lon": 18.332567,
+      "lat": -33.67405
+    },
+    {
+      "name": "MV Treasure - Midships 27 m drop",
+      "lon": 18.332967,
+      "lat": -33.67287
+    },
+    {
+      "name": "MV Treasure - Propeller 51 m drop",
+      "lon": 18.333033,
+      "lat": -33.67187
+    }
+  ],
+  "percys-hole": [
+    {
+      "name": "Percy's Hole swimthrough",
+      "lon": 18.823583,
+      "lat": -34.287917,
+      "text": "The swimt-hrough is a gully with a few very large boulders wedged into the top, covering a spacious swim-through with a bottom of small rounded boulders, which can be reached from both the gully entry and the north entry, with roughly equal convenience, as it is about half way between then."
+    },
+    {
+      "name": "Percy's Hole cave",
+      "lon": 18.824833,
+      "lat": -34.286583,
+      "text": "The cave is most easily reached from the north entry, as a surface swim, as it is at the north end of the second gully from the east on the north side of the cove."
+    },
+    {
+      "name": "Percy's Hole high reef offshore end",
+      "lon": 18.822833,
+      "lat": -34.287917,
+      "text": "This is easily accessible by boat. Just drop in at the mark. For shore access it is a moderately long swim and usually a waypoint on a swim round the high reef, often via the tunnel swim-through."
+    }
+  ],
+  "photographers-reef": [
+    {
+      "name": "JJM Junior reef",
+      "lon": 18.45765,
+      "lat": -34.19785,
+      "text": "This is a low reef about 30 m across the sand to the south of Photographer's. It is about 8.5 m deep on top, and is fairly flat, with no spectacular features. The area is similar to Photographer's Reef."
+    },
+    {
+      "name": "North Photographer's Reef",
+      "lon": 18.456567,
+      "lat": -34.19585,
+      "text": "A low reef to the north. It is also relatively flat and rises gradually from about 13 m on the sand to about 9 m at the shallowest point."
+    },
+    {
+      "name": "Compass Reef",
+      "lon": 18.456233,
+      "lat": -34.198316,
+      "text": "The reef to the south west is \"Compass Reef\", and it is mostly relatively low and made up of a number of quite small outcrops, except for a section of fairly high reef at the west side of the area, this extends up from the sand bottom at about 8 to 9 m to shallower than 6 m."
+    }
+  ],
+  "pie-rock-and-outer-castle-reefs/east-pie-rock-reef": [
+    {
+      "name": "East Pie Rock Reef, Eastern pinnacle",
+      "lon": 18.485833,
+      "lat": -34.240117,
+      "text": "Top at 12 m, a small cluster of tall pinnacles with deep cracks between them, with sand edge nearby to the northeast at about 24 to 24 m."
+    }
+  ],
+  "rocky-bay": [
+    {
+      "name": "Gully entry point for shore dive",
+      "lon": 18.81855,
+      "lat": -34.189883,
+      "text": "Shore dive from the gully: Park on the verge of the seaward side of the road above the inlet to the north east of the resort at Steenbras River mouth. It is quite a hike down to water, but not difficult."
+    }
+  ],
+  "sas-fleur": [
+    { "name": "SAS Fleur wreck (Bow)", "lon": 18.56505, "lat": -34.180767 },
+    { "name": "SAS Fleur wreck (Stern)", "lon": 18.564783, "lat": -34.180333 }
+  ],
+  "sas-transvaal": [
+    { "name": "SAS Transvaal bow", "lon": 18.479633, "lat": -34.265933 }
+  ],
+  "sherwood-forest": [
+    {
+      "name": "Sherwood Forest West Pinnacles",
+      "lon": 18.483567,
+      "lat": -34.2531
+    },
+    {
+      "name": "Sherwood Forest East Pinnacles",
+      "lon": 18.484167,
+      "lat": -34.253033
+    }
+  ],
+  "smits-reef/batsata-maze": [
+    {
+      "name": "Maze Cave",
+      "lon": 18.483767,
+      "lat": -34.275283,
+      "text": "Main entrance to the cave swim-through"
+    }
+  ],
+  "ss-oakburn-and-bos-400": [
+    {
+      "name": "BOS 400",
+      "lon": 18.30895,
+      "lat": -34.036933,
+      "text": "On the north shore of Duiker Point."
+    }
+  ],
+  "surg-pinnacles": [
+    {
+      "name": "Northern pinnacles",
+      "lon": 18.3003,
+      "lat": -34.0391333,
+      "text": "Centre of northern group"
+    }
+  ],
+  "whittle-rock/northwest-pinnacle": [
+    {
+      "name": "Cathedral Pinnacle",
+      "lon": 18.560583,
+      "lat": -34.245383,
+      "text": "A large boulder, 18 m deep on top, at the end of a small ridge overlooking a small sandy strip with scattered small boulders on the northern slope of the main reef."
+    },
+    {
+      "name": "Kelly's anchor",
+      "lon": 18.5602,
+      "lat": -34.244783,
+      "text": "A large iron anchor without a stock at about 32 m depth, on boulders and sand, north part of the main reef."
+    },
+    {
+      "name": "Riaan and Sven's anchor",
+      "lon": 18.559833,
+      "lat": -34.245583,
+      "text": "On the main reef, said to be about 20 m east of the mark at 18 m depth, described as unusually large."
+    },
+    {
+      "name": "September anchor",
+      "lon": 18.559583,
+      "lat": -34.246033,
+      "text": "A large iron anchor at 15 m depth on the northwestern ridge of the main reef."
+    },
+    {
+      "name": "Little anchor",
+      "lon": 18.5611,
+      "lat": -34.246417,
+      "text": "A smaller iron anchor on the main reef, at 18 m depth."
+    }
+  ],
+  "whittle-rock/whittle-rock": [
+    {
+      "name": "Northeastern Pinnacle and Euphrates Gully area",
+      "lon": 18.563167,
+      "lat": -34.24645
+    },
+    {
+      "name": "JJ's anchor",
+      "lon": 18.562,
+      "lat": -34.24635,
+      "text": "A large anchor with iron stock at 17 m depth, on the Euphrates Rise."
+    },
+    {
+      "name": "Billy's anchor",
+      "lon": 18.562233,
+      "lat": -34.246283,
+      "text": "A large anchor \"much like the Euphtrates anchors\" on the Euphrates Rise, at 19 m depth. This is quite close to JJ's anchor, so it is possible they are the same anchor, but far enough for doubt."
+    },
+    {
+      "name": "Euphrates anchor (west)",
+      "lon": 18.563167,
+      "lat": -34.246383,
+      "text": "At about 24 m depth, on rocky bottom."
+    },
+    {
+      "name": "Euphrates anchor (central)",
+      "lon": 18.56325,
+      "lat": -34.246383,
+      "text": "At about 25 m depth, on sand"
+    },
+    {
+      "name": "Euphrates anchor (east)",
+      "lon": 18.56335,
+      "lat": -34.246267,
+      "text": "At about 25 m depth, on sand"
+    },
+    {
+      "name": "Marc's anchor",
+      "lon": 18.56193,
+      "lat": -34.2476,
+      "text": "A large iron anchor without a stock lying flat at 14.5 m depth on the flat rock of the main reef, near the 5 m pinnacle, and well camouflaged by encrusting growth."
+    }
+  ],
+  "whittle-rock/shards-cluster": [
+    {
+      "name": "Victor's chain",
+      "lon": 18.561533,
+      "lat": -34.24595,
+      "text": "A length of heavy open link mooring chain on the northeastern slope between The Shards and the Euphrates rise at a depth range of approximately 20 to 23 m."
+    }
+  ],
+  "whittle-rock/west-pinnacle": [
+    {
+      "name": "Bruce's anchor",
+      "lon": 18.56145,
+      "lat": -34.248067,
+      "text": "A small steel anchor, firmly stuck in a small space between a few large boulders at the north side of the Eastern Sand Tongue at a depth of about 24 m. Not easy to see unless you swim right over it."
+    }
+  ],
+  "whittle-rock/southeast-pinnacle": [
+    {
+      "name": "Southeast pinnacle chain (Neptune's bath plug)",
+      "lon": 18.56255,
+      "lat": -34.248617,
+      "text": "A heavy, slightly dished, metal disc, somewhat less than a metre in diameter, with a central lug shackled to the end of a length of heavy chain, known as Neptune's bathplug, on the sand on the north side of the big Eastern Sand Tongue."
+    }
+  ],
+  "whittle-rock/table-top-pinnacle": [
+    {
+      "name": "Table Top anchor",
+      "lon": 18.560883,
+      "lat": -34.249517,
+      "text": "A small anchor at the base of the Table Top pinnacle on the southwest side, near the sandy strip, at approximately 26 m"
+    }
+  ],
+  "windmill-offshore-reefs/windmill-offshore": [
+    {
+      "name": "SUEX Reef",
+      "lon": 18.46475,
+      "lat": -34.20233,
+      "text": "A long, narrow pair of straight parallel ridges with a narrow strip of sand between them. Not very high, but with a couple of higher boulders or outcrops. Fairly unmistakable appearance."
+    }
+  ]
+}

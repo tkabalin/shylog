@@ -567,7 +567,10 @@
   },
   "Rocky Bay": {
     "said": "Shore dive from the gully",
-    "access": "both"
+    "access": "both",
+    "features": {
+      "Gully entry point for shore dive": "rocky-bay"
+    }
   },
   "Roman Rock": {
     "said": "This site is always dived from a boat",
@@ -833,7 +836,15 @@
   },
   "Whittle Rock": {
     "said": "The sites are only accessible by boat.",
-    "access": "boat"
+    "access": "boat",
+    "features": {
+      "Euphrates anchor (west)": "whittle-rock/whittle-rock",
+      "Euphrates anchor (central)": "whittle-rock/whittle-rock",
+      "Euphrates anchor (east)": "whittle-rock/whittle-rock",
+      "Northeastern Pinnacle and Euphrates Gully area": "whittle-rock/whittle-rock",
+      "Victor's chain": "whittle-rock/shards-cluster",
+      "Southeast pinnacle chain (Neptune's bath plug)": "whittle-rock/southeast-pinnacle"
+    }
   },
   "Wilhelm's Wall": {
     "said": "This site is only dived from a boat, as it is dangerously far offshore and there is no road access to the adjacent shore.",

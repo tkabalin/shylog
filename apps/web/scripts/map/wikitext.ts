@@ -173,6 +173,42 @@ export function markers(wikitext: string) {
   return found
 }
 
+// A page's own {{marker}}s for the features inside its sites (a pinnacle, a
+// swim-through, a wreck's bow, the entry point), where a name with no link
+// isn't another site, with the rest of the marker's line, which says what
+// it is.
+export type Feature = { name: string; lon: number; lat: number; after: string }
+export function features(wikitext: string) {
+  const text = uncomment(wikitext)
+  const found: Feature[] = []
+  const all = spans(text, "{{", "}}").map(([start, end]) => ({
+    start,
+    end,
+    ...template(text.slice(start + 2, end - 2)),
+  }))
+  all.forEach(({ end, name, args }, i) => {
+    const label = args.name ?? ""
+    if (name !== "marker" || !["do", "see"].includes(args.type ?? "")) return
+    if (!label || label.includes("[[")) return
+    const lon = Number(args.long)
+    const lat = Number(args.lat)
+    if (!Number.isFinite(lon) || !Number.isFinite(lat) || !lon || !lat) return
+    // Up to the next marker on its line, which says what that one is.
+    const line = text.indexOf("\n", end)
+    const next = all.slice(i + 1).find((each) => each.name === "marker")?.start
+    found.push({
+      name: decode(plain(quotes(label))),
+      lon,
+      lat,
+      after: text.slice(
+        end,
+        Math.min(next ?? text.length, line < 0 ? text.length : line)
+      ),
+    })
+  })
+  return found
+}
+
 // The pages a text links in the guide, by their full titles.
 export function guideLinks(wikitext: string) {
   const found = new Set<string>()

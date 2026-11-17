@@ -193,6 +193,17 @@ describe("get_map_site", () => {
     expect(text.split("**Whittle Rock West Pinnacle**")).toHaveLength(2)
   })
 
+  it("lists the features inside a site, where it has some", async () => {
+    const { features } = await get("mv-treasure")
+    expect(features).toContainEqual(
+      // The page writes "51&nbsp;m", as the page text keeps it.
+      expect.objectContaining({
+        name: expect.stringMatching(/Propeller 51\sm/),
+      })
+    )
+    expect(await get("a-frame")).not.toHaveProperty("features")
+  })
+
   it("titles a zone's rule with what bans diving there", async () => {
     expect((await get("anvil-rock/anvil-rock-caves")).zone).toEqual({
       name: "Cape Point abalone area",

@@ -105,7 +105,7 @@ The same process serves an MCP server at `/mcp`, so Claude Code, and Claude Desk
 
 **No deleting.** There are no tools to delete or restore a dive or to delete a site or person. Those stay in the app, where the diver sees what goes.
 
-**Explore's dive sites too.** Two read-only tools search the dive site map's sites by name, area, type, shore or boat access, depth, who may dive there and distance from a point, and give a site's Wikivoyage page as Markdown. They read the same committed files the app ships, imported from the web app and bundled into the server's build, so Claude and the map never disagree. Claude looks the forecast up itself and reads each site's Conditions, which is how "the best shore dive tomorrow" gets answered.
+**Explore's dive sites too.** Two read-only tools search the dive site map's sites by name, area, type, shore or boat access, depth, who may dive there and distance from a point, and give a site's named features (pinnacles, a wreck's bow and stern, the shore entry) and its Wikivoyage page as Markdown. They read the same committed files the app ships, imported from the web app and bundled into the server's build, so Claude and the map never disagree. Claude looks the forecast up itself and reads each site's Conditions, which is how "the best shore dive tomorrow" gets answered.
 
 Who may call it is in [security.md](security.md#the-mcp-endpoint).
 
