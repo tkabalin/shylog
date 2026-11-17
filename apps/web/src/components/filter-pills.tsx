@@ -88,37 +88,39 @@ function FilterSelect({
   )
 }
 
-// The tag pill takes several, which a dive matches if it has any of them.
-// "Any tag" clears the choice, as it does on the single pills. A tag from a
-// link that no dive uses is still listed, so it can be unticked on its own.
-function TagSelect({
+// A pill that takes several, which an item matches if it has any of them:
+// the Log's tags and Explore's site types. Its first option ("Any tag")
+// clears the choice, as it does on the single pills.
+export function MultiFilter<T extends string>({
+  name,
+  any,
+  options,
   value,
-  used,
   onChange,
   onOpenChange,
   onOpenChangeComplete,
+  className,
 }: {
-  value: Tag[]
-  used: ReadonlySet<string>
-  onChange: (value: Tag[]) => void
-  onOpenChange: (open: boolean) => void
-  onOpenChangeComplete: (open: boolean) => void
+  name: string
+  any: string
+  options: { value: T; label: string }[]
+  value: T[]
+  onChange: (value: T[]) => void
+  onOpenChange?: (open: boolean) => void
+  onOpenChangeComplete?: (open: boolean) => void
+  className?: string
 }) {
-  const options = [
-    { value: all, label: "Any tag" },
-    ...(Object.keys(tags) as Tag[])
-      .filter((tag) => used.has(tag) || value.includes(tag))
-      .map((tag) => ({ value: tag, label: tags[tag].label })),
-  ]
-  const labelOf = (tag: Tag) => tags[tag].label
-  // One tag by name, more as "Night + 1", as the dive form's buddy row reads.
+  const items = [{ value: all, label: any }, ...options]
+  const labelOf = (item: T) =>
+    options.find((option) => option.value === item)?.label ?? item
+  // One by name, more as "Night + 1", as the dive form's buddy row reads.
   const text = !value.length
-    ? "Any tag"
+    ? any
     : `${labelOf(value[0]!)}${value.length > 1 ? ` + ${value.length - 1}` : ""}`
   return (
     <Select
       multiple
-      items={options}
+      items={items}
       onOpenChange={onOpenChange}
       onOpenChangeComplete={onOpenChangeComplete}
       value={value.length ? value : [all]}
@@ -126,19 +128,91 @@ function TagSelect({
         onChange(
           next.includes(all) && value.length
             ? []
-            : (next.filter((tag) => tag !== all) as Tag[])
+            : (next.filter((item) => item !== all) as T[])
         )
       }
     >
       <SelectTrigger
         variant="pill"
-        aria-label={`Tag, ${value.map(labelOf).join(", ") || "Any tag"}`}
+        aria-label={`${name}, ${value.map(labelOf).join(", ") || any}`}
         data-active={value.length ? "" : undefined}
+        className={className}
       >
         <SelectValue>{() => text}</SelectValue>
       </SelectTrigger>
-      <FilterMenu options={options} />
+      <FilterMenu options={items} />
     </Select>
+  )
+}
+
+// The tag pill lists only the tags the log uses, and a tag from a link that
+// no dive uses, so it can be unticked on its own.
+function TagSelect({
+  value,
+  used,
+  ...props
+}: {
+  value: Tag[]
+  used: ReadonlySet<string>
+  onChange: (value: Tag[]) => void
+  onOpenChange: (open: boolean) => void
+  onOpenChangeComplete: (open: boolean) => void
+}) {
+  return (
+    <MultiFilter
+      name="Tag"
+      any="Any tag"
+      options={(Object.keys(tags) as Tag[])
+        .filter((tag) => used.has(tag) || value.includes(tag))
+        .map((tag) => ({ value: tag, label: tags[tag].label }))}
+      value={value}
+      {...props}
+    />
+  )
+}
+
+// A multi pill's menu stays open while options are ticked, so Clear folds
+// in or out only once it has closed: the pills moving would slide it under
+// a finger.
+export function useClearShown(filtered: boolean) {
+  const [held, setHeld] = useState<boolean | null>(null)
+  return {
+    shown: held ?? filtered,
+    menu: {
+      onOpenChange: (open: boolean) => {
+        if (open) setHeld(filtered)
+      },
+      onOpenChangeComplete: (open: boolean) => {
+        if (!open) setHeld(null)
+      },
+    },
+  }
+}
+
+// First in a filter row, so it shows without scrolling the row. It keeps
+// its width and fades while the pills after it slide over by transform, so
+// the row never lays out mid-slide as a list commits under it.
+export function ClearFilters({
+  shown,
+  onClear,
+  className,
+}: {
+  shown: boolean
+  onClear: () => void
+  className?: string
+}) {
+  return (
+    <Fold open={shown} appear={false} timing="pill" className="shrink-0">
+      <button
+        type="button"
+        aria-label="Clear filters"
+        onClick={onClear}
+        className={cn(pillTrigger, "pr-2.5 text-foreground", className)}
+      >
+        <IconX aria-hidden />
+        Clear
+      </button>
+    </Fold>
   )
 }
 
@@ -179,10 +253,7 @@ export function FilterPills({
   }, [log])
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch })
   const filtered = Object.values(filters).some((value) => value !== undefined)
-  // The tag menu stays open while tags are picked, so Clear folds in or out
-  // only once it has closed: the pills moving would slide it under a finger.
-  const [held, setHeld] = useState<boolean | null>(null)
-  const any = held ?? filtered
+  const clear = useClearShown(filtered)
   usePreloadRangeSheet()
 
   return (
@@ -191,20 +262,7 @@ export function FilterPills({
       aria-label="Filters"
       className="-mx-4 flex [scrollbar-width:none] gap-1 overflow-x-auto overscroll-x-contain px-3.5 py-1"
     >
-      {/* First, so it shows without scrolling the row. It keeps its width
-          and fades while the pills after it slide over by transform, so the
-          row never lays out mid-slide as the Log's list commits. */}
-      <Fold open={any} appear={false} timing="pill" className="shrink-0">
-        <button
-          type="button"
-          aria-label="Clear filters"
-          onClick={() => onChange({})}
-          className={cn(pillTrigger, "pr-2.5 text-foreground")}
-        >
-          <IconX aria-hidden />
-          Clear
-        </button>
-      </Fold>
+      <ClearFilters shown={clear.shown} onClear={() => onChange({})} />
       <FilterSelect
         name="Year"
         label="All years"
@@ -216,12 +274,7 @@ export function FilterPills({
       <TagSelect
         value={filters.tags ?? []}
         used={choices.tags}
-        onOpenChange={(open) => {
-          if (open) setHeld(filtered)
-        }}
-        onOpenChangeComplete={(open) => {
-          if (!open) setHeld(null)
-        }}
+        {...clear.menu}
         onChange={(tags) => set({ tags: tags.length ? tags : undefined })}
       />
       <FilterSelect

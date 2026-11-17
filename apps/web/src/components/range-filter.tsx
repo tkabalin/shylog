@@ -35,8 +35,10 @@ export function rangeLabel(range: Range, scale: Scale, unit: string) {
 // A Depth or Duration pill, styled like the Log's other filter pills.
 export function RangeFilter({
   icon: Icon,
+  className,
   ...sheet
 }: {
+  className?: string
   label: string
   noun: string
   unit: string
@@ -67,7 +69,7 @@ export function RangeFilter({
           setUsed(true)
           setOpen(true)
         }}
-        className={cn(pillTrigger, "text-foreground")}
+        className={cn(pillTrigger, "text-foreground", className)}
       >
         <Icon aria-hidden />
         {value ? rangeLabel(value, scale, unit) : label}
