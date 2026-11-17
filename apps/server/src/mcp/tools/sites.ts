@@ -20,6 +20,7 @@ import {
   areas,
   fetched,
   siteById,
+  type Access,
   type Area,
   type Site,
   type SiteType,
@@ -34,6 +35,7 @@ const pages = pagesJson as unknown as Record<string, Part[]>
 
 const areaKeys = Object.keys(areas) as [Area, ...Area[]]
 const types = ["reef", "wreck", "fresh"] as const satisfies SiteType[]
+const ways = ["shore", "boat", "both"] as const satisfies Access[]
 const limits = [
   "allowed",
   "business-only",
@@ -55,6 +57,12 @@ const searchInput = z.strictObject({
       `Any of these: ${areaKeys.map((key) => `${key} (${areas[key]})`).join(", ")}`
     ),
   types: z.array(z.enum(types)).optional().describe("Any of these"),
+  access: z
+    .array(z.enum(ways))
+    .optional()
+    .describe(
+      "Any of these, how its page says you get in: shore (usually from the shore), boat, or both (either way, including a boat dive whose page gives a shore entry, which shoreEntry marks as a long swim or a climb where the page calls it hard); pass shore and both for every site dived from the shore. A site whose page doesn't say is left out"
+    ),
   minDepthM: z.number().optional().describe("On the site's max depth"),
   maxDepthM: z
     .number()
@@ -113,6 +121,8 @@ const summary = (site: Site) =>
     name: site.name,
     area: areas[site.area],
     type: site.type,
+    access: site.access,
+    shoreEntry: site.shoreEntry,
     maxDepthM: site.depth,
     approximateDepth: site.approximate,
     diving: divingLimit(site) ?? "allowed",
@@ -137,7 +147,7 @@ export function siteTools(server: McpServer) {
   addTool(server, "search_map_sites", {
     title: "Search the dive site map",
     description:
-      "Find dive sites on the Explore map of the Cape Peninsula and False Bay, from Wikivoyage, by name, area, type, max depth, who may dive there and distance from a point. These are not the log's own sites. Returns one short row per site with its id, which get_map_site takes for the site's full text.",
+      "Find dive sites on the Explore map of the Cape Peninsula and False Bay, from Wikivoyage, by name, area, type, shore or boat access, max depth, who may dive there and distance from a point. These are not the log's own sites. Returns one short row per site with its id, which get_map_site takes for the site's full text.",
     input: searchInput,
     hints: read,
     run(search) {
@@ -153,6 +163,9 @@ export function siteTools(server: McpServer) {
           (site) =>
             (!search.areas?.length || search.areas.includes(site.area)) &&
             (!search.types?.length || search.types.includes(site.type)) &&
+            (!search.access?.length ||
+              (site.access !== undefined &&
+                search.access.includes(site.access))) &&
             (!bounded ||
               (site.depth !== undefined &&
                 site.depth >= (search.minDepthM ?? -Infinity) &&

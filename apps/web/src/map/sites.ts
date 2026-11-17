@@ -6,6 +6,10 @@ import raw from "./sites.geojson?raw"
 
 export type Area = "atlantic" | "false-bay" | "offshore" | "east" | "fresh"
 export type SiteType = "reef" | "wreck" | "fresh"
+// How you get in, as its page says: usually from the shore, by boat, or both,
+// which counts a hard shore entry off a boat dive and says why it's hard.
+export type Access = "shore" | "boat" | "both"
+export type ShoreEntry = "long swim" | "climb"
 
 export type Site = {
   id: string
@@ -16,6 +20,8 @@ export type Site = {
   depth?: number
   approximate?: true
   description?: string
+  access?: Access
+  shoreEntry?: ShoreEntry
   // The Wikivoyage page it comes from, and its section on a shared page;
   // none where the list links a page nobody has written.
   page?: string

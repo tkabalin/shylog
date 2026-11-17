@@ -44,13 +44,15 @@ import {
 // for the Cape Peninsula and False Bay and the pages it links to (CC BY-SA). The
 // revisions read are pinned in wikivoyage.json, so a rebuild reads the same
 // text; `pnpm --filter @shylog/web map:sites --latest` moves the pins to
-// Wikivoyage's newest. site-fixes.json, written by hand, goes on top.
+// Wikivoyage's newest. page-fixes.json and site-fixes.json, written by hand,
+// go on top.
 
 const api = "https://en.wikivoyage.org/w/api.php"
 const listTitle = `${guide}/Dive sites`
 const cache = join(import.meta.dirname, ".cache/wikivoyage")
 const pinsPath = join(import.meta.dirname, "wikivoyage.json")
 const fixesPath = join(import.meta.dirname, "site-fixes.json")
+const pageFixesPath = join(import.meta.dirname, "page-fixes.json")
 const sitesPath = join(import.meta.dirname, "../../src/map/sites.geojson")
 const pagesPath = join(import.meta.dirname, "../../src/map/pages.json")
 const imagesPath = join(import.meta.dirname, "../../src/map/images.json")
@@ -75,6 +77,8 @@ type Pins = {
 
 // As src/map/sites.ts has it, which imports a ?raw module Node can't read.
 type Area = "atlantic" | "false-bay" | "offshore" | "east" | "fresh"
+type Access = "shore" | "boat" | "both"
+type ShoreEntry = "long swim" | "climb"
 
 type Site = {
   id: string
@@ -84,6 +88,8 @@ type Site = {
   depth?: number
   approximate?: true
   description?: string
+  access?: Access
+  shoreEntry?: ShoreEntry
   page: string
   section?: string
   // A site of its own on a page it shares, which has a part of that page.
@@ -101,6 +107,9 @@ type Fix = {
   approximate?: true
   type?: Kind
   description?: string
+  // Where a site's way in differs from the rest of its page's.
+  access?: Access
+  shoreEntry?: ShoreEntry
   // Where the list's position has a typo, as [longitude, latitude]; also
   // where its printed position is the typo, so the refresh stops warning.
   position?: [number, number]
@@ -295,8 +304,18 @@ function kindOf(lead: string, marker: Marker, area: Area, own = false): Kind {
   return leadKind(lead)
 }
 
+// What a page says for all its sites, read from it by hand: how you get in,
+// usually from the shore, by boat, or both, which counts any shore entry the
+// page gives off a boat dive, with why it's hard where the page says so; null
+// for the aquarium's tanks.
+type PageFix = { said: string; access: Access | null; shoreEntry?: ShoreEntry }
+
 const { pins, list, pages: revisions, written } = await read()
 const fixes = JSON.parse(readFileSync(fixesPath, "utf8")) as Record<string, Fix>
+const pageFixes = JSON.parse(readFileSync(pageFixesPath, "utf8")) as Record<
+  string,
+  PageFix
+>
 const raw = new Map(revisions.map((each) => [subpage(each.title), each.text]))
 
 // The page a link lands on, and the section where a redirect names one.
@@ -562,6 +581,29 @@ for (const site of sites) {
   if (!site.description) delete site.description
 }
 
+// A read whose words have gone, or a page nobody has read yet, needs reading.
+for (const [name, fix] of Object.entries(pageFixes)) {
+  const words = pageWords.get(name)
+  if (words === undefined)
+    throw new Error(`A page fix for ${name}, which isn't a page`)
+  if (!words.includes(fix.said.replace(/\s+/g, " "))) {
+    console.warn(`${name}: the page no longer says "${fix.said}"`)
+  }
+}
+for (const [name, parts] of Object.entries(pageText)) {
+  const text = parts.map((part) =>
+    typeof part === "string" ? part : part.text
+  )
+  if (!(name in pageFixes) && /^## Get in$/m.test(text.join("\n"))) {
+    console.warn(`${name}: no one has read how you get in`)
+  }
+}
+for (const site of sites) {
+  const { access, shoreEntry } = pageFixes[site.page] ?? {}
+  if (access) site.access = access
+  if (shoreEntry) site.shoreEntry = shoreEntry
+}
+
 for (const [id, fix] of Object.entries(fixes)) {
   const site = sites.find((each) => each.id === id)
   if (!site) throw new Error(`A fix for ${id}, which isn't a site`)
@@ -581,6 +623,9 @@ for (const [id, fix] of Object.entries(fixes)) {
     !approximate === !site.approximate
   ) {
     console.warn(`${id}: the fix's depth is what the page gives`)
+  }
+  if (rest.access !== undefined && rest.access === site.access) {
+    console.warn(`${id}: the fix's way in is what its page fix gives`)
   }
   Object.assign(site, rest)
   if (depth === null) {
@@ -624,6 +669,8 @@ const features = sites.map((site) => {
       depth,
       description,
       approximate: site.approximate,
+      access: site.access,
+      shoreEntry: site.shoreEntry,
     },
   })
 })

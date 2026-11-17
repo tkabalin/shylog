@@ -24,6 +24,7 @@ describe("search_map_sites", () => {
         name: "A-Frame",
         area: "False Bay coast",
         type: "reef",
+        access: "shore",
         maxDepthM: site.depth,
         diving: "allowed",
         zone: "Boulders no-take zone",
@@ -53,6 +54,20 @@ describe("search_map_sites", () => {
     expect(
       (await search({ name: "ben's reef", maxDepthM: 100 })).sites
     ).toHaveLength(0)
+  })
+
+  it("filters by how its page says you get in", async () => {
+    const shore = await search({ access: ["shore"], limit: 200 })
+    expect(shore.sites.map((site) => site.id)).toContain("a-frame")
+    expect(shore.sites.every((site) => site.access === "shore")).toBe(true)
+    const either = await search({ access: ["shore", "both"], limit: 200 })
+    expect(either.sites.length).toBeGreaterThan(shore.sites.length)
+    // Noble Reef is a boat dive off Rocky Bay's shore entry.
+    expect(siteById.get("rocky-bay")!.access).toBe("both")
+    expect(siteById.get("rocky-bay/noble-reef")!.access).toBe("boat")
+    // A boat dive whose page gives a long swim from the shore is both.
+    const [dFrame] = (await search({ name: "d-frame" })).sites
+    expect(dFrame).toMatchObject({ access: "both", shoreEntry: "long swim" })
   })
 
   it("filters by who may dive there", async () => {

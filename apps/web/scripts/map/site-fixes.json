@@ -7,6 +7,11 @@
     "said": "S34°18.526’ E018°48.815’",
     "position": [18.813583, -34.308767]
   },
+  "bantry-bay/bantry-bay-pinnacles": {
+    "said": "The pinnacles will usually be accessed by boat, but could be done from a shore entry.",
+    "access": "both",
+    "shoreEntry": "long swim"
+  },
   "batsata-rock/batsata-rock": {
     "said": "Batsata Rock: S34°16.602’ E018°28.830’",
     "position": [18.481, -34.2767]
@@ -55,6 +60,11 @@
   "colebrooke": {
     "said": "S34°13.871' E18°50.588'",
     "position": [18.843133, -34.231183]
+  },
+  "coral-gardens-oudekraal/colins-pinnacle": {
+    "said": "The offshore pinnacles are more suitable for boat diving, as the swim from the entry point is long",
+    "access": "both",
+    "shoreEntry": "long swim"
   },
   "cow-and-calf/stone-dog": {
     "said": "Stone Dog: S34°10.376’ E018°50.183’",
@@ -122,7 +132,11 @@
     "position": [18.608267, -34.415483]
   },
   "rocky-bay/noble-reef": {
-    "said": "S34°11.332’ E018°48.934’",
+    "said": [
+      "Usually a boat dive as finding it from a shore entry is largely a matter of luck without a GPS.",
+      "S34°11.332’ E018°48.934’"
+    ],
+    "access": "boat",
     "position": [18.815567, -34.188867]
   },
   "sas-good-hope": {
