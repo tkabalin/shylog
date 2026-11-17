@@ -83,6 +83,7 @@ import {
 import { months } from "@/format/dates"
 import { depth } from "@/format/figures"
 import { useDesk } from "@/hooks/use-desk"
+import { readKept, useKeptForm } from "@/lib/kept"
 import { useHoldUpdate } from "@/update"
 
 import { PageBar, useBack } from "./bar"
@@ -120,6 +121,23 @@ function valuesOf(log: LogView, kind: EntityKind, id: string): Values {
     bodyOfWater: (site?.bodyOfWater as BodyOfWater | null) ?? null,
     waterType: (site?.waterType as WaterType | null) ?? null,
   }
+}
+
+// A phone's unsaved edit, with the saved values it was typed over.
+interface Kept {
+  base: Values
+  values: Values
+}
+
+// Values of this shape: an app update could have changed what they hold.
+const isValues = (values: unknown): values is Values => {
+  const each = values as Record<keyof Values, unknown> | null
+  return (
+    typeof each?.name === "string" &&
+    (["countryCode", "regionId", "bodyOfWater", "waterType"] as const).every(
+      (field) => each[field] === null || typeof each[field] === "string"
+    )
+  )
 }
 
 // What each kind's request may carry.
@@ -167,7 +185,18 @@ export function EntityDetail({
   const desk = useDesk()
   const label = kindLabels[kind]
   const saved = valuesOf(log, kind, id)
-  const [values, setValues] = useState(saved)
+  // On a phone, edits left unsaved come back, unless the entity has changed
+  // since they were typed over it, which they mustn't silently undo.
+  const keptKey = `entity:${kind}:${id}`
+  const [values, setValues] = useState(
+    () =>
+      readKept<Kept>(
+        keptKey,
+        (kept) =>
+          isValues(kept.values) &&
+          JSON.stringify(kept.base) === JSON.stringify(saved)
+      )?.values ?? saved
+  )
   const [base, setBase] = useState(saved)
   const [sheet, setSheet] = useState<Sheet>(null)
   const [busy, setBusy] = useState(false)
@@ -181,6 +210,14 @@ export function EntityDetail({
   const leaving = useRef(false)
   const [leave, setLeave] = useState<Leave | null>(null)
   useHoldUpdate(changed)
+  // A desktop asks before leaving instead (LeaveGuard below).
+  const forget = useKeptForm<Kept>(
+    keptKey,
+    useMemo(
+      () => (!desk && changed ? { base, values } : null),
+      [desk, changed, base, values]
+    )
+  )
   // A sync that changes it shows the change unless something is typed.
   if (!changed && JSON.stringify(saved) !== JSON.stringify(base)) {
     setBase(saved)
@@ -298,6 +335,7 @@ export function EntityDetail({
     )
       return
     leaving.current = true
+    forget()
     if (!goBack())
       void router.navigate({
         to: "/you/entities",
@@ -369,6 +407,7 @@ export function EntityDetail({
       // Away before the sync takes this one out of the log.
       await mergeEntity(kind, id, conflict.id, { settle: false })
       leaving.current = true
+      forget()
       void router.navigate({
         to: "/you/entities/$kind/$id",
         params: { kind, id: conflict.id },
@@ -387,6 +426,7 @@ export function EntityDetail({
     try {
       await deleteEntity(kind, id, { settle: false })
       leaving.current = true
+      forget()
       // Back to the list it was opened from, or a fresh one.
       if (!goBack())
         void router.navigate({

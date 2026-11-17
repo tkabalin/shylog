@@ -55,6 +55,36 @@ test("renames a site with Save @writes", async ({ page, restore }) => {
   await expect(page).toHaveURL(/\/you\/entities\?/)
 })
 
+// A phone can't ask before iOS's back swipe leaves, so what was typed is kept
+// for the session instead, until Save.
+const kept = (page: Page, key: string) =>
+  page.evaluate((key) => sessionStorage.getItem(`shylog-kept:${key}`), key)
+
+test("keeps an unsaved rename through Back and a reload, until Save @writes", async ({
+  page,
+  restore,
+}) => {
+  const name = `E2E Site ${unique()}`
+  const id = await newSite(page, restore, name)
+  await page.goto(`/you/entities?kind=site&q=${encodeURIComponent(name)}`)
+  const link = page.getByRole("link", { name: new RegExp(`^${name},`) })
+  await link.click()
+  await page.getByLabel("Name").fill(`${name} Kept`)
+  await expect.poll(() => kept(page, `entity:site:${id}`)).not.toBeNull()
+  await page.goBack()
+  await expect(page).toHaveURL(/\/you\/entities\?/)
+
+  await link.click()
+  await expect(page.getByLabel("Name")).toHaveValue(`${name} Kept`)
+  await page.reload()
+  await expect(page.getByLabel("Name")).toHaveValue(`${name} Kept`)
+  await page.getByRole("button", { name: "Save", exact: true }).click()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    `${name} Kept`
+  )
+  await expect.poll(() => kept(page, `entity:site:${id}`)).toBeNull()
+})
+
 test("lists the Unknown site only with a dive at it, and never changes it @writes", async ({
   page,
   restore,
@@ -125,6 +155,8 @@ test("offers Merge instead for a rename that collides @writes", async ({
   )
   const log = await getLog(page.request)
   expect(log.sites.some((site) => site.id === other)).toBe(false)
+  // The rename typed over it goes with it.
+  expect(await kept(page, `entity:site:${other}`)).toBeNull()
 })
 
 test("merges a duplicate, moving its dives @writes", async ({
@@ -234,14 +266,18 @@ test("deletes a person nothing uses @writes", async ({ page, restore }) => {
   const id = await newPerson(page, restore, name)
   await page.goto(`/you/entities?kind=person&q=${encodeURIComponent(name)}`)
   await page.getByRole("link", { name: new RegExp(`^${name}`) }).click()
+  // Typed over but deleted, it isn't kept to come back.
+  await page.getByLabel("Name").fill(`${name} typed`)
+  await expect.poll(() => kept(page, `entity:person:${id}`)).not.toBeNull()
   await page.getByRole("button", { name: "Delete person" }).click()
-  const ask = page.getByRole("alertdialog", { name: `Delete ${name}?` })
+  const ask = page.getByRole("alertdialog", { name: /^Delete E2E Person/ })
   await still(ask)
   await ask.getByRole("button", { name: "Delete person" }).click()
   // Back to the list it was opened from.
   await expect(page).toHaveURL(/\/you\/entities\?kind=person/)
   const log = await getLog(page.request)
   expect(log.people.some((person) => person.id === id)).toBe(false)
+  expect(await kept(page, `entity:person:${id}`)).toBeNull()
 })
 
 test("won't delete a person a dive uses, and says why @writes", async ({
@@ -352,6 +388,68 @@ test("makes a trip from You with its dives @writes", async ({
   // The saved trip took the form's place, so Back returns to the list.
   await page.goBack()
   await expect(page).toHaveURL(/\/you\/entities\?kind=trip/)
+})
+
+test("keeps a new trip through Back and a reload, until Save @writes", async ({
+  page,
+  restore,
+}) => {
+  const name = `E2E Trip ${unique()}`
+  const {
+    label: sameDay,
+    ids: [first],
+  } = await twoDiveDay(page)
+  restore(async (request) => {
+    for (const trip of (await getLog(request)).trips)
+      if (trip.name === name) await deleteEntity(request, "trip", trip.id)
+  })
+
+  await page.goto("/you/entities?kind=trip")
+  const start = page.getByRole("link", { name: "New trip" })
+  await start.click()
+  await page.getByLabel("Name").fill(name)
+  await page.getByRole("button", { name: "Choose dives" }).click()
+  const sheet = page.getByRole("dialog")
+  await still(sheet)
+  await sheet.getByRole("button", { name: `Select all on ${sameDay}` }).click()
+  await sheet.getByRole("button", { name: "Done" }).click()
+  await expect(sheet).toHaveCount(0)
+  await expect.poll(() => kept(page, "new-entity:trip")).toContain(first)
+  await page.goBack()
+  await expect(page).toHaveURL(/\/you\/entities\?kind=trip/)
+
+  const dives = page.getByRole("region", { name: "Dives" }).getByText(sameDay)
+  await start.click()
+  await expect(page.getByLabel("Name")).toHaveValue(name)
+  await expect(dives).toHaveCount(2)
+  await page.reload()
+  await expect(page.getByLabel("Name")).toHaveValue(name)
+  await expect(dives).toHaveCount(2)
+
+  // Its id was used by a save whose answer never came, and that trip has
+  // since been deleted: Save says so rather than undo the delete, and a
+  // second Save makes a new one.
+  const { id } = JSON.parse((await kept(page, "new-entity:trip"))!) as {
+    id: string
+  }
+  await putEntity(page.request, "trip", id, { name })
+  await deleteEntity(page.request, "trip", id)
+  const save = page.getByRole("button", { name: "Save", exact: true })
+  await save.click()
+  await expect(page.getByText("This trip was deleted")).toBeVisible()
+  await expect.poll(() => kept(page, "new-entity:trip")).not.toContain(id)
+  await save.click()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(name)
+  const made = new URL(page.url()).pathname.split("/").at(-1)
+  expect(made).not.toBe(id)
+  expect(await kept(page, "new-entity:trip")).toBeNull()
+  const log = await getLog(page.request)
+  expect(log.dives.find((dive) => dive.id === first)?.tripId).toBe(made)
+
+  // Forgotten once saved, a new trip starts empty.
+  await page.goBack()
+  await start.click()
+  await expect(page.getByLabel("Name")).toHaveValue("")
 })
 
 test("adds a person to dives in the role chosen @writes", async ({

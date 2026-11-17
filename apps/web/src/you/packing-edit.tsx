@@ -42,7 +42,14 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 import { OfflineMark } from "@/components/offline-mark"
-import { savePacking } from "@/data/packing"
+import { currentLog } from "@/data/log"
+import {
+  keptListKey,
+  savePacking,
+  type KeptList,
+  type PackingRow as Row,
+  type PackingSection as Section,
+} from "@/data/packing"
 import { useConnected } from "@/data/sync-status"
 import { ErrorLine } from "@/dive/form/rows"
 import { useDesk } from "@/hooks/use-desk"
@@ -52,19 +59,13 @@ import {
   naturalStart,
   useDragOrder,
 } from "@/lib/drag-order"
+import { useKeptForm } from "@/lib/kept"
 import { isReturn } from "@/lib/keys"
 import { useHoldUpdate } from "@/update"
 
 import { PageBar } from "./bar"
 import { SaveFailure } from "./parts"
 
-interface Row {
-  id: string
-  name: string
-}
-interface Section extends Row {
-  items: Row[]
-}
 type Kind = "item" | "section"
 
 // What the rows do, the same functions for the screen's life, so a row
@@ -136,10 +137,13 @@ const keep =
 // section. Nothing is saved until Done sends the list whole.
 export function EditList({
   packing,
+  kept,
   back,
   onClose,
 }: {
   packing: Packing
+  // The rows a phone left unsaved, edited from this same list.
+  kept?: Section[]
   back: ComponentProps<typeof PageBar>["back"]
   onClose: () => void
 }) {
@@ -149,7 +153,11 @@ export function EditList({
   // The list as Edit opened it, which Done compares with: a sync's newer
   // list mustn't read as an edit, or Done would put the old one back.
   const [opened, setOpened] = useState(packing)
-  const [sections, setSections] = useState(() => rowsOf(packing))
+  const [sections, setSections] = useState(() => kept ?? rowsOf(packing))
+  // Kept rows were checked against the phone's copy, which a sync can still
+  // overtake; until edited again they'd undo that newer list, so they go.
+  // Once edited, they stay, and Done refuses to send them over it.
+  const [fromKept, setFromKept] = useState(!!kept)
   // The list as last set, which a drag reads between renders.
   const latest = useRef(sections)
   useLayoutEffect(() => {
@@ -158,13 +166,18 @@ export function EditList({
   const update = (next: Section[]) => {
     latest.current = next
     setSections(next)
+    setFromKept(false)
   }
   // Until something is touched, a sync's newer list replaces the one shown.
   const touched = useMemo(
     () => JSON.stringify(sections) !== JSON.stringify(opened.sections),
     [sections, opened]
   )
-  if (!touched && JSON.stringify(packing) !== JSON.stringify(opened)) {
+  if (
+    (!touched || fromKept) &&
+    JSON.stringify(packing) !== JSON.stringify(opened)
+  ) {
+    setFromKept(false)
     setOpened(packing)
     setSections(rowsOf(packing))
   }
@@ -188,6 +201,20 @@ export function EditList({
     [sections, opened]
   )
   useHoldUpdate(changed)
+  // On a phone, changes are kept as they are made, so leaving by a swipe
+  // or a tab loses nothing; a desktop asks first (LeaveGuard below). Done
+  // and Cancel drop them.
+  const forget = useKeptForm<KeptList>(
+    keptListKey,
+    useMemo(
+      () => (!desk && changed ? { opened, sections } : null),
+      [desk, changed, opened, sections]
+    )
+  )
+  const finish = () => {
+    forget()
+    onClose()
+  }
 
   const inputs = useRef(new Map<string, HTMLInputElement>())
   const nodes = useRef(new Map<string, HTMLElement>())
@@ -354,14 +381,21 @@ export function EditList({
       return
     }
     if (JSON.stringify(tidy.packing) === JSON.stringify(opened)) {
-      onClose()
+      finish()
       return
     }
+    // The whole list is sent, so saving over another device's newer one
+    // would undo it.
+    const now = currentLog()?.packing
+    const changedElsewhere =
+      !!now && JSON.stringify(now) !== JSON.stringify(opened)
     setBusy(true)
     setFailure(undefined)
     try {
+      if (changedElsewhere)
+        throw new Error("The list changed on another device")
       await savePacking(tidy.packing)
-      onClose()
+      finish()
     } catch (error) {
       flushSync(() => {
         setFailure(error instanceof Error ? error.message : String(error))
@@ -546,7 +580,7 @@ export function EditList({
   // Not while Done saves, or the edited list would land after Cancel had
   // shown the old one.
   const close = () => {
-    if (!busy) onClose()
+    if (!busy) finish()
   }
   const cancel = desk ? (
     <Button variant="outline" aria-disabled={busy} onClick={close}>
@@ -678,15 +712,19 @@ export function EditList({
           document.body
         )}
 
-      {/* The tabs and the desktop sidebar stay in reach in Edit mode, so
-          leaving through them with changes asks first; Cancel drops them. */}
-      <LeaveGuard when={() => changed} onBlock={setLeave} />
-      <DiscardSheet
-        open={leave != null}
-        note="Your changes to the packing list will be lost."
-        onKeep={keepEditing}
-        onDiscard={discardEdits}
-      />
+      {/* The desktop sidebar stays in reach in Edit mode, so leaving
+          through it with changes asks first; Cancel drops them. */}
+      {desk && (
+        <>
+          <LeaveGuard when={() => changed} onBlock={setLeave} />
+          <DiscardSheet
+            open={leave != null}
+            note="Your changes to the packing list will be lost."
+            onKeep={keepEditing}
+            onDiscard={discardEdits}
+          />
+        </>
+      )}
       <DeleteSection
         // Kept as it closes, so its words don't empty while it slides away.
         section={doomed}
