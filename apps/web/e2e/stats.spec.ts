@@ -201,6 +201,43 @@ test("the bars and strips have table alternatives", async ({ page }) => {
   ).toHaveCount(9)
 })
 
+// Its placeholders stay blank until a wait passes 150 ms, so a skeleton
+// shown in the screen's first 100 ms is a flash, however slow the frames
+// are. Run in the page, from before its scripts or from when it's called.
+function watchSkeletons() {
+  let opened = 0
+  new MutationObserver(() => {
+    const now = performance.now()
+    const headings = [...document.querySelectorAll("h1")]
+    if (!opened && headings.some((h) => h.textContent === "Statistics"))
+      opened = now
+    if (
+      opened &&
+      now - opened < 100 &&
+      document.querySelector("[data-slot=skeleton]:not(.invisible *)")
+    )
+      Object.assign(window, { skeleton: "seen" })
+  }).observe(document, { subtree: true, childList: true, attributes: true })
+}
+const skeleton = (page: Page) =>
+  page.evaluate(() => (window as { skeleton?: string }).skeleton)
+
+test("opens from the Log with no skeleton", async ({ page }) => {
+  await page.goto("/")
+  await expect(header(page)).toContainText("dives logged")
+  await page.evaluate(watchSkeletons)
+  await statsTab(page).click()
+  await expect(page.getByRole("heading", { name: "Depth" })).toBeVisible()
+  expect(await skeleton(page)).toBe(undefined)
+})
+
+test("opens with no skeleton on a fresh start", async ({ page }) => {
+  await page.addInitScript(watchSkeletons)
+  await page.goto("/stats")
+  await expect(page.getByRole("heading", { name: "Depth" })).toBeVisible()
+  expect(await skeleton(page)).toBe(undefined)
+})
+
 test("below five dives shows the totals, records and how far off the rest is", async ({
   page,
   request,

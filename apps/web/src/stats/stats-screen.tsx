@@ -20,6 +20,7 @@ import {
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { useAfter } from "@/chart/load"
 import { NoLog } from "@/components/no-log"
 import { countText } from "@/components/pickers/match"
 import { Progress } from "@/components/progress"
@@ -90,28 +91,7 @@ export function StatsScreen({
   const painted = usePainted()
   useKeptScroll(painted)
   // Until there is a log, or why there isn't, as the Log tab says it.
-  if (!log)
-    return (
-      <NoLog
-        title="Statistics"
-        skeleton={
-          <div className="flex flex-col gap-6 px-4 pt-3 md:mx-auto md:w-full md:max-w-3xl">
-            {/* The header, the SAC card and the records with their
-                headings, as they will sit, so nothing jumps when they land. */}
-            <div className="flex flex-col gap-2 pt-2">
-              <Skeleton className="h-12 w-44" />
-              <Skeleton className="h-5 w-48" />
-            </div>
-            {["h-[23rem]", "h-96"].map((height) => (
-              <div key={height} className="flex flex-col gap-2">
-                <Skeleton className="mx-1 h-4 w-32" />
-                <Skeleton className={cn("w-full rounded-xl", height)} />
-              </div>
-            ))}
-          </div>
-        }
-      />
-    )
+  if (!log) return <NoLog title="Statistics" skeleton={<StatsSkeleton />} />
   const counted = countedDives(log)
   if (!counted.length) return <NoStats />
   const years = statsYears(counted)
@@ -207,15 +187,60 @@ export function StatsScreen({
   )
 }
 
+// A wait's placeholder, blank at first, as the wait nearly always ends a
+// frame or two later, so a quick one never flashes the sketch; a wait past
+// 150 ms fades it in.
+function Late({
+  className,
+  children,
+}: {
+  className: string
+  children: React.ReactNode
+}) {
+  const late = useAfter(150)
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        className,
+        late
+          ? "animate-appear duration-300 ease-linear"
+          : "invisible [&_[data-slot=skeleton]]:animate-none"
+      )}
+    >
+      {children}
+    </div>
+  )
+}
+
+// The header, the SAC card and the records with their headings, as they
+// will sit, so nothing jumps when they land.
+function StatsSkeleton() {
+  return (
+    <Late className="flex flex-col gap-6 px-4 pt-3 md:mx-auto md:w-full md:max-w-3xl">
+      <div className="flex flex-col gap-2 pt-2">
+        <Skeleton className="h-12 w-44" />
+        <Skeleton className="h-5 w-48" />
+      </div>
+      {["h-[23rem]", "h-96"].map((height) => (
+        <div key={height} className="flex flex-col gap-2">
+          <Skeleton className="mx-1 h-4 w-32" />
+          <Skeleton className={cn("w-full rounded-xl", height)} />
+        </div>
+      ))}
+    </Late>
+  )
+}
+
 // Where the sections below the records go until they render, about their
 // height, so the page's length and a restored scroll position hold.
 function BelowPlaceholder() {
   return (
-    <div aria-hidden className="flex flex-col gap-7">
+    <Late className="flex flex-col gap-7">
       {["h-44", "h-36", "h-96", "h-52"].map((height) => (
         <Skeleton key={height} className={cn("w-full rounded-xl", height)} />
       ))}
-    </div>
+    </Late>
   )
 }
 
@@ -428,7 +453,9 @@ function AirConsumption({
             byNumber={chartAxis === "number"}
           />
         ) : (
-          <Skeleton aria-hidden className="h-42 w-full" />
+          <Late className="h-42 w-full">
+            <Skeleton className="size-full" />
+          </Late>
         )}
         <div className="flex items-center gap-3">
           {/* Each key whole on its line, beside the axis switch. */}

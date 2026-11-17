@@ -567,7 +567,7 @@ A second diver's history is in the PADI app's logbook, which keeps no start time
 
 ## Statistics
 
-The Statistics screen is lazy loaded: its code and charts are split into their own chunk, fetched only when you open it, and figures are computed on first visit then cached until the log changes. The service worker still precaches that chunk, so statistics work offline. A year filter applies to every figure: the year beside the dive count opens a list of All time and each year with a dive, newest first, and the screen opens on All time. The year is kept in the address, so coming back from a record's dive keeps it. Ignored dives are left out of every figure, chart, and pattern (see Ignored dives).
+The Statistics screen is lazy loaded: its code and charts are split into their own chunk, fetched only when you open it, and figures are computed on first visit then cached until the log changes. The SAC chart and the sections below the records draw a frame after the rest of the first screen, each in a blank space at its final size; a skeleton fades in only if the wait passes 150 ms, as it does on the screen before the phone's copy of the log is read. The service worker still precaches that chunk, so statistics work offline. A year filter applies to every figure: the year beside the dive count opens a list of All time and each year with a dive, newest first, and the screen opens on All time. The year is kept in the address, so coming back from a record's dive keeps it. Ignored dives are left out of every figure, chart, and pattern (see Ignored dives).
 
 The chart library is the heavy part, not the maths, so the dive detail's profile chart is lazy loaded the same way. That keeps the log list, the screen you open most, as light as possible.
 
