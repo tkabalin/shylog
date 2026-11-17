@@ -1,13 +1,14 @@
-import { useState } from "react"
+import { memo, useCallback, useState } from "react"
 import { IconArrowBarToDown, IconClock, IconTrash } from "@tabler/icons-react"
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { Fold } from "@/components/fold"
 import { OfflineMark } from "@/components/offline-mark"
 import { countText } from "@/components/pickers/match"
 import { Sparkline } from "@/components/sparkline"
 import type { Dive } from "@/data/db"
-import { useLog, type LogView } from "@/data/log"
+import { useLog } from "@/data/log"
 import { useConnected } from "@/data/sync-status"
 import { profileMaxDepth } from "@/dive/figures"
 import { restore } from "@/dive/restore"
@@ -29,6 +30,15 @@ function DeletedPage() {
   const [shown, setShown] = useState(50)
   // Restoring is an edit to synced data, so it needs the server.
   const connected = useConnected()
+  // The same function every render, so the memoised cards skip the commit
+  // a restore's sync lands in.
+  const onRestore = useCallback(
+    (dive: Dive, restoring: boolean) =>
+      setLeaving((was) =>
+        restoring ? [...was, dive] : was.filter((one) => one.id !== dive.id)
+      ),
+    []
+  )
   if (!loaded) return null
   const deleted = log
     ? [
@@ -72,16 +82,11 @@ function DeletedPage() {
                 <DeletedCard
                   key={dive.id}
                   dive={dive}
-                  log={log}
+                  site={log.sites.get(dive.siteId)?.name}
+                  maxDepth={profileMaxDepth(dive, log.fieldMeta.get(dive.id))}
                   gone={!log.dive.get(dive.id)?.deletedAt}
                   offline={!connected}
-                  onRestore={(restoring) =>
-                    setLeaving((was) =>
-                      restoring
-                        ? [...was, dive]
-                        : was.filter((one) => one.id !== dive.id)
-                    )
-                  }
+                  onRestore={onRestore}
                 />
               ))}
             </section>
@@ -116,23 +121,24 @@ function DeletedPage() {
   )
 }
 
-function DeletedCard({
+const DeletedCard = memo(function DeletedCard({
   dive,
-  log,
+  site,
+  maxDepth,
   gone,
   onRestore,
   offline,
 }: {
   dive: Dive
-  log: LogView
+  site: string | undefined
+  maxDepth: number
   // Restored, and folding away.
   gone: boolean
-  onRestore: (restoring: boolean) => void
+  onRestore: (dive: Dive, restoring: boolean) => void
   offline: boolean
 }) {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
-  const site = log.sites.get(dive.siteId)?.name
   const day = longDate(dive.startTime)
   const open = {
     to: "/dive/$diveId",
@@ -140,96 +146,89 @@ function DeletedCard({
     state: { fromDeleted: true, pushed: true },
   } as const
   return (
-    // A restored card folds away, margin and all, rather than the list
-    // snapping shut under the thumb.
-    <div
-      inert={gone}
-      onTransitionEnd={(event) => {
-        if (event.target === event.currentTarget && gone) onRestore(false)
-      }}
-      className={cn(
-        "grid grid-rows-[1fr] opacity-100 transition-[grid-template-rows,opacity,margin] duration-200 ease-out motion-reduce:transition-opacity",
-        gone && "-mt-2 grid-rows-[0fr] opacity-0"
-      )}
+    // A restored card fades and the cards below slide up into its place,
+    // rather than the list snapping shut under the thumb, then it leaves.
+    <Fold
+      open={!gone}
+      appear={false}
+      timing="row"
+      onFolded={() => onRestore(dive, false)}
     >
-      {/* Room for the card's ring, which the fold would otherwise clip. */}
-      <div className="-m-px min-h-0 overflow-hidden p-px">
-        {/* Tinted while its link is pressed or hovered, as the Log's cards
+      {/* Tinted while its link is pressed or hovered, as the Log's cards
             are; not for Restore, which dims on its own. The link takes the
             card's padding, so a tap anywhere but Restore opens the dive. */}
-        <div className="group/card flex items-stretch rounded-[14px] bg-card pr-3 ring-1 ring-foreground/10 transition-colors duration-100 has-[>a[data-press]]:bg-muted has-[>a[data-press]]:duration-0 [@media(hover:hover)_and_(pointer:fine)]:has-[>a:hover]:bg-muted">
-          <Link
-            {...open}
-            aria-label={`${site}, ${day}. Open`}
-            className="grid min-w-0 flex-1 grid-cols-1 items-center gap-x-3.5 py-3.5 pr-3 pl-4 select-none [-webkit-touch-callout:none] min-[390px]:grid-cols-[minmax(0,1fr)_5rem]"
-          >
-            <span className="flex min-w-0 flex-col gap-0.5">
-              {/* Two lines, so sites that start alike can be told apart. */}
-              <span className="line-clamp-2 text-base font-medium tracking-[-0.015em] [overflow-wrap:anywhere]">
-                {site}
-              </span>
-              <span className="truncate text-[13px] text-muted-foreground tabular-nums">
-                {day}
-              </span>
-              <span className="mt-0.5 flex items-center gap-2.5 text-[13px] whitespace-nowrap text-muted-foreground tabular-nums">
-                <span className="inline-flex items-center gap-1">
-                  <IconArrowBarToDown
-                    role="img"
-                    aria-label="Max depth"
-                    className="size-3.25"
-                  />
-                  {depth(dive.maxDepth)} m
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <IconClock
-                    role="img"
-                    aria-label="Duration"
-                    className="size-3.25"
-                  />
-                  {minutes(dive.duration)} min
-                </span>
-              </span>
+      <div className="group/card flex items-stretch rounded-[14px] bg-card pr-3 ring-1 ring-foreground/10 transition-colors duration-100 has-[>a[data-press]]:bg-muted has-[>a[data-press]]:duration-0 [@media(hover:hover)_and_(pointer:fine)]:has-[>a:hover]:bg-muted">
+        <Link
+          {...open}
+          aria-label={`${site}, ${day}. Open`}
+          className="grid min-w-0 flex-1 grid-cols-1 items-center gap-x-3.5 py-3.5 pr-3 pl-4 select-none [-webkit-touch-callout:none] min-[390px]:grid-cols-[minmax(0,1fr)_5rem]"
+        >
+          <span className="flex min-w-0 flex-col gap-0.5">
+            {/* Two lines, so sites that start alike can be told apart. */}
+            <span className="line-clamp-2 text-base font-medium tracking-[-0.015em] [overflow-wrap:anywhere]">
+              {site}
             </span>
-            {/* Faint, as the board draws it: these dives are out of the log. */}
-            <span className="hidden min-[390px]:block">
-              {dive.sparkline && (
-                <Sparkline
-                  points={dive.sparkline}
-                  maxDepth={profileMaxDepth(dive, log.fieldMeta.get(dive.id))}
-                  stretch
-                  className="w-full text-muted-foreground/50"
+            <span className="truncate text-[13px] text-muted-foreground tabular-nums">
+              {day}
+            </span>
+            <span className="mt-0.5 flex items-center gap-2.5 text-[13px] whitespace-nowrap text-muted-foreground tabular-nums">
+              <span className="inline-flex items-center gap-1">
+                <IconArrowBarToDown
+                  role="img"
+                  aria-label="Max depth"
+                  className="size-3.25"
                 />
-              )}
+                {depth(dive.maxDepth)} m
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <IconClock
+                  role="img"
+                  aria-label="Duration"
+                  className="size-3.25"
+                />
+                {minutes(dive.duration)} min
+              </span>
             </span>
-          </Link>
-          <button
-            type="button"
-            disabled={busy || offline}
-            aria-label={`Restore ${site}, ${day}`}
-            onClick={async () => {
-              setBusy(true)
-              onRestore(true)
-              // The card folds away once the log has the dive back.
-              const back = await restore(dive.id, site, () =>
-                // Over the list, so Back says Deleted and returns to it.
-                router.navigate(open)
-              )
-              setBusy(false)
-              if (!back) onRestore(false)
-            }}
-            // Grey offline, as RecentlyDeletedHifi draws it, not a faded tint.
-            className={cn(
-              "relative inline-flex h-9 shrink-0 items-center self-center rounded-full px-3.5 text-sm font-medium transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50",
-              offline
-                ? // Darker while the card is tinted, or it vanishes into it.
-                  "bg-muted text-muted-foreground group-has-[>a[data-press]]/card:bg-foreground/10 disabled:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-has-[>a:hover]/card:bg-foreground/10"
-                : "bg-primary/12 text-primary"
+          </span>
+          {/* Faint, as the board draws it: these dives are out of the log. */}
+          <span className="hidden min-[390px]:block">
+            {dive.sparkline && (
+              <Sparkline
+                points={dive.sparkline}
+                maxDepth={maxDepth}
+                stretch
+                className="w-full text-muted-foreground/50"
+              />
             )}
-          >
-            Restore
-          </button>
-        </div>
+          </span>
+        </Link>
+        <button
+          type="button"
+          disabled={busy || offline}
+          aria-label={`Restore ${site}, ${day}`}
+          onClick={async () => {
+            setBusy(true)
+            onRestore(dive, true)
+            // The card folds away once the log has the dive back.
+            const back = await restore(dive.id, site, () =>
+              // Over the list, so Back says Deleted and returns to it.
+              router.navigate(open)
+            )
+            setBusy(false)
+            if (!back) onRestore(dive, false)
+          }}
+          // Grey offline, as RecentlyDeletedHifi draws it, not a faded tint.
+          className={cn(
+            "relative inline-flex h-9 shrink-0 items-center self-center rounded-full px-3.5 text-sm font-medium transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50",
+            offline
+              ? // Darker while the card is tinted, or it vanishes into it.
+                "bg-muted text-muted-foreground group-has-[>a[data-press]]/card:bg-foreground/10 disabled:opacity-100 [@media(hover:hover)_and_(pointer:fine)]:group-has-[>a:hover]/card:bg-foreground/10"
+              : "bg-primary/12 text-primary"
+          )}
+        >
+          Restore
+        </button>
       </div>
-    </div>
+    </Fold>
   )
-}
+})
