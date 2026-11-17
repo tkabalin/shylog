@@ -239,7 +239,7 @@ function Wheel({
   }, [value])
   useEffect(() => () => clearTimeout(settle.current), [])
   return (
-    // The ring sits here, as the wheel's mask clips anything outside it.
+    // The ring sits here, round the wheel and its unit, clear of the fades.
     <div className="relative flex w-28 items-center rounded-lg has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
       <div
         ref={ref}
@@ -274,7 +274,7 @@ function Wheel({
             if (next !== value) onChange(next)
           }, 80)
         }}
-        className="h-55 w-14 snap-y snap-mandatory [scrollbar-width:none] overflow-y-scroll overscroll-contain [mask-image:linear-gradient(transparent,black_35%,black_65%,transparent)] py-22 outline-none [&::-webkit-scrollbar]:hidden"
+        className="h-55 w-14 snap-y snap-mandatory [scrollbar-width:none] overflow-y-scroll overscroll-contain py-22 outline-none [&::-webkit-scrollbar]:hidden"
       >
         {Array.from({ length: count }, (_, i) => (
           <button
@@ -294,6 +294,12 @@ function Wheel({
           </button>
         ))}
       </div>
+      {/* The rows fade out above and below the middle: still overlays in
+          the sheet's colour, not a mask WebKit may repaint every scroll. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0 w-14 bg-[linear-gradient(var(--popover),transparent_35%,transparent_65%,var(--popover))]"
+      />
       <span aria-hidden className="pl-1 text-base font-medium">
         {unit}
       </span>

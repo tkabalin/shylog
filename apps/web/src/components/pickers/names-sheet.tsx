@@ -7,8 +7,6 @@ import {
   IconX,
 } from "@tabler/icons-react"
 
-import { cn } from "cn"
-
 import { Drawer } from "@/components/ui/drawer"
 import { isReturn } from "@/lib/keys"
 
@@ -142,76 +140,82 @@ export function NamesSheet({
         />
         {/* A big group's chips scroll within a third of the screen, so the
             field and the suggestions stay above the keyboard. */}
-        <div
-          onScroll={(event) =>
-            setChipsHidden(event.currentTarget.scrollTop > 0)
-          }
-          ref={(el) => {
-            // Opened scrolled down to the field: fade the edge at once.
-            if (el) setChipsHidden(el.scrollTop > 0)
-          }}
-          className={cn(
-            "flex max-h-[30dvh] shrink-0 flex-wrap items-center gap-2 overflow-y-auto overscroll-contain border-b px-4 pt-1 pb-2.5",
-            // Chips scrolled out of sight fade at the top, so the edge reads
-            // as more above rather than a clipped row.
-            chipsHidden &&
-              "[mask-image:linear-gradient(to_bottom,transparent,black_1.25rem)]"
-          )}
-        >
-          {shown.map((id) => {
-            const name = byId.get(id)?.name ?? ""
-            return (
-              <span
-                key={id}
-                // A new chip grows in where the tapped name went; those already there
-                // when the sheet opens arrive with it.
-                className="inline-flex h-10 max-w-full items-center gap-1 rounded-full bg-muted pr-1 pl-3.5 text-[15px] font-medium transition-[opacity,scale] duration-150 ease-out starting:scale-95 starting:opacity-0 group-data-starting-style/drawer-popup:starting:scale-100 group-data-starting-style/drawer-popup:starting:opacity-100 motion-reduce:starting:scale-100"
-              >
-                <span className="truncate">{name}</span>
-                <button
-                  type="button"
-                  aria-label={`Remove ${name}`}
-                  onClick={() => onChange(selected.filter((s) => s !== id))}
-                  // 44 px tall but narrow, so a tap on the end of the name
-                  // never removes the person.
-                  className="relative inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-opacity duration-150 after:absolute after:-inset-y-2 after:-right-1 after:left-0 hover:opacity-70 active:opacity-50 active:duration-0"
+        <div className="relative shrink-0">
+          <div
+            onScroll={(event) =>
+              setChipsHidden(event.currentTarget.scrollTop > 0)
+            }
+            ref={(el) => {
+              // Opened scrolled down to the field: fade the edge at once.
+              if (el) setChipsHidden(el.scrollTop > 0)
+            }}
+            className="flex max-h-[30dvh] flex-wrap items-center gap-2 overflow-y-auto overscroll-contain border-b px-4 pt-1 pb-2.5"
+          >
+            {shown.map((id) => {
+              const name = byId.get(id)?.name ?? ""
+              return (
+                <span
+                  key={id}
+                  // A new chip grows in where the tapped name went; those already there
+                  // when the sheet opens arrive with it.
+                  className="inline-flex h-10 max-w-full items-center gap-1 rounded-full bg-muted pr-1 pl-3.5 text-[15px] font-medium transition-[opacity,scale] duration-150 ease-out starting:scale-95 starting:opacity-0 group-data-starting-style/drawer-popup:starting:scale-100 group-data-starting-style/drawer-popup:starting:opacity-100 motion-reduce:starting:scale-100"
                 >
-                  <IconX aria-hidden className="size-4" />
-                </button>
-              </span>
-            )
-          })}
-          {(multiple || !shown.length) && (
-            <input
-              ref={mountField}
-              type="text"
-              // A buddy's name, not the diver's: no identity autofill, nor
-              // iOS's contact AutoFill, which Safari leaves off a field
-              // whose name says search.
-              data-bwignore
-              name={`search-${kind}`}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (!isReturn(event)) return
-                event.preventDefault()
-                // The exact name first, then the typed name as a new
-                // person, so "Ann" never quietly picks "Anna".
-                if (same) {
-                  if (matches.some(({ c }) => c.id === same.id)) choose(same.id)
-                } else if (typed) choose(onCreate(typed))
-              }}
-              aria-label={title}
-              maxLength={nameLimit}
-              placeholder={kinds[kind].placeholder}
-              enterKeyHint={multiple ? "next" : "done"}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="words"
-              spellCheck={false}
-              // A line of its own, so a long name typed is never squeezed
-              // beside the last chip.
-              className="h-10 min-w-0 basis-full bg-transparent px-0.5 text-base outline-none placeholder:text-muted-foreground/60"
+                  <span className="truncate">{name}</span>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${name}`}
+                    onClick={() => onChange(selected.filter((s) => s !== id))}
+                    // 44 px tall but narrow, so a tap on the end of the name
+                    // never removes the person.
+                    className="relative inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-opacity duration-150 after:absolute after:-inset-y-2 after:-right-1 after:left-0 hover:opacity-70 active:opacity-50 active:duration-0"
+                  >
+                    <IconX aria-hidden className="size-4" />
+                  </button>
+                </span>
+              )
+            })}
+            {(multiple || !shown.length) && (
+              <input
+                ref={mountField}
+                type="text"
+                // A buddy's name, not the diver's: no identity autofill, nor
+                // iOS's contact AutoFill, which Safari leaves off a field
+                // whose name says search.
+                data-bwignore
+                name={`search-${kind}`}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDown={(event) => {
+                  if (!isReturn(event)) return
+                  event.preventDefault()
+                  // The exact name first, then the typed name as a new
+                  // person, so "Ann" never quietly picks "Anna".
+                  if (same) {
+                    if (matches.some(({ c }) => c.id === same.id))
+                      choose(same.id)
+                  } else if (typed) choose(onCreate(typed))
+                }}
+                aria-label={title}
+                maxLength={nameLimit}
+                placeholder={kinds[kind].placeholder}
+                enterKeyHint={multiple ? "next" : "done"}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="words"
+                spellCheck={false}
+                // A line of its own, so a long name typed is never squeezed
+                // beside the last chip.
+                className="h-10 min-w-0 basis-full bg-transparent px-0.5 text-base outline-none placeholder:text-muted-foreground/60"
+              />
+            )}
+          </div>
+          {/* Chips scrolled out of sight fade at the top, so the edge reads
+              as more above rather than a clipped row. A still overlay in the
+              sheet's colour, not a mask WebKit may repaint every scroll. */}
+          {chipsHidden && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-5 bg-[linear-gradient(var(--popover),transparent)]"
             />
           )}
         </div>
