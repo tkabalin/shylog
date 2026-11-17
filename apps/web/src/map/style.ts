@@ -696,6 +696,20 @@ export function mapStyle(
           },
         })
       ),
+      ...(Object.keys(areas) as Area[]).map(
+        (area): StyleSpecification["layers"][number] => ({
+          id: `pins-${area}`,
+          type: "symbol",
+          source: areaSource(area),
+          filter: unclustered,
+          layout: {
+            "icon-image": shape(false),
+            "icon-allow-overlap": true,
+          },
+        })
+      ),
+      // The coast's towns over the pins, so none hides a town, but under the
+      // clusters and their counts, which a town steps aside from.
       {
         id: "coast-labels",
         type: "symbol",
@@ -706,12 +720,12 @@ export function mapStyle(
           "text-size": 11,
           "symbol-sort-key": ["get", "rank"],
           "text-padding": 4,
-          "text-anchor": ["get", "anchor"],
-          "text-offset": [
+          // Its own side first, else the other.
+          "text-variable-anchor-offset": [
             "case",
             ["==", ["get", "anchor"], "right"],
-            ["literal", [-0.3, 0]],
-            ["literal", [0.3, 0]],
+            ["literal", ["right", [-0.3, 0], "left", [0.3, 0]]],
+            ["literal", ["left", [0.3, 0], "right", [-0.3, 0]]],
           ],
         },
         paint: {
@@ -752,18 +766,11 @@ export function mapStyle(
               "text-font": font.medium,
               "text-size": 12,
               "text-allow-overlap": true,
+              // Its room as wide as the bubble, which takes no part in
+              // placing labels, so a town's name clears it whole.
+              "text-padding": 10,
             },
             paint: { "text-color": p.clusterText },
-          },
-          {
-            id: `pins-${area}`,
-            type: "symbol",
-            source: areaSource(area),
-            filter: unclustered,
-            layout: {
-              "icon-image": shape(false),
-              "icon-allow-overlap": true,
-            },
           },
         ]
       ),
