@@ -358,8 +358,12 @@ export function CardSheet({
                       />
                       <input
                         type="text"
-                        // A card's name: no identity autofill (see RowInput).
+                        // A card's name: no identity autofill (see RowInput),
+                        // nor iOS's contact AutoFill, which Safari leaves off
+                        // a field whose name says search.
                         data-bwignore
+                        autoComplete="off"
+                        name={`search-card-${i + 1}`}
                         value={names[page.key] ?? ""}
                         onChange={(event) =>
                           setNames((was) => ({
@@ -399,6 +403,8 @@ export function CardSheet({
                 <input
                   type="text"
                   data-bwignore
+                  autoComplete="off"
+                  name="search-card"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   placeholder="e.g. Rescue Diver"

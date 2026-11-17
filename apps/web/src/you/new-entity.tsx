@@ -140,6 +140,9 @@ export function NewEntity({ log, kind }: { log: LogView; kind: DiveSetKind }) {
               <Label htmlFor="entity-name">Name</Label>
               <RowInput
                 id="entity-name"
+                // iOS offers a contact's AutoFill on a name; Safari leaves
+                // alone a field whose name says search.
+                name={`search-${kind}`}
                 value={name}
                 onChange={(event) => {
                   setName(event.target.value)
