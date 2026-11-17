@@ -18,6 +18,13 @@ export type DiveCentre = Log["diveCentres"][number]
 export type Trip = Log["trips"][number]
 export type Link = Log["links"][number]
 export type FieldMeta = Log["fieldMeta"][number]
+// A dive's links, or its fields' sources, kept as one row. IndexedDB's cost
+// is per row, and one per link and field made about twenty a dive, most of
+// the time a sync took to write the log and a launch to read it.
+export interface DiveRows<T> {
+  diveId: string
+  rows: T[]
+}
 export type Card = Log["cards"][number]
 // Kept with its place in the list, as the table orders rows by id.
 export type StoredCard = Card & { position: number }
@@ -80,8 +87,8 @@ export class LogDb extends Dexie {
   people!: EntityTable<Person, "id">
   diveCentres!: EntityTable<DiveCentre, "id">
   trips!: EntityTable<Trip, "id">
-  links!: Dexie.Table<Link, [string, string, string]>
-  fieldMeta!: Dexie.Table<FieldMeta, [string, string]>
+  diveLinks!: EntityTable<DiveRows<Link>, "diveId">
+  diveFieldMeta!: EntityTable<DiveRows<FieldMeta>, "diveId">
   cards!: EntityTable<StoredCard, "id">
   meta!: Dexie.Table<Meta | Blocked | Synced, string>
   profiles!: EntityTable<CachedProfile, "diveId">
@@ -116,6 +123,27 @@ export class LogDb extends Dexie {
     this.version(5)
       .stores({})
       .upgrade((tx) => tx.table("meta").update("log", { version: "" }))
+    // Links and field sources as one row per dive. A table's key can't
+    // change, so they move to new tables, grouped here so the log still
+    // reads offline before the full sync the cleared version asks for.
+    this.version(6)
+      .stores({
+        links: null,
+        fieldMeta: null,
+        diveLinks: "diveId",
+        diveFieldMeta: "diveId",
+      })
+      .upgrade(async (tx) => {
+        const [links, fieldMeta] = await Promise.all([
+          tx.table<Link>("links").toArray(),
+          tx.table<FieldMeta>("fieldMeta").toArray(),
+        ])
+        await Promise.all([
+          tx.table("diveLinks").bulkPut(byDive(links)),
+          tx.table("diveFieldMeta").bulkPut(byDive(fieldMeta)),
+          tx.table("meta").update("log", { version: "" }),
+        ])
+      })
   }
 }
 
@@ -131,7 +159,18 @@ export const collections = [
   "people",
   "diveCentres",
   "trips",
-  "links",
-  "fieldMeta",
+  "diveLinks",
+  "diveFieldMeta",
   "cards",
 ] as const
+
+// The log's rows for every dive as one row each, in the order they came.
+export function byDive<T extends { diveId: string }>(rows: readonly T[]) {
+  const grouped = new Map<string, DiveRows<T>>()
+  for (const row of rows) {
+    const group = grouped.get(row.diveId)
+    if (group) group.rows.push(row)
+    else grouped.set(row.diveId, { diveId: row.diveId, rows: [row] })
+  }
+  return [...grouped.values()]
+}

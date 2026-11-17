@@ -255,8 +255,8 @@ export async function readLog(
       db.people.toArray(),
       db.diveCentres.toArray(),
       db.trips.toArray(),
-      db.links.toArray(),
-      db.fieldMeta.toArray(),
+      db.diveLinks.toArray(),
+      db.diveFieldMeta.toArray(),
       db.cards.toArray(),
     ])
     // Shown, and opened, before they upload; a draft wins over a mirror row
@@ -282,19 +282,18 @@ export async function readLog(
         b.id.localeCompare(a.id)
     )
     const linkMap = new Map<string, DiveLinks>()
-    for (const link of links.sort((a, b) => a.position - b.position)) {
-      let entry = linkMap.get(link.diveId)
-      if (!entry) {
-        entry = { buddies: [], professionals: [], tags: [] }
-        linkMap.set(link.diveId, entry)
+    for (const { diveId, rows } of links) {
+      const entry: DiveLinks = { buddies: [], professionals: [], tags: [] }
+      for (const link of rows.sort((a, b) => a.position - b.position)) {
+        const list =
+          link.type === "buddy"
+            ? entry.buddies
+            : link.type === "professional"
+              ? entry.professionals
+              : entry.tags
+        list.push(link.target)
       }
-      const list =
-        link.type === "buddy"
-          ? entry.buddies
-          : link.type === "professional"
-            ? entry.professionals
-            : entry.tags
-      list.push(link.target)
+      linkMap.set(diveId, entry)
     }
     for (const { id, fields } of drafts) {
       linkMap.set(id, {
@@ -304,10 +303,8 @@ export async function readLog(
       })
     }
     const metaMap = new Map<string, Map<string, FieldMeta>>()
-    for (const row of fieldMeta) {
-      if (!metaMap.has(row.diveId)) metaMap.set(row.diveId, new Map())
-      metaMap.get(row.diveId)!.set(row.field, row)
-    }
+    for (const { diveId, rows } of fieldMeta)
+      metaMap.set(diveId, new Map(rows.map((row) => [row.field, row])))
     const log: LogView = {
       version: meta.version,
       settings: meta.settings,

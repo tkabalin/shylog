@@ -87,11 +87,11 @@ describe("syncLog", () => {
       { code: "VN" },
       { code: "ZA" },
     ])
-    expect(await db.links.get(["dive-a", "buddy", "person-sam"])).toEqual({
+    expect(await db.diveLinks.get("dive-a")).toEqual({
       diveId: "dive-a",
-      type: "buddy",
-      target: "person-sam",
-      position: 0,
+      rows: [
+        { diveId: "dive-a", type: "buddy", target: "person-sam", position: 0 },
+      ],
     })
     expect(await db.meta.get("log")).toMatchObject({
       version: "v1",
@@ -112,7 +112,7 @@ describe("syncLog", () => {
     expect(await syncLog({ db, fetch })).toBe("updated")
     expect((await db.dives.toArray()).map((d) => d.id)).toEqual(["dive-b"])
     expect(await db.people.count()).toBe(0)
-    expect(await db.links.count()).toBe(0)
+    expect(await db.diveLinks.count()).toBe(0)
   })
 
   it("drops the kept profiles of dives the log no longer has", async () => {

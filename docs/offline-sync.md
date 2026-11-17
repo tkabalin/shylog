@@ -16,7 +16,7 @@ While the phone is offline, or the server can't be reached, the controls that ne
 
 The phone holds two IndexedDB databases through Dexie, deliberately separate:
 
-- **The mirror** (`shylog`, `apps/web/src/data/db.ts`) has one table per collection of `/api/log`, plus each dive's profile samples and each certification card's images.
+- **The mirror** (`shylog`, `apps/web/src/data/db.ts`) has one table per collection of `/api/log`, plus each dive's profile samples and each certification card's images. A dive's links and its fields' sources are one row each rather than one per link or field: IndexedDB's cost is per row, and at about twenty rows a dive they took most of the time a sync spent writing the log and a launch spent reading it.
 - **The queue** (`shylog-queue`, `apps/web/src/data/drafts.ts`) holds drafts, their queued ops, the device id and the dive form's autosaved values.
 
 The rule: a sync clears and replaces the mirror, and never touches the queue. The mirror can always be fetched again; a draft exists nowhere else. The queue has its own schema version, so newer app code can migrate drafts that older code wrote.
