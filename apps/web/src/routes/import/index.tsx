@@ -27,10 +27,14 @@ import { useDesk } from "@/hooks/use-desk"
 import { Progress } from "@/components/progress"
 import { useComputerDownload } from "@/import/computer-download"
 import { ImportSection } from "@/import/parts"
+import { rootFlag } from "@/lib/root-flag"
 
 export const Route = createFileRoute("/import/")({
   component: ImportPage,
 })
+
+// The bar takes the tab bar's top line while it shows (see index.css).
+const flagBottomBar = rootFlag("data-bottom-bar")
 
 const day = 24 * 60 * 60 * 1000
 
@@ -259,7 +263,10 @@ function ImportPage() {
       {/* On a phone the watch's buttons sit above the tab bar, in thumb
           reach, with its progress in their place while it's read. */}
       {!desk && computer && (
-        <div className="bottom-bar sticky bottom-0 z-10 border-t bg-background px-4 py-3 md:px-[calc(max(0rem,(100%-36rem)/2)+1rem)]">
+        <div
+          ref={flagBottomBar}
+          className="bottom-bar sticky bottom-0 z-10 border-t bg-background px-4 py-3 md:px-[calc(max(0rem,(100%-36rem)/2)+1rem)]"
+        >
           {computer.actions}
         </div>
       )}

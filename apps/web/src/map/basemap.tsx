@@ -16,6 +16,7 @@ import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
 import { useDesk } from "@/hooks/use-desk"
+import { rootFlag } from "@/lib/root-flag"
 
 import { extractUrl } from "./extract"
 import { drawHatch, hatchImage, mapStyle, type MapTheme } from "./style"
@@ -33,6 +34,9 @@ addProtocol("pmtiles", protocol.tile)
 
 // Where the map was left, so coming back to the tab finds it there.
 let camera: { center: LngLatLike; zoom: number } | undefined
+
+// The tab bar keeps its top line while a map shows (see map.css).
+const flagMap = rootFlag("data-map")
 
 // The theme class on <html>, which the theme provider sets, so the map
 // follows the app's choice rather than only the system's.
@@ -186,7 +190,10 @@ export default function Basemap({
   // Hidden on a wrapper: React rewriting the container's classes would drop
   // the ones MapLibre adds to it.
   return (
-    <div className={cn("relative size-full", !shown && "opacity-0")}>
+    <div
+      ref={flagMap}
+      className={cn("relative size-full", !shown && "opacity-0")}
+    >
       <div ref={container} className="size-full" />
       {/* A mouse has no pinch, so desktop gets buttons, bottom right as on
           most maps, just above the credit. */}
