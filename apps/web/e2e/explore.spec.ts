@@ -98,6 +98,32 @@ async function drag(page: Page, sheet: Locator, by: number) {
 }
 
 test.describe("at phone width", () => {
+  test("comes back to the map drawn, with no sea while it's built", async ({
+    page,
+  }) => {
+    await page.goto("/explore")
+    await drawn(page)
+    const nav = page.getByRole("navigation", { name: "Main" })
+    await nav.getByRole("link", { name: "Log" }).click()
+    await expect(page.locator(".maplibregl-map")).toHaveCount(0)
+    await nav.getByRole("link", { name: "Explore" }).click()
+    // Shown on the first frame the page has it, not after a fade from sea.
+    const opacity = await page.evaluate(
+      () =>
+        new Promise<string>((done) => {
+          const look = () => {
+            const wrapper = document.querySelector(
+              "main div:has(> .maplibregl-map)"
+            )
+            if (wrapper) done(getComputedStyle(wrapper).opacity)
+            else requestAnimationFrame(look)
+          }
+          look()
+        })
+    )
+    expect(opacity).toBe("1")
+  })
+
   test("opens a site's sheet from the address, at its peek", async ({
     page,
   }) => {
