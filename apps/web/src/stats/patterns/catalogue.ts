@@ -12,7 +12,7 @@ import {
 } from "@shylog/core"
 
 import type { Dive } from "@/data/db"
-import { isUnknown } from "@/data/entities"
+import { unknownSiteIds } from "@/data/entities"
 import type { DiveLinks, LogView } from "@/data/log"
 import { diveSac } from "@/dive/figures"
 
@@ -365,6 +365,7 @@ export function fieldsOf(log: LogView) {
   const personName = (id: string) => log.people.get(id)?.name ?? ""
   const centreName = (id: string) => log.diveCentres.get(id)?.name ?? ""
   const tripName = (id: string) => log.trips.get(id)?.name ?? ""
+  const unknown = unknownSiteIds(log)
   const person = (key: string, list: (links: DiveLinks) => string[]) =>
     ({
       key,
@@ -569,8 +570,7 @@ export function fieldsOf(log: LogView) {
       key: "site",
       kind: "single",
       // The Unknown site is where an import leaves dives, not a place.
-      value: (row) =>
-        isUnknown(log, row.dive.siteId) ? null : row.dive.siteId,
+      value: (row) => (unknown.has(row.dive.siteId) ? null : row.dive.siteId),
       order: byName(siteName),
       names: (id) => [
         { label: siteName(id), phrase: `at ${siteName(id)}` },

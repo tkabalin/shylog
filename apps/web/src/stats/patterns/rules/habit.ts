@@ -1,4 +1,4 @@
-import { isUnknown } from "@/data/entities"
+import { unknownSiteIds } from "@/data/entities"
 import type { LogView } from "@/data/log"
 
 import { percent } from "../../charts/parts"
@@ -19,12 +19,12 @@ interface Habit {
 function habits(log: LogView): Habit[] {
   const person = (id: string) => log.people.get(id)?.name ?? ""
   const centre = (id: string) => log.diveCentres.get(id)?.name ?? ""
+  const unknown = unknownSiteIds(log)
   return [
     {
       field: "site",
       // The Unknown site is where an import leaves dives, not a place.
-      values: (row) =>
-        isUnknown(log, row.dive.siteId) ? [] : [row.dive.siteId],
+      values: (row) => (unknown.has(row.dive.siteId) ? [] : [row.dive.siteId]),
       name: (id) => log.sites.get(id)?.name ?? "",
       rest: () => "Other sites",
     },

@@ -116,6 +116,26 @@ describe("difference", () => {
     expect(difference(rows, "maxDepth", fields.current)).toBeNull()
   })
 
+  it("never sets the Unknown site apart, as its dives are at many places", () => {
+    const unknown = {
+      id: "site-u",
+      name: "Unknown site",
+      countryCode: "ZA",
+      regionId: null,
+    } as Site
+    const list = days([
+      ...times(5, { siteId: "site-u", maxDepth: 30 }),
+      ...times(5, { siteId: "site-a", maxDepth: 10 }),
+      ...times(5, { siteId: "site-b", maxDepth: 10 }),
+    ] as Partial<Dive>[])
+    const log = syntheticLog(list, { sites: [...sites, unknown], regions })
+    // Any measure splits by site the same way; the deep dives at the
+    // Unknown site would be a 20 m difference if it were a place.
+    expect(difference(rowsOf(list, log), "maxDepth", fieldsOf(log).site)).toBe(
+      null
+    )
+  })
+
   it("sets one value against the rest, and a person's dives against those without", () => {
     const list = days([
       ...times(5, { nitrox: true, oxygen: 320, maxDepth: 25 }),
