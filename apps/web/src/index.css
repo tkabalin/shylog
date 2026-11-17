@@ -192,6 +192,12 @@
        can't opt back in, so the card viewer needs its own pinch gesture. */
     touch-action: pan-x pan-y;
   }
+  /* A focused field, the keyboard's next and previous arrows included, is
+     scrolled in below the pages' sticky top bar. Set on the fields: as
+     #main's scroll-padding, focusing the Log's stuck search scrolled it. */
+  #main :is(input, textarea, select):not([data-log-bar] *) {
+    scroll-margin-top: calc(3.25rem + env(safe-area-inset-top) + 0.5rem);
+  }
 }
 /*
  * Shylog theme layer. Overrides the preset only where needed; colours come
