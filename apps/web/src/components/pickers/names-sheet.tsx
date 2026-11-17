@@ -185,8 +185,11 @@ export function NamesSheet({
             <input
               ref={mountField}
               type="text"
-              // A buddy's name, not the diver's: no identity autofill.
+              // A buddy's name, not the diver's: no identity autofill, nor
+              // iOS's contact AutoFill, which Safari leaves off a field
+              // whose name says search.
               data-bwignore
+              name={`search-${kind}`}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {

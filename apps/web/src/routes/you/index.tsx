@@ -421,6 +421,9 @@ function DiverCard({
           </label>
           <RowInput
             id="you-diverName"
+            // iOS offers a contact's AutoFill on a name; Safari leaves alone
+            // a field whose name says search.
+            name="search-diver"
             value={name}
             onChange={(event) => setName(event.target.value)}
             onBlur={() => void save()}
