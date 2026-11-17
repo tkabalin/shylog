@@ -14,7 +14,6 @@ import fc from "fast-check"
 import { describe, expect, it } from "vitest"
 
 import type { Dive, DiveCentre, Person, Region, Site, Trip } from "@/data/db"
-import type { LogView } from "@/data/log"
 import { year as yearOf } from "@/format/dates"
 
 import { fuzzOptions } from "../../../../../packages/core/test/reference/fuzz"
@@ -29,6 +28,7 @@ import {
   measures,
   rowsOf,
   type Field,
+  type Fields,
   type MeasureKey,
   type Named,
   type Pattern,
@@ -145,8 +145,7 @@ function walked(
 }
 
 // Every difference the catalogue asks of these rows, both ways.
-function bothWays(rows: readonly Row[], log: LogView) {
-  const fields = fieldsOf(log)
+function bothWays(rows: readonly Row[], fields: Fields) {
   const fast: (Pattern | null)[] = []
   const slow: (Pattern | null)[] = []
   for (const [measure, list] of differences)
@@ -162,13 +161,16 @@ describe("difference against a walk of every split", () => {
     const log = await seededLog()
     const counted = countedDives(log)
     const years = [...new Set(counted.map((d) => yearOf(d.startTime)))]
+    // The same fields for every year, as the keys a field keeps for one
+    // year's rows must not answer for another's.
+    const fields = fieldsOf(log)
     let found = 0
     for (const year of [undefined, ...years]) {
       const rows = rowsOf(
         counted.filter((d) => !year || yearOf(d.startTime) === year),
         log
       )
-      const { fast, slow } = bothWays(rows, log)
+      const { fast, slow } = bothWays(rows, fields)
       expect(fast).toEqual(slow)
       found += fast.filter(Boolean).length
     }
@@ -241,7 +243,8 @@ describe("difference against a walk of every split", () => {
       diveCentreId: pick([null, ...extras.diveCentres.map((c) => c.id)]),
     }),
     sac: pick([null, 11.3, 12.7, 14.1, 15.2, 19.9]),
-    buddies: someOf(people.map((p) => p.id)),
+    // Repeats too, which count once, as a dive's keys are made distinct.
+    buddies: fc.array(pick(people.map((p) => p.id)), { maxLength: 4 }),
     professionals: someOf(people.map((p) => p.id)),
     tags: someOf(["drySuit", "night", "drift", "photoVideo"]),
   })
@@ -273,7 +276,7 @@ describe("difference against a walk of every split", () => {
             ...row,
             sac: sac.get(row.dive.id)!,
           }))
-          const { fast, slow } = bothWays(rows, log)
+          const { fast, slow } = bothWays(rows, fieldsOf(log))
           expect(fast).toEqual(slow)
           found += fast.filter(Boolean).length
         }

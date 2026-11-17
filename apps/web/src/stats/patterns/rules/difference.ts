@@ -21,6 +21,54 @@ import {
 
 type Key = string | string[]
 
+// Each field's keys and each measure's values, worked out once per rows
+// array and kept as long as it is. Only calls with the same rows array and
+// Field object share them, as findPatterns' pairs do; others work them out.
+const known = new WeakMap<readonly Row[], Map<Field | MeasureKey, unknown>>()
+
+function once<T>(rows: readonly Row[], by: Field | MeasureKey, work: () => T) {
+  let kept = known.get(rows)
+  if (!kept) known.set(rows, (kept = new Map()))
+  if (!kept.has(by)) kept.set(by, work())
+  return kept.get(by) as T
+}
+
+// Each row's key for the field, a dive's several (buddies) without repeats,
+// or null.
+const keysOf = (rows: readonly Row[], field: Field) =>
+  once(rows, field, () => {
+    const keys: (Key | null)[] = []
+    for (let i = 0; i < rows.length; i++) {
+      const key = field.value(rows[i]!)
+      // A copy only where a key repeats.
+      keys.push(
+        Array.isArray(key) &&
+          key.length > 1 &&
+          key.some((one, j) => key.indexOf(one) !== j)
+          ? key.filter((one, j) => key.indexOf(one) === j)
+          : key
+      )
+    }
+    return keys
+  })
+
+// Each row's value for the measure times its weight, null where it has no
+// value, and the weight.
+const valuesOf = (rows: readonly Row[], key: MeasureKey) =>
+  once(rows, key, () => {
+    const measure = measures[key]
+    const weigh = "weight" in measure ? measure.weight : () => 1
+    const products: (number | null)[] = []
+    const weights: number[] = []
+    for (let i = 0; i < rows.length; i++) {
+      const value = measure.value(rows[i]!)
+      const weight = value == null ? 0 : weigh(rows[i]!)
+      products.push(value == null ? null : value * weight)
+      weights.push(weight)
+    }
+    return { products, weights }
+  })
+
 // A side's dives summed: value times weight, the weights, and the count.
 interface Totals {
   sum: number
@@ -76,17 +124,8 @@ export function difference(
   field: Field
 ): Pattern | null {
   const measure = measures[key]
-  const weigh = "weight" in measure ? measure.weight : () => 1
-  // Plain loops without a throwaway array per dive, as this runs once per
-  // log, mostly before the JIT has optimised it.
-  const points: { row: Row; key: Key; product: number; weight: number }[] = []
-  for (const row of rows) {
-    const key = field.value(row)
-    const value = measure.value(row)
-    if (key == null || value == null) continue
-    const weight = weigh(row)
-    points.push({ row, key, product: value * weight, weight })
-  }
+  const keys = keysOf(rows, field)
+  const { products, weights } = valuesOf(rows, key)
   // One pass for every key's totals. A dive with several keys (buddies)
   // counts towards each, as each one's split puts it on that key's side.
   const all: Totals = { ...none }
@@ -98,17 +137,24 @@ export function difference(
     totals.weight += weight
     totals.count++
   }
+  // The rows with both a key and a value, by their place in rows: plain
+  // loops without a throwaway object per dive, as this runs once per log,
+  // mostly before the JIT has optimised it.
+  const points: number[] = []
   // Every dive's value times weight, unsigned, which bounds rounding below.
   let scale = 0
-  for (const { key, product, weight } of points) {
+  for (let i = 0; i < rows.length; i++) {
+    const keyed = keys[i]
+    const product = products[i]
+    if (keyed == null || product == null) continue
+    const weight = weights[i]!
+    points.push(i)
     all.sum += product
     all.weight += weight
     all.count++
     scale += Math.abs(product)
-    if (typeof key === "string") add(key, product, weight)
-    else
-      for (let i = 0; i < key.length; i++)
-        if (key.indexOf(key[i]!) === i) add(key[i]!, product, weight)
+    if (typeof keyed === "string") add(keyed, product, weight)
+    else for (let k = 0; k < keyed.length; k++) add(keyed[k]!, product, weight)
   }
   // Summed in another order than a walk of each side, these means can be off
   // in their last bits, enough to flip a cut-off or a tie, so they only rule
@@ -161,8 +207,7 @@ export function difference(
   for (const { split, effect: estimate, bound } of found) {
     if (estimate + bound < floor) continue
     const sides: [Row[], Row[]] = [[], []]
-    for (const point of points)
-      sides[split.test(point.key) ? 0 : 1].push(point.row)
+    for (const i of points) sides[split.test(keys[i]!) ? 0 : 1].push(rows[i]!)
     const means = sides.map((side) => average(measure, side)!) as [
       number,
       number,
