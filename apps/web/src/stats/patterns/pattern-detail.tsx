@@ -148,7 +148,12 @@ export function PatternSection({
         openable.length > 0 && (
           <ExpandAll
             every={every}
-            onClick={() => open(every ? [] : openable)}
+            // In place: several charts growing at once redrew every dot
+            // each frame, and one tap doesn't need the motion to follow.
+            onClick={() => {
+              setStill(true)
+              setShown(new Set(every ? [] : openable))
+            }}
           />
         )
       }
