@@ -17,7 +17,7 @@ import type { DiveLinks, LogView } from "@/data/log"
 import { diveSac } from "@/dive/figures"
 
 import { fullMonths } from "../charts/parts"
-import { depthBands, timesOfDay, visibilityLevel } from "../figures"
+import { depthBands, nameOrder, timesOfDay, visibilityLevel } from "../figures"
 
 // One counted dive with what the rules read from it, worked out once.
 export interface Row {
@@ -327,10 +327,6 @@ const bandOf = (bounds: readonly number[], value: number) => {
 
 const depthBounds = depthBands.slice(0, -1).map((band) => band.below)
 const hourBounds = timesOfDay.slice(0, -1).map((part) => part.below)
-
-// One collator for every sort: localeCompare with a locale builds a new one
-// per comparison, a sixth of the difference rule's time at 1000 dives.
-const nameOrder = new Intl.Collator("en-GB", { numeric: true })
 
 const byName = (name: (key: string) => string) => (keys: string[]) =>
   [...keys].sort((a, b) => nameOrder.compare(name(a), name(b)))
