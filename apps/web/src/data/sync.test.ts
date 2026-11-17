@@ -192,8 +192,9 @@ describe("syncLog", () => {
     // Just as a whole sync of the same version leaves the mirror.
     const fresh = new LogDb(`test-${crypto.randomUUID()}`)
     await syncLog({ db: fresh, fetch: server(() => current) })
-    for (const name of [...collections, "meta"] as const)
+    for (const name of collections)
       expect(await db[name].toArray()).toEqual(await fresh[name].toArray())
+    expect(await db.meta.get("log")).toEqual(await fresh.meta.get("log"))
     await fresh.delete()
   })
 

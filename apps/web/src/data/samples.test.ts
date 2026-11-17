@@ -42,7 +42,24 @@ beforeEach(() => {
 })
 afterEach(() => db.delete())
 
+// Once a write already under way has committed: IndexedDB runs writes over
+// the same tables in the order they began.
+const settledWrites = () =>
+  db.transaction("rw", [db.dives, db.profiles, db.meta], () => {})
+
 describe("loadProfile", () => {
+  // As a sync leaves it: a profile is kept only for a dive the log has.
+  beforeEach(async () => {
+    await db.dives.put(dive())
+  })
+
+  it("keeps no profile for a dive the log no longer has", async () => {
+    await db.dives.delete("dive-a")
+    expect(await loadProfile(dive(), { db, fetch: server() })).toEqual(profile)
+    await settledWrites()
+    expect(await db.profiles.count()).toBe(0)
+  })
+
   it("fetches a dive's samples and keeps them on the phone", async () => {
     const fetch = server()
     expect(await loadProfile(dive(), { db, fetch })).toEqual(profile)
@@ -267,6 +284,129 @@ describe("downloadProfiles", () => {
     expect((await db.profiles.toArray()).map((p) => p.diveId)).toEqual([
       "dive-2",
     ])
+  })
+
+  it("reads the phone's profiles once while nothing else writes them", async () => {
+    const read = vi.spyOn(db.profiles, "orderBy")
+    const fetch = batchServer()
+    await downloadProfiles(dives(3), { db, fetch })
+    // The syncs after, a 304 or an edit elsewhere, find every one kept.
+    await downloadProfiles(dives(3), { db, fetch })
+    await downloadProfiles(dives(3).reverse(), { db, fetch })
+    expect(fetch).toHaveBeenCalledOnce()
+
+    // A new dive, and one whose profile an import replaced.
+    const changed = { ...dive([0, 10, 0], "dive-1"), ascentAlarmCount: 2 }
+    const now = [
+      dives(3)[0]!,
+      changed,
+      dives(3)[2]!,
+      dive([0, 10, 0], "dive-3"),
+    ]
+    await db.dives.bulkPut(now)
+    await downloadProfiles(now, { db, fetch })
+    expect(
+      new URL(String(fetch.mock.calls[1][0])).searchParams.get("ids")
+    ).toBe("dive-1,dive-3")
+    await downloadProfiles(now, { db, fetch })
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(read).toHaveBeenCalledOnce()
+  })
+
+  it("fetches again a profile whose digest went back to an earlier one", async () => {
+    await downloadProfiles(dives(1), { db, fetch: batchServer() })
+    const changed = { ...dive([0, 10, 0], "dive-0"), ascentAlarmCount: 2 }
+    await db.dives.put(changed)
+    await downloadProfiles([changed], { db, fetch: batchServer() })
+    // An import undone: the kept copy is the changed one.
+    await db.dives.put(dives(1)[0]!)
+    const fetch = batchServer()
+    await downloadProfiles(dives(1), { db, fetch })
+    expect(fetch).toHaveBeenCalledOnce()
+  })
+
+  it("tries again on the next run for a profile that didn't come", async () => {
+    await downloadProfiles(dives(2), { db, fetch: batchServer(["dive-1"]) })
+    const fetch = batchServer()
+    await downloadProfiles(dives(2), { db, fetch })
+    expect(
+      new URL(String(fetch.mock.calls[0][0])).searchParams.get("ids")
+    ).toBe("dive-1")
+    expect(await db.profiles.count()).toBe(2)
+  })
+
+  it("checks again once profiles are dropped", async () => {
+    const { dropProfiles, pruneProfiles } = await import("./samples")
+    await downloadProfiles(dives(3), { db, fetch: batchServer() })
+    await db.transaction("rw", db.profiles, db.meta, () =>
+      dropProfiles(db, ["dive-1"])
+    )
+    const fetch = batchServer()
+    await downloadProfiles(dives(3), { db, fetch })
+    expect(
+      new URL(String(fetch.mock.calls[0][0])).searchParams.get("ids")
+    ).toBe("dive-1")
+    await db.transaction("rw", db.profiles, db.meta, () =>
+      pruneProfiles(db, new Set(["dive-0"]))
+    )
+    await downloadProfiles(dives(3), { db, fetch })
+    expect(
+      new URL(String(fetch.mock.calls[1][0])).searchParams.get("ids")
+    ).toBe("dive-1,dive-2")
+  })
+
+  it("keeps no opened dive's profile under a digest the log has moved on from", async () => {
+    await downloadProfiles(dives(3), { db, fetch: batchServer() })
+    // Opened from a log a sync has since moved on from.
+    const stale = { ...dive([0, 10, 0], "dive-1"), ascentAlarmCount: 5 }
+    await loadProfile(stale, { db, fetch: server() })
+    await settledWrites()
+    expect(await db.profiles.get("dive-1")).toMatchObject({
+      digest: JSON.stringify([[0, 10, 0], 1, 0, 2400, 18.2]),
+    })
+    const fetch = batchServer()
+    await downloadProfiles(dives(3), { db, fetch })
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  it("notes an opened dive's profile, so the next run reads none", async () => {
+    await downloadProfiles(dives(3), { db, fetch: batchServer() })
+    await db.dives.put(dive([0, 10, 0], "dive-3"))
+    await loadProfile(dive([0, 10, 0], "dive-3"), { db, fetch: server() })
+    await settledWrites()
+    const read = vi.spyOn(db.profiles, "orderBy")
+    const fetch = batchServer()
+    await downloadProfiles(dives(4), { db, fetch })
+    expect(fetch).not.toHaveBeenCalled()
+    expect(read).not.toHaveBeenCalled()
+  })
+
+  it("keeps its reading when a sync drops no profile", async () => {
+    const { dropProfiles, pruneProfiles } = await import("./samples")
+    await downloadProfiles(dives(3), { db, fetch: batchServer() })
+    const read = vi.spyOn(db.profiles, "orderBy")
+    await db.transaction("rw", db.profiles, db.meta, async () => {
+      await dropProfiles(db, ["dive-9"])
+      await pruneProfiles(db, new Set(["dive-0", "dive-1", "dive-2"]))
+    })
+    await downloadProfiles(dives(3), { db, fetch: batchServer() })
+    expect(read).not.toHaveBeenCalled()
+  })
+
+  it("checks again once another tab changes the kept profiles", async () => {
+    const { dropProfiles } = await import("./samples")
+    await downloadProfiles(dives(3), { db, fetch: batchServer() })
+    // A sync in another tab that dropped dive-1, which then came back.
+    const other = new LogDb(db.name)
+    await other.transaction("rw", other.profiles, other.meta, () =>
+      dropProfiles(other, ["dive-1"])
+    )
+    other.close()
+    const fetch = batchServer()
+    await downloadProfiles(dives(3), { db, fetch })
+    expect(
+      new URL(String(fetch.mock.calls[0][0])).searchParams.get("ids")
+    ).toBe("dive-1")
   })
 
   it("runs once at a time, then for the list a sync asked for meanwhile", async () => {

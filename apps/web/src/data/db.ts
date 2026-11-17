@@ -59,6 +59,13 @@ export interface Synced {
   at: string
 }
 
+// Moved by every write to the kept profiles, in any tab, so a download can
+// tell whether what it last read of them still holds (see samples.ts).
+export interface ProfilesMark {
+  key: "profiles"
+  mark: number
+}
+
 // A dive's samples and events, fetched the first time its detail opens,
 // with a digest of the figures the server keeps from them (see samples.ts),
 // so a profile an import later replaces is fetched again.
@@ -90,7 +97,7 @@ export class LogDb extends Dexie {
   diveLinks!: EntityTable<DiveRows<Link>, "diveId">
   diveFieldMeta!: EntityTable<DiveRows<FieldMeta>, "diveId">
   cards!: EntityTable<StoredCard, "id">
-  meta!: Dexie.Table<Meta | Blocked | Synced, string>
+  meta!: Dexie.Table<Meta | Blocked | Synced | ProfilesMark, string>
   profiles!: EntityTable<CachedProfile, "diveId">
   cardImages!: Dexie.Table<CardImage, [string, string]>
 
