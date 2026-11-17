@@ -87,6 +87,13 @@ describe("searchSites", () => {
     expect(names("SAO JOSE")).toContain("São José Paquete d' Africa")
   })
 
+  it("searches only the sites the filters leave", () => {
+    const wrecks = sites.filter(({ type }) => type === "wreck")
+    const found = searchSites("rock", wrecks)
+    expect(found.length).toBeGreaterThan(0)
+    expect(found.every(({ type }) => type === "wreck")).toBe(true)
+  })
+
   it("finds every site for an empty search", () => {
     expect(searchSites("  ")).toBe(sites)
   })

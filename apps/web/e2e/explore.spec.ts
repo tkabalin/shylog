@@ -534,7 +534,7 @@ test.describe("at phone width", () => {
     await page
       .getByRole("button", { name: `List of ${sites.length} sites` })
       .click()
-    // Its search ignores the filters, case, accents and punctuation.
+    // Its search ignores case, accents, punctuation and spaces.
     await list.getByRole("textbox", { name: "Search sites" }).fill("a frame")
     await list.getByRole("button", { name: /^A-Frame/ }).click()
     await expect(page).toHaveURL(bySite("a-frame"))
@@ -562,6 +562,14 @@ test.describe("at phone width", () => {
     await page.keyboard.press("Escape")
     const wrecks = sites.filter(({ type }) => type === "wreck").length
     await expect(list.getByRole("listitem")).toHaveCount(wrecks)
+    // The search looks among the wrecks alone.
+    const search = list.getByRole("textbox", { name: "Search sites" })
+    await search.fill("rock")
+    await expect(list.getByRole("listitem")).toHaveCount(
+      sites.filter(({ type, name }) => type === "wreck" && /rock/i.test(name))
+        .length
+    )
+    await search.fill("")
     await page.goBack()
     await expect(list).toHaveCount(0)
     await expect(

@@ -153,10 +153,7 @@ export default function Explore({
   }, [view, filters, replace, mapSite])
 
   const picked = search.site ? siteById.get(search.site) : undefined
-  const listed = useMemo(
-    () => (query.trim() ? searchSites(query) : filtered),
-    [query, filtered]
-  )
+  const listed = useMemo(() => searchSites(query, filtered), [query, filtered])
   // Only the desktop's list rings a pin; a pick or the rules replace it
   // with no mouseleave, so the ring would stay behind.
   const listShown = desk && !picked && view !== "rules"
