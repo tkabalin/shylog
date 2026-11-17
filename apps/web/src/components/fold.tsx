@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type ReactNode } from "react"
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react"
 
 import { reduced } from "@/lib/motion"
 
@@ -327,6 +327,35 @@ export function Fold({
 
   return (
     <div ref={box} inert={!open} className={className}>
+      {children}
+    </div>
+  )
+}
+
+// Rows a tap adds to a long list (You's 50 more, Statistics' Show all)
+// appear at full height and fade in, rather than easing their room open:
+// fifty rows growing moved and repainted everything below on each frame.
+export function FadeIn({
+  instant = false,
+  className,
+  children,
+}: {
+  instant?: boolean
+  className?: string
+  children: ReactNode
+}) {
+  const box = useRef<HTMLDivElement>(null)
+  const [animate] = useState(!instant)
+  useLayoutEffect(() => {
+    if (!animate) return
+    const fade = box.current?.animate(
+      { opacity: [0, 1] },
+      { duration: 200, easing: curve("--ease-out") }
+    )
+    return () => fade?.cancel()
+  }, [animate])
+  return (
+    <div ref={box} className={className}>
       {children}
     </div>
   )
