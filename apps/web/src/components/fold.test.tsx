@@ -38,7 +38,11 @@ afterEach(() => {
   document.body.innerHTML = ""
 })
 
-function mount(open: boolean, onFolded?: () => void) {
+function mount(
+  open: boolean,
+  onFolded?: () => void,
+  timing?: "block" | "pill"
+) {
   const host = document.createElement("div")
   document.body.append(host)
   const root = createRoot(host)
@@ -46,7 +50,7 @@ function mount(open: boolean, onFolded?: () => void) {
   const render = (now: boolean) =>
     act(() =>
       root.render(
-        <Fold open={now} appear={false} onFolded={onFolded}>
+        <Fold open={now} appear={false} onFolded={onFolded} timing={timing}>
           Note
         </Fold>
       )
@@ -84,4 +88,14 @@ test("a hidden page, which draws no frames, folds by the clock", () => {
   } finally {
     delete (document as { hidden?: boolean }).hidden
   }
+})
+
+test("a pill shown again after folding away fades in from nothing", () => {
+  const { box, render } = mount(true, undefined, "pill")
+  render(false)
+  act(() => played.at(-1)!.onfinish!())
+  expect(box.style.display).toBe("none")
+  render(true)
+  expect(box.style.display).toBe("")
+  expect(played.at(-1)!.keyframes).toEqual({ opacity: [0, 1] })
 })
