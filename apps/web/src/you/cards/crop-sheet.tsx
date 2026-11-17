@@ -35,7 +35,7 @@ import {
   settle,
   unband,
   unbandScale,
-} from "@/you/cards/gestures"
+} from "@/components/gestures"
 
 // Room round the frame, so the page beyond it shows what can be panned to.
 const inset = 24

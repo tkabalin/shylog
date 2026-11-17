@@ -1,5 +1,5 @@
-// The physics the card viewer and the crop sheet share, so a pinch, a pan
-// and its settle feel the same in both.
+// The physics the image viewers (cards, dive site maps) and the crop sheet
+// share, so a pinch, a pan and its settle feel the same in each.
 
 // Critically damped, as nothing here was thrown: a settle, not a bounce.
 export const settle = { type: "spring", bounce: 0, duration: 0.4 } as const

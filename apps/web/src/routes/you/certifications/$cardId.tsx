@@ -1,16 +1,17 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react"
+import { createContext, use, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { IconPencil, IconX } from "@tabler/icons-react"
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router"
-import { cn } from "cn"
 
+import { ImagePages, type PageImageProps } from "@/components/image-pages"
+import { PageControl } from "@/components/page-control"
 import type { Card } from "@/data/db"
 import { useLog } from "@/data/log"
 import { useConnected } from "@/data/sync-status"
 import { useFullScreen } from "@/hooks/use-full-screen"
 import { useEdgeSwipeBlock } from "@/lib/edge-swipe"
 import { useBack } from "@/you/bar"
-import { CardPages } from "@/you/cards/card-pages"
+import { CardImage } from "@/you/cards/card-image"
 import { CardSheet, loadCardSheet } from "@/you/cards/load-sheet"
 
 // CertsHifi's viewer: a card full screen over the list, which stays as it
@@ -27,6 +28,23 @@ function ViewerPage() {
   // Deleted here or on another phone: the list takes its place.
   if (!card) return <Navigate to="/you/certifications" replace />
   return <Viewer card={card} />
+}
+
+// The card the viewer shows, for its pages' images.
+const ShownCard = createContext<Card | null>(null)
+
+function Screenshot({ i, ...props }: PageImageProps) {
+  const card = use(ShownCard)!
+  return (
+    <CardImage
+      {...props}
+      cardId={card.id}
+      n={i}
+      hash={card.images[i]}
+      retry
+      alt={`${card.name}, screenshot ${i + 1} of ${card.images.length}`}
+    />
+  )
 }
 
 // Where the browser can keep the screen on, as a dive centre reads the card.
@@ -157,103 +175,29 @@ function Viewer({ card }: { card: Card }) {
           onDeleted={() => closeLink.current?.click()}
         />
       )}
-      <CardPages card={card} page={shown} onPage={setPage} />
+      <ShownCard value={card}>
+        <ImagePages
+          count={card.images.length}
+          page={shown}
+          onPage={setPage}
+          // An eCard's small print readable on a phone.
+          maxScale={4}
+          keyOf={(i) => `${i} ${card.images[i]}`}
+          image={Screenshot}
+        />
+      </ShownCard>
       {many && (
         <PageControl
           count={card.images.length}
           shown={shown}
           onPage={setPage}
+          label="Screenshots"
+          itemLabel={(i) => `Screenshot ${i + 1}`}
         />
       )}
       {/* Room under the pages and dots, off the window's bottom edge. */}
       <div aria-hidden className="h-6 shrink-0" />
     </div>,
     document.body
-  )
-}
-
-// iOS's page control: the strip is one target, as its 15 px dots are too
-// close to tap apart. A tap left or right of the shown dot turns one page
-// that way, and sliding along the strip scrubs through them.
-function PageControl({
-  count,
-  shown,
-  onPage,
-}: {
-  count: number
-  shown: number
-  onPage: (page: number) => void
-}) {
-  const dots = useRef<HTMLDivElement>(null)
-  // Where the finger went down, until it has slid far enough to scrub.
-  const press = useRef<{ x: number; scrubbing: boolean } | null>(null)
-  // The click a pointer's release sends a dot, which the strip has already
-  // answered; a click with none before it is the keys or a screen reader.
-  const answered = useRef(false)
-  const dotAt = (x: number) => {
-    const box = dots.current!.getBoundingClientRect()
-    const i = Math.floor(((x - box.left) / box.width) * count)
-    return Math.max(0, Math.min(count - 1, i))
-  }
-  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return
-    event.currentTarget.setPointerCapture(event.pointerId)
-    press.current = { x: event.clientX, scrubbing: false }
-  }
-  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const down = press.current
-    if (!down) return
-    if (!down.scrubbing && Math.abs(event.clientX - down.x) < 8) return
-    down.scrubbing = true
-    const i = dotAt(event.clientX)
-    if (i !== shown) onPage(i)
-  }
-  const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    const down = press.current
-    press.current = null
-    if (!down) return
-    answered.current = true
-    // Not every release clicks a dot, so the next key press isn't eaten.
-    setTimeout(() => (answered.current = false))
-    if (down.scrubbing) return
-    const box = dots.current!.getBoundingClientRect()
-    const centre = box.left + ((shown + 0.5) / count) * box.width
-    const next = event.clientX < centre ? shown - 1 : shown + 1
-    if (next >= 0 && next < count) onPage(next)
-  }
-  return (
-    <div
-      role="tablist"
-      aria-label="Screenshots"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={() => (press.current = null)}
-      // Drawn where the board has the dots, and held by the strip alone so
-      // a slide along it never scrolls or zooms.
-      className="-mb-1.5 flex h-11 shrink-0 touch-none justify-center select-none"
-    >
-      <div ref={dots} className="flex">
-        {Array.from({ length: count }, (_, i) => (
-          <button
-            key={i}
-            type="button"
-            role="tab"
-            aria-selected={i === shown}
-            aria-label={`Screenshot ${i + 1}`}
-            tabIndex={i === shown ? 0 : -1}
-            onClick={() => !answered.current && onPage(i)}
-            className="inline-flex h-11 w-3.75 items-center justify-center"
-          >
-            <span
-              className={cn(
-                "size-1.75 rounded-full transition-colors duration-200 ease-out",
-                i === shown ? "bg-neutral-50" : "bg-white/30"
-              )}
-            />
-          </button>
-        ))}
-      </div>
-    </div>
   )
 }
