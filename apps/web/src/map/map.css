@@ -63,8 +63,18 @@
     padding: 2px 36px 2px 12px;
   }
 
+  /* 28px high on one line, and lines a normal step apart when the
+     satellite's longer credit wraps on a narrow window. */
   .maplibregl-ctrl-attrib-inner {
-    line-height: 28px;
+    padding-block: 6px;
+    line-height: 16px;
+  }
+
+  /* Opened, it runs under the list card on a narrow window, and over the
+     imagery wraps up under the zoom buttons, so it comes over both while
+     it's being read. */
+  .maplibregl-ctrl-bottom-right:has(.maplibregl-compact-show) {
+    z-index: 20;
   }
 
   .maplibregl-ctrl-attrib-button {

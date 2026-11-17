@@ -94,6 +94,50 @@ const palette = {
   },
 } satisfies Record<MapTheme, Record<string, string>>
 
+// Over the imagery, words and edges go white on a dark halo, as the land
+// and sea are no longer flat colours to set them off, and the pins and
+// clusters take the dark theme's, which stand off a photo in either theme.
+const halo = "rgba(0,0,0,0.6)"
+const overImagery = {
+  ...palette.dark,
+  placeText: "rgba(255,255,255,0.92)",
+  seaText: "rgba(255,255,255,0.8)",
+  mpaEdge: "rgba(255,255,255,0.6)",
+  noTakeEdge: "rgba(255,255,255,0.85)",
+  zoneText: "rgba(255,255,255,0.95)",
+  pinText: "rgb(255,255,255)",
+  landHalo: halo,
+  seaHalo: halo,
+}
+
+// The map's own land, water and roads, and the zones' shading, which close
+// across the land and so can't be trimmed to the sea over a photo. The Cape
+// Point bands are drawn only by their shading's outline, which runs inland
+// to close, and words along it, so they go too.
+const mapOnly = new Set([
+  "overview",
+  "ocean",
+  "zone-business",
+  "zone-no-dive",
+  "zone-outline-no-dive",
+  "shore-only-end",
+  "band-labels",
+  "shore-labels",
+  "earth",
+  "water",
+  "park",
+  "beach",
+  "road-minor",
+  "road-major",
+  "road-highway",
+])
+
+// Esri asks for its name and the imagery's sources: the main ones here, as
+// the whole list ran the credit under the desktop's card, and every one in
+// Map options' Sources.
+const imageryAttribution =
+  'Powered by <a href="https://www.esri.com" target="_blank" rel="noopener">Esri</a>: Vantor, Airbus and others'
+
 // The diagonal hatching over the no-diving zones, one image per theme,
 // drawn at twice its size so it stays crisp.
 export const hatchImage = (theme: MapTheme) => `hatch-${theme}`
@@ -283,23 +327,34 @@ export function mapStyle(
     shown = sites,
     showZones = true,
     hovered,
+    imagery,
   }: {
     picked?: Site
     shown?: readonly Site[]
     showZones?: boolean
     hovered?: Site
+    // The satellite imagery's tile address, which replaces the map's own
+    // land, water and roads.
+    imagery?: string
   } = {}
 ): StyleSpecification {
-  const p = palette[theme]
+  const p = imagery
+    ? overImagery
+    : {
+        ...palette[theme],
+        landHalo: palette[theme].land,
+        seaHalo: palette[theme].sea,
+      }
+  const pins = imagery ? "dark" : theme
   const shape = (isPicked: boolean): ExpressionSpecification => [
     "case",
     ["==", ["get", "type"], "wreck"],
-    pinImage(theme, "diamond", isPicked),
-    pinImage(theme, "dot", isPicked),
+    pinImage(pins, "diamond", isPicked),
+    pinImage(pins, "dot", isPicked),
   ]
   // Names in the land's colour as their halo, so a name over the shore has
   // no blue rim.
-  const siteName = { "text-color": p.pinText, "text-halo-color": p.land }
+  const siteName = { "text-color": p.pinText, "text-halo-color": p.landHalo }
   const style: StyleSpecification = {
     version: 8,
     // A theme change swaps the colours at once, as the rest of the app does.
@@ -470,7 +525,7 @@ export function mapStyle(
         },
         paint: {
           "text-color": p.noDive,
-          "text-halo-color": p.sea,
+          "text-halo-color": p.seaHalo,
           "text-halo-width": 1.2,
         },
       },
@@ -490,7 +545,7 @@ export function mapStyle(
         },
         paint: {
           "text-color": p.noDive,
-          "text-halo-color": p.sea,
+          "text-halo-color": p.seaHalo,
           "text-halo-width": 1.2,
         },
       },
@@ -648,7 +703,7 @@ export function mapStyle(
             p.seaText,
             p.zoneText,
           ],
-          "text-halo-color": p.sea,
+          "text-halo-color": p.seaHalo,
           "text-halo-width": 1.2,
         },
       },
@@ -670,7 +725,10 @@ export function mapStyle(
           "text-size": ["interpolate", ["linear"], ["zoom"], 8, 10, 12, 12],
           "text-max-width": 8,
         },
-        paint: { "text-color": p.seaText },
+        paint: {
+          "text-color": p.seaText,
+          ...(imagery && { "text-halo-color": halo, "text-halo-width": 1 }),
+        },
       },
       {
         id: "places",
@@ -693,7 +751,7 @@ export function mapStyle(
         },
         paint: {
           "text-color": p.placeText,
-          "text-halo-color": p.land,
+          "text-halo-color": p.landHalo,
           "text-halo-width": 1.2,
         },
       },
@@ -757,7 +815,7 @@ export function mapStyle(
         },
         paint: {
           "text-color": p.placeText,
-          "text-halo-color": p.land,
+          "text-halo-color": p.landHalo,
           "text-halo-width": 1.2,
         },
       },
@@ -848,6 +906,25 @@ export function mapStyle(
         paint: { ...siteName, "text-halo-width": 1.6 },
       },
     ],
+  }
+  if (imagery) {
+    style.sources.imagery = {
+      type: "raster",
+      tiles: [imagery],
+      // Esri's tiles are 256 px, but MapLibre picks the level for CSS
+      // pixels, so a phone's 3x screen stretched each one up to 4 times
+      // over. Called 128, they come a level closer, for 3 times the tiles.
+      tileSize: globalThis.devicePixelRatio >= 2 ? 128 : 256,
+      // Simon's Town's harbour is sharp at 0.15 m a pixel; where a level
+      // is missing (Rooi-Els stops at 18), the one above shows instead.
+      maxzoom: 20,
+      attribution: imageryAttribution,
+    }
+    style.layers = [
+      style.layers[0],
+      { id: "imagery", type: "raster", source: "imagery" },
+      ...style.layers.slice(1).filter((layer) => !mapOnly.has(layer.id)),
+    ]
   }
   if (!showZones) {
     for (const layer of style.layers.filter(isZoneLayer)) {
