@@ -493,7 +493,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
           {/* What the number means, unfolding with the burst once the
               server has numbered the dive, so the page never jumps. */}
           {line && (
-            <Fold key={shown.times} open={!!milestone} appear gap="-0.25rem">
+            <Fold key={shown.times} open={!!milestone} appear>
               <p className="pt-0.5 text-sm font-medium text-pretty text-primary">
                 {line}
               </p>
@@ -592,12 +592,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         ) : wasDraft ? (
           // Folds away once the dive has uploaded, rather than the page
           // jumping up by its height under the thumb.
-          <Fold
-            open={!!dive.draft}
-            appear={false}
-            className="-mt-2"
-            gap="-1rem"
-          >
+          <Fold open={!!dive.draft} appear={false} className="-mt-2">
             <UnsyncedBanner dive={dive} />
           </Fold>
         ) : (

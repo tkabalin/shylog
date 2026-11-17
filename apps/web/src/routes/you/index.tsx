@@ -46,7 +46,7 @@ import { DefaultsSection } from "@/you/defaults-section"
 import { DiveComputerRow } from "@/you/dive-computer-row"
 import { CardThumb } from "@/you/cards/card-thumb"
 import { Downloads } from "@/you/downloads"
-import { Fold, foldMs } from "@/components/fold"
+import { Fold } from "@/components/fold"
 import { StorageRow } from "@/you/storage-sheet"
 import { SyncCard } from "@/you/sync-card"
 import { kindLabels } from "@/you/kinds"
@@ -325,16 +325,13 @@ function ExportFailed({
       onExported(await exportNow())
       // Still "Exporting…" as it fades, rather than offering itself again.
       setGone(true)
-      // Once the fold is done. A timer rather than transitionend, which a
-      // hidden page (the app sent to the background) never fires.
-      setTimeout(onFolded, foldMs)
     } catch (failure) {
       setError((failure as Error).message)
       setRunning(false)
     }
   }
   return (
-    <Fold open={!gone} appear={appear}>
+    <Fold open={!gone} appear={appear} onFolded={onFolded}>
       <Alert
         title="Last night’s export failed"
         tone="warn"
