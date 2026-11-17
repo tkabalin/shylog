@@ -35,6 +35,16 @@ describe("the web app", () => {
     expect(await (await off.request("/explore")).text()).toContain(tag("off"))
   })
 
+  it("hands the app the satellite imagery's key", async () => {
+    const tag = (content: string) =>
+      `<meta name="shylog-arcgis-key" content="${content}" />`
+    expect(await (await app.request("/")).text()).toContain(tag(""))
+    const keyed = testApp({ env: { SHYLOG_ARCGIS_KEY: 'AAPT"k$&' } })
+    expect(await (await keyed.request("/")).text()).toContain(
+      tag("AAPT&quot;k$&amp;")
+    )
+  })
+
   it("serves client-side routes the app, but not missing files or API paths", async () => {
     expect(await (await app.request("/dive/dive-a")).text()).toContain(
       "<title>"

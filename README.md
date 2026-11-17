@@ -232,6 +232,17 @@ The cable can be plugged in and out while the containers run, so there is nothin
 5. The watch's battery isn't low and it sits firmly in the cable's clip, which forum reports blame for most failed Suunto downloads.
 6. The watch is awake: press a button and try again.
 
+### Satellite imagery
+
+Explore's satellite view shows Esri's World Imagery, which needs a free [ArcGIS Location Platform](https://location.arcgis.com/) account (no card) and a key for each instance's `SHYLOG_ARCGIS_KEY`. Without one the map has no satellite view. To make the key:
+
+1. In the account's Developer credentials, choose New item, then API key credentials, then a private application with selected privileges.
+2. Tick only Location services, Basemaps, and leave item access empty.
+3. Under referrer restrictions add the instance's `SHYLOG_ORIGIN`, plus `http://localhost:5173` for development, where `pnpm dev` reads the key from `.env` when it starts.
+4. Note the expiry date, a year at most, and make a new key well before then.
+
+Then run `docker compose --env-file instances/<instance>.env up -d`. Installed apps keep the page they installed with, so a new or changed key reaches a phone with the app's next update: set it before updating to a new image, and change it while the old one still works. The free tier is 2 million basemap tiles a month. Leave pay-as-you-go off, so going over stops the imagery rather than billing. The key is in the app's page, which anyone who can reach the instance can read, as every map tile carries it to Esri anyway; at worst someone spends the month's free tiles.
+
 ### Updating
 
 ```bash

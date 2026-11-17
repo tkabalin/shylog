@@ -40,6 +40,9 @@ const schema = z
     // Explore's map and sites cover only Cape Town, so an instance whose
     // diver dives elsewhere turns the tab and its map download off.
     SHYLOG_EXPLORE: z.enum(["on", "off"]).default("on"),
+    // An ArcGIS Location Platform key for Explore's satellite imagery,
+    // restricted to the instance's address; unset, the map has none.
+    SHYLOG_ARCGIS_KEY: z.string().min(1).optional(),
     // The commit the image was built from (the Dockerfile sets it), which
     // every log line carries.
     SHYLOG_REVISION: z.string().min(1).default("dev"),
