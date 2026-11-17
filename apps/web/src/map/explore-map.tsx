@@ -15,6 +15,7 @@ import {
 } from "@tabler/icons-react"
 import { Link, useNavigate, useRouter, useSearch } from "@tanstack/react-router"
 import { cn } from "cn"
+import { toast } from "sonner"
 
 import {
   ClearFilters,
@@ -32,11 +33,13 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
+import { useOnline } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import { depthScale } from "@/log/filters"
 import { PageBar, useBack } from "@/you/bar"
 
 import Basemap, { listCard, useMapFrame, type MapState } from "./basemap"
+import { imageryFailed, imageryTiles, satelliteChosen } from "./imagery"
 import {
   filterSites,
   filtersOf,
@@ -83,6 +86,32 @@ export default function Explore({
   const filters = useMemo(() => filtersOf({ types, depth }), [types, depth])
   const filtered = useMemo(() => filterSites(filters), [filters])
   const zones = useSyncExternalStore(zonesShown.subscribe, zonesShown.get)
+  // Satellite while there's a signal, and back to it once there is again.
+  const satelliteOn = useSyncExternalStore(
+    satelliteChosen.subscribe,
+    satelliteChosen.get
+  )
+  const online = useOnline()
+  const failed = useSyncExternalStore(
+    imageryFailed.subscribe,
+    imageryFailed.get
+  )
+  const imagery = satelliteOn && online && !failed ? imageryTiles : undefined
+  const satellite = imageryTiles
+    ? {
+        shown: !!imagery,
+        online,
+        // Choosing it again tries the imagery again.
+        onChange: (on: boolean) => {
+          imageryFailed.set(false)
+          satelliteChosen.set(on)
+        },
+      }
+    : undefined
+  const onImageryFailed = useCallback(() => {
+    imageryFailed.set(true)
+    toast("Couldn't load the satellite imagery")
+  }, [])
   const [hovered, setHovered] = useState<string>()
   const [query, setQueryState] = useState(kept)
   const setQuery = (next: string) => setQueryState((kept = next))
@@ -222,6 +251,8 @@ export default function Explore({
         onState={onState}
         filtered={filtered}
         zones={zones}
+        imagery={imagery}
+        onImageryFailed={onImageryFailed}
         hovered={hovered}
       >
         {desk ? (
@@ -253,6 +284,7 @@ export default function Explore({
             <DeskMapOptions
               zones={zones}
               onZones={zonesShown.set}
+              satellite={satellite}
               onRules={() => open("rules")}
             />
           </>
@@ -285,6 +317,7 @@ export default function Explore({
               <PhoneMapOptions
                 zones={zones}
                 onZones={zonesShown.set}
+                satellite={satellite}
                 onRules={() => open("rules")}
                 covered={!!view}
               />

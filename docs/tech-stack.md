@@ -19,19 +19,19 @@ Everything is TypeScript, in a pnpm workspace of four packages:
 
 ## Web app
 
-| Category       | Choice                                                          |
-| -------------- | --------------------------------------------------------------- |
-| UI framework   | React 19                                                        |
-| Bundler        | Vite 8, with vite-plugin-pwa 2                                  |
-| Routing        | TanStack Router 1, file-based                                   |
-| Components     | shadcn/ui 4 on Base UI, preset `b1sAmWaNW`, with Tabler icons   |
-| CSS            | Tailwind CSS 4, Geist and Geist Mono                            |
-| Charts         | Recharts 3, through shadcn's chart component                    |
-| Map            | MapLibre GL JS 6, with a Protomaps extract read through PMTiles |
-| Dive site text | markdown-to-jsx 9                                               |
-| Local storage  | Dexie 4 over IndexedDB                                          |
-| API client     | Hono's typed RPC client (`hono/client`)                         |
-| Motion, toasts | Motion 14, Sonner 2                                             |
+| Category       | Choice                                                                                                |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| UI framework   | React 19                                                                                              |
+| Bundler        | Vite 8, with vite-plugin-pwa 2                                                                        |
+| Routing        | TanStack Router 1, file-based                                                                         |
+| Components     | shadcn/ui 4 on Base UI, preset `b1sAmWaNW`, with Tabler icons                                         |
+| CSS            | Tailwind CSS 4, Geist and Geist Mono                                                                  |
+| Charts         | Recharts 3, through shadcn's chart component                                                          |
+| Map            | MapLibre GL JS 6, with a Protomaps extract read through PMTiles, and Esri World Imagery for satellite |
+| Dive site text | markdown-to-jsx 9                                                                                     |
+| Local storage  | Dexie 4 over IndexedDB                                                                                |
+| API client     | Hono's typed RPC client (`hono/client`)                                                               |
+| Motion, toasts | Motion 14, Sonner 2                                                                                   |
 
 **A PWA rather than a native app.** Each instance serves one diver, installed from the Home Screen and updated whenever a change is merged. A PWA needs no app store review, runs the same code on an iPhone and a laptop, and with a service worker it opens and works with no signal, which is the case that matters at a dive site.
 
@@ -43,7 +43,7 @@ Everything is TypeScript, in a pnpm workspace of four packages:
 
 **Recharts through shadcn's chart component.** The profile chart and the statistics share shadcn's container, tooltip and theming, so charts match the rest of the app in both themes without a second colour system. Recharts costs bundle size, which is why the chart code is in lazy chunks.
 
-**MapLibre with a PMTiles extract.** The dive site map needs vector tiles of one small region, styled to match the app, and nothing else. A Protomaps extract of OpenStreetMap covers the Cape Peninsula and False Bay in one 10 MB file, which the server hands out as a static file, a range at a time, so there is no tile server or map service to run or pay for. The app downloads the whole file ahead, and the service worker cuts each range from that copy, so the map works with no signal, as on a boat. MapLibre draws it, and with no font files named in the style it draws the labels in the app's own Geist. It is the heaviest library in the app, so it is a chunk of its own that runs only when the map opens, though the service worker downloads it with the rest of the app.
+**MapLibre with a PMTiles extract.** The dive site map needs vector tiles of one small region, styled to match the app, and nothing else. A Protomaps extract of OpenStreetMap covers the Cape Peninsula and False Bay in one 10 MB file, which the server hands out as a static file, a range at a time, so there is no tile server or map service to run or pay for. The app downloads the whole file ahead, and the service worker cuts each range from that copy, so the map works with no signal, as on a boat. MapLibre draws it, and with no font files named in the style it draws the labels in the app's own Geist. It is the heaviest library in the app, so it is a chunk of its own that runs only when the map opens, though the service worker downloads it with the rest of the app. Satellite is the one map service: Esri's World Imagery, online only, through a free ArcGIS key for each instance. Of Esri, Mapbox and Google it was the one whose free tier needs no payment card, and going over the free tiles stops the imagery rather than billing.
 
 **markdown-to-jsx for the dive sites' pages.** Each site's sheet shows its Wikivoyage page, converted to Markdown once by the refresh script and committed. markdown-to-jsx draws it with the app's own headings, links and tables, with raw HTML switched off, in 31 KB compressed and no dependencies, where react-markdown with remark-gfm for the tables is 45 KB across 17 packages.
 
