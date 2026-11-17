@@ -39,6 +39,7 @@ import { depthScale } from "@/log/filters"
 import { PageBar, useBack } from "@/you/bar"
 
 import Basemap, { listCard, useMapFrame, type MapState } from "./basemap"
+import { searchSites } from "./find"
 import {
   imageryFailed,
   imageryTiles,
@@ -50,7 +51,6 @@ import {
   filtersOf,
   matchesSite,
   searchOf,
-  searchSites,
   typeOptions,
   type SiteFilters,
 } from "./filters"

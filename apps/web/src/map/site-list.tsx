@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react"
 import { cn } from "cn"
 
-import { zoneNote } from "./filters"
+import { zoneNote } from "./find"
 import { areas, siteTypes, type Area, type Site } from "./sites"
 
 // The sites grouped by area under sticky headings, each with its count. It
