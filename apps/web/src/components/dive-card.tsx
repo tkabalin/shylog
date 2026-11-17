@@ -11,7 +11,7 @@ import { cn } from "cn"
 
 import { Sparkline } from "@/components/sparkline"
 import { Item } from "@/components/ui/item"
-import type { Dive } from "@/data/db"
+import type { Dive, FieldMeta, Region, Site } from "@/data/db"
 import type { LogView } from "@/data/log"
 import { profileMaxDepth } from "@/dive/figures"
 import { cardDay } from "@/format/dates"
@@ -22,19 +22,33 @@ import { cardPlace } from "@/format/place"
 // Log's mounted span and spacers depend on (see log/window.ts).
 export const cardHeight = 84
 
+// What a card shows from the rest of the log. Not the log itself, which is
+// new on every sync: these keep their objects while unchanged, so a sync
+// renders only the cards of dives it changed.
+export function cardProps(dive: Dive, log: LogView) {
+  const site = log.sites.get(dive.siteId)
+  return {
+    site,
+    region: site?.regionId ? log.regions.get(site.regionId) : undefined,
+    meta: log.fieldMeta.get(dive.id),
+  }
+}
+
 // LogHifi2's card, memoised so a filter change renders only the cards it
 // brings in. A draft is outlined, with a cloud-off icon under its number to
 // be; a refused one is outlined in the warning colour with a warning icon,
 // and gives its reason on its detail, which has room for all of it.
 export const DiveCard = memo(function DiveCard({
   dive,
-  log,
+  site,
+  region,
+  meta,
 }: {
   dive: Dive
-  log: LogView
+  site: Site | undefined
+  region: Region | undefined
+  meta: Map<string, FieldMeta> | undefined
 }) {
-  const site = log.sites.get(dive.siteId)
-  const region = site?.regionId ? log.regions.get(site.regionId) : undefined
   return (
     <Item
       variant="card"
@@ -117,7 +131,7 @@ export const DiveCard = memo(function DiveCard({
         <span className="hidden items-center min-[390px]:flex md:pr-8">
           <Sparkline
             points={dive.sparkline}
-            maxDepth={profileMaxDepth(dive, log.fieldMeta.get(dive.id))}
+            maxDepth={profileMaxDepth(dive, meta)}
             stretch
             className="w-full md:h-7"
           />

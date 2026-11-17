@@ -1,6 +1,6 @@
 import { memo } from "react"
 
-import { DiveCard } from "@/components/dive-card"
+import { cardProps, DiveCard } from "@/components/dive-card"
 import type { LogView } from "@/data/log"
 import type { MonthGroup as Group } from "@/log/filters"
 import { cardGap, groupHeight, headingHeight, spacerHeight } from "@/log/window"
@@ -53,7 +53,7 @@ export const MonthGroup = memo(function MonthGroup({
       </div>
       {from > 0 && <div style={{ height: spacerHeight(from) }} />}
       {group.dives.slice(from, to).map((dive) => (
-        <DiveCard key={dive.id} dive={dive} log={log} />
+        <DiveCard key={dive.id} dive={dive} {...cardProps(dive, log)} />
       ))}
       {after > 0 && <div style={{ height: spacerHeight(after) }} />}
     </section>

@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 
-import { DiveCard } from "@/components/dive-card"
+import { cardProps, DiveCard } from "@/components/dive-card"
 import type { Dive, Region, Site } from "@/data/db"
 import { useLog, type LogView } from "@/data/log"
 
@@ -107,7 +107,7 @@ function DevCardsPage() {
     <div className="flex flex-col gap-2 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-24">
       <h1 className="sr-only">Dive cards</h1>
       {view.dives.slice(0, worst.length).map((dive) => (
-        <DiveCard key={dive.id} dive={dive} log={view} />
+        <DiveCard key={dive.id} dive={dive} {...cardProps(dive, view)} />
       ))}
       <nav className="fixed bottom-24 left-1/2 flex -translate-x-1/2 rounded-full bg-neutral-200 p-1 font-sans text-xs">
         {(["demo", "worst"] as const).map((d) => (
