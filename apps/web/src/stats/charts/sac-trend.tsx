@@ -99,7 +99,9 @@ export const SacTrend = memo(function SacTrend({
           <ChartContainer
             config={config}
             fixed
-            className="aspect-auto size-full"
+            // A label on the last dive number can reach past the svg's edge
+            // ("1000" on a big log) into the card's padding, so it isn't cut.
+            className="aspect-auto size-full [&_.recharts-surface]:overflow-visible"
           >
             <ComposedChart
               width={width}
