@@ -54,11 +54,13 @@ RUN pnpm --filter @shylog/server build
 # Declared after the server's build, so the revision alone never rebuilds
 # the server; every commit ships a new web bundle.
 ARG VITE_REVISION=dev
-# The map's extract is copied into the image on its own below, so its
-# 10 MB layer is reused until the extract itself changes.
+# The map's extract and the dive sites' images are copied into the image on
+# their own below, so their layers (10 MB and 48 MB) are reused until the
+# files themselves change.
 RUN pnpm --filter @shylog/web build \
-  && mkdir /extract \
-  && mv apps/web/dist/assets/basemap-*.pmtiles /extract/
+  && mkdir /extract /site-images \
+  && mv apps/web/dist/assets/basemap-*.pmtiles /extract/ \
+  && mv apps/web/dist/assets/site-*.webp /site-images/
 
 # The server's runtime dependencies alone. fetch filled node_modules with
 # every package, so it starts empty. Core is bundled into the server's build,
@@ -80,7 +82,10 @@ COPY --from=deps /src/node_modules node_modules
 COPY --from=deps /src/apps/server/node_modules apps/server/node_modules
 COPY --from=build /src/apps/server/package.json apps/server/
 COPY --from=build /src/apps/server/dist apps/server/dist
-COPY --from=build /extract/ apps/web/dist/assets/
+# Linked, so their layers don't chain on the ones above: a server or
+# dependency change alone leaves them as they were.
+COPY --link --from=build /extract/ apps/web/dist/assets/
+COPY --link --from=build /site-images/ apps/web/dist/assets/
 COPY --from=build /src/apps/web/dist apps/web/dist
 # After the COPYs, so the revision never invalidates them. Every log line
 # carries it.
