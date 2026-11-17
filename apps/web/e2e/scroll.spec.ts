@@ -2,9 +2,10 @@ import { expect, test, type Locator } from "@playwright/test"
 
 import { tapCard } from "./ui"
 
-// Month groups render with content-visibility and an estimated height, so
-// check that going back from a dive lands on the same card with everything
-// as it was.
+// Only the cards near the screen are mounted, with spacers of their exact
+// height for the rest, so check that going back from a dive at the end of
+// the list lands on the same card, drawn in the first frame, with
+// everything as it was.
 for (const via of ["the Log link", "the browser"] as const) {
   test(`returns the Log to the opened card, back through ${via}`, async ({
     page,
@@ -12,14 +13,23 @@ for (const via of ["the Log link", "the browser"] as const) {
     await page.goto("/")
     const main = page.locator("#main")
     const cards = page.locator("main a[href^='/dive/dive-']")
-    await expect(cards).toHaveCount(42)
-    await main.evaluate((el) => el.scrollTo(0, 1800))
+    const newest = await cards.first().getAttribute("href")
+    await main.evaluate((el) => el.scrollTo(0, el.scrollHeight))
     const bar = page.locator("[data-log-bar]")
     await expect(bar).toHaveAttribute("data-stuck", "")
+    // So far down that the top of the list has no cards.
+    await expect(page.locator(`main a[href='${newest}']`)).toHaveCount(0)
 
-    // A card well down the list, fully on screen.
-    const card = cards.nth(22)
-    await card.scrollIntoViewIfNeeded()
+    // The last card wholly above the tab bar.
+    const href = await main.evaluate((el) => {
+      const limit = document
+        .querySelector("nav[aria-label=Main]")!
+        .getBoundingClientRect().top
+      return [...el.querySelectorAll("a[href^='/dive/dive-']")]
+        .findLast((a) => a.getBoundingClientRect().bottom <= limit)!
+        .getAttribute("href")!
+    })
+    const card = page.locator(`main a[href='${href}']`)
     const before = {
       top: await main.evaluate((el) => el.scrollTop),
       y: (await card.boundingBox())!.y,
@@ -39,6 +49,21 @@ for (const via of ["the Log link", "the browser"] as const) {
 
     await tapCard(card)
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
+    // Where the card is in the first frame the Log draws again: a frame
+    // callback runs just before the paint.
+    const first = page.evaluate(
+      (href) =>
+        new Promise<number | null>((resolve) => {
+          const look = () => {
+            if (!document.querySelector("[data-log-bar]"))
+              return requestAnimationFrame(look)
+            const card = document.querySelector(`main a[href='${href}']`)
+            resolve(card ? card.getBoundingClientRect().top : null)
+          }
+          requestAnimationFrame(look)
+        }),
+      href
+    )
     if (via === "the browser") await page.goBack()
     else
       await page
@@ -48,7 +73,9 @@ for (const via of ["the Log link", "the browser"] as const) {
         .click()
 
     await expect(page).toHaveURL("/")
-    await expect(cards).toHaveCount(42)
+    const drawn = await first
+    expect(drawn).not.toBeNull()
+    expect(Math.abs(drawn! - before.y)).toBeLessThanOrEqual(1)
     await expect
       .poll(() => main.evaluate((el) => el.scrollTop))
       .toBe(before.top)
@@ -80,7 +107,6 @@ test.describe("on a short screen", () => {
     test.slow()
     await page.goto("/")
     const cards = page.locator("main a[href^='/dive/dive-']")
-    await expect(cards).toHaveCount(42)
     const dive = await cards.first().getAttribute("href")
     await page.goto("/you/entities?kind=site")
     const sites = page.locator("main a[href^='/you/entities/site/']")

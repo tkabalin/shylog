@@ -1,9 +1,8 @@
 import { expect, test, type Page } from "@playwright/test"
 
 import { getLog } from "./api"
-import { still } from "./ui"
+import { listed, still } from "./ui"
 
-const cards = (page: Page) => page.locator("main a[href^='/dive/dive-']")
 const header = (page: Page) => page.locator("header").first()
 // As the filter reads a dive: whole metres and minutes.
 const metres = (depth: number) => Math.round(Math.round(depth * 1000) / 1000)
@@ -15,7 +14,7 @@ test("narrows the Log to a depth range", async ({ page, request }) => {
   ).length
 
   await page.goto("/")
-  await expect(cards(page)).toHaveCount(42)
+  await expect.poll(() => listed(page)).toBe(42)
   const pill = page.getByRole("button", { name: "Depth" })
   await pill.click()
   const sheet = page.getByRole("dialog", { name: "Depth" })
@@ -54,7 +53,7 @@ test("narrows the Log to a depth range", async ({ page, request }) => {
 
   await sheet.getByRole("button", { name: "Apply" }).click()
   await expect(sheet).toBeHidden()
-  await expect(cards(page)).toHaveCount(expected)
+  await expect.poll(() => listed(page)).toBe(expected)
   await expect(header(page)).toContainText(`${expected}dives logged`)
   const active = page.getByRole("button", { name: "Depth, 18–30 m" })
   await expect(active).toHaveAttribute("data-active", "")
@@ -67,7 +66,7 @@ test("narrows the Log to a depth range", async ({ page, request }) => {
   await expect(min).toHaveAttribute("aria-valuetext", "0 metres")
   await expect(max).toHaveAttribute("aria-valuetext", "More than 40 metres")
   await sheet.getByRole("button", { name: "Apply" }).click()
-  await expect(cards(page)).toHaveCount(42)
+  await expect.poll(() => listed(page)).toBe(42)
   await expect(page.getByRole("button", { name: "Depth" })).not.toHaveAttribute(
     "data-active"
   )
@@ -91,7 +90,7 @@ test("keeps the longest dives when the duration range is open-ended", async ({
   await expect(
     page.getByRole("button", { name: "Duration, ≥ 50 min" })
   ).toBeVisible()
-  await expect(cards(page)).toHaveCount(expected)
+  await expect.poll(() => listed(page)).toBe(expected)
 })
 
 test("gives each handle a touch area of about 44 px", async ({ page }) => {

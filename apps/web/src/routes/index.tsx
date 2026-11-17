@@ -1,7 +1,22 @@
-import { memo, useDeferredValue, useState } from "react"
+import {
+  memo,
+  startTransition,
+  useDeferredValue,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react"
+import { flushSync } from "react-dom"
 import { tags as allTags, type Tag } from "@shylog/core"
 import { IconPlus, IconSearch, IconUpload } from "@tabler/icons-react"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import {
+  createFileRoute,
+  Link,
+  useElementScrollRestoration,
+} from "@tanstack/react-router"
 import { cn } from "cn"
 
 import shyshark from "@/assets/shyshark.svg"
@@ -39,6 +54,7 @@ import {
   type Filters,
   type Range,
 } from "@/log/filters"
+import { cardsIn, covers, monthGap, nextSpan, type Span } from "@/log/window"
 
 // Filters live in the URL, so going back from a dive keeps them.
 interface LogSearch {
@@ -113,6 +129,7 @@ function LogPage() {
   // a tap in the next frame and the list follows in slices, between frames.
   const listSearch = useDeferredValue(search)
   const listQuery = useDeferredValue(query)
+  const list = useRef<HTMLDivElement>(null)
 
   const filters = filtersOf(search)
   const setFilters = (next: Filters) =>
@@ -242,8 +259,17 @@ function LogPage() {
           </LogHeader>
           {/* Room below the last card for the floating button. Wide screens
               keep the list to a readable column. */}
-          <div className="flex flex-col gap-4 px-4 pt-3 pb-24 md:mx-auto md:w-full md:max-w-3xl desk:pb-8">
-            <DiveList log={log} search={listSearch} query={listQuery} />
+          <div
+            ref={list}
+            className="flex flex-col px-4 pt-3 pb-24 md:mx-auto md:w-full md:max-w-3xl desk:pb-8"
+            style={{ gap: monthGap }}
+          >
+            <DiveList
+              log={log}
+              search={listSearch}
+              query={listQuery}
+              list={list}
+            />
           </div>
           {/* The board's floating button, clear of the tab bar; a desktop
               has the header's New dive instead. */}
@@ -268,21 +294,39 @@ const DiveList = memo(function DiveList({
   log,
   search,
   query,
+  list,
 }: {
   log: LogView
   search: LogSearch
   query: string
+  list: RefObject<HTMLDivElement | null>
 }) {
-  const filters = filtersOf(search)
-  const groups = monthGroups(
-    log.dives.filter(
-      (dive) =>
-        matchesFilters(dive, filters, log) && matchesSearch(dive, query, log)
+  // Kept while the list only scrolls, which renders it again.
+  const groups = useMemo(() => {
+    const filters = filtersOf(search)
+    return monthGroups(
+      log.dives.filter(
+        (dive) =>
+          matchesFilters(dive, filters, log) && matchesSearch(dive, query, log)
+      )
     )
+  }, [log, search, query])
+  // Mounting every card made a long log slow to open and to come back to,
+  // so only the cards near the screen are; spacers keep the rest's room.
+  const span = useMountedSpan(list, groups)
+  const mounted = cardsIn(
+    groups.map((group) => group.dives.length),
+    span
   )
   return groups.length ? (
-    groups.map((group) => (
-      <MonthGroup key={group.key} group={group} log={log} />
+    groups.map((group, i) => (
+      <MonthGroup
+        key={group.key}
+        group={group}
+        log={log}
+        from={mounted[i][0]}
+        to={mounted[i][1]}
+      />
     ))
   ) : (
     <p className="py-12 text-center text-sm text-muted-foreground">
@@ -290,6 +334,85 @@ const DiveList = memo(function DiveList({
     </p>
   )
 })
+
+// The part of the list #main shows, from its first month as cardsIn counts.
+function visibleSpan(main: HTMLElement, list: HTMLElement): Span {
+  const first = list.firstElementChild ?? list
+  const top =
+    main.getBoundingClientRect().top - first.getBoundingClientRect().top
+  return { top, bottom: top + main.clientHeight }
+}
+
+// The stretch of the list that holds cards. It starts around the position
+// the router is about to restore, so going back paints the cards there in
+// its first frame, then follows #main's scroll a frame behind.
+function useMountedSpan(
+  list: RefObject<HTMLElement | null>,
+  groups: ReturnType<typeof monthGroups>
+) {
+  const restored = useElementScrollRestoration({
+    getElement: () => document.getElementById("main"),
+  })
+  const [span, setSpan] = useState(() => {
+    // Taken as the list's top until it renders: the header above it is
+    // far shorter than the span's margins.
+    const top = restored?.scrollY ?? 0
+    const screen = document.getElementById("main")?.clientHeight || innerHeight
+    return nextSpan(undefined, { top, bottom: top + screen })
+  })
+  // Set only when the span moves, a step every half screen or so: an
+  // update on every scroll frame had React render the list each frame.
+  const asked = useRef(span)
+  // The span on screen, which a transition may not have caught up with.
+  const shown = useRef(span)
+  useLayoutEffect(() => {
+    shown.current = span
+  }, [span])
+  // A filter or search that shortens the list clamps the scroll, which can
+  // leave the screen outside the span, so it's measured again before that
+  // render paints. Not on mount, before the router has restored the scroll.
+  const measured = useRef(groups)
+  useLayoutEffect(() => {
+    const main = document.getElementById("main")
+    if (measured.current === groups || !main || !list.current) return
+    measured.current = groups
+    const next = nextSpan(asked.current, visibleSpan(main, list.current))
+    if (next === asked.current) return
+    asked.current = next
+    setSpan(next)
+  }, [list, groups])
+  useEffect(() => {
+    const main = document.getElementById("main")
+    const target = list.current
+    if (!main || !target) return
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const visible = visibleSpan(main, target)
+      const next = nextSpan(asked.current, visible)
+      // A fling or a jump past the cards on screen renders them at once,
+      // or its months would show with none. A step within them is a
+      // transition, built between frames rather than in one long task.
+      const urgent = !covers(shown.current, visible)
+      if (next === asked.current && !urgent) return
+      asked.current = next
+      if (urgent) flushSync(() => setSpan(next))
+      else startTransition(() => setSpan(next))
+    }
+    const schedule = () => {
+      frame ||= requestAnimationFrame(update)
+    }
+    main.addEventListener("scroll", schedule, { passive: true })
+    addEventListener("resize", schedule)
+    schedule()
+    return () => {
+      main.removeEventListener("scroll", schedule)
+      removeEventListener("resize", schedule)
+      cancelAnimationFrame(frame)
+    }
+  }, [list])
+  return span
+}
 
 // The count, its line, the bar, a month and its first cards, each where
 // it'll be, so nothing moves when the log arrives. Blank at first, as the

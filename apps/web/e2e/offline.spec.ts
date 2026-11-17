@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test"
 
 import { deleteDive, diveId, getLog, test } from "./api"
-import { still } from "./ui"
+import { listed, still } from "./ui"
 
 const header = (page: Page) => page.locator("header").first()
 const profile = (page: Page) =>
@@ -113,7 +113,7 @@ test("a dive saved offline waits on the phone with a provisional number, then up
   const site = `E2E Offline ${Date.now()}`
   await warmDetail(page)
   // Today's dive comes after every fixture dive, so it will be the last.
-  const next = (await cards(page).count()) + 1
+  const next = (await listed(page)) + 1
   await page.getByRole("link", { name: "Log a dive" }).click()
   await expect(page.getByRole("heading", { name: "New dive" })).toBeVisible()
   await context.setOffline(true)

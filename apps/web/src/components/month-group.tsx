@@ -1,22 +1,34 @@
-import { cardHeight, DiveCard } from "@/components/dive-card"
+import { memo } from "react"
+
+import { DiveCard } from "@/components/dive-card"
 import type { LogView } from "@/data/log"
 import type { MonthGroup as Group } from "@/log/filters"
+import { cardGap, groupHeight, headingHeight, spacerHeight } from "@/log/window"
 
-// The heading (24px) and cards with 8px gaps.
-const groupHeight = (cards: number) => 24 + cards * (cardHeight + 8)
-
-// content-visibility lets the browser skip laying out groups off screen,
-// while find in page and the screen-reader order stay whole. The intrinsic
-// size is exact, so a restored scroll position lands on the same card.
-// It also clips paint to the section, so the padding (cancelled by the
-// margins) keeps the cards' rings and shadows, and the stuck heading's
-// strip as the next month pushes it out, inside it.
-export function MonthGroup({ group, log }: { group: Group; log: LogView }) {
+// Only the cards from..to are mounted (see DiveList). Spacers keep the
+// others' room, so the month keeps its exact height and a restored scroll
+// position lands on the same card.
+export const MonthGroup = memo(function MonthGroup({
+  group,
+  log,
+  from,
+  to,
+}: {
+  group: Group
+  log: LogView
+  from: number
+  to: number
+}) {
+  const after = group.dives.length - to
+  // content-visibility skips laying out mounted months off screen. It clips
+  // paint to the section, so the padding the margins cancel keeps the cards'
+  // rings and shadows, and the stuck heading's strip, inside it.
   return (
     <section
       aria-labelledby={`month-${group.key}`}
-      className="-mx-4 -mb-2 flex flex-col gap-2 px-4 pb-2 [content-visibility:auto]"
+      className="-mx-4 -mb-2 flex flex-col px-4 pb-2 [content-visibility:auto]"
       style={{
+        gap: cardGap,
         containIntrinsicSize: `auto ${groupHeight(group.dives.length)}px`,
       }}
     >
@@ -25,7 +37,8 @@ export function MonthGroup({ group, log }: { group: Group; log: LogView }) {
           which groupHeight and the cards' positions depend on. */}
       <div
         data-month-heading
-        className="sticky top-[calc(max(0.75rem,env(safe-area-inset-top))+var(--log-bar-height,0px))] z-[5] -mx-4 flex h-6 items-center justify-between bg-background px-5 after:absolute after:inset-x-0 after:top-full after:h-1.5 after:border-b after:border-transparent after:bg-background data-stuck:after:border-border"
+        className="sticky top-[calc(max(0.75rem,env(safe-area-inset-top))+var(--log-bar-height,0px))] z-[5] -mx-4 flex items-center justify-between bg-background px-5 after:absolute after:inset-x-0 after:top-full after:h-1.5 after:border-b after:border-transparent after:bg-background data-stuck:after:border-border"
+        style={{ height: headingHeight }}
       >
         <h2
           id={`month-${group.key}`}
@@ -38,9 +51,11 @@ export function MonthGroup({ group, log }: { group: Group; log: LogView }) {
           {group.count}
         </span>
       </div>
-      {group.dives.map((dive) => (
+      {from > 0 && <div style={{ height: spacerHeight(from) }} />}
+      {group.dives.slice(from, to).map((dive) => (
         <DiveCard key={dive.id} dive={dive} log={log} />
       ))}
+      {after > 0 && <div style={{ height: spacerHeight(after) }} />}
     </section>
   )
-}
+})
