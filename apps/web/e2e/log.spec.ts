@@ -330,6 +330,24 @@ const newerServer = (page: Page) =>
     })
   })
 
+// Whether the phone has kept a log. The Log shows a fetched log before
+// writing it, so 42 cards on screen don't yet mean a reload finds them.
+const kept = (page: Page) =>
+  page.evaluate(
+    () =>
+      new Promise<boolean>((resolve, reject) => {
+        const open = indexedDB.open("shylog")
+        open.onerror = () => reject(open.error)
+        open.onsuccess = () => {
+          const db = open.result
+          const get = db.transaction("meta").objectStore("meta").get("log")
+          get.onerror = () => reject(get.error)
+          get.onsuccess = () => resolve(get.result !== undefined)
+          get.transaction!.oncomplete = () => db.close()
+        }
+      })
+  )
+
 test("stops syncing and asks for an update when the server is newer", async ({
   page,
 }) => {
@@ -347,6 +365,7 @@ test("keeps the log and offers a reload on every tab when the server is newer", 
 }) => {
   await page.goto("/")
   await expect.poll(() => listed(page)).toBe(42)
+  await expect.poll(() => kept(page)).toBe(true)
   await newerServer(page)
   await page.reload()
   const offer = page
