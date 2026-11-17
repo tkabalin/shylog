@@ -12,6 +12,7 @@ import {
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { countText } from "@/components/pickers/match"
 import { Progress } from "@/components/progress"
 import { Card } from "@/components/ui/card"
 import type { Dive } from "@/data/db"
@@ -188,7 +189,7 @@ function Descended({
       </dt>
       <dd className="text-[13px] leading-[18px] text-muted-foreground tabular-nums">
         <span className="font-semibold text-foreground">
-          {Math.round(metres).toLocaleString("en-GB")} m
+          {countText(Math.round(metres))} m
         </span>{" "}
         cumulative{progress && `: ${progress}`}
       </dd>

@@ -45,8 +45,11 @@ export function Highlighted({
 // Spaces tidied, case kept: names are saved as typed.
 export const tidyName = (name: string) => name.trim().replace(/\s+/g, " ")
 
-// Grouped as the dates are (en-GB), so a busy site reads "1,234 dives".
-export const countText = (count: number) => count.toLocaleString("en-GB")
+// Grouped as the dates are (en-GB), so a busy site reads "1,234 dives", by
+// one formatter: in Chromium, toLocaleString with a locale builds one for
+// every call, about 6 µs each against 0.2.
+const grouping = new Intl.NumberFormat("en-GB")
+export const countText = (count: number) => grouping.format(count)
 
 export const diveCount = (count: number) =>
   `${countText(count)} ${count === 1 ? "dive" : "dives"}`

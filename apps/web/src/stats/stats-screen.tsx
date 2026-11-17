@@ -256,7 +256,7 @@ function Hours({ seconds }: { seconds: number }) {
       <span>
         {/* Grouped, as the dive count is: "1,259 h". */}
         <span className="font-semibold text-foreground">
-          {h.toLocaleString("en-GB")} h
+          {countText(h)} h
         </span>{" "}
         underwater
       </span>
@@ -763,7 +763,7 @@ function Tags({
               >
                 {tag.label}
                 <span className="text-[13px] font-medium text-muted-foreground tabular-nums">
-                  {tag.count.toLocaleString("en-GB")}
+                  {countText(tag.count)}
                 </span>
               </Link>
             </li>
