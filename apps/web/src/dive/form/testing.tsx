@@ -15,10 +15,13 @@ declare global {
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 // jsdom has neither matchMedia, which picks the phone or desktop layout and
-// the motion preference, nor scrollIntoView or scrollTo. Every query is
-// false, so the form renders as on a phone, and scrolling does nothing.
+// the motion preference, nor scrollIntoView, scrollTo or Web Animations.
+// Every query is false, so the form renders as on a phone, scrolling does
+// nothing, and a revealed row's motion never ends.
 Element.prototype.scrollIntoView ??= () => {}
 Element.prototype.scrollTo ??= () => {}
+Element.prototype.animate ??= () =>
+  ({ cancel() {}, finished: new Promise(() => {}) }) as unknown as Animation
 window.matchMedia ??= (query: string) =>
   ({
     matches: false,

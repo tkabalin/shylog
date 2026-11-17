@@ -12,7 +12,7 @@ const timings = {
 
 // Read once each: the tokens never change while the app runs.
 const curves = new Map<string, string>()
-function curve(name: string) {
+export function curve(name: string) {
   let value = curves.get(name)
   if (value == null) {
     value = getComputedStyle(document.documentElement).getPropertyValue(name)
@@ -179,7 +179,7 @@ function slideBox(
 // Slides what `fold`'s room moves, from where it was without it as it opens,
 // to there as it shuts, or on from where a stopped slide left it; the room
 // never animates, so nothing lays out. `stop` remembers where it was.
-function slideAfter(
+export function slideAfter(
   fold: HTMLElement,
   opening: boolean,
   timing: KeyframeAnimationOptions
@@ -192,9 +192,11 @@ function slideAfter(
     const from = was != null ? was - top : opening ? -shift : 0
     const to = opening ? 0 : -shift
     played.push(
+      // Added to any other slide, as rows revealed together each move
+      // what follows them by their own room.
       element.animate(
         { transform: [`translateY(${from}px)`, `translateY(${to}px)`] },
-        { ...timing, fill: "both" }
+        { ...timing, fill: "both", composite: "add" }
       )
     )
   }
