@@ -19,7 +19,7 @@ import { useLog } from "@/data/log"
 import { OfflineMark } from "@/components/offline-mark"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
-import { mainView, useDragList } from "@/lib/drag-order"
+import { dragSpring, mainView, useDragList } from "@/lib/drag-order"
 import { PageBar } from "@/you/bar"
 import { CardThumb } from "@/you/cards/card-thumb"
 import { accept, CardSheet, loadCardSheet } from "@/you/cards/load-sheet"
@@ -284,6 +284,7 @@ function CardRow({
       // finger holds is moved by the drag alone, so it is left out.
       layout="position"
       layoutDependency={held ? "held" : place}
+      transition={dragSpring}
       {...(locked ? {} : item)}
       // Its corners follow the list's at either end.
       className={cn(
