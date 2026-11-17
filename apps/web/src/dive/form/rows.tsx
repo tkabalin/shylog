@@ -1,7 +1,8 @@
 import {
   createContext,
   useContext,
-  useEffect,
+  useLayoutEffect,
+  useRef,
   useState,
   type ComponentProps,
   type ComponentType,
@@ -19,12 +20,14 @@ import {
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "cn"
 
+import { curve, slideAfter } from "@/components/fold"
 import type { Option } from "@/components/pickers/option-sheet"
 import { Card } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem } from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Haptic } from "@/lib/haptic"
 import { isReturn } from "@/lib/keys"
+import { reduced } from "@/lib/motion"
 
 // The pieces of EditDiveHifi's form: a section heading over a card of rows,
 // each row a muted label on the left and its value, right-aligned, in the
@@ -450,8 +453,9 @@ export function Segmented<V extends string>({
 export const FormShown = createContext<{ current: boolean }>({ current: true })
 
 // Rows a choice reveals (Oxygen, the training details, Distance) ease open
-// rather than jumping everything below them down. Removal snaps, as the
-// diver's own tap closed it.
+// rather than jumping everything below them down: drawn whole at once and
+// uncovered while what follows slides by transform, so nothing below lays
+// out again each frame. Removal snaps, as the diver's own tap closed it.
 export function Reveal({
   children,
   className,
@@ -461,24 +465,30 @@ export function Reveal({
 }) {
   const shown = useContext(FormShown)
   const [animate] = useState(() => shown.current)
-  // Opened a frame after it mounts rather than by @starting-style, which
-  // WebKit can skip when the mount is a long task (fifty dive rows).
-  const [open, setOpen] = useState(!animate)
-  useEffect(() => {
-    if (open) return
-    const frame = requestAnimationFrame(() => setOpen(true))
-    return () => cancelAnimationFrame(frame)
-  }, [open])
+  const box = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const el = box.current
+    if (!animate || !el) return
+    const timing = { duration: 200, easing: curve("--ease-out") }
+    const fade = el.animate({ opacity: [0, 1] }, timing)
+    if (reduced()) return () => fade.cancel()
+    // Wide of the row, so only its bottom edge cuts anything.
+    const uncover = el.animate(
+      {
+        clipPath: ["inset(0 -100vw 100% -100vw)", "inset(0 -100vw 0 -100vw)"],
+      },
+      timing
+    )
+    const slid = slideAfter(el, true, timing)
+    return () => {
+      fade.cancel()
+      uncover.cancel()
+      slid.stop()
+    }
+  }, [animate])
   return (
-    <div
-      className={cn(
-        "grid",
-        open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
-        animate &&
-          "transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-opacity"
-      )}
-    >
-      <div className={cn("min-h-0 overflow-hidden", className)}>{children}</div>
+    <div ref={box} className={className}>
+      {children}
     </div>
   )
 }
