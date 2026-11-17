@@ -1,4 +1,4 @@
-import { createContext, memo, useContext, useEffect, useState } from "react"
+import { createContext, memo, useContext, useState } from "react"
 import { IconChevronDown, IconWifiOff } from "@tabler/icons-react"
 import { Link } from "@tanstack/react-router"
 import Markdown, { type MarkdownToJSX } from "markdown-to-jsx/react"
@@ -20,50 +20,13 @@ import {
 } from "@/components/ui/table"
 
 import { siteText, type Part } from "./page-text"
+import { fetchJson, loadOnce, useJsonFile } from "./json-file"
 import pagesUrl from "./pages.json?url"
 import { withSite } from "./search"
 import { wikivoyage, type Site } from "./sites"
 
-// The pages' text, 1.6 MB, a file the service worker keeps with the app,
-// fetched as the map's code runs so it's in hand when a sheet opens. A
-// failed fetch (a first visit with no signal) is tried again for the next
-// site, or as soon as the signal is back.
-type Pages = Record<string, Part[]>
-let pages: Pages | undefined
-let loading: Promise<Pages> | undefined
-const load = () =>
-  (loading ??= fetch(pagesUrl)
-    .then((response) => {
-      if (!response.ok) throw new Error(`${pagesUrl}: ${response.status}`)
-      return response.json() as Promise<Pages>
-    })
-    .then((all) => (pages = all))
-    .catch((error: unknown) => {
-      loading = undefined
-      throw error
-    }))
-void load().catch(() => {})
-
-function usePages(site: string) {
-  const [loaded, setLoaded] = useState(pages)
-  const [failed, setFailed] = useState(false)
-  useEffect(() => {
-    if (loaded) return
-    let live = true
-    const attempt = () =>
-      load().then(
-        (all) => live && setLoaded(all),
-        () => live && setFailed(true)
-      )
-    void attempt()
-    window.addEventListener("online", attempt)
-    return () => {
-      live = false
-      window.removeEventListener("online", attempt)
-    }
-  }, [loaded, site])
-  return { loaded, failed }
-}
+// The pages' text, 1.6 MB.
+const pagesFile = loadOnce(() => fetchJson<Record<string, Part[]>>(pagesUrl))
 
 // Lines in the text's place until it comes, or the offline icon if it
 // can't, so a sheet raised early doesn't look as if it has nothing to say.
@@ -227,7 +190,7 @@ export const SiteText = memo(function SiteText({
   // The phone's Read on Wikivoyage, after the text.
   end?: React.ReactNode
 }) {
-  const { loaded, failed } = usePages(site.id)
+  const { loaded, failed } = useJsonFile(pagesFile, site.id)
   if (!site.page) return null
   if (!loaded) return <Waiting failed={failed} className={className} />
   const parts = loaded[site.page]
