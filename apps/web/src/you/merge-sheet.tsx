@@ -4,7 +4,11 @@ import { IconAlertTriangle } from "@tabler/icons-react"
 import { cn } from "cn"
 
 import { countText, Highlighted, matchName } from "@/components/pickers/match"
-import { SheetSearch } from "@/components/pickers/sheet"
+import {
+  FullSheetContent,
+  keyboardPad,
+  SheetSearch,
+} from "@/components/pickers/sheet"
 import { Button } from "@/components/ui/button"
 import {
   Drawer,
@@ -18,6 +22,9 @@ import { mergeEntity } from "@/data/entities"
 import { useDesk } from "@/hooks/use-desk"
 
 import { kindLabels } from "./kinds"
+
+// A desktop dialog has no keyboard to clear, so it keeps its own height.
+const deskHeight = "max-h-[calc(100dvh-env(safe-area-inset-top)-0.75rem)]"
 
 export interface Candidate {
   id: string
@@ -97,9 +104,14 @@ export function MergeSheet({
     : ""
   const cta = pick ? `Merge “${pick.name}”` : "Merge"
 
+  const Content = desk ? DrawerContent : FullSheetContent
+
   return (
     <Drawer showSwipeHandle open={open} onOpenChange={change}>
-      <DrawerContent className="max-h-[calc(100dvh-env(safe-area-inset-top)-0.75rem)]">
+      {/* On a phone at full height, as its search raises the keyboard: an
+          auto-height sheet shrank as a query narrowed the list, and the
+          keyboard hid the Merge button. */}
+      <Content className={desk ? deskHeight : undefined}>
         <DrawerHeader className="pb-3 desk:pb-2">
           <DrawerTitle className="[overflow-wrap:anywhere]">
             Merge into {into.name}
@@ -109,7 +121,10 @@ export function MergeSheet({
             here and it’s removed.
           </DrawerDescription>
         </DrawerHeader>
-        <div className="flex min-h-0 flex-col gap-3 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] desk:pb-0">
+        <div
+          ref={keyboardPad}
+          className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-[max(1rem,env(safe-area-inset-bottom),var(--keyboard,0px))] desk:flex-initial desk:pb-0"
+        >
           <SheetSearch
             value={query}
             onChange={setQuery}
@@ -188,10 +203,10 @@ export function MergeSheet({
               </p>
             )}
           </div>
-          {/* Two lines held, so picking doesn't grow the sheet under the
-              finger; it says what to do until one is picked. A long name
-              wraps anywhere rather than overflowing. */}
-          <div className="min-h-10 px-1 text-[13px] leading-normal [overflow-wrap:anywhere] text-muted-foreground tabular-nums">
+          {/* On a phone at the foot with the button, both above the keyboard.
+              Two lines held, so picking doesn't move the list under the
+              finger, and a long name wraps anywhere rather than overflowing. */}
+          <div className="mt-auto min-h-10 px-1 text-[13px] leading-normal [overflow-wrap:anywhere] text-muted-foreground tabular-nums desk:mt-0">
             <p className="line-clamp-3">
               {line || "Pick the one to merge into this."}
             </p>
@@ -230,7 +245,7 @@ export function MergeSheet({
             </Button>
           </DrawerFooter>
         )}
-      </DrawerContent>
+      </Content>
     </Drawer>
   )
 }

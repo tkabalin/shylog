@@ -48,9 +48,9 @@ function follow() {
   })
 }
 
-// A ref for the scroller in a sheet that pads its end by `--keyboard`. The
-// variable doesn't inherit (index.css), so it's written on each scroller
-// as it mounts: one remounted with the keyboard up starts clear of it.
+// A ref for the element in a sheet that pads its end by `--keyboard`. The
+// variable doesn't inherit (index.css), so it's written on each one as it
+// mounts: a scroller remounted with the keyboard up starts clear of it.
 export function keyboardPad(pad: HTMLElement | null) {
   if (!pad) return
   const viewport = window.visualViewport

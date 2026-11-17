@@ -330,8 +330,8 @@
   syntax: "*";
   inherits: false;
 }
-/* The same for the keyboard's height as it slides: only a sheet's scroller
-   reads it, and keyboardPad writes it on each one. */
+/* The same for the keyboard's height as it slides: only the part of a
+   sheet that pads for it reads it, and keyboardPad writes it there. */
 @property --keyboard {
   syntax: "*";
   inherits: false;
