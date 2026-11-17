@@ -94,6 +94,7 @@ import { useDesk } from "@/hooks/use-desk"
 import { cardDay, longDate, months, pad } from "@/format/dates"
 import { bar, depth, interval } from "@/format/figures"
 import { Haptic } from "@/lib/haptic"
+import { scrolling } from "@/lib/motion"
 
 import { formFigures } from "./calculated"
 import {
@@ -141,11 +142,6 @@ const openPicker = (event: MouseEvent<HTMLInputElement>) => {
   if ((event.nativeEvent as PointerEvent).pointerType === "mouse")
     event.currentTarget.showPicker()
 }
-
-// Smooth scrolling, unless the phone asks for reduced motion, which a
-// script's smooth scroll otherwise ignores.
-const scrolling = (): ScrollBehavior =>
-  matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
 
 // Minutes after midnight as a 24-hour clock; a sunset just past midnight
 // reads 00:04, not 24:04.

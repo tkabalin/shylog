@@ -30,6 +30,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { reduced } from "@/lib/motion"
 import { exploreOn } from "@/map/enabled"
 
 const destinations = [
@@ -179,7 +180,59 @@ export function useImportStep() {
   )
 }
 
+// A tap on the tab of the screen already shown scrolls it to the top and
+// keeps its filters, as an iOS tab bar does. A map's chosen site is a
+// sub-screen, not a filter, so that tap goes on to the tab's root.
+function toTop(router: AnyRouter, to: string, event: MouseEvent) {
+  const { pathname, search } = router.state.location
+  const site = (search as { site?: string }).site
+  if (!plainClick(event) || pathname !== to || site != null) return
+  event.preventDefault()
+  const main = document.getElementById("main")
+  if (main) glideToTop(main)
+}
+
+// Drawn a frame at a time: WebKit drops a smooth scrollTo when the page's
+// layout changes as it starts (a sync landing, the list finishing), and iOS
+// ignores one during a fling, which overflow hidden through the glide stops.
+function glideToTop(main: HTMLElement) {
+  if (reduced()) {
+    main.scrollTop = 0
+    return
+  }
+  const ms = 400
+  let frame = 0
+  // Read on the glide's first frame, where the fling has stopped.
+  let from: number | undefined
+  let start = 0
+  const stop = () => {
+    cancelAnimationFrame(frame)
+    main.style.overflowY = ""
+    for (const type of ["pointerdown", "wheel", "keydown"])
+      main.removeEventListener(type, stop)
+  }
+  // A finger, wheel or key takes the scroll back, as on iOS.
+  for (const type of ["pointerdown", "wheel", "keydown"])
+    main.addEventListener(type, stop, { passive: true })
+  // Held through the glide: a single frame of it didn't always stop iOS's
+  // fling, which then ran on over months drawn only near the top, blank.
+  // Only a touch screen flings, and a mouse's scrollbar would blink.
+  if (matchMedia("(pointer: coarse)").matches) main.style.overflowY = "hidden"
+  const step = (now: number) => {
+    if (from === undefined) {
+      from = main.scrollTop
+      start = now
+    }
+    const t = Math.min(1, (now - start) / ms)
+    main.scrollTop = from * (1 - t) ** 3
+    if (t < 1) frame = requestAnimationFrame(step)
+    else stop()
+  }
+  frame = requestAnimationFrame(step)
+}
+
 export function BottomNav() {
+  const router = useRouter()
   const logTab = useLogTab()
   if (useOnForm()) return null
   return (
@@ -195,6 +248,7 @@ export function BottomNav() {
           to={to}
           replace
           aria-label={label}
+          onClick={(event) => toTop(router, to, event)}
           {...logTab(to)}
           className="group flex min-h-12.25 items-center justify-center text-muted-foreground select-none [-webkit-touch-callout:none] data-[status=active]:text-primary"
         >

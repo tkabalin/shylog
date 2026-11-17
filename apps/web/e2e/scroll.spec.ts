@@ -91,8 +91,69 @@ for (const via of ["the Log link", "the browser"] as const) {
     await expect(page.locator("[data-month-heading][data-stuck]")).toHaveCount(
       1
     )
+
+    // A tap on the Log's own tab then glides it to the top, as an iOS tab
+    // bar does, where navigating there again restored the same scroll.
+    const glide = main.evaluate(
+      (el) =>
+        new Promise<number[]>((resolve) => {
+          const seen: number[] = []
+          const look = () => {
+            seen.push(el.scrollTop)
+            if (el.scrollTop === 0 || seen.length > 300) resolve(seen)
+            else requestAnimationFrame(look)
+          }
+          requestAnimationFrame(look)
+        })
+    )
+    await page
+      .getByRole("navigation", { name: "Main" })
+      .getByRole("link", { name: "Log" })
+      .click()
+    const seen = await glide
+    expect(seen.at(-1)).toBe(0)
+    expect(seen.some((top) => top > 0 && top < before.top - 1)).toBeTruthy()
+    // Scrolling, held still through the glide, is the finger's again.
+    await expect.poll(() => main.evaluate((el) => el.style.overflowY)).toBe("")
+    await expect(page).toHaveURL("/")
   })
 }
+
+// A filtered Log keeps its filter on that tap, and still goes to the top.
+test("keeps the Log's filter on a tap of its own tab", async ({ page }) => {
+  await page.goto("/?year=2026")
+  const main = page.locator("#main")
+  await expect(
+    page.locator("main a[href^='/dive/dive-']").first()
+  ).toBeVisible()
+  await main.evaluate((el) => el.scrollTo(0, el.scrollHeight))
+  await expect
+    .poll(() => main.evaluate((el) => el.scrollTop))
+    .toBeGreaterThan(0)
+  await page
+    .getByRole("navigation", { name: "Main" })
+    .getByRole("link", { name: "Log" })
+    .click()
+  await expect.poll(() => main.evaluate((el) => el.scrollTop)).toBe(0)
+  await expect(page).toHaveURL("/?year=2026")
+})
+
+// Every tab does the same, You's too.
+test("scrolls You to the top on a tap of its own tab", async ({ page }) => {
+  await page.goto("/you")
+  const main = page.locator("#main")
+  await expect(page.getByRole("link", { name: /Packing list/ })).toBeVisible()
+  await main.evaluate((el) => el.scrollTo(0, el.scrollHeight))
+  await expect
+    .poll(() => main.evaluate((el) => el.scrollTop))
+    .toBeGreaterThan(0)
+  await page
+    .getByRole("navigation", { name: "Main" })
+    .getByRole("link", { name: "You" })
+    .click()
+  await expect.poll(() => main.evaluate((el) => el.scrollTop)).toBe(0)
+  await expect(page).toHaveURL("/you")
+})
 
 // A screen this short sends every page past the tab bar. A page whose top
 // element shrinks to the screen spills its end over the shell's bottom

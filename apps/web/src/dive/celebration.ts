@@ -1,6 +1,7 @@
 import { useEffect, useState, type RefObject } from "react"
 
 import type { Dive } from "@/data/db"
+import { reduced } from "@/lib/motion"
 
 import { milestoneFor } from "./milestones"
 
@@ -141,9 +142,6 @@ export function play(bubbles: Bubble[]) {
   }
 }
 
-const reducedMotion = () =>
-  matchMedia("(prefers-reduced-motion: reduce)").matches
-
 // Once per save: the dive opened again, or returned to from its form, is
 // plain. Bubbles come off the max depth figure as the page appears, so the
 // save answers at once even offline; a milestone's burst plays instead, once
@@ -170,7 +168,7 @@ export function useSaveCelebration(
   useEffect(() => {
     if (!on) return
     celebrated.add(dive.id)
-    if (!stream || reducedMotion()) return
+    if (!stream || reduced()) return
     let stop: (() => void) | undefined
     // Measured a frame on, once the router has scrolled the page back to
     // its top; the form left it scrolled, which put the figure above it.
@@ -190,7 +188,7 @@ export function useSaveCelebration(
 
   const milestone = on && newest ? milestoneFor(dive.number) : null
   useEffect(() => {
-    if (!milestone || !headline.current || reducedMotion()) return
+    if (!milestone || !headline.current || reduced()) return
     return play(fromBottom(headline.current.getBoundingClientRect()))
   }, [milestone, headline])
   return milestone

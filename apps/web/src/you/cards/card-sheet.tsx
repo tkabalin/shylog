@@ -33,6 +33,7 @@ import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import { useDragList } from "@/lib/drag-order"
 import { isReturn } from "@/lib/keys"
+import { scrolling } from "@/lib/motion"
 import { useHoldUpdate } from "@/update"
 import { CardThumb, PageImage, type PageSource } from "@/you/cards/card-thumb"
 import { CropSheet } from "@/you/cards/crop-sheet"
@@ -120,9 +121,7 @@ export function CardSheet({
   const toEnd = () =>
     shots.current?.scrollTo({
       left: shots.current.scrollWidth,
-      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "auto"
-        : "smooth",
+      behavior: scrolling(),
     })
 
   const editing = !!card
