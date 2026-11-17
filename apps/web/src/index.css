@@ -403,7 +403,7 @@
       var(--toast-lift, 0px)
   );
 }
-:root:has([data-fab]) [data-sonner-toaster] {
+:root[data-fab] [data-sonner-toaster] {
   --toast-lift: 3.9375rem;
 }
 @media (width >= 48rem) and (pointer: fine) {
