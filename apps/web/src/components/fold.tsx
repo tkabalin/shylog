@@ -2,12 +2,13 @@ import { useLayoutEffect, useRef, type ReactNode } from "react"
 
 import { reduced } from "@/lib/motion"
 
-// The room opens or closes over 250 ms while the content is invisible, and
-// the content fades over 150 ms while its room is open, so it is never seen
-// clipped. The room takes the drawer's curve: --ease-in-out moved a tall
-// alert's room 61 px in one frame, which read as a lurch.
-const roomMs = 250
-const fadeMs = 150
+// The room moves while the content is invisible and the content fades while
+// its room is open, so it is never seen clipped; on the drawer's curve, as
+// --ease-in-out lurched. A list's row, seen often, folds within 300 ms.
+const timings = {
+  block: { roomMs: 250, fadeMs: 150 },
+  row: { roomMs: 200, fadeMs: 100 },
+}
 
 // Read once each: the tokens never change while the app runs.
 const curves = new Map<string, string>()
@@ -233,12 +234,14 @@ function slideAfter(
 export function Fold({
   open,
   appear,
+  timing = "block",
   onFolded,
   className,
   children,
 }: {
   open: boolean
   appear: boolean
+  timing?: keyof typeof timings
   // Once it has folded away, to unmount it.
   onFolded?: () => void
   className?: string
@@ -262,6 +265,7 @@ export function Fold({
     }
     drawn.current = true
     if (open && !appear) return
+    const { roomMs, fadeMs } = timings[timing]
     const out = curve("--ease-out")
     const still = reduced()
     const room = { duration: roomMs, easing: curve("--ease-drawer") }
@@ -317,7 +321,7 @@ export function Fold({
       fade.cancel()
       slid?.stop()
     }
-  }, [open, appear])
+  }, [open, appear, timing])
 
   return (
     <div ref={box} inert={!open} className={className}>

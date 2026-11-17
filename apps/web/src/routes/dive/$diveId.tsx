@@ -396,6 +396,7 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
   // Back to the entity it was opened from, or its Log, or a fresh Log
   // takes its place.
   const leave = () => goBack() || closeToLog(router)
+  // Kept through the Restore note's fold, then whatever takes its place.
   const [restoring, setRestoring] = useState(false)
   // A dive only on this phone is edited there; a synced one needs the server.
   const connected = useConnected()
@@ -547,48 +548,42 @@ function DiveDetail({ dive, log }: { dive: Dive; log: LogView }) {
         </dl>
 
         {dive.deletedAt || restoring ? (
-          // Once restored it folds away, margin and all, rather than the
-          // page jumping up under the thumb that tapped Restore.
-          <div
-            onTransitionEnd={(event) => {
-              if (event.target === event.currentTarget && !dive.deletedAt)
-                setRestoring(false)
-            }}
-            className={cn(
-              "-mt-2 grid grid-rows-[1fr] opacity-100 transition-[grid-template-rows,opacity,margin] duration-200 ease-out motion-reduce:transition-opacity",
-              !dive.deletedAt && "-mt-6 grid-rows-[0fr] opacity-0"
-            )}
+          // Once restored it folds away rather than the page jumping up
+          // under the thumb that tapped Restore.
+          <Fold
+            open={!!dive.deletedAt}
+            appear={false}
+            onFolded={() => setRestoring(false)}
+            className="-mt-2"
           >
-            <div className="min-h-0 overflow-hidden">
-              <div className="flex min-h-12 items-center gap-2.5 rounded-xl bg-muted py-1.5 pr-1.5 pl-3.5 text-sm">
-                <span className="flex-1 text-muted-foreground">
-                  Not in your log, stats or export
-                </span>
-                <button
-                  type="button"
-                  disabled={restoring || !connected}
-                  onClick={async () => {
-                    setRestoring(true)
-                    // Kept until the fold ends. A failure, or a sync that
-                    // didn't land, leaves it as it was to try again.
-                    const back = await restore(dive.id, site?.name)
-                    if (!back || currentLog()?.dive.get(dive.id)?.deletedAt)
-                      setRestoring(false)
-                  }}
-                  // Reaches 44px tall, as the cards' Restore does.
-                  className={cn(
-                    "relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full pr-3 pl-2.5 font-medium transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50",
-                    connected
-                      ? "bg-primary/12 text-primary"
-                      : "bg-muted text-muted-foreground disabled:opacity-100"
-                  )}
-                >
-                  <IconRestore aria-hidden className="size-4" />
-                  Restore
-                </button>
-              </div>
+            <div className="flex min-h-12 items-center gap-2.5 rounded-xl bg-muted py-1.5 pr-1.5 pl-3.5 text-sm">
+              <span className="flex-1 text-muted-foreground">
+                Not in your log, stats or export
+              </span>
+              <button
+                type="button"
+                disabled={restoring || !connected}
+                onClick={async () => {
+                  setRestoring(true)
+                  // Kept until the fold ends. A failure, or a sync that
+                  // didn't land, leaves it as it was to try again.
+                  const back = await restore(dive.id, site?.name)
+                  if (!back || currentLog()?.dive.get(dive.id)?.deletedAt)
+                    setRestoring(false)
+                }}
+                // Reaches 44px tall, as the cards' Restore does.
+                className={cn(
+                  "relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full pr-3 pl-2.5 font-medium transition-opacity duration-150 select-none after:absolute after:inset-x-0 after:-inset-y-1 hover:opacity-70 active:opacity-50 active:duration-0 disabled:opacity-50",
+                  connected
+                    ? "bg-primary/12 text-primary"
+                    : "bg-muted text-muted-foreground disabled:opacity-100"
+                )}
+              >
+                <IconRestore aria-hidden className="size-4" />
+                Restore
+              </button>
             </div>
-          </div>
+          </Fold>
         ) : wasDraft ? (
           // Folds away once the dive has uploaded, rather than the page
           // jumping up by its height under the thumb.
