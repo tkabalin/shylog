@@ -321,8 +321,8 @@ test.describe("at phone width", () => {
       "opacity",
       "1"
     )
-    // The service worker keeps the map's chunk, its worker and the dive
-    // sites' page text with the app.
+    // The service worker keeps Explore's chunk (the map and the sites),
+    // the map's worker and the dive sites' page text with the app.
     await expect
       .poll(
         () =>
@@ -333,7 +333,7 @@ test.describe("at phone width", () => {
               urls.push(...(await cache.keys()).map((req) => req.url))
             }
             return [
-              /\/basemap-[\w-]+\.js/,
+              /\/explore-map-[\w-]+\.js/,
               /\/maplibre-gl-worker-[\w-]+\.js/,
               /\/pages-[\w-]+\.json/,
             ]

@@ -2,12 +2,14 @@ import { readFileSync } from "node:fs"
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import type { Part } from "../src/map/page-text"
+import { still } from "./ui"
 
 // The sites and their text as the refresh script wrote them, so a refresh
 // that rewords a page doesn't fail these tests.
 type Site = {
   id: string
   name: string
+  type: "reef" | "wreck" | "fresh"
   page?: string
   depth?: number
   approximate?: true
@@ -512,6 +514,230 @@ test.describe("at phone width", () => {
       sheet.getByText("Shore dives only", { exact: true })
     ).toBeVisible()
   })
+
+  test("lists the sites from the count, and Back closes the list", async ({
+    page,
+  }) => {
+    await page.goto("/explore")
+    await drawn(page)
+    await page
+      .getByRole("button", { name: `List of ${sites.length} sites` })
+      .click()
+    const list = page.getByRole("region", { name: "Dive sites" })
+    await expect(
+      list.getByRole("heading", { name: "Atlantic coast" })
+    ).toBeVisible()
+    // A screen a level deeper, which Back closes, back to the map.
+    await page.goBack()
+    await expect(list).toHaveCount(0)
+    await expect(page).toHaveURL(/\/explore$/)
+    await page
+      .getByRole("button", { name: `List of ${sites.length} sites` })
+      .click()
+    // Its search ignores the filters, case, accents and punctuation.
+    await list.getByRole("textbox", { name: "Search sites" }).fill("a frame")
+    await list.getByRole("button", { name: /^A-Frame/ }).click()
+    await expect(page).toHaveURL(bySite("a-frame"))
+    await expect(list).toHaveCount(0)
+    await expect(
+      page.getByRole("dialog").getByRole("heading", { name: aFrame.name })
+    ).toBeVisible()
+    // The pick took the list's place, so Back leaves Explore (and the tab
+    // took the Log's, as tabs do).
+    await page.goBack()
+    await expect(page).not.toHaveURL(/\/explore/)
+  })
+
+  test("keeps filters set on the list when Back closes it", async ({
+    page,
+  }) => {
+    await page.goto("/explore")
+    await drawn(page)
+    await page
+      .getByRole("button", { name: `List of ${sites.length} sites` })
+      .click()
+    const list = page.getByRole("region", { name: "Dive sites" })
+    await list.getByRole("combobox", { name: "Type, Any type" }).click()
+    await page.getByRole("option", { name: "Wrecks" }).click()
+    await page.keyboard.press("Escape")
+    const wrecks = sites.filter(({ type }) => type === "wreck").length
+    await expect(list.getByRole("listitem")).toHaveCount(wrecks)
+    await page.goBack()
+    await expect(list).toHaveCount(0)
+    await expect(
+      page.getByRole("button", { name: `List of ${wrecks} sites` })
+    ).toBeVisible()
+    await expect(page).toHaveURL(/types=wreck/)
+  })
+
+  test("puts down a site hidden by filters set on the list", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    await page
+      .getByRole("button", { name: `List of ${sites.length} sites` })
+      .click()
+    const list = page.getByRole("region", { name: "Dive sites" })
+    await list.getByRole("combobox", { name: "Type, Any type" }).click()
+    await page.getByRole("option", { name: "Wrecks" }).click()
+    await page.keyboard.press("Escape")
+    // The map's entry under the list still had A-Frame, a reef.
+    await page.goBack()
+    await expect(list).toHaveCount(0)
+    await expect(page).toHaveURL(/types=wreck/)
+    await expect(page).not.toHaveURL(bySite("a-frame"))
+    await expect(page.getByRole("dialog")).toHaveCount(0)
+  })
+
+  test("filters the map by type, and puts down a site it hides", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    await page.getByRole("combobox", { name: "Type, Any type" }).click()
+    await page.getByRole("option", { name: "Wrecks" }).click()
+    // The menu stays open while you tick.
+    await page.getByRole("option", { name: "Fresh water" }).click()
+    await page.keyboard.press("Escape")
+    await expect(
+      page.getByRole("combobox", { name: "Type, Wrecks, Fresh water" })
+    ).toHaveText(/Wrecks \+ 1/)
+    const count = sites.filter(({ type }) => type !== "reef").length
+    await expect(
+      page.getByRole("button", { name: `List of ${count} sites` })
+    ).toBeVisible()
+    await expect(page).toHaveURL(/types=wreck%2Cfresh|types=wreck,fresh/)
+    // A-Frame is a reef, so it went down with the filter.
+    await expect(page).not.toHaveURL(bySite("a-frame"))
+    await expect(page.getByRole("dialog")).toHaveCount(0)
+  })
+
+  test("filters on max depth, leaving out sites with none", async ({
+    page,
+  }) => {
+    await page.goto("/explore?depth=18-30")
+    await drawn(page)
+    await expect(
+      page.getByRole("button", { name: "Max depth, 18–30 m" })
+    ).toBeVisible()
+    const count = sites.filter(
+      ({ depth }) => depth !== undefined && depth >= 18 && depth <= 30
+    ).length
+    await page.getByRole("button", { name: `List of ${count} sites` }).click()
+    const list = page.getByRole("region", { name: "Dive sites" })
+    await expect(list.getByRole("listitem")).toHaveCount(count)
+    // Filters that leave nothing can all be cleared at once.
+    await page.goto("/explore?view=list&types=fresh&depth=30-35")
+    await expect(list.getByText("No sites match these filters.")).toBeVisible()
+    await list.getByRole("button", { name: "Clear filters" }).click()
+    await expect(list.getByRole("listitem")).toHaveCount(sites.length)
+  })
+
+  test("clears every filter from the map, keeping the picked site", async ({
+    page,
+  }) => {
+    await page.goto("/explore?types=wreck&depth=18-30&site=ss-maori")
+    await drawn(page)
+    await page.getByRole("button", { name: "Clear filters" }).click()
+    await expect(page).not.toHaveURL(/types=|depth=/)
+    await expect(page).toHaveURL(bySite("ss-maori"))
+    await expect(
+      page.getByRole("button", { name: `List of ${sites.length} sites` })
+    ).toBeVisible()
+    // Folded away, as on the Log, until a filter is set again: inert,
+    // which role queries still find, and no wider than the gap.
+    const fold = page.locator("div[inert]:has(> [aria-label='Clear filters'])")
+    await expect(fold).toHaveCount(1)
+    await expect
+      .poll(() => fold.evaluate((el) => el.getBoundingClientRect().width))
+      .toBe(0)
+  })
+
+  test("opens the rules at a site's MPA, and Back returns to the site", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=mv-afrikaner")
+    await drawn(page)
+    const sheet = page.getByRole("dialog")
+    await sheet.getByRole("button", { name: /^No diving/ }).click()
+    const rules = page.getByRole("region", { name: "Marine protected areas" })
+    const robben = rules.getByRole("heading", { name: "Robben Island" })
+    await expect(robben).toBeInViewport()
+    await expect(
+      rules.getByRole("heading", { name: "Table Mountain" })
+    ).not.toBeInViewport()
+    await page.goBack()
+    await expect(rules).toHaveCount(0)
+    await expect(page).toHaveURL(bySite("mv-afrikaner"))
+    await expect(sheet).toBeVisible()
+  })
+
+  test("hides the zones from Map options, and keeps the choice", async ({
+    page,
+  }) => {
+    await page.goto("/explore")
+    await drawn(page)
+    await page.getByRole("button", { name: "Map options" }).click()
+    const options = page.getByRole("dialog", { name: "Map" })
+    const zones = options.getByLabel("MPA zones")
+    await expect(zones).toBeChecked()
+    await zones.click()
+    await expect(zones).not.toBeChecked()
+    await page.reload()
+    await drawn(page)
+    await page.getByRole("button", { name: "Map options" }).click()
+    await expect(zones).not.toBeChecked()
+    await zones.click()
+    // The rules from here open at their top, and the sheet closes.
+    await options.getByRole("button", { name: "Zone rules" }).click()
+    await expect(options).toHaveCount(0)
+    await expect(
+      page
+        .getByRole("region", { name: "Marine protected areas" })
+        .getByRole("heading", { name: "Table Mountain" })
+    ).toBeInViewport()
+  })
+
+  test("goes back from the rules to Map options, open at once", async ({
+    page,
+  }) => {
+    await page.goto("/explore")
+    await drawn(page)
+    const button = page.getByRole("button", { name: "Map options" })
+    await button.click()
+    const options = page.getByRole("dialog", { name: "Map" })
+    // Once the sheet has come up: WebKit drops a tap on a row still moving.
+    const row = options.getByRole("button", { name: "Zone rules" })
+    await still(row)
+    await row.click()
+    // The sheet goes with the rules' arrival, not sliding down over them.
+    const rules = page.getByRole("region", { name: "Marine protected areas" })
+    await expect(rules).toBeVisible()
+    expect(await options.count()).toBe(0)
+    await expect(rules.getByRole("link", { name: "Map" })).toBeFocused()
+    // iOS's back swipe shows the page as it was left, sheet open, so it's
+    // there at once: a slide up would play after the snapshot went.
+    await page.evaluate(() =>
+      document.addEventListener(
+        "transitionrun",
+        ({ target }) => {
+          if ((target as Element).matches("[data-slot^=drawer-]"))
+            document.body.dataset.slid = ""
+        },
+        true
+      )
+    )
+    await page.goBack()
+    await expect(rules).toHaveCount(0)
+    await expect(options).toBeVisible()
+    await page.evaluate(() => new Promise(requestAnimationFrame))
+    await expect(page.locator("body")).not.toHaveAttribute("data-slid")
+    // Closed now, it hands focus back to its button as usual.
+    await options.getByRole("button", { name: "Done" }).click()
+    await expect(options).toHaveCount(0)
+    await expect(button).toBeFocused()
+  })
 })
 
 test.describe("at desktop width", () => {
@@ -535,8 +761,9 @@ test.describe("at desktop width", () => {
     expect((await card.boundingBox())!.height).toBeCloseTo(map.height - 24, 0)
     await card.getByRole("button", { name: "Read less" }).click()
     await expect(understand).toHaveCount(0)
-    // The breadcrumb's first crumb puts the site down, as the close does.
-    await card.getByRole("link", { name: "Explore" }).click()
+    // The breadcrumb's first crumb puts the site down, back to the list,
+    // as the close does.
+    await card.getByRole("link", { name: "Dive sites" }).click()
     await expect(page).toHaveURL(/\/explore$/)
     await expect(card).toHaveCount(0)
     await page.goto("/explore?site=a-frame")
@@ -628,5 +855,69 @@ test.describe("at desktop width", () => {
     await expect(page.getByRole("region", { name: aFrame.name })).toBeVisible()
     await page.keyboard.press("Escape")
     await expect(page).toHaveURL(/\/explore$/)
+  })
+
+  test("lists the sites in a card that folds to its search", async ({
+    page,
+  }) => {
+    await page.goto("/explore")
+    const map = await drawn(page)
+    const card = page.getByRole("region", { name: "Dive sites" })
+    // The window's height, 12 px in.
+    expect((await card.boundingBox())!.height).toBeCloseTo(map.height - 24, 0)
+    await expect(card.getByText(`${sites.length} sites`)).toBeVisible()
+    await card.getByRole("button", { name: "Hide the list" }).click()
+    const row = card.getByRole("button", { name: /^A-Frame/ })
+    await expect(row).toBeHidden()
+    // Searching brings the list back.
+    await card.getByRole("textbox", { name: "Search sites" }).fill("a frame")
+    await expect(row).toBeVisible()
+    await row.click()
+    await expect(page).toHaveURL(bySite("a-frame"))
+    const site = page.getByRole("region", { name: aFrame.name })
+    await site.getByRole("link", { name: "Dive sites" }).click()
+    await expect(card).toBeVisible()
+    await expect(
+      card.getByRole("textbox", { name: "Search sites" })
+    ).toHaveValue("a frame")
+  })
+
+  test("opens the rules in the card, back to where they came from", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    const site = page.getByRole("region", { name: aFrame.name })
+    await site.getByRole("button", { name: /^Boulders no-take zone/ }).click()
+    const rules = page.getByRole("region", { name: "Marine protected areas" })
+    await expect(
+      rules.getByRole("heading", { name: "Table Mountain" })
+    ).toBeVisible()
+    // The card's views replace one another, so Back leaves Explore.
+    await rules.getByRole("link", { name: aFrame.name }).click()
+    await expect(site).toBeVisible()
+    await site.getByRole("button", { name: /^Boulders no-take zone/ }).click()
+    await page.keyboard.press("Escape")
+    await expect(site).toBeVisible()
+    // At the site's own MPA, for one further down the rules.
+    await page.goto("/explore?site=mv-afrikaner")
+    await page
+      .getByRole("region", {
+        name: sites.find(({ id }) => id === "mv-afrikaner")!.name,
+      })
+      .getByRole("button", { name: /^No diving/ })
+      .click()
+    await expect(
+      rules.getByRole("heading", { name: "Robben Island" })
+    ).toBeInViewport()
+    await page.goto("/explore?site=a-frame")
+    // From Map options, the rules lead back to the list.
+    await site.getByRole("link", { name: "Dive sites" }).click()
+    await page.getByRole("button", { name: "Map options" }).click()
+    const row = page.getByRole("button", { name: "Zone rules" })
+    await still(row)
+    await row.click()
+    await rules.getByRole("link", { name: "Dive sites" }).click()
+    await expect(page.getByRole("region", { name: "Dive sites" })).toBeVisible()
   })
 })

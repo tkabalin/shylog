@@ -13,6 +13,7 @@ import {
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer"
 import {
   IconChevronLeft,
+  IconChevronRight,
   IconExternalLink,
   IconFish,
   IconWifiOff,
@@ -31,37 +32,17 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { useOnline } from "@/data/sync-status"
-import { useDesk } from "@/hooks/use-desk"
 import { localValue } from "@/lib/local-value"
 
+import { useMapFrame } from "./basemap"
+import { withSite } from "./search"
 import { SiteText } from "./site-text"
 import { areas, siteById, siteTypes, wikivoyage, type Site } from "./sites"
 import { zoneAt } from "./zone-at"
-import { zoneRules } from "./zone-rules"
+import { zoneRules, type Mpa } from "./zone-rules"
 
-// How much of the map the sheet or card hides, which camera moves aim
-// beside: the phone's sheet from the bottom, the desktop card from the left.
-export type Cover = { left: number; bottom: number }
-
-// A picked site: on a phone a sheet over the map's lower part, which a drag
-// raises to the page's text; from desk: up a card over the map's left side.
-type SheetProps = {
-  site?: Site
-  // The map's box, which the phone's sheet stays inside, above the tabs.
-  container: HTMLElement | null
-  // What the sheet or card covers, for the site it shows.
-  onCover: (cover: Cover, site: string) => void
-  // A swipe down past the peek, or Escape.
-  onClose: () => void
-}
-
-export function SiteSheet(props: SheetProps) {
-  const desk = useDesk()
-  if (!desk) return <PhoneSheet {...props} />
-  return props.site ? (
-    <SiteCard site={props.site} onCover={props.onCover} />
-  ) : null
-}
+// The zone rules, opened at a marine protected area from a site's zone row.
+type OnRules = (mpa: Mpa) => void
 
 // A link in the text opens another site in place of this one, so the sheet
 // keeps the way back: each step's site and how far down its text it was.
@@ -114,7 +95,19 @@ function useTrail(
   return { back, follow, goBack }
 }
 
-function PhoneSheet({ site, container, onCover, onClose }: SheetProps) {
+// A picked site on a phone: a sheet over the map's lower part, which a drag
+// raises to the page's text.
+export function SiteSheet({
+  site,
+  onClose,
+  onRules,
+}: {
+  site?: Site
+  // A swipe down past the peek.
+  onClose: () => void
+  onRules: OnRules
+}) {
+  const { container, onCover } = useMapFrame()
   // The last site shown, kept while the sheet slides away.
   const [shown, setShown] = useState(site)
   if (site && site !== shown) setShown(site)
@@ -224,6 +217,7 @@ function PhoneSheet({ site, container, onCover, onClose }: SheetProps) {
                         titleRef={setTitle}
                         clamp={!raised}
                         back={backTo}
+                        onRules={onRules}
                         raise={
                           raised ? undefined : () => setRaisedFor(shown.id)
                         }
@@ -271,13 +265,8 @@ const cardWidth = localValue(
 
 // From desk: up, a card over the map's left side, as tall as its summary
 // until Read more grows it to the window's height for the page's text.
-function SiteCard({
-  site,
-  onCover,
-}: {
-  site: Site
-  onCover: SheetProps["onCover"]
-}) {
+export function SiteCard({ site, onRules }: { site: Site; onRules: OnRules }) {
+  const { container, onCover } = useMapFrame()
   // Read more for one site: another opens collapsed, in the same card, so
   // only the first opening slides in.
   const [moreFor, setMoreFor] = useState<string>()
@@ -300,7 +289,7 @@ function SiteCard({
     const element = card.current
     if (!element) return
     const report = () => {
-      const map = element.parentElement?.parentElement?.clientWidth ?? 0
+      const map = container?.clientWidth ?? 0
       setCap(Math.min(map - 24, map * 0.6))
       onCover({ left: 12 + element.offsetWidth, bottom: 0 }, site.id)
     }
@@ -308,7 +297,7 @@ function SiteCard({
     const observer = new ResizeObserver(report)
     observer.observe(element)
     return () => observer.disconnect()
-  }, [onCover, site.id])
+  }, [container, onCover, site.id])
   // Escape puts the site down, as it closes a dialog, unless it's for a
   // field or a menu.
   useEffect(() => {
@@ -371,21 +360,20 @@ function SiteCard({
         <div className="flex h-13 shrink-0 items-center gap-2 border-b pr-3 pl-5">
           <Breadcrumb className="min-w-0 flex-1">
             <BreadcrumbList className="flex-nowrap">
-              <BreadcrumbItem>
-                {/* Back to the map alone, for now; the site list will stand
-                    here once it exists. */}
+              <BreadcrumbItem className="shrink-0 whitespace-nowrap">
+                {/* Back to the list, putting the site down. */}
                 <BreadcrumbLink
                   className="-mx-1 rounded-sm px-1 outline-offset-2"
                   render={
                     <Link
                       ref={close}
                       to="/explore"
-                      search={{ site: undefined }}
+                      search={withSite(undefined)}
                       replace
                     />
                   }
                 >
-                  Explore
+                  Dive sites
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -402,7 +390,7 @@ function SiteCard({
             size="icon-sm"
             aria-label="Close"
             className="text-muted-foreground"
-            render={<Link to="/explore" search={{ site: undefined }} replace />}
+            render={<Link to="/explore" search={withSite(undefined)} replace />}
             nativeButton={false}
           >
             <IconX />
@@ -419,6 +407,7 @@ function SiteCard({
           <Summary
             site={site}
             desk
+            onRules={onRules}
             back={back && { id: back.from, onClick: goBack }}
             more={
               <Button
@@ -478,7 +467,7 @@ function BackLink({
   return (
     <Link
       to="/explore"
-      search={{ site: back.id }}
+      search={withSite(back.id)}
       replace
       resetScroll={false}
       onClick={back.onClick}
@@ -552,7 +541,7 @@ function Close() {
       {!online && <Offline />}
       <Link
         to="/explore"
-        search={{ site: undefined }}
+        search={withSite(undefined)}
         replace
         aria-label="Close"
         className="grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground active:bg-muted"
@@ -603,9 +592,12 @@ function Summary({
   back,
   clamp = false,
   titleRef,
+  onRules,
 }: {
   site: Site
   desk?: boolean
+  // The rules at the site's marine protected area, from its zone row.
+  onRules: OnRules
   // Read more on the desktop card, a button beside Read on Wikivoyage.
   // Left out, as raise is, for a site with no page.
   more?: React.ReactNode
@@ -763,16 +755,19 @@ function Summary({
         )
       )}
       {rule && (
-        <div
+        // Opens the rules at the zone's marine protected area.
+        <button
+          type="button"
+          onClick={() => onRules(rule.mpa)}
           className={cn(
-            "flex items-start gap-2.5 text-[13px] leading-[18px] text-muted-foreground",
-            desk ? "mt-3.5 rounded-[10px] border p-3" : "mt-3 border-t pt-3"
+            "mt-3.5 flex w-full items-start gap-2.5 rounded-[10px] border p-3 text-left text-[13px] leading-[18px] text-muted-foreground transition-[opacity,background-color] duration-150 ease-out data-press:opacity-60 data-press:duration-0",
+            desk && "hover:bg-muted/70"
           )}
         >
           <IconFish
             className={cn("mt-px size-4.25 shrink-0", noDive && "text-warn")}
           />
-          <div className="min-w-0 flex-1">
+          <span className="min-w-0 flex-1">
             <b
               className={cn(
                 "block text-sm font-medium",
@@ -783,8 +778,9 @@ function Summary({
             </b>
             {rule.title && `${rule.name}. `}
             {rule.rule}
-          </div>
-        </div>
+          </span>
+          <IconChevronRight className="size-4.5 shrink-0 self-center" />
+        </button>
       )}
       {/* Nothing to read where Wikivoyage has no page. */}
       {page && desk && (
