@@ -23,7 +23,11 @@ import { syncDir } from "../fs.ts"
 import type { Integrity } from "../integrity.ts"
 import { setMeta } from "../journal.ts"
 import { logger } from "../log.ts"
-import { uddfNamespace, writeUddf } from "../uddf/writer.ts"
+import {
+  uddfNamespace,
+  writeUddfParts,
+  type UddfParts,
+} from "../uddf/writer.ts"
 
 // Far longer than any export or snapshot download takes.
 const stale = 60 * 60 * 1000
@@ -69,22 +73,33 @@ export function refuseDamaged(integrity: Integrity) {
 }
 
 // Written and flushed, so a crash can't leave a half-written file to rename.
-function writeFlushed(file: string, text: string) {
+function writeFlushed(file: string, parts: string[]) {
   const fd = openSync(file, "w")
   try {
-    writeFileSync(fd, text)
+    for (const part of parts) writeFileSync(fd, part)
     fsyncSync(fd)
   } finally {
     closeSync(fd)
   }
 }
 
-// Re-parsed and its dives counted, so a file that wouldn't open fails here
-// rather than in Subsurface.
-export function checkUddf(xml: string, dives: number) {
-  const written = new DOMParser({ onError: onErrorStopParsing })
-    .parseFromString(xml, "text/xml")
-    .getElementsByTagNameNS(uddfNamespace, "dive").length
+// Parsed and its dives counted, so a file that wouldn't open fails here
+// rather than in Subsurface: each dive on its own, under the root's
+// namespace as in the file, then the rest without them.
+export function checkUddf(uddf: UddfParts) {
+  const parser = new DOMParser({ onError: onErrorStopParsing })
+  const count = (xml: string) =>
+    parser
+      .parseFromString(xml, "text/xml")
+      .getElementsByTagNameNS(uddfNamespace, "dive").length
+  let written = 0
+  for (const group of uddf.groups) {
+    written += count(
+      `<profiledata xmlns="${uddfNamespace}">${group}</profiledata>`
+    )
+  }
+  written += count(uddf.head + uddf.tail)
+  const dives = uddf.groups.length
   if (written !== dives) {
     throw new Error(`The export holds ${written} dives, not ${dives}`)
   }
@@ -104,9 +119,10 @@ export function checkCsv(csv: string, dives: number) {
   }
 }
 
-// Replaces export/dives.uddf and dives.csv from one read: each is written,
-// flushed, read back and its dives counted before either is renamed over
-// the last, so a failed check leaves both files.
+// Replaces export/dives.uddf and dives.csv from one read: the UDDF is
+// checked as built, each is written and flushed, and the CSV read back,
+// before either is renamed over the last, so a failed check leaves both
+// files.
 export function writeExport(
   db: Db,
   dataDir: string,
@@ -114,17 +130,19 @@ export function writeExport(
   now = new Date()
 ) {
   refuseDamaged(integrity)
-  const { xml, dives, csv } = db.transaction(() => ({
-    ...writeUddf(db),
+  const { uddf, csv } = db.transaction(() => ({
+    uddf: writeUddfParts(db),
     csv: writeCsv(db),
   }))()
+  checkUddf(uddf)
   sweepTemps(dataDir, now)
   const temp = tempName(dataDir, ".uddf")
   const csvTemp = tempName(dataDir, ".csv")
+  // Written a part at a time, as joining them copies the whole file again.
+  const parts = [uddf.head, ...uddf.groups, uddf.tail]
   try {
-    writeFlushed(temp, xml)
-    checkUddf(readFileSync(temp, "utf8"), dives)
-    writeFlushed(csvTemp, csv.csv)
+    writeFlushed(temp, parts)
+    writeFlushed(csvTemp, [csv.csv])
     checkCsv(readFileSync(csvTemp, "utf8"), csv.dives)
     renameSync(temp, exportFile(dataDir))
     renameSync(csvTemp, csvFile(dataDir))
@@ -146,8 +164,8 @@ export function writeExport(
     )
   }
   return {
-    dives,
-    uddfBytes: Buffer.byteLength(xml),
+    dives: uddf.groups.length,
+    uddfBytes: parts.reduce((sum, part) => sum + Buffer.byteLength(part), 0),
     csvBytes: Buffer.byteLength(csv.csv),
   }
 }

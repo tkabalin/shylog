@@ -27,6 +27,7 @@ import {
   csvFile,
   exportDir,
   exportFile,
+  writeExport,
 } from "./export.ts"
 import {
   checkedSnapshot,
@@ -220,7 +221,7 @@ describe("nightly", () => {
     // A change the next good export should carry.
     const id = db.prepare("SELECT id FROM dives LIMIT 1").pluck().get()
     db.prepare("UPDATE dives SET notes = ? WHERE id = ?").run("ok", id)
-    // The re-parse refusing the written file.
+    // The check refusing the file.
     const parse = vi
       .spyOn(DOMParser.prototype, "parseFromString")
       .mockImplementation(() => {
@@ -460,17 +461,46 @@ describe("retention", () => {
   })
 })
 
-// The read-back checks, which the downloads run on the text they send.
+// The checks, which the downloads run on the file they send.
 describe("export checks", () => {
-  const uddf = (dives: number) =>
-    `<uddf xmlns="http://www.streit.cc/uddf/3.2/">${"<dive/>".repeat(dives)}</uddf>`
+  const uddf = (groups: string[], head = "", tail = "</uddf>") => ({
+    head: `<uddf xmlns="http://www.streit.cc/uddf/3.2/">${head}<profiledata>`,
+    groups,
+    tail: `</profiledata>${tail}`,
+  })
+  const group = "<repetitiongroup><dive/></repetitiongroup>"
 
-  it("counts a UDDF export's dives", () => {
-    expect(() => checkUddf(uddf(2), 2)).not.toThrow()
-    expect(() => checkUddf(uddf(1), 2)).toThrow(
+  it("counts a UDDF export's dives, a group at a time", () => {
+    expect(() => checkUddf(uddf([group, group]))).not.toThrow()
+    expect(() => checkUddf(uddf([group, "<repetitiongroup/>"]))).toThrow(
       "The export holds 1 dives, not 2"
     )
-    expect(() => checkUddf("<uddf>", 0)).toThrow()
+    // Under the file's namespace, as in the file.
+    expect(() => checkUddf(uddf([group, '<dive xmlns="other"/>']))).toThrow(
+      "The export holds 1 dives, not 2"
+    )
+    expect(() => checkUddf(uddf([group], "<dive/>"))).toThrow(
+      "The export holds 2 dives, not 1"
+    )
+  })
+
+  it("refuses a dive, or the rest of the file, that isn't well-formed", () => {
+    expect(() => checkUddf(uddf([group, "<repetitiongroup>"]))).toThrow()
+    expect(() => checkUddf(uddf([group], "", ""))).toThrow()
+  })
+
+  // One DOM of a whole 1000-dive file outgrew the server's memory.
+  it("parses the export a dive at a time", () => {
+    const parse = vi.spyOn(DOMParser.prototype, "parseFromString")
+    onTestFinished(() => parse.mockRestore())
+    writeExport(seededDb(), dataDir(), "ok", new Date(2026, 9, 22))
+
+    const dives = parse.mock.calls.map(
+      ([xml]) => xml.split("<dive ").length - 1
+    )
+    expect(dives.filter((n) => n === 1)).toHaveLength(42)
+    // The rest of the file, without them.
+    expect(dives.filter((n) => n !== 1)).toEqual([0])
   })
 
   it("counts a CSV export's rows and checks their width", () => {

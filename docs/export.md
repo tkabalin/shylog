@@ -13,7 +13,7 @@ Both are built on the server from the database, in one read transaction, so the 
 
 ## The nightly copy, and downloads
 
-At midnight in the server's time zone the nightly job (`apps/server/src/jobs/nightly.ts`) deletes expired import previews, writes the database snapshot, then writes both exports. Each export is written to a temp file in the same folder and fsynced. The UDDF is parsed again and its dives counted; the CSV is read back by a standard CSV parser and its rows counted and measured. Only when both pass are they renamed over the previous files, so a failed check of either leaves both of last night's files in place. A server that was stopped over midnight runs the job at startup if today's snapshot or either export file is missing.
+At midnight in the server's time zone the nightly job (`apps/server/src/jobs/nightly.ts`) deletes expired import previews, writes the database snapshot, then writes both exports. Each export is written to a temp file in the same folder and fsynced. The UDDF is parsed a dive at a time, then the rest of the file without the dives, and its dives counted; the CSV is read back by a standard CSV parser and its rows counted and measured. Only when both pass are they renamed over the previous files, so a failed check of either leaves both of last night's files in place. A server that was stopped over midnight runs the job at startup if today's snapshot or either export file is missing.
 
 A failed export is logged, leaves the last-export time where it was, and raises an alert on the You tab with an Export now button that runs the same write again.
 
