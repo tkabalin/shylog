@@ -5,6 +5,7 @@ import {
   apart,
   deepest,
   decode,
+  dropPermit,
   findEnd,
   findStart,
   guideLinks,
@@ -418,5 +419,35 @@ describe("pictures", () => {
   it("takes a file once, however often the page shows it", () => {
     const line = "[[File:Long Beach map.png|thumb|Map of the dive site]]"
     expect(pictures(`${line}\n${line}`)).toHaveLength(1)
+  })
+})
+
+describe("dropPermit", () => {
+  it("drops the permit from a paragraph in the Table Mountain MPA", () => {
+    expect(
+      dropPermit(
+        "This site is in a Marine Protected Area (2004). A permit is required.\nThe site is partly inside the Boulders Restricted Zone."
+      )
+    ).toBe(
+      "This site is in a Marine Protected Area (2004).\nThe site is partly inside the Boulders Restricted Zone."
+    )
+    expect(
+      dropPermit(
+        "It is in the Table Mountain National Park MPA. A permit is required to dive, and spearfishing is prohibited."
+      )
+    ).toBe(
+      "It is in the Table Mountain National Park MPA. Spearfishing is prohibited."
+    )
+    expect(dropPermit("In the MPA since 2004. A permit is  required")).toBe(
+      "In the MPA since 2004."
+    )
+  })
+
+  it("keeps Robben Island's, and a permit to launch a boat", () => {
+    const robben =
+      "This site is in the Robben Island Marine Protected Area since 2019. A permit is required."
+    expect(dropPermit(robben)).toBe(robben)
+    const slip = "Dived from the local slip if you have the required permit."
+    expect(dropPermit(slip)).toBe(slip)
   })
 })

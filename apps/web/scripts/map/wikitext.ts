@@ -919,3 +919,25 @@ export function pictures(wikitext: string) {
   }
   return found
 }
+
+// No one has needed a permit to dive in the Table Mountain MPA since GN
+// R.4786 of 3 May 2024, but most of its pages still say "A permit is
+// required." beside the MPA they name or date (2004, or 2009 on one).
+// Robben Island's pages, dated 2019, keep theirs.
+export function dropPermit(markdown: string) {
+  return markdown
+    .split("\n\n")
+    .map((paragraph) =>
+      /Table Mountain|\b200[49]\b/.test(paragraph) &&
+      !/\b2019\b|Robben/.test(paragraph)
+        ? paragraph
+            .replace(/A permit is required to dive, and s/g, "S")
+            .replace(
+              / *A permit (?:for recreational diving )?is\s+required(?: to dive(?: in the MPA)?)?(?:\.|(?= *(?:\n|$)))/g,
+              ""
+            )
+            .replace(/ +$/gm, "")
+        : paragraph
+    )
+    .join("\n\n")
+}
