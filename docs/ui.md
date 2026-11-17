@@ -113,7 +113,7 @@ An installed web app on iOS has no Back button, only the edge swipe, so the hist
 
 TanStack Router's default is push, which is wrong for tabs, filters and saved forms, so each link decides as it is written, and each new flow gets an end-to-end check that `page.goBack()` lands where the rule says.
 
-The swipe can't be asked about either: by the time a "Discard changes?" could show, the page has already gone, and stepping forward again to ask felt broken when tried on the phone. So a phone keeps what was typed instead. Leaving the dive form, an entity's edit, a new trip or person, or the packing list's Edit mode without saving keeps the values, and the screen opens with them again; Save, Cancel and delete forget them. A new trip or person has no Cancel on a phone, so it comes back until it is saved or the session ends. An edit is dropped if its record has changed since, so it can't undo a newer change.
+The swipe can't be asked about either: by the time a "Discard changes?" could show, the page has already gone, and stepping forward again to ask felt broken when tried on the phone. So a phone keeps what was typed instead. Leaving the dive form, an entity's edit, a new trip or person, or the packing list's Edit mode without saving keeps the values, and the screen opens with them again; Save, Cancel and delete forget them. A new trip or person has no Cancel on a phone, so it comes back until it is saved or the session ends. An edit is dropped if its record has changed since, so it can't undo a newer change. Sheets and the card viewer behave like iOS modal sheets, which have no back swipe: while one is open, a touch that starts within 30 px of the left edge is cancelled, and a tap there is clicked by the app itself.
 
 ## Motion and press feel
 

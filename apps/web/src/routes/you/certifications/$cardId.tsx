@@ -8,6 +8,7 @@ import type { Card } from "@/data/db"
 import { useLog } from "@/data/log"
 import { useConnected } from "@/data/sync-status"
 import { useFullScreen } from "@/hooks/use-full-screen"
+import { useEdgeSwipeBlock } from "@/lib/edge-swipe"
 import { useBack } from "@/you/bar"
 import { CardPages } from "@/you/cards/card-pages"
 import { CardSheet, loadCardSheet } from "@/you/cards/load-sheet"
@@ -39,6 +40,9 @@ function Viewer({ card }: { card: Card }) {
   const many = card.images.length > 1
 
   useFullScreen()
+  // A swipe from the very left edge turns the page, as anywhere else on
+  // the card, rather than leaving the viewer.
+  useEdgeSwipeBlock()
   // Edit card's sheet loads once the card is up, so Edit opens it at once
   // rather than on a press that waits for the download.
   useEffect(() => void loadCardSheet(), [])

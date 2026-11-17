@@ -330,3 +330,104 @@ test("focuses the names sheet's field within the row's tap", async ({
   await page.keyboard.press("Escape")
   await expect(row).toBeFocused()
 })
+
+// iOS's back swipe starts at the screen's left edge, and under an open sheet
+// it would leave the form. A sheet cancels touches that start there, and
+// clicks a tap there itself, as the cancelled touch can't.
+test.describe("on an iPhone", () => {
+  test.use({ hasTouch: true })
+
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      // Only iOS's Safari has it.
+      Object.defineProperty(navigator, "standalone", { value: false })
+      // Whether each touch start was cancelled, once every listener has
+      // run, and whether each click came from the browser.
+      const seen: boolean[] = []
+      const clicks: boolean[] = []
+      Object.assign(window, { seen, clicks })
+      addEventListener(
+        "touchstart",
+        (event) => setTimeout(() => seen.push(event.defaultPrevented)),
+        { capture: true }
+      )
+      addEventListener("click", (event) => clicks.push(event.isTrusted), {
+        capture: true,
+      })
+    })
+  })
+  const read = (page: Page, list: "seen" | "clicks") =>
+    page.evaluate(
+      (list) =>
+        (window as unknown as Record<string, boolean[]>)[list]!.splice(0),
+      list
+    )
+
+  test("blocks the edge swipe under a sheet, where taps still work", async ({
+    page,
+  }) => {
+    await page.goto("/dive/new")
+    const entry = page.getByRole("button", { name: /^Entry,/ })
+    await openSheet(page, /^Entry,/)
+    await read(page, "clicks")
+    const row = sheet(page).getByRole("option", { name: "Beach or shore" })
+    const box = (await row.boundingBox())!
+    await page.touchscreen.tap(10, box.y + box.height / 2)
+    await expect(sheet(page)).toBeHidden()
+    await expect(entry).toHaveAccessibleName("Entry, Beach or shore")
+    expect(await read(page, "seen")).toEqual([true])
+    // The one click is the block's own, never the browser's as well.
+    expect(await read(page, "clicks")).toEqual([false])
+
+    // A tap on the dim beside the sheet still closes it.
+    await openSheet(page, /^Entry,/)
+    await read(page, "clicks")
+    await page.touchscreen.tap(10, 80)
+    await expect(sheet(page)).toBeHidden()
+    expect(await read(page, "seen")).toEqual([true])
+    expect(await read(page, "clicks")).toEqual([false])
+
+    // With no sheet open, the edge is the browser's again, once the closed
+    // sheet has left the page and let go of it.
+    await expect(page.locator("[data-slot=drawer-popup]")).toHaveCount(0)
+    await page.touchscreen.tap(10, box.y + box.height / 2)
+    await expect
+      .poll(() =>
+        page.evaluate(() => (window as unknown as { seen: boolean[] }).seen)
+      )
+      .toEqual([false])
+  })
+
+  // The sheet's own drag stops its moves before the window's bubble phase,
+  // so a pull down from a row in the strip once picked that row on release.
+  test("a pull down from a row in the strip picks nothing", async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName !== "chromium", "Touch moves need Chromium's CDP")
+    await page.goto("/dive/new")
+    await openSheet(page, /^Entry,/)
+    await read(page, "clicks")
+    const row = sheet(page).getByRole("option", { name: "Beach or shore" })
+    const box = (await row.boundingBox())!
+    const y = box.y + box.height / 2
+    const cdp = await page.context().newCDPSession(page)
+    const send = (type: "touchStart" | "touchMove" | "touchEnd", at?: number) =>
+      cdp.send("Input.dispatchTouchEvent", {
+        type,
+        touchPoints: at == null ? [] : [{ x: 10, y: at }],
+      })
+    // Short and slow, past the tap's slop but too little to close it, so
+    // the sheet stays open and only the block can stop the click.
+    await send("touchStart", y)
+    for (let i = 1; i <= 8; i++) {
+      await send("touchMove", y + i * 5)
+      await page.evaluate(() => new Promise(requestAnimationFrame))
+    }
+    await send("touchEnd")
+    await still(sheet(page))
+    expect(await read(page, "clicks")).toEqual([])
+    await expect(sheet(page)).toHaveAttribute("data-open", "")
+    await expect(row).toHaveAttribute("aria-selected", "false")
+  })
+})

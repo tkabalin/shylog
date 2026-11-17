@@ -6,6 +6,7 @@ import { cn } from "cn"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { useSidebarOffset } from "@/components/ui/sidebar"
 import { useDesk } from "@/hooks/use-desk"
+import { useEdgeSwipeBlock } from "@/lib/edge-swipe"
 
 type DrawerContextProps = {
   desk: boolean
@@ -140,6 +141,7 @@ function DrawerContent({
 
   return (
     <DrawerPortal data-slot="drawer-portal">
+      <EdgeSwipeBlock />
       {modal === true && (
         <DrawerOverlay data-snap-points={hasSnapPoints ? "" : undefined} />
       )}
@@ -200,6 +202,13 @@ function DrawerContent({
       </DrawerPrimitive.Viewport>
     </DrawerPortal>
   )
+}
+
+// Shylog: mounted with the open sheet, so iOS's back swipe can't take the
+// page from under it, as a native modal sheet has none.
+function EdgeSwipeBlock() {
+  useEdgeSwipeBlock()
+  return null
 }
 
 // Centred over the content beside the sidebar, where the form and the Log
