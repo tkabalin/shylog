@@ -12,6 +12,7 @@ import {
   deepest,
   describe,
   dropPermit,
+  features as pageFeatures,
   findEnd,
   findStart,
   firstSentence,
@@ -27,6 +28,8 @@ import {
   pageLines,
   pictures,
   plain,
+  position,
+  printed,
   section,
   sentences,
   slug,
@@ -56,6 +59,7 @@ const pageFixesPath = join(import.meta.dirname, "page-fixes.json")
 const sitesPath = join(import.meta.dirname, "../../src/map/sites.geojson")
 const pagesPath = join(import.meta.dirname, "../../src/map/pages.json")
 const imagesPath = join(import.meta.dirname, "../../src/map/images.json")
+const featuresPath = join(import.meta.dirname, "../../src/map/features.json")
 
 type Revision = {
   title: string
@@ -307,8 +311,14 @@ function kindOf(lead: string, marker: Marker, area: Area, own = false): Kind {
 // What a page says for all its sites, read from it by hand: how you get in,
 // usually from the shore, by boat, or both, which counts any shore entry the
 // page gives off a boat dive, with why it's hard where the page says so; null
-// for the aquarium's tanks.
-type PageFix = { said: string; access: Access | null; shoreEntry?: ShoreEntry }
+// for the aquarium's tanks. A feature the page places on another site than
+// the one nearest it names that site.
+type PageFix = {
+  said: string
+  access: Access | null
+  shoreEntry?: ShoreEntry
+  features?: Record<string, string>
+}
 
 const { pins, list, pages: revisions, written } = await read()
 const fixes = JSON.parse(readFileSync(fixesPath, "utf8")) as Record<string, Fix>
@@ -589,6 +599,11 @@ for (const [name, fix] of Object.entries(pageFixes)) {
   if (!words.includes(fix.said.replace(/\s+/g, " "))) {
     console.warn(`${name}: the page no longer says "${fix.said}"`)
   }
+  for (const [feature, id] of Object.entries(fix.features ?? {})) {
+    if (!sites.some((site) => site.id === id && site.page === name)) {
+      throw new Error(`${name}: ${feature} goes on ${id}, not a site there`)
+    }
+  }
 }
 for (const [name, parts] of Object.entries(pageText)) {
   const text = parts.map((part) =>
@@ -650,6 +665,93 @@ for (const { id, lon, lat, marker } of sites) {
   }
 }
 
+// ---- Each page's features that aren't sites of their own, on the site
+// nearest each: Clifton Rocks' entry point and parking, the Treasure's
+// midships and propeller drops.
+
+type SiteFeature = { name: string; lon: number; lat: number; text?: string }
+const siteFeatures: Record<string, SiteFeature[]> = {}
+// A ship's prefix and a note in brackets aside, as a page may call its own
+// wreck MFV where the list says MV, or mark its site "(approximate)".
+const unprefixed = (name: string) =>
+  loose(name.replace(/\s*\([^)]*\)/g, "")).replace(
+    /^(?:ss|mv|mfv|fv|sas|sats|hms|hmsas|rms|ts|st) /,
+    ""
+  )
+// A printed position, with the words that only lead up to it.
+const printedAt = new RegExp(
+  String.raw`(?:,?\s*at(?: approximately| about| (?:an )?estimated position)?)?\s*` +
+    position.source,
+  "g"
+)
+for (const [name, text] of raw) {
+  const on = sites.filter((each) => each.page === name)
+  if (!on.length) continue
+  for (const feature of pageFeatures(text)) {
+    const at: [number, number] = [feature.lon, feature.lat]
+    // A site's own marker: by its name or section on this page ("Coral
+    // Gardens Offshore Pinnacle - Colin's Pinnacle"), or within 8 m of any
+    // site (Castle Pinnacles); a wreck's bow 11 m off its mark is a feature.
+    const called = unprefixed(feature.name)
+    if (
+      on.some(
+        (site) =>
+          called === unprefixed(site.name) ||
+          (site.section !== undefined &&
+            (called === unprefixed(site.section) ||
+              called.endsWith(` ${unprefixed(site.section)}`)))
+      ) ||
+      sites.some((site) => apart([site.lon, site.lat], at) < 8)
+    ) {
+      continue
+    }
+    const shown = printed(feature.after)
+    if (shown && apart(shown, at) > 150) {
+      console.warn(
+        `${name}: ${feature.name} is printed ${Math.round(apart(shown, at))} m from its marker`
+      )
+    }
+    const nearest =
+      pageFixes[name]?.features?.[feature.name] ??
+      on.reduce((best, site) =>
+        apart([site.lon, site.lat], at) < apart([best.lon, best.lat], at)
+          ? site
+          : best
+      ).id
+    // What the line says after its printed position: its first sentence,
+    // and the next while they fit in 220 characters.
+    // A note on the position goes too: "(estimated, possibly E18°27,800')".
+    let said = plain(blocks(clean(feature.after, link)))
+      .replace(printedAt, "")
+      .replace(/^[\s:;,.—–-]+/, "")
+      .replace(/^\(([^()]*)\)$/, "$1")
+      .replace(/^(?:[\s.,;:—–-]|\([^)]*\))+/, "")
+      .trim()
+    const kept: string[] = []
+    for (const sentence of sentences(said)) {
+      if (kept.length && [...kept, sentence].join(" ").length > 220) break
+      kept.push(sentence)
+    }
+    said = kept.join(" ")
+    ;(siteFeatures[nearest] ??= []).push({
+      name: feature.name,
+      lon: feature.lon,
+      lat: feature.lat,
+      ...(said && { text: capital(said) }),
+    })
+  }
+}
+
+// A placed feature the page no longer marks, or that is now a site's own
+// marker, needs reading again.
+for (const [name, fix] of Object.entries(pageFixes)) {
+  for (const [feature, id] of Object.entries(fix.features ?? {})) {
+    if (!siteFeatures[id]?.some((each) => each.name === feature)) {
+      console.warn(`${name}: the page no longer marks ${feature} as a feature`)
+    }
+  }
+}
+
 // ---- Output
 
 // One site to a line, so a refresh's diff shows each site that changed.
@@ -689,6 +791,7 @@ const write = async (path: string, data: unknown) =>
   )
 await write(pagesPath, pageText)
 await write(imagesPath, { sites: siteImages, files: imageFiles })
+await write(featuresPath, siteFeatures)
 await write(pinsPath, pins)
 
 const sections = sites.filter((each) => each.own)

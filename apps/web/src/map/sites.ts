@@ -30,6 +30,14 @@ export type Site = {
   lat: number
 }
 
+// A named feature inside a site, as features.json holds them by site id.
+export type SiteFeature = {
+  name: string
+  lon: number
+  lat: number
+  text?: string
+}
+
 type Feature = {
   geometry: { coordinates: [number, number] }
   properties: Omit<Site, "lon" | "lat">

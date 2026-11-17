@@ -14,6 +14,7 @@ import {
   siteZone,
   type DivingLimit,
 } from "../../../../web/src/map/find.ts"
+import featuresJson from "../../../../web/src/map/features.json" with { type: "json" }
 import { siteText, type Part } from "../../../../web/src/map/page-text.ts"
 import pagesJson from "../../../../web/src/map/pages.json" with { type: "json" }
 import {
@@ -23,6 +24,7 @@ import {
   type Access,
   type Area,
   type Site,
+  type SiteFeature,
   type SiteType,
   wikivoyage,
 } from "../../../../web/src/map/sites.ts"
@@ -32,6 +34,9 @@ import { addTool, readHints as read } from "../tool.ts"
 import { compact, paged } from "../view.ts"
 
 const pages = pagesJson as unknown as Record<string, Part[]>
+// The features inside a site that aren't sites of their own: pinnacles, a
+// wreck's bow and stern, swim-throughs, anchors, the shore entry.
+const features = featuresJson as Record<string, SiteFeature[]>
 
 const areaKeys = Object.keys(areas) as [Area, ...Area[]]
 const types = ["reef", "wreck", "fresh"] as const satisfies SiteType[]
@@ -201,7 +206,7 @@ export function siteTools(server: McpServer) {
   addTool(server, "get_map_site", {
     title: "Get a dive site from the map",
     description:
-      "One dive site on the Explore map by its id from search_map_sites: its figures, the zone it lies in with that marine protected area's rules, grouped by where they apply, and its Wikivoyage page as Markdown, with sections such as Conditions (which swell and wind suit it), Get in, Hazards and Nearby. On a page several sites share, the site's own section comes first. A link to another site reads site:<id>.",
+      "One dive site on the Explore map by its id from search_map_sites: its figures, the zone it lies in with that marine protected area's rules, grouped by where they apply, the named features inside it (pinnacles, a wreck's bow and stern, anchors, the shore entry) with their positions, and its Wikivoyage page as Markdown, with sections such as Conditions (which swell and wind suit it), Get in, Hazards and Nearby. On a page several sites share, the site's own section comes first. A link to another site reads site:<id>.",
     input: z.strictObject({ id: z.string() }),
     hints: read,
     run({ id }) {
@@ -227,6 +232,7 @@ export function siteTools(server: McpServer) {
             rules: rules.map(({ text, source }) => ({ text, source })),
           })
         ),
+        features: features[site.id],
         page: site.page,
         wikivoyage: wikivoyage(site),
         text,

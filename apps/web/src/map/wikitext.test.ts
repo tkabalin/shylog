@@ -6,6 +6,7 @@ import {
   deepest,
   decode,
   dropPermit,
+  features,
   findEnd,
   findStart,
   guideLinks,
@@ -449,5 +450,34 @@ describe("dropPermit", () => {
     expect(dropPermit(robben)).toBe(robben)
     const slip = "Dived from the local slip if you have the required permit."
     expect(dropPermit(slip)).toBe(slip)
+  })
+})
+
+describe("features", () => {
+  it("reads a page's own markers inside its sites, with the rest of the line", () => {
+    const text = [
+      "{{marker|type=do|name=Percy's Hole cave|lat=-34.28658|long=18.82483|zoom=15}}: S34°17.195' E018°49.490'. The cave is most easily reached from the north entry.",
+      `{{marker|type=vicinity|name=[[${guide}/Ankers|Ankers]]|lat=-34.308767|long=18.813583}}`,
+      "<!-- {{marker|type=do|name=Hidden|lat=-34.1|long=18.4}} -->",
+      "{{marker|type=see|name=Kelly's anchor|lat=-34.24|long=}}",
+    ].join("\n")
+    expect(features(text)).toEqual([
+      {
+        name: "Percy's Hole cave",
+        lon: 18.82483,
+        lat: -34.28658,
+        after:
+          ": S34°17.195' E018°49.490'. The cave is most easily reached from the north entry.",
+      },
+    ])
+  })
+
+  it("ends a marker's words at the next marker on its line", () => {
+    const text =
+      "{{marker|type=see|name=Bow|lat=-34.1|long=18.4}} The bow, {{m|12}} deep. {{marker|type=see|name=Stern|lat=-34.2|long=18.5}} The stern."
+    expect(features(text).map(({ name, after }) => [name, after])).toEqual([
+      ["Bow", " The bow, {{m|12}} deep. "],
+      ["Stern", " The stern."],
+    ])
   })
 })
