@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react"
+import { memo, useEffect, useMemo, useState, type ReactNode } from "react"
 import {
   IconArrowsDiff,
   IconChevronDown,
@@ -16,10 +16,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { cn } from "cn"
 
 import { BarButton } from "@/components/pickers/sheet"
+import { useFrameLater } from "@/components/rolling-number"
 import { Button } from "@/components/ui/button"
 import {
   AppliedSome,
   applyReview,
+  currentImport,
   discardPreview,
   loadPending,
   setOverrides,
@@ -73,6 +75,9 @@ function ReviewPage() {
   const [clockDate, setClockDate] = useState<string | null>(null)
   const [clockOpen, setClockOpen] = useState(false)
   const [leftOutOpen, setLeftOutOpen] = useState(false)
+  // Its list mounts a frame after the tap, so the chevron turns at once,
+  // and eases open with its rows from that frame on.
+  const leftOutRows = useFrameLater(leftOutOpen)
   const [discarding, setDiscarding] = useState(false)
   const [changed, setChanged] = useState<string[] | null>(null)
   const [busy, setBusy] = useState(false)
@@ -90,22 +95,34 @@ function ReviewPage() {
     if (loaded && !preview && !busy)
       void navigate({ to: "/import", replace: true })
   }, [loaded, preview, busy, navigate])
+  // Worked out again only when the choices change, not for a tap that
+  // opens a sheet or the left-out list.
+  const current = useMemo(
+    () => preview && log && review(preview, overrides, log.dive),
+    [preview, overrides, log]
+  )
+  // As the import will leave them, once the values to take are taken.
+  const differing = useMemo(
+    () =>
+      current && log
+        ? current.paired.filter(({ entry, diveId }) =>
+            withAdopted(
+              compareRows(entry.dive, log.dive.get(diveId)),
+              adopt
+            ).some((row) => row.differs)
+          ).length
+        : 0,
+    [current, log, adopt]
+  )
 
-  if (!preview || !log) return null
+  if (!preview || !log || !current) return null
   const name = computerName(preview.computerModel)
   const hands = log.dive
   const siteOf = (diveId: string) => {
     const dive = hands.get(diveId)
     return (dive && log.sites.get(dive.siteId)?.name) ?? "Unknown site"
   }
-  const current = review(preview, overrides, hands)
   const { counts } = current
-  // As the import will leave them, once the values to take are taken.
-  const differing = current.paired.filter(({ entry, diveId }) =>
-    withAdopted(compareRows(entry.dive, hands.get(diveId)), adopt).some(
-      (row) => row.differs
-    )
-  ).length
   const moved = preview.days.filter((day) => day.offset !== 0)
   const allAdded = current.newDives.every(({ added }) => added)
 
@@ -297,13 +314,6 @@ function ReviewPage() {
                   entry={entry}
                   added={added}
                   name={name}
-                  onToggle={() =>
-                    setOverrides(
-                      choose(preview, overrides, entry.dive.ref, {
-                        kind: added ? "skip" : "add",
-                      })
-                    )
-                  }
                 />
               ))}
             </ListCard>
@@ -421,7 +431,7 @@ function ReviewPage() {
                   </button>
                   {/* Eases open on the tap, as the form's revealed rows do,
                     rather than pushing the clock link down at once. */}
-                  {leftOutOpen && (
+                  {leftOutOpen && leftOutRows && (
                     <Reveal className="divide-y">
                       {[...leftOutDays].map(([day, items]) => (
                         <div key={day} className="flex flex-col pt-3 pb-1">
@@ -433,13 +443,6 @@ function ReviewPage() {
                               key={entry.dive.ref}
                               entry={entry}
                               included={included}
-                              onToggle={() =>
-                                setOverrides(
-                                  choose(preview, overrides, entry.dive.ref, {
-                                    kind: included ? "skip" : "add",
-                                  })
-                                )
-                              }
                             />
                           ))}
                         </div>
@@ -561,16 +564,22 @@ function Origin({ icon: Icon, children }: { icon: Icon; children: ReactNode }) {
   )
 }
 
-function NewDiveRow({
+// Adds or skips a computer dive against the choices as they stand, so the
+// rows' handler never changes and a tap re-renders only its own row.
+function toggle(ref: string, on: boolean) {
+  const { preview, overrides } = currentImport()
+  if (preview)
+    setOverrides(choose(preview, overrides, ref, { kind: on ? "skip" : "add" }))
+}
+
+const NewDiveRow = memo(function NewDiveRow({
   entry,
   added,
   name,
-  onToggle,
 }: {
   entry: Entry
   added: boolean
   name: string
-  onToggle: () => void
 }) {
   const { dive } = entry
   const when = dayAndTime(dive.startTime)
@@ -583,7 +592,7 @@ function NewDiveRow({
         role="checkbox"
         aria-checked={added}
         aria-label={`Add the ${name} dive on ${when} as a new dive`}
-        onClick={onToggle}
+        onClick={() => toggle(dive.ref, added)}
         className={cn(
           "absolute inset-y-0 left-0 z-10 flex w-12 items-center justify-center pl-1",
           pressedButton
@@ -620,16 +629,14 @@ function NewDiveRow({
       </Link>
     </div>
   )
-}
+})
 
-function LeftOutRow({
+const LeftOutRow = memo(function LeftOutRow({
   entry,
   included,
-  onToggle,
 }: {
   entry: Entry
   included: boolean
-  onToggle: () => void
 }) {
   const { dive, reason } = entry
   const time = clockTime(dive.startTime)
@@ -654,7 +661,7 @@ function LeftOutRow({
         type="button"
         aria-pressed={included}
         aria-label={`Include the ${reason === "freedive" ? "freedive" : "dive"} at ${time} on ${longDate(dive.day)}`}
-        onClick={onToggle}
+        onClick={() => toggle(dive.ref, included)}
         className={cn(
           "relative h-7.5 shrink-0 rounded-full px-3 text-[13px] font-medium transition-colors duration-150 after:absolute after:-inset-y-2 active:opacity-70 active:duration-0",
           included ? "bg-primary/12 text-primary" : "bg-muted"
@@ -664,4 +671,4 @@ function LeftOutRow({
       </button>
     </div>
   )
-}
+})
