@@ -3,6 +3,7 @@ import { latestSchemaVersion } from "@shylog/core"
 import { apiClient, type Log } from "@/api/client"
 
 import {
+  byDive,
   collections,
   db as defaultDb,
   type Blocked,
@@ -73,8 +74,8 @@ export async function syncLog(
         db.people.bulkPut(log.people),
         db.diveCentres.bulkPut(log.diveCentres),
         db.trips.bulkPut(log.trips),
-        db.links.bulkPut(log.links),
-        db.fieldMeta.bulkPut(log.fieldMeta),
+        db.diveLinks.bulkPut(byDive(log.links)),
+        db.diveFieldMeta.bulkPut(byDive(log.fieldMeta)),
         db.cards.bulkPut(
           log.cards.map((card, position) => ({ ...card, position }))
         ),
