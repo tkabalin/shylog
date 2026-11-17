@@ -1,4 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, type PointerEvent } from "react"
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  type ComponentType,
+  type CSSProperties,
+  type PointerEvent,
+  type Ref,
+} from "react"
 import {
   animate,
   useMotionValue,
@@ -7,8 +15,6 @@ import {
 } from "motion/react"
 
 import { useSize } from "@/chart/size"
-import type { Card } from "@/data/db"
-import { CardImage } from "@/you/cards/card-image"
 import {
   bandScale,
   inertia,
@@ -17,10 +23,8 @@ import {
   settle,
   unband,
   unbandScale,
-} from "@/you/cards/gestures"
+} from "@/components/gestures"
 
-// How far a card can be zoomed: an eCard's small print readable on a phone.
-const maxScale = 4
 // The board's 16 px round the page at rest.
 const inset = 16
 
@@ -46,18 +50,33 @@ type Gesture =
       last: { mid: Point; pan: Point }
     }
 
+// What a page draws: its image, given the ref and size the gestures need.
+export type PageImageProps = {
+  i: number
+  ref: Ref<HTMLImageElement>
+  style: CSSProperties
+  className: string
+}
+
 // The pages side by side on a track the finger drags, the shown one zoomed
 // by a pinch and panned while zoomed. Every motion starts from where the
 // page is on screen and takes the finger's speed when it lifts, so any of
 // them can be caught mid-way, and every release leaves it settled.
-export function CardPages({
-  card,
+export function ImagePages({
+  count,
   page,
   onPage,
+  maxScale,
+  image: Image,
+  keyOf,
 }: {
-  card: Card
+  count: number
   page: number
   onPage: (page: number) => void
+  // How far the shown page can be zoomed.
+  maxScale: number
+  image: ComponentType<PageImageProps>
+  keyOf: (i: number) => string
 }) {
   const stage = useRef<HTMLDivElement>(null)
   const { width, height } = useSize(stage)
@@ -69,7 +88,6 @@ export function CardPages({
   const reduce = useReducedMotion()
   // Under reduced motion each settle lands at once.
   const spring = reduce ? { duration: 0 } : settle
-  const count = card.images.length
 
   const pointers = useRef(new Map<number, Point>())
   const gesture = useRef<Gesture | null>(null)
@@ -464,9 +482,9 @@ export function CardPages({
       className="relative min-h-0 flex-1 touch-none overflow-hidden select-none [-webkit-touch-callout:none]"
     >
       <div ref={trackBox} className="flex h-full will-change-transform">
-        {card.images.map((hash, i) => (
+        {Array.from({ length: count }, (_, i) => (
           <div
-            key={`${i} ${hash}`}
+            key={keyOf(i)}
             aria-hidden={i !== page}
             className="flex h-full shrink-0 items-center justify-center"
             style={{ width, padding: inset }}
@@ -477,15 +495,11 @@ export function CardPages({
               }}
               className="flex max-h-full max-w-full"
             >
-              <CardImage
-                ref={(image: HTMLImageElement | null) => {
-                  images.current[i] = image
+              <Image
+                i={i}
+                ref={(element: HTMLImageElement | null) => {
+                  images.current[i] = element
                 }}
-                cardId={card.id}
-                n={i}
-                hash={hash}
-                retry
-                alt={`${card.name}, screenshot ${i + 1} of ${count}`}
                 style={{
                   maxWidth: Math.max(0, width - inset * 2),
                   maxHeight: Math.max(0, height - inset * 2),
