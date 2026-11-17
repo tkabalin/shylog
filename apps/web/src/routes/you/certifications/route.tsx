@@ -9,7 +9,7 @@ import {
 } from "@tabler/icons-react"
 import { cardCrop } from "@shylog/core"
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router"
-import { MotionConfig, Reorder } from "motion/react"
+import { motion, MotionConfig } from "motion/react"
 import { cn } from "cn"
 
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ import { useLog } from "@/data/log"
 import { OfflineMark } from "@/components/offline-mark"
 import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
+import { mainView, useDragList } from "@/lib/drag-order"
 import { PageBar } from "@/you/bar"
 import { CardThumb } from "@/you/cards/card-thumb"
 import { accept, CardSheet, loadCardSheet } from "@/you/cards/load-sheet"
@@ -60,7 +61,6 @@ function CertificationsPage() {
     setHeld(false)
     setOrder(undefined)
   }
-  if (!loaded) return null
   const cards = log?.cards ?? []
   const ids = (list: Card[]) => list.map((card) => card.id).join()
   if (
@@ -100,6 +100,24 @@ function CertificationsPage() {
       if (!latest.current) setOrder(undefined)
     }
   }
+  const rowList = useRef<HTMLUListElement>(null)
+  const list = useDragList({
+    axis: "y",
+    container: rowList,
+    values: shown,
+    keyOf: (card) => card.id,
+    onChange: reorder,
+    scroller: () => document.getElementById("main"),
+    view: mainView,
+    onLift: lift,
+    onDrop: () => void drop(),
+  })
+  // And the card the finger holds is set down with them.
+  useEffect(() => {
+    if (!connected) list.cancel()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- cancel reads refs
+  }, [connected])
+  if (!loaded) return null
   const pick = () => picker.current?.click()
   // The empty screen's own button adds the first, as the board has it.
   const addButton =
@@ -167,24 +185,23 @@ function CertificationsPage() {
         <div className="flex flex-col gap-3.5 px-4 pt-2 pb-10 md:mx-auto md:w-full md:max-w-xl">
           {/* Under reduced motion the cards swap places at once. */}
           <MotionConfig reducedMotion="user">
-            <Reorder.Group
-              as="ul"
-              axis="y"
-              values={shown}
-              onReorder={reorder}
-              className="flex flex-col divide-y rounded-[14px] bg-card ring-1 ring-foreground/10"
+            <ul
+              ref={rowList}
+              className="relative flex flex-col divide-y rounded-[14px] bg-card ring-1 ring-foreground/10"
             >
-              {shown.map((card) => (
+              {shown.map((card, i) => (
                 <CardRow
                   key={card.id}
                   card={card}
-                  onLift={lift}
-                  onDrop={drop}
+                  place={i}
+                  held={list.held === card.id}
+                  lifted={list.held === card.id && !list.dropping}
+                  rows={list.rows}
                   locked={!connected}
                   grip={connected && shown.length > 1}
                 />
               ))}
-            </Reorder.Group>
+            </ul>
           </MotionConfig>
           <SaveFailure error={failure} />
           {/* Phones only, as a computer is online when a dive centre asks.
@@ -237,42 +254,43 @@ function CertificationsPage() {
 // press or a drag with a mouse to move it in the list.
 function CardRow({
   card,
-  onLift,
-  onDrop,
+  place,
+  held,
+  lifted,
+  rows,
   locked,
   grip,
 }: {
   card: Card
-  onLift: () => void
-  onDrop: () => void
+  // Its place in the list, which Motion measures it again for.
+  place: number
+  // Held by the finger, or settling from the drop.
+  held: boolean
+  lifted: boolean
+  rows: ReturnType<typeof useDragList>["rows"]
   // Offline the order can't be saved, so a press never lifts it.
   locked: boolean
   // Shown only where the row can move: online, among other cards.
   grip: boolean
 }) {
-  const { item, ref, lifted, grab, drop } = useLift()
-  // Locked mid-drag, the row sets down rather than staying lifted.
-  useEffect(() => {
-    if (locked) drop()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- drop is new each render
-  }, [locked])
+  const { item, ref, grab } = useLift(card.id, rows)
   return (
-    <Reorder.Item
-      as="li"
-      ref={ref}
-      value={card}
-      {...(locked ? { drag: false } : item)}
-      onDragStart={onLift}
-      onDragEnd={() => {
-        item.onDragEnd()
-        onDrop()
+    <motion.li
+      ref={(node: HTMLLIElement | null) => {
+        ref(node)
+        return node ? rows.register(card.id, node) : undefined
       }}
+      // Its neighbours make room by Motion's layout animation; the row the
+      // finger holds is moved by the drag alone, so it is left out.
+      layout="position"
+      layoutDependency={held ? "held" : place}
+      {...(locked ? {} : item)}
       // Its corners follow the list's at either end.
       className={cn(
         "relative select-none [-webkit-touch-callout:none] first:rounded-t-[14px] last:rounded-b-[14px]",
-        // Its own layer while dragged, so each frame moves it rather than
-        // repainting its thumbnail and shadow.
-        lifted && "z-10 will-change-transform"
+        // Its own layer while dragged and settling, so each frame moves it
+        // rather than repainting its thumbnail and shadow.
+        held && "z-10 will-change-transform"
       )}
     >
       <Link
@@ -322,6 +340,6 @@ function CardRow({
           className="size-4.5 shrink-0 text-muted-foreground/60"
         />
       </Link>
-    </Reorder.Item>
+    </motion.li>
   )
 }

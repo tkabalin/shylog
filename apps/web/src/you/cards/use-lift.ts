@@ -5,40 +5,49 @@ import {
   type MouseEvent,
   type PointerEvent,
 } from "react"
-import { useDragControls } from "motion/react"
+
+import type { Press } from "@/lib/drag-order"
 
 // How long a press holds before the item lifts, and how far a finger can
 // drift meanwhile before it counts as a scroll instead.
 const holdMs = 350
 const slop = 8
 
-// A Reorder item a long press lifts to drag, so a plain swipe still
-// scrolls what holds it. A mouse scrolls nothing by dragging, so its drag
-// lifts the item at once. Spread `item` on the Reorder.Item and give it
-// `ref`; `lifted` is for the look.
-export function useLift() {
-  const controls = useDragControls()
-  const [lifted, setLifted] = useState(false)
-  // Read by the touch listener, which the lift must reach in the same task:
-  // a render later, iOS could already be scrolling.
-  const liftedNow = useRef(false)
+// A row of a `useDragList` a long press lifts to drag, so a plain swipe
+// still scrolls what holds it. A mouse scrolls nothing by dragging, so its
+// drag lifts the row at once. Spread `item` on the row and give it `ref`.
+export function useLift(
+  key: string,
+  rows: {
+    // Lifts the row under the press; whether it did.
+    start: (key: string, press: Press) => boolean
+    // Whether the row is held now.
+    holding: (key: string) => boolean
+  }
+) {
   // Whether this press lifted the item, so the click its release sends
   // doesn't also open what the item links to.
   const moved = useRef(false)
-  const lift = (on: boolean) => {
-    liftedNow.current = on
-    if (on) moved.current = true
-    setLifted(on)
+  const lift = (press: Press) => {
+    if (!rows.start(key, press)) return
+    moved.current = true
+    // Forgotten after the click the release sends, so a later key press
+    // opens it. The list has the pointer, so the row never sees it go up.
+    const done = () => {
+      removeEventListener("pointerup", done, true)
+      removeEventListener("pointercancel", done, true)
+      setTimeout(() => (moved.current = false))
+    }
+    addEventListener("pointerup", done, true)
+    addEventListener("pointercancel", done, true)
   }
-  const hold = useRef<{
-    timer?: number
-    x: number
-    y: number
-    mouse: boolean
-  } | null>(null)
+  const hold = useRef<{ timer?: number; off: () => void } | null>(null)
 
   const cancel = () => {
-    if (hold.current) clearTimeout(hold.current.timer)
+    if (hold.current) {
+      clearTimeout(hold.current.timer)
+      hold.current.off()
+    }
     hold.current = null
   }
 
@@ -49,63 +58,57 @@ export function useLift() {
   useEffect(() => {
     if (!node) return
     const stop = (event: TouchEvent) => {
-      if (liftedNow.current) event.preventDefault()
+      if (rows.holding(key)) event.preventDefault()
     }
     node.addEventListener("touchmove", stop, { passive: false })
     return () => {
       node.removeEventListener("touchmove", stop)
       cancel()
     }
-  }, [node])
+    // The rows' functions are the same for the list's life.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [node, key])
 
   const item = {
-    dragListener: false,
-    dragControls: controls,
-    onDragEnd: () => lift(false),
     onPointerDown: (event: PointerEvent<HTMLElement>) => {
       if (event.button !== 0) return
       if ((event.target as Element).closest("button, [data-grip]")) return
-      const native = event.nativeEvent
+      const { pointerId, clientX, clientY } = event
       cancel()
       moved.current = false
       const mouse = event.pointerType === "mouse"
+      // Watched on the window, as a quick mouse can leave a narrow page
+      // in one move, before it has gone far enough to lift it.
+      const move = (next: globalThis.PointerEvent) => {
+        if (
+          next.pointerId !== pointerId ||
+          Math.hypot(next.clientX - clientX, next.clientY - clientY) <= slop
+        )
+          return
+        cancel()
+        if (mouse) lift(next)
+      }
+      // Released, or taken by the system (a scroll it started), before
+      // the hold ran out.
+      const end = (next: globalThis.PointerEvent) => {
+        if (next.pointerId === pointerId) cancel()
+      }
+      addEventListener("pointermove", move)
+      addEventListener("pointerup", end)
+      addEventListener("pointercancel", end)
       hold.current = {
-        x: event.clientX,
-        y: event.clientY,
-        mouse,
+        off: () => {
+          removeEventListener("pointermove", move)
+          removeEventListener("pointerup", end)
+          removeEventListener("pointercancel", end)
+        },
         timer: mouse
           ? undefined
           : window.setTimeout(() => {
-              hold.current = null
-              lift(true)
-              controls.start(native)
+              cancel()
+              lift({ pointerId, clientX, clientY })
             }, holdMs),
       }
-    },
-    onPointerMove: (event: PointerEvent<HTMLElement>) => {
-      const start = hold.current
-      if (
-        !start ||
-        Math.hypot(event.clientX - start.x, event.clientY - start.y) <= slop
-      )
-        return
-      cancel()
-      if (start.mouse) {
-        lift(true)
-        controls.start(event.nativeEvent)
-      }
-    },
-    // A press the system takes (a scroll it started) drops the item too;
-    // the drag never began, so no drag end would.
-    onPointerUp: () => {
-      cancel()
-      lift(false)
-      // After the click the release sends, so a later key press opens it.
-      setTimeout(() => (moved.current = false))
-    },
-    onPointerCancel: () => {
-      cancel()
-      lift(false)
     },
     onClickCapture: (event: MouseEvent) => {
       if (!moved.current) return
@@ -120,15 +123,9 @@ export function useLift() {
   const grab = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return
     cancel()
-    lift(true)
-    controls.start(event.nativeEvent)
-  }
-  // For when the item can no longer move mid-press (gone offline), as its
-  // handlers go and no release would set it down.
-  const drop = () => {
-    cancel()
-    lift(false)
+    moved.current = false
+    lift(event)
   }
   // The state's setter, stable across renders, so React never detaches it.
-  return { item, ref: setNode, lifted, grab, drop }
+  return { item, ref: setNode, grab }
 }
