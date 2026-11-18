@@ -239,7 +239,7 @@ Explore's satellite view shows Esri's World Imagery, which needs a free [ArcGIS 
 1. In the account's Developer credentials, choose New item, then API key credentials, then a private application with selected privileges.
 2. Tick only Location services, Basemaps, and leave item access empty.
 3. Under referrer restrictions add the instance's `SHYLOG_ORIGIN`, plus `http://localhost:5173` for development, where `pnpm dev` reads the key from `.env` when it starts.
-4. Note the expiry date, a year at most, and make a new key well before then.
+4. The key lasts a year at most. Once Esri refuses it, Explore says "Esri refused the satellite key" and the app's log has a `client_error` line saying the key was refused: make a new key then, the same way.
 
 Then run `docker compose --env-file instances/<instance>.env up -d`. Installed apps keep the page they installed with, so a new or changed key reaches a phone with the app's next update: set it before updating to a new image, and change it while the old one still works. The free tier is 2 million basemap tiles a month. Leave pay-as-you-go off, so going over stops the imagery rather than billing. The key is in the app's page, which anyone who can reach the instance can read, as every map tile carries it to Esri anyway; at worst someone spends the month's free tiles.
 
