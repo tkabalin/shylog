@@ -123,6 +123,9 @@ test("makes no request for samples already on the phone", async ({
   const id = await diveId(request, 63)
   await page.goto(`/dive/${id}`)
   await expect(profile(page).locator(".recharts-wrapper").first()).toBeVisible()
+  // The chart draws before its copy is written, and the sync's download may
+  // still be running, so a reload too soon finds nothing kept.
+  await expect.poll(() => keptProfiles(page)).toBe(42)
 
   const asked: string[] = []
   page.on("request", (req) => {
