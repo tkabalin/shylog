@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type Ref } from "react"
 import { cardCrop, cardMaxPages, newId } from "@shylog/core"
 import {
   IconChevronRight,
+  IconEqual,
   IconPhotoPlus,
   IconTrash,
   IconX,
@@ -270,6 +271,7 @@ export function CardSheet({
                           held={list.held === page.key}
                           lifted={list.held === page.key && !list.dropping}
                           rows={list.rows}
+                          grip={pages.length > 1}
                           onRemove={() =>
                             setPages((was) => was.filter((one) => one !== page))
                           }
@@ -527,7 +529,8 @@ const strip = { type: "spring", bounce: 0, visualDuration: 0.12 } as const
 // sidebar too, so as dialogs they centre on the window, not the column.
 const overViewer = "desk:left-1/2"
 
-// A page in the strip, lifted by a long press to drag along it (useLift).
+// A page in the strip, lifted by a long press to drag along it (useLift),
+// or at once by its grip.
 function Shot({
   ref,
   page,
@@ -537,6 +540,7 @@ function Shot({
   held,
   lifted,
   rows,
+  grip,
   onRemove,
 }: {
   // AnimatePresence's, to take a removed page out of the flow.
@@ -550,9 +554,11 @@ function Shot({
   held: boolean
   lifted: boolean
   rows: ReturnType<typeof useDragList>["rows"]
+  // Shown only where the page can move, among others.
+  grip: boolean
   onRemove: () => void
 }) {
-  const { item, ref: liftRef } = useLift(page.key, rows)
+  const { item, ref: liftRef, grab } = useLift(page.key, rows)
 
   return (
     <motion.div
@@ -604,6 +610,18 @@ function Shot({
       >
         <IconX aria-hidden className="size-3.5 stroke-[2.5]" />
       </button>
+      {grip && (
+        // The rows' grip, so a page says it moves as a row does, opposite
+        // the remove button; touch-none, so the strip never scrolls from it.
+        <span
+          data-grip=""
+          aria-hidden
+          onPointerDown={grab}
+          className="absolute bottom-1.5 left-1.5 inline-flex size-6.5 cursor-grab touch-none items-center justify-center rounded-full bg-black/55 text-white after:absolute after:-inset-2.5 active:cursor-grabbing"
+        >
+          <IconEqual className="size-3.5 stroke-[2.5]" />
+        </span>
+      )}
     </motion.div>
   )
 }
