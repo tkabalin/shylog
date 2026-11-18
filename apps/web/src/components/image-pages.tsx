@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useRef,
   type ComponentType,
@@ -69,6 +70,8 @@ export function ImagePages({
   maxScale,
   image: Image,
   keyOf,
+  insetY = inset,
+  onZoom,
 }: {
   count: number
   page: number
@@ -77,6 +80,11 @@ export function ImagePages({
   maxScale: number
   image: ComponentType<PageImageProps>
   keyOf: (i: number) => string
+  // The room above and below a page at rest, where a viewer's bars sit
+  // over a stage that runs the whole screen once it's zoomed.
+  insetY?: number
+  // Whether the shown page is zoomed in, for bars that make way.
+  onZoom?: (zoomed: boolean) => void
 }) {
   const stage = useRef<HTMLDivElement>(null)
   const { width, height } = useSize(stage)
@@ -103,7 +111,9 @@ export function ImagePages({
   const trackBox = useRef<HTMLDivElement>(null)
   const boxes = useRef<(HTMLDivElement | null)[]>([])
   const shownPage = useRef(page)
+  const zoomTo = useEffectEvent((zoomed: boolean) => onZoom?.(zoomed))
   useEffect(() => {
+    let zoomed = false
     const slide = (x: number) => {
       if (trackBox.current)
         trackBox.current.style.transform = `translateX(${x}px)`
@@ -123,6 +133,10 @@ export function ImagePages({
         kind === "pan" ||
         [scale, panX, panY].some((v) => v.isAnimating())
       box.style.willChange = moving ? "transform" : ""
+      if (zoomed !== scale.get() > 1.01) {
+        zoomed = !zoomed
+        zoomTo(zoomed)
+      }
     }
     const zoom = () => {
       queued ||= requestAnimationFrame(write)
@@ -487,7 +501,7 @@ export function ImagePages({
             key={keyOf(i)}
             aria-hidden={i !== page}
             className="flex h-full shrink-0 items-center justify-center"
-            style={{ width, padding: inset }}
+            style={{ width, padding: `${insetY}px ${inset}px` }}
           >
             <div
               ref={(box) => {
@@ -502,7 +516,7 @@ export function ImagePages({
                 }}
                 style={{
                   maxWidth: Math.max(0, width - inset * 2),
-                  maxHeight: Math.max(0, height - inset * 2),
+                  maxHeight: Math.max(0, height - insetY * 2),
                 }}
                 className="rounded-[10px] shadow-[0_20px_50px_-20px_rgb(0_0_0/0.8)]"
               />
