@@ -211,7 +211,8 @@ export function SiteSheet({
               >
                 {shown && (
                   <>
-                    <div ref={setSummary} className="pt-2 pb-3.5">
+                    {/* Its foot clear of the tab bar at the peek. */}
+                    <div ref={setSummary} className="pt-2 pb-6">
                       <Summary
                         site={shown}
                         titleRef={setTitle}
