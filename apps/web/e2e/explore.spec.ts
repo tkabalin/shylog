@@ -152,6 +152,12 @@ test.describe("at phone width", () => {
     await expect(sheet.getByRole("button", { name: "Read more" })).toHaveText(
       "Read more"
     )
+    // Not clamped when whole, as iOS drew its ellipsis after Read more.
+    await expect(
+      sheet.locator("p", {
+        has: page.getByRole("button", { name: "Read more" }),
+      })
+    ).toHaveCSS("-webkit-line-clamp", "none")
     await expect(
       sheet.getByRole("link", { name: "Read on Wikivoyage" })
     ).not.toBeInViewport()
