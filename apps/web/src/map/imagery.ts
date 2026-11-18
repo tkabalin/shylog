@@ -16,6 +16,20 @@ export const imageryTiles = key ? tile("{z}", "{y}", "{x}") : undefined
 // ground the Map card's picture shows too.
 export const imageryThumb = key ? tile(13, 4924, 4515) : undefined
 
+// That picture fetched and decoded as Explore opens, and held, so Map
+// options shows it at once: WebKit decodes again on mount unless a decoded
+// image is still referenced. Dropped on a failure, to be tried again.
+let thumb: HTMLImageElement | undefined
+export function warmThumb() {
+  if (!imageryThumb || thumb) return
+  const image = new Image()
+  image.src = imageryThumb
+  thumb = image
+  image.decode().catch(() => {
+    if (thumb === image) thumb = undefined
+  })
+}
+
 // Whether Esri refused the key, read from one tile, as the map's failed
 // tiles carry no answer. Esri sends its refusals as 200s with a JSON body:
 // 498 an invalid or expired key, 499 none, 403 the wrong address or rights.

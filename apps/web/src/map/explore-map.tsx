@@ -39,7 +39,12 @@ import { depthScale } from "@/log/filters"
 import { PageBar, useBack } from "@/you/bar"
 
 import Basemap, { listCard, useMapFrame, type MapState } from "./basemap"
-import { imageryFailed, imageryTiles, satelliteChosen } from "./imagery"
+import {
+  imageryFailed,
+  imageryTiles,
+  satelliteChosen,
+  warmThumb,
+} from "./imagery"
 import {
   filterSites,
   filtersOf,
@@ -97,6 +102,9 @@ export default function Explore({
     imageryFailed.get
   )
   const imagery = satelliteOn && online && !failed ? imageryTiles : undefined
+  useEffect(() => {
+    if (online) warmThumb()
+  }, [online])
   const satellite = imageryTiles
     ? {
         shown: !!imagery,
