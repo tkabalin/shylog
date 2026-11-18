@@ -32,6 +32,7 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { reduced } from "@/lib/motion"
 import { exploreOn } from "@/map/enabled"
+import { exploreHome, exploreRoot } from "@/map/home"
 
 const destinations = [
   { to: "/", label: "Log", icon: IconNotebook },
@@ -181,12 +182,18 @@ export function useImportStep() {
 }
 
 // A tap on the tab of the screen already shown scrolls it to the top and
-// keeps its filters, as an iOS tab bar does. A map's chosen site is a
-// sub-screen, not a filter, so that tap goes on to the tab's root.
+// keeps its filters, as an iOS tab bar does. On Explore it goes to the
+// tab's root instead, its screens and picked site being a level deeper,
+// and takes the map back to the coast.
 function toTop(router: AnyRouter, to: string, event: MouseEvent) {
-  const { pathname, search } = router.state.location
-  const site = (search as { site?: string }).site
-  if (!plainClick(event) || pathname !== to || site != null) return
+  const { pathname } = router.state.location
+  if (!plainClick(event) || pathname !== to) return
+  if (to === "/explore" && exploreRoot.current) {
+    event.preventDefault()
+    exploreRoot.current()
+    exploreHome.current?.()
+    return
+  }
   event.preventDefault()
   const main = document.getElementById("main")
   if (main) glideToTop(main)

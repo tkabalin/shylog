@@ -46,6 +46,7 @@ import {
   typeOptions,
   type SiteFilters,
 } from "./filters"
+import { exploreRoot } from "./home"
 import {
   DeskMapOptions,
   floating,
@@ -124,6 +125,23 @@ export default function Explore({
   // with the site picked there, in one step.
   const listFilters = useRef<SiteFilters>(undefined)
   const listPick = useRef<string>(undefined)
+  // A tap on Explore's own tab: a pushed screen closes as its Back does,
+  // and the site goes once it has.
+  const rooted = useRef(false)
+  const toRoot = useEffectEvent(() => {
+    if (search.view && !desk) {
+      rooted.current = true
+      if (goBack()) return
+      rooted.current = false
+    }
+    replace({ view: undefined, mpa: undefined, site: undefined })
+  })
+  useEffect(() => {
+    exploreRoot.current = toRoot
+    return () => {
+      exploreRoot.current = undefined
+    }
+  }, [])
   const pickFromList = (id: string) => {
     listPick.current = id
     if (goBack()) return
@@ -139,16 +157,20 @@ export default function Explore({
     }
     const set = listFilters.current
     const site = listPick.current
+    const root = rooted.current
     listFilters.current = listPick.current = undefined
+    rooted.current = false
     const changed = !!set && set !== filters
-    if (!changed && !site) return
+    if (!changed && !site && !root) return
     // The map's entry still has its site, which the list's filters may hide.
     const held = mapSite ? siteById.get(mapSite) : undefined
     replace({
       ...(changed && searchOf(set)),
-      ...(site
-        ? { site }
-        : changed && held && !matchesSite(held, set) && { site: undefined }),
+      ...(root
+        ? { site: undefined }
+        : site
+          ? { site }
+          : changed && held && !matchesSite(held, set) && { site: undefined }),
     })
   }, [view, filters, replace, mapSite])
 

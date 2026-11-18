@@ -7,6 +7,7 @@ import {
   Map as MapLibre,
   prewarm,
   setWorkerUrl,
+  type LngLatBoundsLike,
   type LngLatLike,
   type MapGeoJSONFeature,
   type PointLike,
@@ -31,8 +32,10 @@ import { cubicBezier } from "motion"
 
 import { Button } from "@/components/ui/button"
 import { useDesk } from "@/hooks/use-desk"
+import { reduced } from "@/lib/motion"
 
 import { extractUrl } from "./extract"
+import { exploreHome } from "./home"
 import { areas, siteById, sites, type Area, type Site } from "./sites"
 import {
   areaData,
@@ -242,6 +245,38 @@ let coverLeft = 0
 const shownPick: { current?: string } = {}
 const marked: { current?: string } = {}
 
+// Fitted to the coast's dive sites, not the metro. Upright, as on a phone,
+// by height from Robben Island to Cape Point, False Bay's east shore a swipe
+// away; a wider screen takes in the coast to Betty's Bay.
+function homeView(element: HTMLElement, desk: boolean) {
+  return {
+    bounds: (element.clientHeight > element.clientWidth
+      ? [
+          [18.3, -34.38],
+          [18.6, -33.765],
+        ]
+      : [
+          [18.3, -34.43],
+          [18.93, -33.78],
+        ]) as LngLatBoundsLike,
+    // Beside the desktop's list card, 12 px in and 360 px wide.
+    fitBoundsOptions: {
+      padding: desk
+        ? {
+            left:
+              Math.min(
+                listCard.inset + listCard.width,
+                element.clientWidth * 0.6
+              ) + 8,
+            top: 8,
+            right: 8,
+            bottom: 8,
+          }
+        : 8,
+    },
+  }
+}
+
 function create(
   element: HTMLDivElement,
   theme: MapTheme,
@@ -252,41 +287,13 @@ function create(
     container: element,
     style: styleNow(theme, picked),
     attributionControl: { compact: true },
-    // Fitted to the coast's dive sites, not the metro. Upright, as on a
-    // phone, by height from Robben Island to Cape Point, False Bay's east
-    // shore a swipe away; a wider screen takes in the coast to Betty's Bay.
-    // A site in the address opens there instead.
+    // Where it was left, or at a site in the address, or the coast.
     ...(camera ??
       (picked && {
         center: [picked.lon, picked.lat] as LngLatLike,
         zoom: siteZoom,
-      }) ?? {
-        bounds:
-          element.clientHeight > element.clientWidth
-            ? [
-                [18.3, -34.38],
-                [18.6, -33.765],
-              ]
-            : [
-                [18.3, -34.43],
-                [18.93, -33.78],
-              ],
-        // Beside the desktop's list card, 12 px in and 360 px wide.
-        fitBoundsOptions: {
-          padding: desk
-            ? {
-                left:
-                  Math.min(
-                    listCard.inset + listCard.width,
-                    element.clientWidth * 0.6
-                  ) + 8,
-                top: 8,
-                right: 8,
-                bottom: 8,
-              }
-            : 8,
-        },
-      }),
+      }) ??
+      homeView(element, desk)),
     maxBounds: [
       [17.9, -34.75],
       [19.3, -33.3],
@@ -547,6 +554,24 @@ export default function Basemap({
     // Put in once a visit; a theme change swaps its style below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // A tap on the Explore tab while it shows: back to the coast, the tab
+  // itself putting a picked site down.
+  useEffect(() => {
+    exploreHome.current = () => {
+      const current = map.current
+      if (!current) return
+      held.current = undefined
+      const { bounds, fitBoundsOptions } = homeView(
+        current.getContainer(),
+        desk
+      )
+      current.fitBounds(bounds, { ...fitBoundsOptions, animate: !reduced() })
+    }
+    return () => {
+      exploreHome.current = undefined
+    }
+  }, [desk])
 
   useEffect(() => {
     if (!kept || !map.current || kept.theme === theme) return
