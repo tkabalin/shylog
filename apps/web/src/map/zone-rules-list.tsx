@@ -19,8 +19,9 @@ const swatches: Record<Swatch, CSSProperties> = {
   "no-take": { border: "1.5px solid var(--color-muted-foreground)" },
 }
 
-// Each marine protected area's rules, bulleted, with the notice each comes
-// from, opened at one area from a site's zone row.
+// Each marine protected area's rules, under a heading for each zone and one
+// for the whole area, bulleted with the notice each comes from, opened at
+// one area from a site's zone row.
 export function ZoneRulesList({
   mpa,
   desk = false,
@@ -53,7 +54,7 @@ export function ZoneRulesList({
         desk ? "[scrollbar-width:thin] px-5 pb-5" : "px-4 pb-6"
       )}
     >
-      {mpaRules.map(({ id, mpa: name, rules, note }) => (
+      {mpaRules.map(({ id, mpa: name, groups, note }) => (
         <section
           key={id}
           ref={(element) => {
@@ -64,43 +65,57 @@ export function ZoneRulesList({
         >
           <h2
             id={`rules-${id}`}
-            className="mb-2 text-[15px] font-semibold tracking-[-0.01em]"
+            className="mb-3 text-[15px] font-semibold tracking-[-0.01em]"
           >
             {name}
           </h2>
-          <ul className="flex flex-col gap-2.5">
-            {rules.map((rule) => (
-              <li
-                key={rule.text}
-                className={cn(
-                  "flex gap-2.5",
-                  desk ? "text-[13px] leading-[19px]" : "text-sm leading-5"
-                )}
-              >
-                {rule.swatch ? (
-                  <span
-                    aria-hidden
-                    className="mt-px size-4.25 shrink-0 rounded-[4px]"
-                    style={swatches[rule.swatch]}
-                  />
-                ) : (
-                  <span
-                    aria-hidden
+          {groups.map(({ heading, where, rules }) => (
+            <div key={heading ?? "rules"} className="mt-5 first-of-type:mt-0">
+              {heading && (
+                <div className="mb-2">
+                  <h3 className="text-[13px] font-semibold text-muted-foreground">
+                    {heading}
+                  </h3>
+                  {where && (
+                    <p className="text-xs text-muted-foreground">{where}</p>
+                  )}
+                </div>
+              )}
+              <ul className="flex flex-col gap-2.5">
+                {rules.map((rule) => (
+                  <li
+                    key={rule.text}
                     className={cn(
-                      "mx-1.5 size-1.25 shrink-0 rounded-full bg-muted-foreground",
-                      desk ? "mt-[7px]" : "mt-2"
+                      "flex gap-2.5",
+                      desk ? "text-[13px] leading-[19px]" : "text-sm leading-5"
                     )}
-                  />
-                )}
-                <span className="min-w-0">
-                  {rule.text}
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
-                    {rule.source}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
+                  >
+                    {rule.swatch ? (
+                      <span
+                        aria-hidden
+                        className="mt-px size-4.25 shrink-0 rounded-[4px]"
+                        style={swatches[rule.swatch]}
+                      />
+                    ) : (
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "mx-1.5 size-1.25 shrink-0 rounded-full bg-muted-foreground",
+                          desk ? "mt-[7px]" : "mt-2"
+                        )}
+                      />
+                    )}
+                    <span className="min-w-0">
+                      {rule.text}
+                      <span className="mt-0.5 block text-xs text-muted-foreground">
+                        {rule.source}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
           {note && (
             <p className="mt-2.5 text-xs text-muted-foreground">{note}</p>
           )}

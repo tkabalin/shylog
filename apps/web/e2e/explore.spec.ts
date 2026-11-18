@@ -901,6 +901,10 @@ test.describe("at desktop width", () => {
     await expect(
       rules.getByRole("heading", { name: "Table Mountain" })
     ).toBeVisible()
+    // A long list is grouped by where on the map each rule applies.
+    await expect(
+      rules.getByRole("heading", { name: "No-take zones" })
+    ).toBeVisible()
     // The card's views replace one another, so Back leaves Explore.
     await rules.getByRole("link", { name: aFrame.name }).click()
     await expect(site).toBeVisible()
