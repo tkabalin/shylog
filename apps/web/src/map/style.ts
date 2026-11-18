@@ -915,9 +915,9 @@ export function mapStyle(
       // pixels, so a phone's 3x screen stretched each one up to 4 times
       // over. Called 128, they come a level closer, for 3 times the tiles.
       tileSize: globalThis.devicePixelRatio >= 2 ? 128 : 256,
-      // Simon's Town's harbour is sharp at 0.15 m a pixel; where a level
-      // is missing (Rooi-Els stops at 18), the one above shows instead.
-      maxzoom: 20,
+      // The City of Cape Town's aerial photos go to 21, 8 cm a pixel; where
+      // a level is missing (Rooi-Els stops at 18), the one above shows.
+      maxzoom: 21,
       attribution: imageryAttribution,
     }
     style.layers = [

@@ -7,6 +7,7 @@ import {
   Map as MapLibre,
   prewarm,
   setWorkerUrl,
+  type LngLat,
   type LngLatBoundsLike,
   type LngLatLike,
   type MapGeoJSONFeature,
@@ -37,6 +38,7 @@ import { reportError } from "@/data/client-log"
 import { useDesk } from "@/hooks/use-desk"
 import { reduced } from "@/lib/motion"
 
+import { aerialAt } from "./aerial"
 import { extractUrl } from "./extract"
 import { exploreHome } from "./home"
 import { keyRefused } from "./imagery"
@@ -142,8 +144,15 @@ function styleNow(theme: MapTheme, picked?: Site) {
 }
 
 // The imagery is sharp enough for a reef's rocks and kelp, about 0.3 m a
-// pixel, where the map's own extract has nothing more to show past 16.
-const maxZoom = () => (imageryOn ? 18 : 16)
+// pixel, where the map's own extract has nothing more to show past 16. The
+// City's aerial photos, at 8 cm, take a middle of the map on them one closer.
+const satelliteZoom = 18
+const maxZoom = (center?: LngLat) =>
+  !imageryOn
+    ? 16
+    : center && aerialAt([center.lng, center.lat])
+      ? satelliteZoom + 1
+      : satelliteZoom
 
 // Map or satellite, swapped live; the style's diff keeps the tiles and the
 // picked site's mark it shares.
@@ -154,7 +163,7 @@ function applyImagery(
 ) {
   imageryOn = imagery
   imageryLoad = { came: false, failed: 0 }
-  map.setMaxZoom(maxZoom())
+  map.setMaxZoom(maxZoom(map.getCenter()))
   map.setStyle(style())
 }
 
@@ -233,18 +242,21 @@ const pointOf = (feature: MapGeoJSONFeature) =>
   (feature.geometry as { coordinates: [number, number] }).coordinates
 // Close enough to tell a site's neighbours apart, opening one.
 const siteZoom = 12.5
-// The sheet's slide, its --ease-drawer over about its 450 ms, read from the
-// theme, so the map and the sheet move as one.
-let slide: ((t: number) => number) | undefined
-const sheetEasing = () => {
-  if (slide) return slide
+// A curve from the theme, such as the sheet's --ease-drawer over about its
+// 450 ms, so the map and the sheet move as one.
+const easings = new Map<string, (t: number) => number>()
+const themeEasing = (token: string) => {
+  const known = easings.get(token)
+  if (known) return known
   const [a, b, c, d] =
     getComputedStyle(document.documentElement)
-      .getPropertyValue("--ease-drawer")
+      .getPropertyValue(token)
       .match(/-?[\d.]+/g)
       ?.map(Number) ?? []
-  if (d !== undefined) slide = cubicBezier(a, b, c, d)
-  return slide
+  if (d === undefined) return undefined
+  const easing = cubicBezier(a, b, c, d)
+  easings.set(token, easing)
+  return easing
 }
 
 // The map is made once and kept while the app runs: leaving the tab only
@@ -352,6 +364,23 @@ function create(
   created.keyboard.disableRotation()
   created.on("moveend", () => {
     camera = { center: created.getCenter(), zoom: created.getZoom() }
+  })
+  // The limit follows the middle of the map, changed only from the
+  // satellite's own closest zoom out, so it never jumps under a finger.
+  // Dragged off the aerial photos closer in, the map eases back once let go.
+  created.on("move", () => {
+    if (created.getZoom() > satelliteZoom) return
+    const limit = maxZoom(created.getCenter())
+    if (limit !== created.getMaxZoom()) created.setMaxZoom(limit)
+  })
+  created.on("moveend", () => {
+    if (created.getZoom() <= satelliteZoom) return
+    if (maxZoom(created.getCenter()) > satelliteZoom) return
+    created.easeTo({
+      zoom: satelliteZoom,
+      duration: 300,
+      easing: themeEasing("--ease-out"),
+    })
   })
   // MapLibre opens the compact credit the first time it draws it, once
   // the style names its sources, and folds it only on a drag. It starts
@@ -691,7 +720,7 @@ export default function Basemap({
       zoom: Math.max(current.getZoom(), siteZoom),
       offset: [left / 2, -bottom / 2],
       duration: jump ? 0 : 450,
-      easing: sheetEasing(),
+      easing: themeEasing("--ease-drawer"),
     })
   }, [])
   // The move waits for the sheet to say what it covers, a render after a

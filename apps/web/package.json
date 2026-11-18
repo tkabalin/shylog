@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "icons": "node scripts/apple-touch-icon.ts",
+    "map:aerial": "node scripts/map/aerial.ts",
     "map:basemap": "node scripts/map/basemap.ts",
     "map:images": "node scripts/map/images.ts",
     "map:sites": "node scripts/map/sites.ts",
