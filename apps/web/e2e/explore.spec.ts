@@ -733,9 +733,12 @@ test.describe("at phone width", () => {
       viewer.getByRole("img", { name: first, exact: true })
     ).toBeVisible()
     await expect(viewer.getByText(first, { exact: true })).toBeVisible()
+    // The credit links to the picture's own page on Commons.
     await expect(
-      viewer.getByText(/Wikimedia Commons/).filter({ visible: true })
-    ).toHaveCount(1)
+      viewer
+        .getByRole("link", { name: "Wikimedia Commons" })
+        .filter({ visible: true })
+    ).toHaveAttribute("href", /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/)
     // The words under each image take the same room, so nothing moves.
     const dots = viewer.getByRole("tablist", { name: "Maps and images" })
     const before = (await dots.boundingBox())!.y
