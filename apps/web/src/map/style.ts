@@ -922,7 +922,14 @@ export function mapStyle(
     }
     style.layers = [
       style.layers[0],
-      { id: "imagery", type: "raster", source: "imagery" },
+      {
+        id: "imagery",
+        type: "raster",
+        source: "imagery",
+        // Each level snaps in sharp as it comes: MapLibre's 0.3 s fade
+        // doubled the blur on every level a pinch went through.
+        paint: { "raster-fade-duration": 0 },
+      },
       ...style.layers.slice(1).filter((layer) => !mapOnly.has(layer.id)),
     ]
   }
