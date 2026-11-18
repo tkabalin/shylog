@@ -108,9 +108,13 @@ export default function Explore({
         },
       }
     : undefined
-  const onImageryFailed = useCallback(() => {
+  const onImageryFailed = useCallback((refused: boolean) => {
     imageryFailed.set(true)
-    toast("Couldn't load the satellite imagery")
+    toast(
+      refused
+        ? "Esri refused the satellite key"
+        : "Couldn't load the satellite imagery"
+    )
   }, [])
   const [hovered, setHovered] = useState<string>()
   const [query, setQueryState] = useState(kept)

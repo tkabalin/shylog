@@ -79,7 +79,10 @@ async function drawn(page: Page) {
 // The server writes the instance's ArcGIS key into the page; Vite's page is
 // rewritten here as the server would, and Esri's tiles answered with a
 // stand-in, so the map's requests for them can be counted.
-async function withSatellite(page: Page, { refused = false } = {}) {
+async function withSatellite(
+  page: Page,
+  { refused = false, unanswered = false } = {}
+) {
   const pages = ["/", "/explore"]
   await page.route(
     (url) => pages.includes(url.pathname),
@@ -95,8 +98,13 @@ async function withSatellite(page: Page, { refused = false } = {}) {
   const tiles: string[] = []
   await page.route(/ibasemaps-api\.arcgis\.com/, (route) => {
     tiles.push(route.request().url())
+    if (unanswered) return route.abort()
+    // Esri refuses a key with a 200 and the error as JSON.
     return refused
-      ? route.fulfill({ status: 403, body: "Invalid token" })
+      ? route.fulfill({
+          contentType: "text/plain",
+          body: '{"error":{"code":498,"message":"Invalid token.","details":[]}}',
+        })
       : route.fulfill({ contentType: "image/png", body: tile })
   })
   // The map's own, not the Satellite card's picture.
@@ -1025,9 +1033,7 @@ test.describe("at phone width", () => {
     await expect(satellite).toHaveAttribute("aria-pressed", "true")
   })
 
-  test("goes back to the map when the imagery doesn't come", async ({
-    page,
-  }) => {
+  test("goes back to the map when Esri refuses the key", async ({ page }) => {
     await withSatellite(page, { refused: true })
     await page.goto("/explore")
     await drawn(page)
@@ -1036,14 +1042,29 @@ test.describe("at phone width", () => {
       .getByRole("dialog", { name: "Map" })
       .getByRole("group", { name: "Map type" })
     await looks.getByRole("button", { name: "Satellite" }).click()
-    await expect(
-      page.getByText("Couldn't load the satellite imagery")
-    ).toBeVisible()
+    await expect(page.getByText("Esri refused the satellite key")).toBeVisible()
     await expect(
       looks.getByRole("button", { name: "Map", exact: true })
     ).toHaveAttribute("aria-pressed", "true")
     // Still there to try again.
     await expect(looks.getByRole("button", { name: "Satellite" })).toBeEnabled()
+  })
+
+  test("goes back to the map when the imagery doesn't come", async ({
+    page,
+  }) => {
+    await withSatellite(page, { unanswered: true })
+    await page.goto("/explore")
+    await drawn(page)
+    await page.getByRole("button", { name: "Map options" }).click()
+    await page
+      .getByRole("dialog", { name: "Map" })
+      .getByRole("group", { name: "Map type" })
+      .getByRole("button", { name: "Satellite" })
+      .click()
+    await expect(
+      page.getByText("Couldn't load the satellite imagery")
+    ).toBeVisible()
   })
 
   test("has no satellite on an instance without a key", async ({ page }) => {

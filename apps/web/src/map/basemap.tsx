@@ -39,6 +39,7 @@ import { reduced } from "@/lib/motion"
 
 import { extractUrl } from "./extract"
 import { exploreHome } from "./home"
+import { keyRefused } from "./imagery"
 import { areas, siteById, sites, type Area, type Site } from "./sites"
 import {
   areaData,
@@ -118,9 +119,11 @@ export const useMapFrame = () => useContext(FrameContext)
 let shownSites: readonly Site[] = sites
 let zonesOn = true
 // The satellite imagery's tiles, while it shows, and how its tiles have
-// fared since it was switched on.
+// fared since it was switched on: replaced on a switch, so a key check
+// still running for the last one can tell it's stale.
 let imageryOn: string | undefined
-const imageryLoad = { came: false, failed: 0 }
+type ImageryLoad = { came: boolean; failed: number; refused?: boolean }
+let imageryLoad: ImageryLoad = { came: false, failed: 0 }
 // The list row's site the map rings, kept so a new style rings it too.
 let hoveredSite: Site | undefined
 // What the current style was built with: a change made before it loaded
@@ -150,8 +153,7 @@ function applyImagery(
   style: () => StyleSpecification
 ) {
   imageryOn = imagery
-  imageryLoad.came = false
-  imageryLoad.failed = 0
+  imageryLoad = { came: false, failed: 0 }
   map.setMaxZoom(maxZoom())
   map.setStyle(style())
 }
@@ -257,7 +259,7 @@ type Kept = {
   pick: (id: string | undefined) => void
   report: (state: MapState) => void
   reveal: () => void
-  imageryFailed: () => void
+  imageryFailed: (refused: boolean) => void
 }
 let kept: Kept | undefined
 const away = () => {}
@@ -311,8 +313,7 @@ function create(
   desk: boolean
 ) {
   // A new map's imagery hasn't come yet, whatever the last one's did.
-  imageryLoad.came = false
-  imageryLoad.failed = 0
+  imageryLoad = { came: false, failed: 0 }
   const created = new MapLibre({
     container: element,
     style: styleNow(theme, picked),
@@ -484,13 +485,20 @@ function create(
     ) {
       imageryLoad.failed += 1
       if (imageryLoad.failed !== 3) return
-      kept?.imageryFailed()
-      // Without the tile's address, which holds the key.
-      const { status } = (event.error ?? {}) as { status?: number }
-      void reportError(
-        "error",
-        new Error(`Satellite imagery didn't load (${status ?? "no answer"})`)
-      )
+      const load = imageryLoad
+      void keyRefused().then((refused) => {
+        if (load !== imageryLoad) return
+        load.refused = refused
+        kept?.imageryFailed(refused)
+        // Without the tile's address, which holds the key.
+        const { status } = (event.error ?? {}) as { status?: number }
+        void reportError(
+          "error",
+          new Error(
+            `Satellite imagery didn't load (${refused ? "key refused" : (status ?? "no answer")})`
+          )
+        )
+      })
     }
   })
   created.on("sourcedata", (event) => {
@@ -547,7 +555,7 @@ export default function Basemap({
   // The satellite imagery's tiles, in place of the map's own land, and
   // what to do if they don't come.
   imagery?: string
-  onImageryFailed?: () => void
+  onImageryFailed?: (refused: boolean) => void
   hovered?: string
   // The controls, sheet and cards over the map.
   children?: ReactNode
@@ -562,7 +570,9 @@ export default function Basemap({
   const desk = useDesk()
   const report = useEffectEvent((state: MapState) => onState?.(state))
   const pick = useEffectEvent((id: string | undefined) => onPick?.(id))
-  const imageryFailed = useEffectEvent(() => onImageryFailed?.())
+  const imageryFailed = useEffectEvent((refused: boolean) =>
+    onImageryFailed?.(refused)
+  )
   // A theme change redraws the style with the pick as it stands.
   const styleFor = useEffectEvent((look: MapTheme) => styleNow(look, picked))
   // The map's box, which the phone's sheet also stays inside: a ref too,
@@ -604,15 +614,19 @@ export default function Basemap({
     current.pick = (id) => pick(id)
     current.report = (state) => report(state)
     current.reveal = () => setShown(true)
-    current.imageryFailed = () => imageryFailed()
+    current.imageryFailed = (refused) => imageryFailed(refused)
     map.current = current.map
     // The signal may have come or gone while away: the right look before
     // the frame paints, not one frame late.
     if (imagery !== imageryOn) {
       applyImagery(current.map, imagery, () => styleFor(theme))
-    } else if (imagery && !imageryLoad.came && imageryLoad.failed >= 3) {
+    } else if (
+      imagery &&
+      !imageryLoad.came &&
+      imageryLoad.refused !== undefined
+    ) {
       // It failed while away, with no page to go back to the Map.
-      current.imageryFailed()
+      current.imageryFailed(imageryLoad.refused)
     }
     // Resizing clears the canvas, so it is drawn again before the frame
     // paints, or the sidebar folding (or coming back) flashes it blank.
