@@ -617,20 +617,25 @@ function Summary({
   const page = wikivoyage(site)
   const online = useOnline()
   const read = page ? raise : undefined
-  // Whether the clamp hides Read more at the description's end, which then
-  // ends in "more" over its last line, as on the App Store. Measured for
-  // each site, as a cut one and a whole one can be the same height.
+  // Whether Read more at the description's end runs past its third line,
+  // which then ends in "more" over that line, as on the App Store. Measured
+  // from the top, so the same with the clamp on or off, and clamped only
+  // when cut: iOS drew its ellipsis after a Read more that fitted.
   const [description, setDescription] = useState<HTMLElement | null>(null)
   const [inline, setInline] = useState<HTMLElement | null>(null)
   const [cut, setCut] = useState(false)
   useLayoutEffect(() => {
     if (!description || !inline) return
-    const observer = new ResizeObserver(() =>
+    const measure = () => {
+      const lines = parseFloat(getComputedStyle(description).lineHeight) * 3
       setCut(
         inline.getBoundingClientRect().bottom >
-          description.getBoundingClientRect().bottom + 1
+          description.getBoundingClientRect().top + lines + 1
       )
-    )
+    }
+    // Before the first paint too, so a long one never shows whole.
+    measure()
+    const observer = new ResizeObserver(measure)
     observer.observe(description)
     return () => observer.disconnect()
   }, [description, inline, site.id, clamp])
@@ -735,7 +740,7 @@ function Summary({
             ref={setDescription}
             className={cn(
               desk ? "text-sm leading-[21px]" : "text-[15px] leading-[21px]",
-              clamp && "line-clamp-3"
+              clamp && cut && "line-clamp-3"
             )}
           >
             {site.description}
