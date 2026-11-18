@@ -4,12 +4,14 @@ import {
   useEffect,
   useEffectEvent,
   useLayoutEffect,
+  useRef,
   useState,
 } from "react"
 import { createPortal } from "react-dom"
 import { cn } from "cn"
 import { IconChevronLeft, IconChevronRight, IconX } from "@tabler/icons-react"
 
+import { useSize } from "@/chart/size"
 import { ImagePages, type PageImageProps } from "@/components/image-pages"
 import { PageControl } from "@/components/page-control"
 import { useOnline } from "@/data/sync-status"
@@ -61,10 +63,10 @@ function Picture({ i, style, ...props }: PageImageProps) {
 // two and a half of the screen's, so a 3840 px map reaches its smallest
 // depth labels (8×, the most) while a 1200 px one stops before it blurs
 // (2× at least). Its fitted width is read from the window, near enough.
-function zoomFor(image: SiteImage) {
+function zoomFor(image: SiteImage, insetY: number) {
   const room = Math.min(
     window.innerWidth - 32,
-    ((window.innerHeight - 240) * image.width) / image.height
+    ((window.innerHeight - insetY * 2) * image.width) / image.height
   )
   const sharp = image.width / (room * window.devicePixelRatio)
   return Math.min(8, Math.max(2, sharp * 2.5))
@@ -108,6 +110,18 @@ function Viewer({
   const image = images[shown]
   const online = useOnline()
   useFullScreen()
+
+  // The bars make way while a picture is zoomed in, and come back with it
+  // at rest. A picture at rest keeps clear of both by the taller's height
+  // each side, so it sits in the middle, where the pinch's sums put it.
+  const [zoomed, setZoomed] = useState(false)
+  const top = useRef<HTMLDivElement>(null)
+  const bottom = useRef<HTMLDivElement>(null)
+  const insetY = Math.max(useSize(top).height, useSize(bottom).height) + 16
+  const bars = cn(
+    "transition-opacity duration-150 ease-out",
+    zoomed && "pointer-events-none opacity-0"
+  )
 
   // The address follows once a turn settles, not for every dot a scrub
   // crosses, as each write renders the map's whole screen again.
@@ -173,9 +187,31 @@ function Viewer({
       aria-modal
       aria-label={`Maps and images of ${site.name}`}
       data-slot="image-viewer"
-      className="dark fixed inset-0 z-50 flex flex-col bg-neutral-950 pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-neutral-50"
+      className="dark fixed inset-0 z-50 bg-neutral-950 text-neutral-50"
     >
-      <div className="grid shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-4 pt-4">
+      {/* The pictures run the whole screen, so a zoomed one fills it once
+          the bars have gone. */}
+      <div className="absolute inset-0 flex flex-col pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
+        <Shown value={{ images, page: shown }}>
+          <ImagePages
+            count={images.length}
+            page={shown}
+            onPage={setPage}
+            maxScale={zoomFor(image, insetY)}
+            keyOf={(i) => images[i].key}
+            image={Picture}
+            insetY={insetY}
+            onZoom={setZoomed}
+          />
+        </Shown>
+      </div>
+      <div
+        ref={top}
+        className={cn(
+          "absolute inset-x-0 top-0 grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 bg-neutral-950 pt-[calc(env(safe-area-inset-top)+1rem)] pr-[calc(env(safe-area-inset-right)+1rem)] pl-[calc(env(safe-area-inset-left)+1rem)]",
+          bars
+        )}
+      >
         <button
           type="button"
           onClick={onClose}
@@ -193,66 +229,62 @@ function Viewer({
           {site.name}
         </h2>
       </div>
-      <div className="relative flex min-h-0 flex-1 flex-col">
-        <Shown value={{ images, page: shown }}>
-          <ImagePages
-            count={images.length}
-            page={shown}
-            onPage={setPage}
-            maxScale={zoomFor(image)}
-            keyOf={(i) => images[i].key}
-            image={Picture}
-          />
-        </Shown>
-        {/* With a mouse, the way to the next image besides the keys. */}
-        {shown > 0 && (
-          <Turn label="Previous image" onClick={() => setPage(shown - 1)} />
+      {/* With a mouse, the way to the next image besides the keys. */}
+      {shown > 0 && (
+        <Turn label="Previous image" onClick={() => setPage(shown - 1)} />
+      )}
+      {shown < images.length - 1 && (
+        <Turn next label="Next image" onClick={() => setPage(shown + 1)} />
+      )}
+      <div
+        ref={bottom}
+        className={cn(
+          "absolute inset-x-0 bottom-0 bg-neutral-950 pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]",
+          bars
         )}
-        {shown < images.length - 1 && (
-          <Turn next label="Next image" onClick={() => setPage(shown + 1)} />
-        )}
-      </div>
-      {/* Every image's words in one cell, the others hidden, so it is as
+      >
+        {/* Every image's words in one cell, the others hidden, so it is as
           tall as the longest and the pictures above don't move as they
           turn. */}
-      <div className="mx-auto grid w-full max-w-xl shrink-0 px-4 pt-1 text-center">
-        {images.map((each, i) => (
-          <div
-            key={each.key}
-            className={cn(
-              "col-start-1 row-start-1",
-              i !== shown && "invisible"
-            )}
-          >
-            {each.caption && (
-              <p className="line-clamp-4 text-sm leading-5">{each.caption}</p>
-            )}
-            {/* The licence and the link kept whole, so a credit wraps
+        <div className="mx-auto grid w-full max-w-xl shrink-0 px-4 pt-1 text-center">
+          {images.map((each, i) => (
+            <div
+              key={each.key}
+              className={cn(
+                "col-start-1 row-start-1",
+                i !== shown && "invisible"
+              )}
+            >
+              {each.caption && (
+                <p className="line-clamp-4 text-sm leading-5">{each.caption}</p>
+              )}
+              {/* The licence and the link kept whole, so a credit wraps
                 between them, or within an author's long name. */}
-            <p className="mt-1 text-xs leading-4 text-neutral-400">
-              {each.author} ·{" "}
-              <span className="whitespace-nowrap">
-                {link(each.licenceUrl, each.licence)} ·
-              </span>{" "}
-              <span className="whitespace-nowrap">
-                {link(each.page, "Wikimedia Commons")}
-              </span>
-            </p>
-          </div>
-        ))}
+              <p className="mt-1 text-xs leading-4 text-neutral-400">
+                {each.author} ·{" "}
+                <span className="whitespace-nowrap">
+                  {link(each.licenceUrl, each.licence)} ·
+                </span>{" "}
+                <span className="whitespace-nowrap">
+                  {link(each.page, "Wikimedia Commons")}
+                </span>
+              </p>
+            </div>
+          ))}
+        </div>
+        {images.length > 1 ? (
+          <PageControl
+            count={images.length}
+            shown={shown}
+            onPage={setPage}
+            label="Maps and images"
+            itemLabel={(i) => `Image ${i + 1}`}
+          />
+        ) : (
+          <div aria-hidden className="h-4 shrink-0" />
+        )}
+        <div aria-hidden className="h-4" />
       </div>
-      {images.length > 1 ? (
-        <PageControl
-          count={images.length}
-          shown={shown}
-          onPage={setPage}
-          label="Maps and images"
-          itemLabel={(i) => `Image ${i + 1}`}
-        />
-      ) : (
-        <div aria-hidden className="h-4 shrink-0" />
-      )}
-      <div aria-hidden className="h-4 shrink-0" />
     </div>,
     document.body
   )
