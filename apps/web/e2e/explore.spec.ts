@@ -810,6 +810,38 @@ test.describe("at phone width", () => {
     await expect(page).toHaveURL((url) => url.searchParams.get("image") === "1")
   })
 
+  test.describe("on an iPhone", () => {
+    test.use({ hasTouch: true })
+
+    // iOS's back swipe from the left edge would take the viewer away, as
+    // it would the card viewer, so a touch starting there is cancelled.
+    test("blocks the edge swipe back in the viewer", async ({ page }) => {
+      await page.addInitScript(() => {
+        // Only iOS's Safari has it.
+        Object.defineProperty(navigator, "standalone", { value: false })
+        const seen: boolean[] = []
+        Object.assign(window, { seen })
+        addEventListener(
+          "touchstart",
+          (event) => setTimeout(() => seen.push(event.defaultPrevented)),
+          { capture: true }
+        )
+      })
+      await page.goto("/explore?site=a-frame&image=0")
+      const viewer = page.getByRole("dialog", {
+        name: `Maps and images of ${aFrame.name}`,
+      })
+      await expect(viewer).toBeVisible()
+      await page.touchscreen.tap(10, 400)
+      await expect
+        .poll(() =>
+          page.evaluate(() => (window as unknown as { seen: boolean[] }).seen)
+        )
+        .toEqual([true])
+      await expect(viewer).toBeVisible()
+    })
+  })
+
   test("hides the row for a site whose page shows no maps", async ({
     page,
   }) => {

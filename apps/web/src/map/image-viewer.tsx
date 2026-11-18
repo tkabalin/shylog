@@ -16,6 +16,7 @@ import { ImagePages, type PageImageProps } from "@/components/image-pages"
 import { PageControl } from "@/components/page-control"
 import { useOnline } from "@/data/sync-status"
 import { useFullScreen } from "@/hooks/use-full-screen"
+import { useEdgeSwipeBlock } from "@/lib/edge-swipe"
 
 import { kindNames } from "./image-strip"
 import { useSiteImages, type SiteImage } from "./site-images"
@@ -110,6 +111,9 @@ function Viewer({
   const image = images[shown]
   const online = useOnline()
   useFullScreen()
+  // iOS's back swipe would take the viewer and the site under it away, as
+  // it would the card viewer's.
+  useEdgeSwipeBlock()
 
   // The bars make way while a picture is zoomed in, and come back with it
   // at rest. A picture at rest keeps clear of both by the taller's height
