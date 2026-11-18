@@ -176,12 +176,49 @@ test.describe("at phone width", () => {
     await drawn(page)
     const sheet = page.getByRole("dialog", { name: aFrame.name })
     await expect(sheet).toBeVisible()
+    // The camera goes back to the coast too, so it moves.
+    const moved = page.evaluate(
+      () =>
+        new Promise<boolean>((done) => {
+          const wrapper = document.querySelector(
+            "main div:has(> .maplibregl-map)"
+          )!
+          new MutationObserver(() => {
+            if (wrapper.getAttribute("aria-busy") === "true") done(true)
+          }).observe(wrapper, { attributeFilter: ["aria-busy"] })
+        })
+    )
     await page
       .getByRole("navigation", { name: "Main" })
       .getByRole("link", { name: "Explore" })
       .click()
     await expect(page).toHaveURL(/\/explore$/)
     await expect(sheet).toBeHidden()
+    expect(await moved).toBe(true)
+  })
+
+  // The list and the rules are a level deeper too, so the tab closes them
+  // as their Back does; filters stay, as the Log's do on its tab.
+  test("goes to Explore's root on its own tab, keeping the filters", async ({
+    page,
+  }) => {
+    const tab = page
+      .getByRole("navigation", { name: "Main" })
+      .getByRole("link", { name: "Explore" })
+    await page.goto("/explore?site=a-frame&types=reef")
+    await drawn(page)
+    await tab.click()
+    await expect(page).toHaveURL(
+      (url) => !url.searchParams.has("site") && /types=reef/.test(url.search)
+    )
+    await page.getByRole("button", { name: /^List of \d+ sites$/ }).click()
+    const list = page.getByRole("region", { name: "Dive sites" })
+    await expect(list).toBeVisible()
+    await tab.click()
+    await expect(list).toHaveCount(0)
+    await expect(page).toHaveURL(
+      (url) => !url.searchParams.has("view") && /types=reef/.test(url.search)
+    )
   })
 
   test("picks a site with a tap near its pin, and puts it down on land", async ({
