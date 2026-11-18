@@ -496,20 +496,19 @@ test("scrolls the screenshot strip under a page held at its edge @writes", async
     pages.evaluateAll((all) => all.map((one) => (one as HTMLImageElement).src))
   const before = await order()
   const edge = (await strip.boundingBox())!
-  const first = (await pages.first().boundingBox())!
-  const y = first.y + first.height / 2
+  // Each page shows a grip, as each Certifications row does.
+  const grips = region.locator("[data-grip]")
+  await expect(grips).toHaveCount(8)
+  const grip = (await grips.first().boundingBox())!
+  const x = grip.x + grip.width / 2
+  const y = grip.y + grip.height / 2
 
-  // The first page, to the strip's right edge, held there until the strip
-  // has scrolled to its end and the page has gone last.
-  await drag(
-    page,
-    [first.x + first.width / 2, y],
-    [edge.x + edge.width - 12, y],
-    async () => {
-      await expect.poll(room, { timeout: 10_000 }).toBeLessThan(1)
-      await expect.poll(order).toEqual([...before.slice(1), before[0]])
-    }
-  )
+  // The first page by its grip, to the strip's right edge, held there until
+  // the strip has scrolled to its end and the page has gone last.
+  await drag(page, [x, y], [edge.x + edge.width - 12, y], async () => {
+    await expect.poll(room, { timeout: 10_000 }).toBeLessThan(1)
+    await expect.poll(order).toEqual([...before.slice(1), before[0]])
+  })
   await edit.getByRole("button", { name: "Save" }).click()
   await expect(edit).toBeHidden()
   const saved = (await getLog(page.request)).cards.find((one) => one.id === id)
