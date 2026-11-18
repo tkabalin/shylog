@@ -9,7 +9,12 @@ import {
 } from "react"
 import { createPortal } from "react-dom"
 import { cn } from "cn"
-import { IconChevronLeft, IconChevronRight, IconX } from "@tabler/icons-react"
+import {
+  IconArrowUpRight,
+  IconChevronLeft,
+  IconChevronRight,
+  IconX,
+} from "@tabler/icons-react"
 
 import { useSize } from "@/chart/size"
 import { ImagePages, type PageImageProps } from "@/components/image-pages"
@@ -171,8 +176,9 @@ function Viewer({
     return () => window.removeEventListener("keydown", onKey, true)
   }, [images.length])
 
-  // Links where there's a signal to follow them.
-  const link = (href: string | undefined, text: string) =>
+  // Links where there's a signal to follow them. The arrow marks one that
+  // goes to this picture's own page, not the site's front page.
+  const link = (href: string | undefined, text: string, own = false) =>
     online && href ? (
       <a
         href={href}
@@ -181,6 +187,12 @@ function Viewer({
         className="underline decoration-current/40 underline-offset-2 hover:decoration-current"
       >
         {text}
+        {own && (
+          <IconArrowUpRight
+            aria-hidden
+            className="ml-0.5 inline size-3 align-[-1px]"
+          />
+        )}
       </a>
     ) : (
       text
@@ -270,7 +282,7 @@ function Viewer({
                   {link(each.licenceUrl, each.licence)} ·
                 </span>{" "}
                 <span className="whitespace-nowrap">
-                  {link(each.page, "Wikimedia Commons")}
+                  {link(each.page, "Wikimedia Commons", true)}
                 </span>
               </p>
             </div>
