@@ -288,10 +288,13 @@ function CardRow({
       {...(locked ? {} : item)}
       // Its corners follow the list's at either end.
       className={cn(
-        "relative select-none [-webkit-touch-callout:none] first:rounded-t-[14px] last:rounded-b-[14px]",
+        "relative transition-[border-color] duration-200 ease-out select-none [-webkit-touch-callout:none] first:rounded-t-[14px] last:rounded-b-[14px]",
         // Its own layer while dragged and settling, so each frame moves it
         // rather than repainting its thumbnail and shadow.
-        held && "z-10 will-change-transform"
+        held && "z-10 will-change-transform",
+        // Its separator would hang straight under the lifted card's round
+        // corners; it comes back as the card settles.
+        lifted && "border-transparent"
       )}
     >
       <Link
