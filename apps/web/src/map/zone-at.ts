@@ -11,12 +11,12 @@ export const strictness = [
   "mpa",
 ]
 
-type Point = [lon: number, lat: number]
-type Ring = Point[]
+export type Point = [lon: number, lat: number]
+export type Ring = Point[]
 
 // Even-odd: a ray from the point crosses the ring's edge an odd number of
 // times from inside.
-function inRing([x, y]: Point, ring: Ring) {
+export function inRing([x, y]: Point, ring: Ring) {
   let inside = false
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const [xi, yi] = ring[i]
