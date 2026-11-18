@@ -35,6 +35,10 @@ get() {
     }, () => process.exit(1))"
 }
 
+# A reader that stops at its first match (grep -q, -m 1) closes the pipe on
+# a writer still going, which pipefail then fails as SIGPIPE (141): so the
+# bigger answers are read whole into a variable first.
+
 # The image's own healthcheck, which scripts/update.sh waits on.
 for _ in $(seq 30); do
   [[ $(docker inspect -f '{{.State.Health.Status}}' "$container") == healthy ]] && break
@@ -50,7 +54,8 @@ docker logs "$container" 2>/dev/null | jq -se --arg rev "${revision:-dev}" '
 get /manifest.webmanifest | jq -e '.name == "Shylog CI"'
 # A UDDF download, which the export's worker thread builds from its own
 # entry in dist, so the file ships and the bundle finds it.
-get /api/export/uddf | grep -q '<uddf xmlns="http://www.streit.cc/uddf/3.2/"'
+uddf=$(get /api/export/uddf)
+grep -q '<uddf xmlns="http://www.streit.cc/uddf/3.2/"' <<<"$uddf"
 # Claude's MCP endpoint answers a tool call from the built server, which
 # proves the SDK resolves in the production install. The reply may come as
 # one server-sent event.
@@ -79,16 +84,17 @@ docker exec "$container" node -e "
 # The built web app, with its title from SHYLOG_APP_NAME and its assets.
 page=$(get /)
 grep -q '<title>Shylog CI</title>' <<<"$page"
-asset=$(grep -o '/assets/[^"]*\.js' <<<"$page" | head -n 1)
+asset=$(grep -o -m 1 '/assets/[^"]*\.js' <<<"$page")
 get "$asset" >/dev/null
 # The service worker precaches the app, so it opens with no signal.
-get /sw.js | grep -q 'assets/'
+sw=$(get /sw.js)
+grep -q 'assets/' <<<"$sw"
 # It keeps the map's extract too, once the app has downloaded it.
-get /sw.js | grep -q 'map-extract'
+grep -q 'map-extract' <<<"$sw"
 # The map's extract, under its hashed name, read a range at a time as the
 # map does: a 206 holding the file's first bytes, which spell its format.
-extract=$(docker exec "$container" ls apps/web/dist/assets |
-  grep -m 1 '^basemap-.*\.pmtiles$')
+assets=$(docker exec "$container" ls apps/web/dist/assets)
+extract=$(grep -m 1 '^basemap-.*\.pmtiles$' <<<"$assets")
 docker exec "$container" node -e "
   fetch('http://127.0.0.1:3000/assets/$extract', {
     headers: { Range: 'bytes=0-6' },
