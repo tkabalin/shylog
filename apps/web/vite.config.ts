@@ -57,10 +57,10 @@ export default defineConfig({
   },
   // The browser tests give each of their dev servers a cache of its own.
   cacheDir: process.env.VITE_CACHE_DIR,
-  // Just above the map's chunk, about 1.4 MB with MapLibre, the dive sites
-  // and the Markdown renderer, which only Explore loads, so a build that
-  // warns has a bigger one. A precached file over 2 MiB fails the build.
-  build: { chunkSizeWarningLimit: 1450 },
+  // A little above the map's chunk, about 1.47 MB with MapLibre, the dive
+  // sites and the Markdown renderer, so a change that grows it warns and
+  // raises this on purpose. A precached file over 2 MiB fails the build.
+  build: { chunkSizeWarningLimit: 1550 },
   // The Hono server, which listens on 127.0.0.1 only. It writes the
   // manifest too, with the instance's name, so Vite mustn't answer it with
   // the app's HTML, and serves /mcp, which Claude Desktop on Windows reaches
