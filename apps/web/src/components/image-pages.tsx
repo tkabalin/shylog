@@ -313,6 +313,13 @@ export function ImagePages({
     // click to the stage instead.
     if ((event.target as Element).closest("button")) return
     event.currentTarget.setPointerCapture(event.pointerId)
+    // The first finger of a touch: any other still held here is one the
+    // system took without saying (a swipe from the screen's edge), which
+    // would turn this swipe into a pinch against it.
+    if (event.isPrimary) {
+      pointers.current.clear()
+      gesture.current = null
+    }
     if (!pointers.current.size) rect.current = null
     pointers.current.set(event.pointerId, at(event))
     stopAll()
@@ -488,6 +495,11 @@ export function ImagePages({
         redraw.current()
       }}
       onPointerCancel={(event) => {
+        release(event, true)
+        redraw.current()
+      }}
+      // Lost without an up or a cancel, as iOS can, it ends there too.
+      onLostPointerCapture={(event) => {
         release(event, true)
         redraw.current()
       }}

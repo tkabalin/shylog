@@ -764,6 +764,52 @@ test.describe("at phone width", () => {
     await expect(sheet).toBeVisible()
   })
 
+  test("turns the page on a swipe after iOS took a finger away", async ({
+    page,
+  }) => {
+    await page.goto("/explore?site=a-frame&image=0")
+    const viewer = page.getByRole("dialog", {
+      name: `Maps and images of ${aFrame.name}`,
+    })
+    const stage = viewer.locator(".touch-none").first()
+    await expect(stage).toBeVisible()
+    // A finger goes down and is never let go, as when a swipe from the
+    // screen's edge is the system's; then the next finger swipes alone.
+    const scales = await stage.evaluate(async (element) => {
+      element.setPointerCapture = () => {}
+      const fire = (type: string, id: number, x: number) =>
+        element.dispatchEvent(
+          new PointerEvent(type, {
+            pointerId: id,
+            clientX: x,
+            clientY: 400,
+            isPrimary: true,
+            pointerType: "touch",
+            bubbles: true,
+          })
+        )
+      const frame = () =>
+        new Promise((done) =>
+          requestAnimationFrame(() => requestAnimationFrame(done))
+        )
+      const box = element.querySelector("img")!.parentElement!
+      fire("pointerdown", 1, 195)
+      await frame()
+      fire("pointerdown", 2, 300)
+      const seen: string[] = []
+      for (let x = 280; x >= 60; x -= 20) {
+        fire("pointermove", 2, x)
+        await frame()
+        seen.push(box.style.transform)
+      }
+      fire("pointerup", 2, 60)
+      return seen
+    })
+    // A swipe, not a pinch against the finger left behind.
+    expect(scales.filter((each) => /scale\((?!1\))/.test(each))).toEqual([])
+    await expect(page).toHaveURL((url) => url.searchParams.get("image") === "1")
+  })
+
   test("hides the row for a site whose page shows no maps", async ({
     page,
   }) => {
