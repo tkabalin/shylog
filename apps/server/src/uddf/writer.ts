@@ -272,8 +272,13 @@ function build(db: Db) {
     regionId: string | null
     bodyOfWater: BodyOfWater | null
     waterType: WaterType
+    mapSite: string | null
   }>(
-    "SELECT id, name, country_code AS countryCode, region_id AS regionId, body_of_water AS bodyOfWater, water_type AS waterType FROM sites ORDER BY id"
+    "SELECT id, name, country_code AS countryCode, region_id AS regionId, body_of_water AS bodyOfWater, water_type AS waterType, map_site AS mapSite FROM sites ORDER BY id"
+  )
+  // Nor a link to Explore's map, which a dive's <shylog> carries too.
+  const mapSites = new Map(
+    siteRows.flatMap((site) => (site.mapSite ? [[site.id, site.mapSite]] : []))
   )
   // UDDF has no water type, so a dive's <shylog> carries its site's when it
   // isn't the one the body of water implies, which a re-import assumes.
@@ -389,6 +394,7 @@ function build(db: Db) {
         leaf("diveCentreRegion", centreRegion?.name),
         leaf("diveCentreRegionCountry", centreRegion?.countryCode),
         leaf("siteWaterType", waterTypes.get(dive.siteId)),
+        leaf("siteMapLink", mapSites.get(dive.siteId)),
         leaf("surge", dive.surge),
         leaf("surface", dive.surface),
         leaf("weather", dive.weather),

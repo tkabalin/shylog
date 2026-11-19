@@ -167,7 +167,8 @@ describe("replay", () => {
     await ok(
       send(app, "PUT", "/api/cards/order", { ids: ["card-padi", "card-ssi"] })
     )
-    // A draft whose new site matches an existing one, so it is aliased.
+    // A draft whose new site matches an existing one, so it is aliased,
+    // and links it to Explore's map.
     const draft = {
       opVersion,
       deviceId: "device-phone",
@@ -182,7 +183,11 @@ describe("replay", () => {
             type: "upsertEntity",
             kind: "site",
             id: "site-long-beach-2",
-            fields: { name: "long beach", countryCode: "ZA" },
+            fields: {
+              name: "long beach",
+              countryCode: "ZA",
+              mapSite: "long-beach-simons-town",
+            },
           },
           {
             ...draft,
@@ -223,6 +228,12 @@ describe("replay", () => {
     )
     // Including the dive's deleted_at, from the time first applied.
     expect(compare(snapshot, db)).toEqual([])
+    expect(
+      snapshot
+        .prepare("SELECT map_site FROM sites WHERE id = 'site-long-beach'")
+        .pluck()
+        .get()
+    ).toBe("long-beach-simons-town")
     expect(
       snapshot
         .prepare("SELECT thumb FROM certifications WHERE id = 'card-ssi'")

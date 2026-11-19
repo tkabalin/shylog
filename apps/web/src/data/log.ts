@@ -247,6 +247,7 @@ function addEntities(log: LogView, draft: Draft) {
           ...site,
           regionId: site.regionId ?? null,
           bodyOfWater: site.bodyOfWater ?? null,
+          mapSite: site.mapSite ?? null,
         })
     } else if (entity.kind === "region") {
       if (!log.regions.has(id))

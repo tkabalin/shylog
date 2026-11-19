@@ -67,6 +67,7 @@ const log = (
       regionId: null,
       bodyOfWater: "oceanSea",
       waterType: "salt",
+      mapSite: null,
     },
   ],
   countries: ["ZA"],
@@ -472,6 +473,7 @@ describe("drafts in the log", () => {
       regionId: null,
       bodyOfWater: "oceanSea",
       waterType: "salt",
+      mapSite: null,
     })
     expect(view!.people.get("person-guide")).toEqual({
       id: "person-guide",

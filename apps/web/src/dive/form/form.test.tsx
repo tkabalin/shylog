@@ -346,6 +346,7 @@ describe("a new dive", () => {
       regionId: null,
       bodyOfWater: null,
       waterType: "salt",
+      mapSite: null,
     })
     expect(copyFromDive(emptyValues("2026-10-27"), last, log).siteId).toBeNull()
   })
@@ -417,6 +418,7 @@ describe("a new dive", () => {
       regionId: null,
       bodyOfWater: null,
       waterType: "salt",
+      mapSite: null,
     })
     render(
       <DiveForm

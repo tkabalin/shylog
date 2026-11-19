@@ -43,6 +43,18 @@ describe("entityFields", () => {
     ).toBe("salt")
   })
 
+  it("takes a link to a dive site on Explore's map by its id", () => {
+    const site = { name: "West Pinnacle", countryCode: "ZA" }
+    for (const mapSite of ["a-frame", "whittle-rock/west-pinnacle"])
+      expect(entityFields.site.parse({ ...site, mapSite }).mapSite).toBe(
+        mapSite
+      )
+    for (const mapSite of ["", "A-Frame", "a/b/c", "a--b", "-a", "a b"])
+      expect(entityFields.site.safeParse({ ...site, mapSite }).success).toBe(
+        false
+      )
+  })
+
   it("takes only ISO 3166 country codes", () => {
     for (const countryCode of ["UK", "EU", "XX"]) {
       expect(

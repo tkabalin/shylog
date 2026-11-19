@@ -216,6 +216,7 @@ function entityRows(index: LogIndex, kind: EntityKind, name?: string) {
                 region: region(site.regionId),
                 bodyOfWater: site.bodyOfWater,
                 water: site.waterType,
+                mapSite: site.mapSite,
               }
             })()
           : kind === "region"

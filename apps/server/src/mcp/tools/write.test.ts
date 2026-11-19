@@ -85,6 +85,7 @@ describe("log_dive", () => {
         new: {
           name: "Long Beach",
           countryCode: "ZA",
+          mapSite: "long-beach-simons-town",
           region: { new: { name: "False Bay" } },
         },
       },
@@ -95,6 +96,9 @@ describe("log_dive", () => {
       weightKg: null,
     })
     expect(reply.isError).toBe(false)
+    expect(row("SELECT map_site AS mapSite FROM sites")).toEqual({
+      mapSite: "long-beach-simons-town",
+    })
     const { id, number, entities } = reply.json()
     expect(number).toBe(1)
     expect(
@@ -201,6 +205,22 @@ describe("log_dive", () => {
       site_id: "site-long-beach",
     })
     expect(row("SELECT count(*) AS n FROM sites")).toEqual({ n: 1 })
+  })
+
+  it("refuses a site whose name the log has for another of Explore's sites", async () => {
+    await phoneDive()
+    db.prepare(
+      "UPDATE sites SET map_site = 'castor-rock/central-pinnacle', name = 'Central Pinnacle', key = 'ZA:central pinnacle'"
+    ).run()
+    const pinnacle = (mapSite: string) =>
+      logDive({
+        site: { new: { name: "Central pinnacle", countryCode: "ZA", mapSite } },
+      })
+    expect(await pinnacle("joshs-reef/central-pinnacle")).toMatchObject({
+      isError: true,
+      text: expect.stringContaining("give this site a name of its own"),
+    })
+    expect((await pinnacle("castor-rock/central-pinnacle")).isError).toBe(false)
   })
 
   it("doesn't make the new region of a site that already exists", async () => {
@@ -647,6 +667,34 @@ describe("edit_entity", () => {
       id: "region-bay",
       name: "The Bay",
       note: "Its 1 site moved to the new country too.",
+    })
+  })
+
+  it("links a site to one of Explore's sites, and only one the map has", async () => {
+    const link = (mapSite: string | null) =>
+      callTool(client, "edit_entity", {
+        kind: "site",
+        id: "site-long-beach",
+        mapSite,
+      })
+    expect((await link("long-beach-simons-town")).json()).toEqual({
+      id: "site-long-beach",
+      name: "Long Beach",
+    })
+    expect(
+      row("SELECT map_site AS mapSite FROM sites WHERE id = 'site-long-beach'")
+    ).toEqual({
+      mapSite: "long-beach-simons-town",
+    })
+    expect(await link("long-beach")).toMatchObject({
+      isError: true,
+      text: expect.stringContaining("Find it with search_map_sites"),
+    })
+    await link(null)
+    expect(
+      row("SELECT map_site AS mapSite FROM sites WHERE id = 'site-long-beach'")
+    ).toEqual({
+      mapSite: null,
     })
   })
 

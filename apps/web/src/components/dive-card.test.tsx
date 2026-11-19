@@ -60,6 +60,7 @@ const log = (version: string, dives: Log["dives"]): Log => ({
       regionId: "region-sodwana",
       bodyOfWater: "oceanSea",
       waterType: "salt",
+      mapSite: null,
     },
     {
       id: "site-b",
@@ -68,6 +69,7 @@ const log = (version: string, dives: Log["dives"]): Log => ({
       regionId: null,
       bodyOfWater: "oceanSea",
       waterType: "salt",
+      mapSite: null,
     },
   ],
   countries: ["ZA"],

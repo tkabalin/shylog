@@ -49,7 +49,7 @@ Valid UDDF is not enough for Subsurface to read a dive correctly. Its import is 
 - **Notes.** Subsurface reads only the first `<para>` of a dive's notes, so the notes go in one paragraph with their line breaks kept as newlines.
 - **Buddies before the site.** Subsurface puts ", " between buddy names by looking only at whether the next `<link>` is another buddy, so a site link first would put a stray ", " before the first buddy's name. Buddy links come first, and a buddy's name always fills `firstname`, with any surname in `lastname`.
 - **The gas link first.** Subsurface takes a cylinder's gas from the first `<link>` in `tankdata`. With the tank's link first, a nitrox dive reads as one with no gas, so the mix's link comes before it.
-- **Sites.** A site's body of water is its `environment`, its region `geography/location`, and its country the ISO code in `geography/address/country`. A site with no region writes an empty `location`, which the schema requires, and which a re-import must not read as a region.
+- **Sites.** A site's body of water is its `environment`, its region `geography/location`, and its country the ISO code in `geography/address/country`. A site with no region writes an empty `location`, which the schema requires, and which a re-import must not read as a region. A site's link to Explore's map goes in each of its dives' `<shylog>`.
 
 ### Profiles and events
 

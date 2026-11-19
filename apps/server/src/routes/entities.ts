@@ -44,7 +44,7 @@ export const entities = factory
       changeBy(
         db,
         (journal) => applyEntityPut(db, journal, kind, id, fields),
-        feedsDiveFigures(kind)
+        feedsDiveFigures(kind, fields)
       )
     )
   })

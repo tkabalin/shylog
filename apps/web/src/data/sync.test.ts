@@ -40,6 +40,7 @@ const log = (version: string, overrides: Partial<Log> = {}): Log => ({
       regionId: null,
       bodyOfWater: "oceanSea",
       waterType: "salt",
+      mapSite: null,
     },
   ],
   countries: ["ZA", "VN"],

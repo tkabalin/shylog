@@ -93,6 +93,7 @@ export const testSites: Site[] = [
     regionId: "region-simons-town",
     bodyOfWater: "oceanSea",
     waterType: "salt",
+    mapSite: null,
   },
   {
     id: "site-vn-long-beach",
@@ -101,6 +102,7 @@ export const testSites: Site[] = [
     regionId: null,
     bodyOfWater: "oceanSea",
     waterType: "salt",
+    mapSite: null,
   },
   {
     id: "site-two-mile",
@@ -109,6 +111,7 @@ export const testSites: Site[] = [
     regionId: "region-sodwana",
     bodyOfWater: "oceanSea",
     waterType: "salt",
+    mapSite: null,
   },
 ]
 

@@ -20,8 +20,16 @@ export type EntityOp = Extract<Op, { type: "upsertEntity" }>
 
 // Only sites (water type) and trips (CNS carry-over) feed dive figures, so
 // only their edits run the derived pass, which reads every dive's samples.
-export const feedsDiveFigures = (kind: EntityKind) =>
-  kind === "site" || kind === "trip"
+export const feedsDiveFigures = (kind: EntityKind, fields?: unknown) =>
+  (kind === "site" || kind === "trip") && !onlyMapLink(fields)
+
+// A link to Explore's map changes no dive's figures, so linking or
+// unlinking alone skips the pass over every dive's samples.
+const onlyMapLink = (fields: unknown) =>
+  typeof fields === "object" &&
+  fields !== null &&
+  Object.keys(fields).length > 0 &&
+  Object.keys(fields).every((field) => field === "mapSite")
 
 export const tables = {
   site: "sites",
@@ -48,6 +56,7 @@ const columns = {
     regionId: "region_id",
     bodyOfWater: "body_of_water",
     waterType: "water_type",
+    mapSite: "map_site",
   },
   region: { name: "name", countryCode: "country_code" },
   person: { name: "name" },
@@ -253,8 +262,9 @@ function moveSites(db: Db, regionId: string, countryCode: string) {
 }
 
 // A draft creates entities only: a known id is used as it is, since renames
-// are made online, and a retired one is refused. A new one matching another
-// entity's key becomes its alias (see Conflict rules in the spec).
+// are made online, apart from a link to Explore's map it lacks, and a
+// retired one is refused. A new one matching another entity's key becomes
+// its alias (see Conflict rules in the spec).
 export function applyEntityOp(
   db: Db,
   op: EntityOp,
@@ -275,7 +285,22 @@ export function applyEntityOp(
       save(db, op.kind, op.id, fields, key, null, ["fields"])
     }
   }
+  // Outside the check above, so a replay, which finds the alias already
+  // made, links the site the same way.
+  const mapSite = (op.fields as Fields).mapSite
+  if (op.kind === "site" && mapSite) {
+    linkIfNone(db, resolve(db, "site", op.id)!, mapSite)
+  }
   journal({ type: op.type, payload: op, opId: op.opId })
+}
+
+// A link to Explore's map goes to a site that has none, from a draft or an
+// import whose site turned out to be one in the log; one it has stays.
+export function linkIfNone(db: Db, siteId: string, mapSite: string) {
+  prepared(
+    db,
+    "UPDATE sites SET map_site = ? WHERE id = ? AND map_site IS NULL"
+  ).run(mapSite, siteId)
 }
 
 // An import's entity: one with the same key is used as it is, else it is

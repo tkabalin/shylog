@@ -68,6 +68,14 @@ export function mergeEntity(
   }
   const statements = kind === "person" ? movePeople : references[kind]
   for (const sql of statements) prepared(db, sql).run({ id, into: target })
+  // A link to Explore's map goes to a kept site that has none, so merging
+  // a typed-in duplicate away doesn't lose it; one the kept site has stays.
+  if (kind === "site") {
+    prepared(
+      db,
+      "UPDATE sites SET map_site = coalesce(map_site, (SELECT map_site FROM sites WHERE id = @id)) WHERE id = @into"
+    ).run({ id, into: target })
+  }
   prepared(db, `DELETE FROM ${tables[kind]} WHERE id = ?`).run(id)
   addAlias(db, kind, id, target)
   return true

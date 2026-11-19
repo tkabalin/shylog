@@ -134,6 +134,7 @@ describe("place", () => {
     regionId: "region-k",
     bodyOfWater: "oceanSea",
     waterType: "salt",
+    mapSite: null,
   }
   const region = { id: "region-k", name: "KwaZulu-Natal", countryCode: "ZA" }
 

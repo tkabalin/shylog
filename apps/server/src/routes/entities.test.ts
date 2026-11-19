@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 
 import { apiHeaders, send, testApp } from "../../test/app.ts"
 import { diveId, seededDb } from "../../test/fixture.ts"
-import { matchOrCreate } from "../apply/entity.ts"
+import { feedsDiveFigures, matchOrCreate } from "../apply/entity.ts"
 import type { Db } from "../db/open.ts"
 import type { Log } from "./log.ts"
 
@@ -109,6 +109,7 @@ describe("PUT /api/entities/:kind/:id", () => {
       regionId: "region-cape",
       bodyOfWater: null,
       waterType: "salt",
+      mapSite: null,
     })
     expect(log.people).toEqual([{ id: "person-sam", name: "Sam Naidoo" }])
     expect(log.diveCentres).toEqual([
@@ -145,6 +146,23 @@ describe("PUT /api/entities/:kind/:id", () => {
     })
     await put("site", sodwana, { bodyOfWater: "pool", waterType: "salt" })
     expect(await site()).toMatchObject({ waterType: "salt" })
+  })
+
+  it("links a site to Explore's map and unlinks it with null", async () => {
+    const site = async () =>
+      (await getLog()).sites.find((s) => s.id === sodwana)
+    await put("site", sodwana, { mapSite: "a-frame" })
+    expect(await site()).toMatchObject({ mapSite: "a-frame" })
+    expect((await put("site", sodwana, { mapSite: "A Frame" })).status).toBe(
+      400
+    )
+    await put("site", sodwana, { mapSite: null })
+    expect(await site()).toMatchObject({ mapSite: null })
+    // The link alone changes no dive's figures, so it skips their pass.
+    expect(feedsDiveFigures("site", { mapSite: null })).toBe(false)
+    expect(feedsDiveFigures("site", { mapSite: null, waterType: "salt" })).toBe(
+      true
+    )
   })
 
   it("renames with only the changed fields and writes nothing when repeated", async () => {
@@ -257,6 +275,53 @@ describe("POST /api/entities/:kind/:id/merge", () => {
       type: "mergeEntity",
       payload: JSON.stringify({ kind: "site", id: unnamed, into: sodwana }),
     })
+  })
+
+  it("gives the kept site the merged one's link to Explore's map, unless it has one", async () => {
+    const mapSite = async () =>
+      (await getLog()).sites.find((s) => s.id === sodwana)?.mapSite
+    await put("site", unnamed, { mapSite: "a-frame" })
+    await merge("site", unnamed, sodwana)
+    expect(await mapSite()).toBe("a-frame")
+
+    await put("site", "site-other", {
+      name: "Other",
+      countryCode: "ZA",
+      mapSite: "windmill-beach",
+    })
+    await merge("site", "site-other", sodwana)
+    expect(await mapSite()).toBe("a-frame")
+  })
+
+  it("links a site a draft's new one matched, only where it has no link", async () => {
+    const upload = (opId: string, mapSite: string, startTime: string) =>
+      send(app, "POST", "/api/ops", {
+        ops: [
+          {
+            ...draft,
+            opId: `${opId}-site`,
+            type: "upsertEntity",
+            kind: "site",
+            id: `site-${opId}`,
+            fields: { name: "sodwana", countryCode: "ZA", mapSite },
+          },
+          {
+            ...draft,
+            opId,
+            type: "upsertDive",
+            diveId: `dive-${opId}`,
+            fields: { ...lateDive(), startTime, siteId: `site-${opId}` },
+          },
+        ],
+      })
+    expect(
+      (await upload("op-a", "a-frame", "2026-10-19T09:00:00")).status
+    ).toBe(200)
+    const site = async () =>
+      (await getLog()).sites.find((s) => s.id === sodwana)
+    expect(await site()).toMatchObject({ mapSite: "a-frame" })
+    await upload("op-b", "windmill-beach", "2026-10-20T09:00:00")
+    expect(await site()).toMatchObject({ mapSite: "a-frame" })
   })
 
   it("writes nothing when retried, and refuses merging into itself", async () => {

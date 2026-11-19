@@ -259,11 +259,13 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
           regionId: "region-sodwana",
           bodyOfWater: "oceanSea",
         }),
-        // Fresh water with no body of water, which UDDF can't say.
+        // Fresh water with no body of water, and a link to Explore's map,
+        // neither of which UDDF can say.
         entity("site", "site-quarry", {
           name: "Miracle Waters",
           countryCode: "ZA",
           waterType: "fresh",
+          mapSite: "blue-rock-quarry/deep-end",
         }),
         entity("person", "person-sam", { name: "Sam Naidoo" }),
         entity("person", "person-lee", { name: "Lee" }),
@@ -419,9 +421,11 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
     const c = byId(root, "dive", "dive-c")
     expect(own(c, "ignored")).toEqual(["true"])
     expect(own(c, "siteWaterType")).toEqual(["fresh"])
+    expect(own(c, "siteMapLink")).toEqual(["blue-rock-quarry/deep-end"])
     expect(own(c, "surfaceIntervalOverride")).toEqual(["true"])
     // Only what differs from the body of water's default is written.
     expect(own(byId(root, "dive", "dive-b"), "siteWaterType")).toEqual([])
+    expect(own(byId(root, "dive", "dive-b"), "siteMapLink")).toEqual([])
     expect(
       own(byId(root, "dive", "dive-b"), "surfaceIntervalOverride")
     ).toEqual([])
@@ -466,6 +470,7 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
         region: { name: "Sodwana", countryCode: "ZA" },
       },
       waterType: null,
+      mapSite: null,
     })
     expect(b.standard).toEqual({
       cylinderMaterial: "aluminium",
@@ -482,6 +487,7 @@ describe("a hand-logged log", { timeout: 20_000 }, () => {
     expect(c.own).toMatchObject({
       fields: { ignored: true, surfaceInterval: 5400 },
       waterType: "fresh",
+      mapSite: "blue-rock-quarry/deep-end",
     })
   })
 
