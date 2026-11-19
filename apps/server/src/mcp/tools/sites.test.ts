@@ -90,7 +90,9 @@ describe("search_map_sites", () => {
     })
     expect(found.length).toBeGreaterThan(0)
     for (const site of found) {
-      expect(site.goodInWind).toContain("se")
+      // A south-easter keeps the sites good in it or a point either side.
+      const winds = site.goodInWind as string[]
+      expect(winds.filter((w) => ["e", "se", "s"].includes(w))).not.toEqual([])
       expect(site.exposedToSwell ?? []).not.toContain("sw")
       expect(site.noSpecialSkills).toBe(true)
     }
@@ -104,6 +106,9 @@ describe("search_map_sites", () => {
     expect(await ids({ wind: ["se"], season: ["summer"] })).toContain(
       "blouklip"
     )
+    // A-Frame is good in a westerly, which a north-westerly's neighbour is.
+    expect(await ids({ wind: ["nw"] })).toContain("a-frame")
+    expect(await ids({ wind: ["n"] })).not.toContain("a-frame")
     expect(await ids({ swell: ["nw"] })).not.toContain("ss-maori")
     expect(await ids({ swell: ["se"] })).toContain("ss-maori")
     expect(await ids({ avoid: ["fitness"] })).not.toContain("sentinel")
