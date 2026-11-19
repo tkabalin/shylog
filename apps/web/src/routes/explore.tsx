@@ -31,6 +31,12 @@ export const Route = createFileRoute("/explore")({
         : undefined,
     types: text(search.types),
     depth: text(search.depth),
+    access: text(search.access),
+    wind: text(search.wind),
+    swell: text(search.swell),
+    season: text(search.season),
+    skills: text(search.skills),
+    good: text(search.good),
     view:
       search.view === "list" || search.view === "rules"
         ? search.view

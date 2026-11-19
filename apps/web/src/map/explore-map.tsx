@@ -9,9 +9,11 @@ import {
   useSyncExternalStore,
 } from "react"
 import {
+  IconAdjustmentsHorizontal,
   IconArrowBarToDown,
   IconChevronUp,
   IconMapPin,
+  IconWind,
 } from "@tabler/icons-react"
 import { Link, useNavigate, useRouter, useSearch } from "@tanstack/react-router"
 import { cn } from "cn"
@@ -23,7 +25,9 @@ import {
   useClearShown,
 } from "@/components/filter-pills"
 import { SheetSearch } from "@/components/pickers/sheet"
-import { RangeFilter } from "@/components/range-filter"
+import { RangeFilter, usePreloadRangeSheet } from "@/components/range-filter"
+import { pillTrigger } from "@/components/ui/select"
+import { preloadable } from "@/lib/preloadable"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -47,10 +51,17 @@ import {
   warmThumb,
 } from "./imagery"
 import {
+  accessOptions,
+  conditionTicks,
+  filterCount,
   filterSites,
   filtersOf,
+  goodForOptions,
   matchesSite,
   searchOf,
+  siteCount,
+  skillOptions,
+  tagTicks,
   typeOptions,
   type SiteFilters,
 } from "./filters"
@@ -69,8 +80,6 @@ import { siteById, type Site } from "./sites"
 import { ZoneRulesList } from "./zone-rules-list"
 import type { Mpa } from "./zone-rules"
 
-const count = (n: number) => `${n} ${n === 1 ? "site" : "sites"}`
-
 // The list's search, kept while the app runs, so the list opens again as
 // it was left.
 let kept = ""
@@ -87,8 +96,12 @@ export default function Explore({
   const navigate = useNavigate({ from: "/explore" })
   const desk = useDesk()
   const goBack = useBack()
-  const { types, depth } = search
-  const filters = useMemo(() => filtersOf({ types, depth }), [types, depth])
+  const { types, depth, access, wind, swell, season, skills, good } = search
+  const filters = useMemo(
+    () =>
+      filtersOf({ types, depth, access, wind, swell, season, skills, good }),
+    [types, depth, access, wind, swell, season, skills, good]
+  )
   const filtered = useMemo(() => filterSites(filters), [filters])
   const zones = useSyncExternalStore(zonesShown.subscribe, zonesShown.get)
   // Satellite while there's a signal, and back to it once there is again.
@@ -312,7 +325,7 @@ export default function Explore({
               {pills({ float: true })}
               <button
                 type="button"
-                aria-label={`List of ${count(filtered.length)}`}
+                aria-label={`List of ${siteCount(filtered.length)}`}
                 onClick={() => open("list")}
                 // A 44 px target, as the pills' own reach is.
                 className={cn(
@@ -322,7 +335,7 @@ export default function Explore({
                 )}
               >
                 <IconMapPin aria-hidden />
-                <span aria-live="polite">{count(filtered.length)}</span>
+                <span aria-live="polite">{siteCount(filtered.length)}</span>
               </button>
             </div>
             <div className="absolute top-13 right-3 z-[5]">
@@ -393,8 +406,9 @@ const floatingPill = cn(
   "not-data-active:hover:bg-background data-active:bg-background data-active:text-foreground dark:data-active:bg-background"
 )
 
-// The type and max depth pills: the Log's tag filter and Depth range,
-// after its Clear.
+// The type and max depth pills, the Log's tag filter and Depth range, after
+// its Clear. From desk: up the page tags follow as pills of their own; a
+// phone's row has no room, so they share one Filters sheet.
 function Filters({
   filters,
   onChange,
@@ -407,12 +421,28 @@ function Filters({
   float?: boolean
   className?: string
 }) {
-  const clear = useClearShown(filters.types.length > 0 || !!filters.depth)
+  const desk = useDesk()
+  const clear = useClearShown(filterCount(filters) > 0)
+  const pill = float ? cn(floatingPill, "pr-2") : untinted
+  const tags = tagTicks(filters)
+  const conditions = conditionTicks(filters)
+  usePreloadRangeSheet()
+  // As the Max depth sheet: warmed while the browser is idle, so the first
+  // opening doesn't wait on the download.
+  useEffect(() => {
+    if ("requestIdleCallback" in window) {
+      const id = requestIdleCallback(() => void loadTagSheet())
+      return () => cancelIdleCallback(id)
+    }
+    const id = setTimeout(() => void loadTagSheet(), 1000)
+    return () => clearTimeout(id)
+  }, [])
   const pills = (
     <>
       <ClearFilters
         shown={clear.shown}
         onClear={() => onChange({ types: [] })}
+        fold={!desk}
         className={float ? floatingPill : undefined}
       />
       <MultiFilter
@@ -422,7 +452,7 @@ function Filters({
         value={filters.types}
         onChange={(types) => onChange({ ...filters, types })}
         {...clear.menu}
-        className={float ? cn(floatingPill, "pr-2") : untinted}
+        className={pill}
       />
       <RangeFilter
         label="Max depth"
@@ -435,6 +465,58 @@ function Filters({
         onApply={(depth) => onChange({ ...filters, depth })}
         className={float ? cn(floatingPill, "pl-2.5") : untinted}
       />
+      {desk ? (
+        <>
+          <MultiFilter
+            name="Way in"
+            any="Shore or boat"
+            options={accessOptions}
+            value={filters.access ?? []}
+            onChange={(access) => onChange({ ...filters, access })}
+            {...clear.menu}
+            className={pill}
+          />
+          <TagPill
+            conditionsOnly
+            name="Conditions"
+            icon={IconWind}
+            count={conditions}
+            filters={filters}
+            onApply={onChange}
+            className={float ? cn(floatingPill, "pl-2.5") : untinted}
+          />
+          <MultiFilter
+            name="Skills"
+            any="Any skills"
+            options={skillOptions}
+            value={filters.skills ?? []}
+            onChange={(skills) => onChange({ ...filters, skills })}
+            {...clear.menu}
+            className={pill}
+          />
+          <MultiFilter
+            name="Good for"
+            any="Good for anything"
+            options={goodForOptions}
+            value={filters.goodFor ?? []}
+            onChange={(goodFor) => onChange({ ...filters, goodFor })}
+            {...clear.menu}
+            className={pill}
+          />
+        </>
+      ) : (
+        // Only its icon and count, so the row keeps the site count in view
+        // on a phone.
+        <TagPill
+          compact
+          name="Filters"
+          icon={IconAdjustmentsHorizontal}
+          count={tags}
+          filters={filters}
+          onApply={onChange}
+          className={float ? cn(floatingPill, "px-2.5") : untinted}
+        />
+      )}
     </>
   )
   if (float) return pills
@@ -442,10 +524,82 @@ function Filters({
     <div
       role="group"
       aria-label="Filters"
-      className={cn("flex gap-1", className)}
+      // From desk: up the card's seven pills wrap, as a mouse can't swipe a
+      // row sideways; a phone's few scroll on one line, as the Log's do.
+      className={cn(
+        desk
+          ? "flex flex-wrap gap-1"
+          : "flex [scrollbar-width:none] gap-1 overflow-x-auto overscroll-x-contain",
+        className
+      )}
     >
       {pills}
     </div>
+  )
+}
+
+// The sheet holds a few hundred lines the map's first frame doesn't need,
+// so it loads on the press that opens it.
+const { Component: TagSheet, preload: loadTagSheet } = preloadable(() =>
+  import("./tag-sheet").then((module) => module.default)
+)
+
+// A pill that opens the tag sheet, as the Max depth pill opens its slider.
+function TagPill({
+  name,
+  icon: Icon,
+  count,
+  compact = false,
+  conditionsOnly,
+  filters,
+  onApply,
+  className,
+}: {
+  name: string
+  icon: typeof IconWind
+  // How many of its chips are ticked: "Conditions · 2", or the bare 2 beside
+  // a compact pill's icon.
+  count: number
+  compact?: boolean
+  conditionsOnly?: boolean
+  filters: SiteFilters
+  onApply: (filters: SiteFilters) => void
+  className?: string
+}) {
+  const [open, setOpen] = useState(false)
+  // Mounted from the first opening on, so closing can animate.
+  const [used, setUsed] = useState(false)
+  const pill = useRef<HTMLButtonElement>(null)
+  return (
+    <>
+      <button
+        ref={pill}
+        type="button"
+        aria-haspopup="dialog"
+        aria-label={count ? `${name}, ${count} set` : name}
+        aria-expanded={open}
+        data-active={count ? "" : undefined}
+        onPointerDown={() => void loadTagSheet()}
+        onClick={() => {
+          setUsed(true)
+          setOpen(true)
+        }}
+        className={cn(pillTrigger, "text-foreground", className)}
+      >
+        <Icon aria-hidden />
+        {compact ? count || null : count ? `${name} · ${count}` : name}
+      </button>
+      {used && (
+        <TagSheet
+          open={open}
+          onOpenChange={setOpen}
+          returnFocus={pill}
+          conditionsOnly={conditionsOnly}
+          filters={filters}
+          onApply={onApply}
+        />
+      )}
+    </>
   )
 }
 
@@ -571,7 +725,7 @@ function ListCard({
         </h2>
         <div className="flex items-center gap-2 self-center">
           <span className="text-[13px] whitespace-nowrap text-muted-foreground tabular-nums">
-            {count(total)}
+            {siteCount(total)}
           </span>
           <Button
             variant="ghost"

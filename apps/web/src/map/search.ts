@@ -6,6 +6,13 @@ export type ExploreSearch = {
   site?: string
   types?: string
   depth?: string
+  // Comma lists, as filters.ts reads them.
+  access?: string
+  wind?: string
+  swell?: string
+  season?: string
+  skills?: string
+  good?: string
   view?: "list" | "rules"
   mpa?: Mpa
   // The picked site's image open full screen, by its place in the strip.

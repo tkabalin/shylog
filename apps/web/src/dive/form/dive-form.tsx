@@ -87,6 +87,7 @@ import { Card } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { Toggle } from "@/components/ui/toggle"
+import { tagChip } from "@/components/tag-chip"
 import type { Dive } from "@/data/db"
 import { isUnknown } from "@/data/entities"
 import type { LogView } from "@/data/log"
@@ -1050,7 +1051,7 @@ export function DiveForm({
                       )
                     }
                     className={cn(
-                      "relative h-10 cursor-pointer rounded-full bg-muted px-3.5 text-sm font-medium text-foreground transition-[color,background-color,opacity] duration-150 hover:bg-muted hover:text-foreground hover:opacity-80 aria-pressed:bg-primary/10 aria-pressed:text-primary data-pressed:bg-primary/10 data-pressed:text-primary",
+                      tagChip,
                       tag === "night" &&
                         dark &&
                         "outline-1 -outline-offset-1 outline-primary outline-dashed dark:outline-primary/60"

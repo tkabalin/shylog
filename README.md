@@ -39,7 +39,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 - Work out SAC rate, MOD, max PO₂, CNS and OTU, surface intervals and statistics across the whole log, with the patterns worth knowing about picked out and a celebration at each dive-number milestone.
 - Export the whole log as UDDF and CSV each night, or download either from You.
 - Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
-- Find somewhere to dive around Cape Town on Explore: a map of the Cape Peninsula and False Bay's 409 dive sites from Wikivoyage, found by type and depth, each with its page, site maps and sonar images, the marine protected areas' zones and who may dive where, and a satellite view. The map, pages and images stay on the phone for a boat with no signal, and an instance for a diver elsewhere can turn Explore off.
+- Find somewhere to dive around Cape Town on Explore: a map of the Cape Peninsula and False Bay's 409 dive sites from Wikivoyage, found by type, depth, shore or boat, today's wind and swell, season, the skills a site asks for and what it's good for, each with its page, site maps and sonar images, the marine protected areas' zones and who may dive where, and a satellite view. The map, pages and images stay on the phone for a boat with no signal, and an instance for a diver elsewhere can turn Explore off.
 - Keep a packing checklist to tick off before a dive.
 - Install to the home screen, with one instance per diver.
 - Work with the log from Claude Code and Claude Desktop, through an MCP server on the tailnet: look a dive up by its number, search past dives, log and edit dives, tidy sites, people, dive centres and trips, and search Explore's dive sites.
