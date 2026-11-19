@@ -183,7 +183,11 @@ const entities: fc.Arbitrary<Entities> = fc
           region: fc.nat(),
           bodyOfWater: choice(bodiesOfWater),
           waterType: choice(waterTypes),
-          mapSite: fc.constantFrom("a-frame", "whittle-rock/west-pinnacle"),
+          mapSite: fc.constantFrom(
+            "a-frame",
+            "whittle-rock/west-pinnacle",
+            "page:castor-rock"
+          ),
         },
         { requiredKeys: ["name", "countryCode"] }
       ),

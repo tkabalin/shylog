@@ -20,8 +20,12 @@ import pagesJson from "../../../../web/src/map/pages.json" with { type: "json" }
 import {
   areas,
   fetched,
-  siteById,
+  mapLink,
+  isPage,
+  pageOf,
+  searchPages,
   type Area,
+  type Page,
   type Site,
   type SiteFeature,
   type SiteType,
@@ -59,7 +63,7 @@ const searchInput = z.strictObject({
     .string()
     .optional()
     .describe(
-      "Part of the site's name, ignoring case, accents, punctuation and spaces"
+      "Part of the site's name, or of its page's where several sites share one (Castor Rock's pinnacles have names of their own), ignoring case, accents, punctuation and spaces"
     ),
   areas: z
     .array(z.enum(areaKeys))
@@ -197,7 +201,18 @@ const summary = (site: Site) =>
     lat: site.lat,
     lon: site.lon,
     description: site.description,
+    pageId: pageOf(site)?.id,
   })
+
+// Sites by their own names, or by their page's, as "Castor Rock" names
+// none of its pinnacles.
+function byName(query: string) {
+  const found = new Set(searchSites(query))
+  for (const page of searchPages(query)) {
+    for (const site of page.sites) found.add(site)
+  }
+  return [...found]
+}
 
 // The rows in order, each page's first standing for the others on it, which
 // it carries; a row with no page stands alone.
@@ -219,12 +234,46 @@ function collapse<T>(rows: T[], pageOf: (row: T) => string | undefined) {
 }
 
 // The site's own section first, as its sheet shows it, then its page under
-// the page's name.
-function fullText(site: Site) {
-  const parts = site.page && pages[site.page]
+// the page's name; a whole page from its top.
+function fullText(link: Site | Page) {
+  const parts = link.page && pages[link.page]
   if (!parts) return undefined
-  const { own, rest } = siteText(parts, site.id)
-  return own ? `${own}\n\n# ${site.page}\n\n${rest}` : rest
+  const { own, rest } = siteText(parts, link.id)
+  return own ? `${own}\n\n# ${link.page}\n\n${rest}` : rest
+}
+
+const credit = (text: string | undefined) =>
+  text
+    ? `Text adapted from Wikivoyage's contributors under CC BY-SA 4.0, read ${fetched}`
+    : undefined
+
+// A whole page several sites share: where they are, each in brief, and the
+// page's text, for a log site linked to none of them in particular.
+function pageView(page: Page) {
+  const text = fullText(page)
+  return compact({
+    id: page.id,
+    name: page.name,
+    area: areas[page.area],
+    maxDepthM: page.depth,
+    approximateDepth: page.approximate,
+    sites: page.sites.map((site) =>
+      compact({
+        id: site.id,
+        name: site.name,
+        type: site.type,
+        maxDepthM: site.depth,
+        approximateDepth: site.approximate,
+        diving: divingLimit(site) ?? "allowed",
+        zone: zoneOf(site)?.name,
+        lat: site.lat,
+        lon: site.lon,
+      })
+    ),
+    wikivoyage: wikivoyage(page),
+    text,
+    credit: credit(text),
+  })
 }
 
 // Explore's dive sites, read-only and the same on every instance, so they
@@ -244,7 +293,7 @@ export function siteTools(server: McpServer) {
       const { near } = search
       const bounded =
         search.minDepthM !== undefined || search.maxDepthM !== undefined
-      const found = searchSites(search.name ?? "")
+      const found = byName(search.name ?? "")
         .filter(
           (site) =>
             (!search.areas?.length || search.areas.includes(site.area)) &&
@@ -296,14 +345,16 @@ export function siteTools(server: McpServer) {
   addTool(server, "get_map_site", {
     title: "Get a dive site from the map",
     description:
-      "One dive site on the Explore map by its id from search_map_sites: its figures, the zone it lies in with that marine protected area's rules, grouped by where they apply, the named features inside it (pinnacles, a wreck's bow and stern, anchors, the shore entry) with their positions, and its Wikivoyage page as Markdown, with sections such as Conditions (which swell and wind suit it), Get in, Hazards and Nearby. On a page several sites share, the site's own section comes first. A link to another site reads site:<id>.",
+      "One dive site on the Explore map by its id from search_map_sites, or a whole page several sites share by a row's pageId. A site gives its figures, the zone it lies in with that marine protected area's rules, grouped by where they apply, the named features inside it (pinnacles, a wreck's bow and stern, anchors, the shore entry) with their positions, and its Wikivoyage page as Markdown, with sections such as Conditions (which swell and wind suit it), Get in, Hazards and Nearby. On a page several sites share, the site's own section comes first. A pageId gives the page's area, its deepest depth, its sites in brief and its whole text. A link to another site reads site:<id>.",
     input: z.strictObject({ id: z.string() }),
     hints: read,
     run({ id }) {
-      const site = siteById.get(id)
-      if (!site) {
-        throw new Rejected("No map site has that id", 404, ["id"])
+      const link = mapLink(id)
+      if (!link) {
+        throw new Rejected("No map site or page has that id", 404, ["id"])
       }
+      if (isPage(link)) return pageView(link)
+      const site = link
       const zone = zoneOf(site)
       const mpa = zone && mpaRules.find(({ id }) => id === zone.mpa)
       const text = fullText(site)
@@ -326,9 +377,7 @@ export function siteTools(server: McpServer) {
         page: site.page,
         wikivoyage: wikivoyage(site),
         text,
-        credit: text
-          ? `Text adapted from Wikivoyage's contributors under CC BY-SA 4.0, read ${fetched}`
-          : undefined,
+        credit: credit(text),
       })
     },
   })

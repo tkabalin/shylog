@@ -2,7 +2,16 @@
 import { describe, expect, it } from "vitest"
 
 import { divingLimit, searchSites, zoneNote } from "./find"
-import { siteById, sites } from "./sites"
+import {
+  isPage,
+  mapLink,
+  pageById,
+  pageOf,
+  pages,
+  searchPages,
+  siteById,
+  sites,
+} from "./sites"
 
 const site = (id: string) => siteById.get(id)!
 
@@ -24,6 +33,41 @@ describe("searchSites", () => {
 
   it("finds every site for an empty search", () => {
     expect(searchSites("  ")).toBe(sites)
+  })
+})
+
+describe("pages", () => {
+  it("groups the sites a page shares under its id, deepest depth and area", () => {
+    const castle = pageById.get("page:castle-rocks")!
+    expect(castle).toMatchObject({ name: "Castle Rocks", area: "false-bay" })
+    expect(castle.sites.map(({ id }) => id)).toEqual([
+      "castle-rocks/north-castle",
+      "castle-rocks/point-reefs",
+      "castle-rocks/inner-castle",
+    ])
+    expect(castle.depth).toBe(
+      Math.max(...castle.sites.map(({ depth }) => depth ?? 0))
+    )
+    expect(pageOf(site("castle-rocks/inner-castle"))).toBe(castle)
+    expect(mapLink("page:castle-rocks")).toBe(castle)
+  })
+
+  it("keeps a page apart from the site that has its slug", () => {
+    expect(mapLink("ss-lusitania")).toBe(site("ss-lusitania"))
+    expect(isPage(mapLink("page:ss-lusitania")!)).toBe(true)
+    expect(isPage(site("ss-lusitania"))).toBe(false)
+  })
+
+  it("leaves out a page with one site, which is that site", () => {
+    expect(mapLink("page:a-frame")).toBeUndefined()
+    expect(pageOf(site("a-frame"))).toBeUndefined()
+    expect(pages.every(({ sites }) => sites.length > 1)).toBe(true)
+  })
+
+  it("searches pages by name as sites are", () => {
+    expect(searchPages("castor rock").map(({ id }) => id)).toEqual([
+      "page:castor-rock",
+    ])
   })
 })
 

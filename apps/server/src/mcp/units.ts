@@ -23,7 +23,7 @@ import {
 } from "@shylog/core"
 import { z } from "zod"
 
-import { siteById } from "../../../web/src/map/sites.ts"
+import { mapLink } from "../../../web/src/map/sites.ts"
 import { Rejected } from "../apply/rejected.ts"
 
 // The tools speak the app's units with the unit in each name, as core's
@@ -52,15 +52,16 @@ export const countryCode = z
   .enum(countryCodes)
   .describe("ISO 3166 country code, such as ZA")
 
-// The app links a site only to one its map has, so Claude does too.
+// The app links a site only to a site or page its map has, so Claude does
+// too.
 export const mapSite = z
   .string()
   .refine(
-    (id) => siteById.has(id),
-    "No dive site on Explore's map has that id. Find it with search_map_sites."
+    (id) => mapLink(id) !== undefined,
+    "No dive site or page on Explore's map has that id. Find it with search_map_sites."
   )
   .describe(
-    "The id of the dive site on Explore's map this site is, from search_map_sites"
+    "The id of the dive site on Explore's map this site is, from search_map_sites, or a row's pageId (page:<slug>) where the dive was on a page several sites share but at none of them in particular"
   )
 
 // An existing entity by id, or a new one, which is first matched by name to

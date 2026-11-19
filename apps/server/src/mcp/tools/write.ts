@@ -415,7 +415,7 @@ export function writeTools(server: McpServer, deps: Deps) {
   addTool(server, "edit_entity", {
     title: "Edit a site, person, centre, trip or region",
     description:
-      "Change an existing site, region, person, dive centre or trip, by its id from list_entities: rename it, or change a site's country, region, body of water, water type or link to Explore's map, or a centre's region. It never makes a new one. A name another one already has is refused, naming it, so the two can be joined with merge_entities.",
+      "Change an existing site, region, person, dive centre or trip, by its id from list_entities: rename it, or change a site's country, region, body of water, water type or link to Explore's map (one of its sites, or a whole page several share), or a centre's region. It never makes a new one. A name another one already has is refused, naming it, so the two can be joined with merge_entities.",
     input: z.strictObject({
       kind: z.enum(entityKinds),
       id: z.string(),
@@ -436,7 +436,7 @@ export function writeTools(server: McpServer, deps: Deps) {
         .nullable()
         .optional()
         .describe(
-          "Sites: the id of the dive site on Explore's map it is, from search_map_sites; null unlinks it"
+          "Sites: the id of the dive site on Explore's map it is, from search_map_sites, or a row's pageId for a whole page several sites share; null unlinks it"
         ),
     }),
     version,
