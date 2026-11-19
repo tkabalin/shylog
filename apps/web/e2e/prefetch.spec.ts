@@ -15,11 +15,12 @@ const samplesOf = (id: string) => (url: URL) =>
 
 test("starts the samples while a card is held", async ({ page, request }) => {
   const id = await diveId(request, 54)
+  // The background download would fetch them too; holding it off shows
+  // the press alone asks for this dive's. Before the page opens, as the
+  // download starts a few milliseconds after its load event.
+  await page.route("**/api/samples?*", () => {})
   await page.goto("/")
   const card = page.locator(`main a[href='/dive/${id}']`)
-  // The background download would fetch them too; holding it off shows
-  // the press alone asks for this dive's.
-  await page.route("**/api/samples?*", () => {})
 
   const samples = page.waitForRequest((req) =>
     samplesOf(id)(new URL(req.url()))
