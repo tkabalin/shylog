@@ -161,6 +161,12 @@ test("deletes a draft for good, with the draft wording", async ({ page }) => {
   await picker.getByRole("button", { name: "New site" }).click()
   await picker.getByLabel("Name").fill("Draft Reef")
   await picker.getByRole("button", { name: "Add", exact: true }).click()
+  // Fill once the sheet has gone, not while its exit hands focus back to the
+  // Site row: WebKit once stalled the fill below for 25 s there.
+  await expect(picker).toBeHidden()
+  await expect(
+    page.getByRole("button", { name: /^Site,/ })
+  ).toHaveAccessibleName("Site, Draft Reef")
   await page.locator("#field-time").fill("09:00")
   await page.getByLabel("Duration").fill("40")
   await page.getByLabel("Max depth").fill("12")
