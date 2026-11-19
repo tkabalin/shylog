@@ -87,6 +87,11 @@ export default function TagSheet({
               <CompassDial
                 name="Wind"
                 any="Any wind"
+                says={(wind, article) => (
+                  <>
+                    Sites good in {article} {wind}
+                  </>
+                )}
                 icon={<IconWind aria-hidden />}
                 spread
                 value={draft.wind?.[0]}
@@ -99,6 +104,7 @@ export default function TagSheet({
               <CompassDial
                 name="Swell"
                 any="Any swell"
+                says={(swell) => <>Sites not exposed to {swell} swell</>}
                 icon={<IconRipple aria-hidden />}
                 value={draft.swell?.[0]}
                 onChange={(swell) =>
