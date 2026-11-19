@@ -13,7 +13,9 @@ import {
 } from "./api"
 import { still } from "./ui"
 
-const unique = () => Date.now().toString(36)
+// Digits only: a base-36 tag can spell a word ("mwnamebc"), and a loose
+// locator such as getByLabel("Name") then matches a row holding it.
+const unique = () => String(Date.now())
 
 // A site nothing uses, removed again when the test ends.
 async function newSite(
