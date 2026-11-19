@@ -18,7 +18,7 @@ export function instructions(db: Db, env: Env) {
     "Downloads from the dive computer, imports, deleting dives or anything else, Statistics and Patterns are in the Shylog app, not here.",
     // Only where the instance shows the map, as its tools are only there.
     env.SHYLOG_EXPLORE === "on" &&
-      "search_map_sites and get_map_site read the Explore map's dive sites round the Cape Peninsula and False Bay, from Wikivoyage. They aren't the log's sites: a dive is logged at a site from list_entities. To pick a site for a day, look the forecast up yourself (swell, wind and their directions) and read each candidate's Conditions and Get in.",
+      "search_map_sites and get_map_site read the Explore map's dive sites round the Cape Peninsula and False Bay, from Wikivoyage. They aren't the log's sites: a dive is logged at a site from list_entities, whose mapSite names the map's site it is. To pick a site for a day, look the forecast up yourself (swell, wind and their directions) and read each candidate's Conditions and Get in.",
   ]
     .filter(Boolean)
     .join("\n\n")

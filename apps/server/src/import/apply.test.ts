@@ -862,6 +862,40 @@ describe(
       expect(count(db, "SELECT count(*) FROM dives")).toBe(42)
     })
 
+    it("links a site from Shylog's own export, never replacing a link the log's has", () => {
+      const from = handLog()
+      from.prepare("UPDATE sites SET map_site = 'a-frame'").run()
+      const xml = writeUddf(from).xml
+      const mapSite = (db: Db) =>
+        db.prepare("SELECT map_site FROM sites").pluck().get()
+
+      const fresh = testDb()
+      const preview = storePreview(fresh, xml, now)
+      applyImport(fresh, preview.id, proposed(preview), now)
+      expect(mapSite(fresh)).toBe("a-frame")
+
+      // The site is already in these logs, typed by hand: with no link it
+      // takes the file's, and with another it keeps its own.
+      for (const [own, after] of [
+        [null, "a-frame"],
+        ["castle-rocks/point-reefs", "castle-rocks/point-reefs"],
+      ]) {
+        const db = testDb()
+        logByHand(db, [
+          {
+            id: "dive-1",
+            startTime: "2026-01-01T09:00:00",
+            duration: 1800,
+            maxDepth: 10,
+          },
+        ])
+        db.prepare("UPDATE sites SET map_site = ?").run(own)
+        const again = storePreview(db, xml, now)
+        applyImport(db, again.id, proposed(again), now)
+        expect(mapSite(db)).toBe(after)
+      }
+    })
+
     it("fills the same defaults when replayed after they change", () => {
       const { db, snapshot } = withDefaults()
       // Changed on both sides, as a later settings op would replay.

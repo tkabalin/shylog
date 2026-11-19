@@ -109,7 +109,7 @@ Ignoring the placeholders matters more than it looks: filling empty fields from 
 
 ## Reading Shylog's own export
 
-A Shylog export goes through the same import, so the log could be rebuilt from UDDF if every snapshot were lost. The reader recognises its own files by their generator name and takes everything: sites with their region, country, body of water and water type, people in their roles, the trip and dive centre, every standard field, and the rest from the `<shylog>` element. Standard elements come in as computer values, while the `<shylog>` values, such as tags and surge, come in as hand values, since no dive computer records them. Only the hand-versus-computer markers on standard fields are lost. See [export.md](export.md) for what the export writes.
+A Shylog export goes through the same import, so the log could be rebuilt from UDDF if every snapshot were lost. The reader recognises its own files by their generator name and takes everything: sites with their region, country, body of water, water type and link to Explore's map, people in their roles, the trip and dive centre, every standard field, and the rest from the `<shylog>` element. Standard elements come in as computer values, while the `<shylog>` values, such as tags and surge, come in as hand values, since no dive computer records them. Only the hand-versus-computer markers on standard fields are lost. See [export.md](export.md) for what the export writes.
 
 ## Logbook history
 

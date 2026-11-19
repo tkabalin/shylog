@@ -26,7 +26,7 @@ import {
   validDive,
   type Fields,
 } from "../apply/dive.ts"
-import { matching, matchOrCreate } from "../apply/entity.ts"
+import { linkIfNone, matching, matchOrCreate } from "../apply/entity.ts"
 import { readSettings } from "../apply/settings.ts"
 import {
   metaOf,
@@ -80,6 +80,9 @@ export interface ImportedDive {
         region: Region | null
         bodyOfWater: string | null
         waterType: WaterType
+        // From Shylog's own export; absent from entries journalled before
+        // sites could link to Explore's map.
+        mapSite?: string | null
         // The Unknown site, or one the file names in no country, which no
         // one chose, so it gets no source.
         unknown: boolean
@@ -242,7 +245,12 @@ function importDive(
       id = matchOrCreate(db, "site", site.id, {
         ...fields,
         ...(regionId && { regionId }),
+        ...(site.mapSite && { mapSite: site.mapSite }),
       })
+    } else if (site.mapSite) {
+      // A site already in the log keeps its region, and its link if it has
+      // one; a link it lacks is only added.
+      linkIfNone(db, id, site.mapSite)
     }
     offer("siteId", id, site.unknown ? null : "computer")
   }
@@ -485,6 +493,7 @@ function imported(
             bodyOfWater: site.bodyOfWater,
             waterType:
               own?.waterType ?? defaultWaterType(site.bodyOfWater ?? undefined),
+            mapSite: own?.mapSite ?? null,
             unknown: site.countryCode == null,
           }
         : {

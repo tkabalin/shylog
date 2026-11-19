@@ -153,6 +153,7 @@ interface Entities {
     regionId?: string
     bodyOfWater?: string
     waterType?: string
+    mapSite?: string
   }[]
   people: { id: string; name: string }[]
   trips: { id: string; name: string }[]
@@ -182,6 +183,7 @@ const entities: fc.Arbitrary<Entities> = fc
           region: fc.nat(),
           bodyOfWater: choice(bodiesOfWater),
           waterType: choice(waterTypes),
+          mapSite: fc.constantFrom("a-frame", "whittle-rock/west-pinnacle"),
         },
         { requiredKeys: ["name", "countryCode"] }
       ),
@@ -552,7 +554,8 @@ function v1Fields(db: Db) {
          d.notable_animals AS notableAnimals, d.gear_details AS gearDetails,
          d.notes, d.ignored, d.computer_model AS computerModel,
          s.name AS site, s.country_code AS country, r.name AS region,
-         s.body_of_water AS bodyOfWater, s.water_type AS waterType
+         s.body_of_water AS bodyOfWater, s.water_type AS waterType,
+         s.map_site AS mapSite
        FROM dives d JOIN sites s ON s.id = d.site_id
          LEFT JOIN regions r ON r.id = s.region_id
          LEFT JOIN trips t ON t.id = d.trip_id

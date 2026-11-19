@@ -28,6 +28,7 @@ const site = (id: string, name: string) => ({
   regionId: null,
   bodyOfWater: "oceanSea" as const,
   waterType: "salt" as const,
+  mapSite: null,
 })
 
 const source = (diveId: string, field: string, computerValue: number) => ({

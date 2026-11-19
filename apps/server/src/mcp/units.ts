@@ -1,3 +1,6 @@
+// The map's sites come from a ?raw import, declared here as in sites.ts.
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../map.d.ts" />
 import {
   bodiesOfWater,
   countryCodes,
@@ -20,6 +23,7 @@ import {
 } from "@shylog/core"
 import { z } from "zod"
 
+import { siteById } from "../../../web/src/map/sites.ts"
 import { Rejected } from "../apply/rejected.ts"
 
 // The tools speak the app's units with the unit in each name, as core's
@@ -48,6 +52,17 @@ export const countryCode = z
   .enum(countryCodes)
   .describe("ISO 3166 country code, such as ZA")
 
+// The app links a site only to one its map has, so Claude does too.
+export const mapSite = z
+  .string()
+  .refine(
+    (id) => siteById.has(id),
+    "No dive site on Explore's map has that id. Find it with search_map_sites."
+  )
+  .describe(
+    "The id of the dive site on Explore's map this site is, from search_map_sites"
+  )
+
 // An existing entity by id, or a new one, which is first matched by name to
 // one that exists, as the app's drafts are.
 export const refs = {
@@ -58,6 +73,7 @@ export const refs = {
         name: named("site"),
         countryCode,
         bodyOfWater: options(bodiesOfWater, "Body of water").optional(),
+        mapSite: mapSite.optional(),
         region: z
           .union([
             id("region"),

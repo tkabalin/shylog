@@ -46,6 +46,10 @@ const stopColumns = (schema: number) =>
     ? "safety_stop_start AS stopStart, safety_stop_end AS stopEnd, safety_stop_held AS stopHeld, safety_stop_depth AS stopDepth"
     : "NULL AS stopStart, NULL AS stopEnd, NULL AS stopHeld, NULL AS stopDepth"
 
+// Added by migration 13, likewise.
+const mapSiteColumn = (schema: number) =>
+  schema >= 13 ? "map_site AS mapSite" : "NULL AS mapSite"
+
 interface DiveRow {
   id: string
   number: number | null
@@ -144,9 +148,10 @@ export function readLog(db: Db) {
         regionId: string | null
         bodyOfWater: string | null
         waterType: string
+        mapSite: string | null
       }>(
         db,
-        "SELECT id, name, country_code AS countryCode, region_id AS regionId, body_of_water AS bodyOfWater, water_type AS waterType FROM sites ORDER BY name"
+        `SELECT id, name, country_code AS countryCode, region_id AS regionId, body_of_water AS bodyOfWater, water_type AS waterType, ${mapSiteColumn(schema)} FROM sites ORDER BY name`
       ),
       countries: prepared(db, "SELECT code FROM countries ORDER BY code")
         .pluck()

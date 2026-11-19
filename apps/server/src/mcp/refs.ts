@@ -83,8 +83,26 @@ export function entityRefs(db: Db) {
     site(ref: SiteRef) {
       if ("id" in ref) return use("site", ref)
       const { region, ...site } = ref.new
+      // Some of the map's pinnacles share a name, so one already linked
+      // to another of them isn't this one.
+      const same = matching(db, "site", site)
+      if (same && site.mapSite) {
+        const linked = prepared<[string], string | null>(
+          db,
+          "SELECT map_site FROM sites WHERE id = ?"
+        )
+          .pluck()
+          .get(same)
+        if (linked && linked !== site.mapSite) {
+          throw new Rejected(
+            `The log's ${nameOf(db, "site", same)} is ${linked} on Explore's map; give this site a name of its own, such as the name with its page`,
+            422,
+            ["site"]
+          )
+        }
+      }
       // A site that exists is used as it is, so its new region isn't made.
-      if (matching(db, "site", site)) return use("site", { new: site })
+      if (same) return use("site", { new: site })
       const fields: Fields = { ...site }
       if (region) {
         fields.regionId = use(

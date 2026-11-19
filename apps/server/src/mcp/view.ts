@@ -161,6 +161,7 @@ export function diveDetail(index: LogIndex, dive: Dive) {
         countryCode: site.countryCode,
         region: named(region),
         bodyOfWater: site.bodyOfWater,
+        mapSite: site.mapSite,
       }),
       water: site.waterType,
     },

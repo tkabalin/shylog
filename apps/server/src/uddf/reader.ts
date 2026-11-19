@@ -11,6 +11,7 @@ import {
   entries,
   fractionToTenths,
   kelvinToCelsius,
+  mapSiteId,
   mergeDuplicateSamples,
   pascalsToBar,
   surfaces,
@@ -146,6 +147,8 @@ export interface OwnFields {
   } | null
   // Only where the site's body of water doesn't imply it.
   waterType: WaterType | null
+  // The dive site on Explore's map the site was added from.
+  mapSite: string | null
 }
 
 const ns = uddfNamespace
@@ -648,6 +651,7 @@ export function readUddf(xml: string, { fragments = false } = {}): ReadDive[] {
         trip: own.trip,
         diveCentre: own.diveCentre,
         waterType: own.waterType,
+        mapSite: own.mapSite,
       },
       fragment,
       fromShylog,
@@ -745,5 +749,7 @@ function readOwn(block: Element | undefined, before: Element | undefined) {
         }
       : null,
     waterType: choiceOf(waterTypes, one("siteWaterType"), "key") ?? null,
+    // One that isn't a map id is dropped, as an unknown choice is.
+    mapSite: mapSiteId.safeParse(one("siteMapLink")).data ?? null,
   }
 }

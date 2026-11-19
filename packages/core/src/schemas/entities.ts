@@ -4,6 +4,16 @@ import { bodiesOfWater, defaultWaterType, waterTypes } from "../enums.ts"
 import { idSchema } from "../ids.ts"
 import { choice, countryCode, name } from "./common.ts"
 
+// The id of a dive site on Explore's map (its page and section, such as
+// `whittle-rock/west-pinnacle`), which holds across the map's refreshes.
+export const mapSiteId = z
+  .string()
+  .max(120)
+  .regex(
+    /^[a-z0-9]+(-[a-z0-9]+)*(\/[a-z0-9]+(-[a-z0-9]+)*)?$/,
+    "Expected a dive site id from Explore's map"
+  )
+
 export const entityKinds = [
   "site",
   "region",
@@ -40,6 +50,7 @@ export const entityShapes = {
     optional: {
       regionId: idSchema("region"),
       bodyOfWater: choice(bodiesOfWater),
+      mapSite: mapSiteId,
     },
   },
   region: { required: { name, countryCode }, defaulted: {}, optional: {} },

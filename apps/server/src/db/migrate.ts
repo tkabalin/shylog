@@ -14,6 +14,7 @@ import { safetyStopStretches } from "./migrations/009-safety-stop-stretches.ts"
 import { diveComputer } from "./migrations/010-dive-computer.ts"
 import { packingChecklist } from "./migrations/011-packing-checklist.ts"
 import { cardThumb } from "./migrations/012-card-thumb.ts"
+import { siteMapLink } from "./migrations/013-site-map-link.ts"
 import type { Db } from "./open.ts"
 
 export interface Migration {
@@ -35,6 +36,7 @@ export const migrations: Migration[] = [
   diveComputer,
   packingChecklist,
   cardThumb,
+  siteMapLink,
 ]
 
 export function schemaVersion(db: Db): number {

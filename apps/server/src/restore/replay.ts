@@ -101,7 +101,7 @@ const entries: Record<
       db,
       { kind, id, fields }: { kind: EntityKind; id: string; fields: unknown }
     ) => putEntity(db, kind, id, fields),
-    derived: ({ kind }) => feedsDiveFigures(kind),
+    derived: ({ kind, fields }) => feedsDiveFigures(kind, fields),
   },
   mergeEntity: {
     apply: (
