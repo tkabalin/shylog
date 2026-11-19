@@ -79,7 +79,7 @@ function zoomFor(image: SiteImage, insetY: number) {
 }
 
 type ViewerProps = {
-  site: Site
+  site: Pick<Site, "id" | "name">
   start: number
   onClose: () => void
   // The image shown, for the address, so a reload opens it again.

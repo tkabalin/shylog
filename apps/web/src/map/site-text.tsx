@@ -183,7 +183,7 @@ export const SiteText = memo(function SiteText({
   onFollow,
   end,
 }: {
-  site: Site
+  site: Pick<Site, "id" | "page">
   className?: string
   // A link in the text opens another site.
   onFollow?: (id: string) => void

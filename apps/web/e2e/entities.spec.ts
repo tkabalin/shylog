@@ -74,6 +74,21 @@ test("opens a site linked to Explore's map there, in the detail's place @writes"
   await expect(page).toHaveURL(/\/you\/entities\?kind=site/)
 })
 
+test("opens a site linked to a whole page of Explore's map as that page @writes", async ({
+  page,
+  restore,
+}) => {
+  const name = `E2E Site ${unique()}`
+  await newSite(page, restore, name, { mapSite: "page:castle-rocks" })
+  await page.goto(`/you/entities?kind=site&q=${encodeURIComponent(name)}`)
+  await page.getByRole("link", { name: new RegExp(`^${name},`) }).click()
+  await page.getByRole("link", { name: "Open in Explore" }).click()
+  await expect(page).toHaveURL(
+    (url) => url.searchParams.get("site") === "page:castle-rocks"
+  )
+  await expect(page.getByRole("dialog", { name: "Castle Rocks" })).toBeVisible()
+})
+
 test("unlinks a site from Explore's map, keeping the site, and undoes it @writes", async ({
   page,
   restore,

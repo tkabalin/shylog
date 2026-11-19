@@ -27,7 +27,7 @@ export function ImageStrip({
   onOpen,
   className,
 }: {
-  site: Site
+  site: Pick<Site, "id" | "name">
   onOpen: (index: number) => void
   className?: string
 }) {

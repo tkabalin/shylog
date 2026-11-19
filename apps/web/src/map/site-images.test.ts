@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest"
 
 import credits from "./image-credits.json"
 import list from "./images.json"
+import { pageImages } from "./site-images"
 import { sites } from "./sites"
 
 // What the refresh scripts write (scripts/map/sites.ts lists the images,
@@ -71,5 +72,18 @@ describe("site images", () => {
     expect(own[0]).toMatch(/Ultima Thule/)
     // Then its page's, but not the other sections' own.
     expect(own.some((caption) => /Aoife/i.test(caption))).toBe(false)
+  })
+})
+
+describe("pageImages", () => {
+  it("puts the images every site shares first, then each one's own once", () => {
+    expect(
+      pageImages([
+        ["north.jpg", "page.jpg", "plan.jpg"],
+        ["page.jpg", "plan.jpg", "south.jpg"],
+        ["page.jpg", "plan.jpg", "north.jpg"],
+      ])
+    ).toEqual(["page.jpg", "plan.jpg", "north.jpg", "south.jpg"])
+    expect(pageImages([])).toEqual([])
   })
 })

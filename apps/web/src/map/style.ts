@@ -2,10 +2,11 @@ import type {
   ExpressionSpecification,
   GeoJSONSourceSpecification,
   StyleSpecification,
+  SymbolLayerSpecification,
 } from "maplibre-gl"
 
 import { sea } from "./sea"
-import { areas, sites, type Area, type Site } from "./sites"
+import { areas, isPage, sites, type Area, type Page, type Site } from "./sites"
 import zones from "./zones.json"
 
 export type MapTheme = "light" | "dark"
@@ -195,12 +196,12 @@ export const pinImages = (["dot", "diamond"] as const).flatMap((shape) =>
 
 // Each area's sites, which cluster among themselves, so a bubble never
 // mixes the Atlantic with False Bay and the first view shows the spread.
-const siteFeatures = (list: Site[]) => ({
+const siteFeatures = (list: readonly Site[], page = false) => ({
   type: "FeatureCollection" as const,
   features: list.map(({ id, name, type, lon, lat }) => ({
     type: "Feature" as const,
     geometry: { type: "Point" as const, coordinates: [lon, lat] },
-    properties: { id, name, type },
+    properties: page ? { id, name, type, page } : { id, name, type },
   })),
 })
 export const areaSource = (area: Area) => `sites-${area}`
@@ -210,12 +211,37 @@ export const clusterLayers = Object.keys(areas).map(
   (area) => `clusters-${area}`
 )
 export const pickedSource = "picked"
-export const pickedData = (site?: Site) => siteFeatures(site ? [site] : [])
+// A picked page shows the sites it shares that the filters leave, flagged
+// for a layer that lets their names give way to each other.
+export const pickedData = (link?: Site | Page, shown?: readonly Site[]) =>
+  !link
+    ? siteFeatures([])
+    : isPage(link)
+      ? siteFeatures(
+          shown
+            ? link.sites.filter((site) => shown.includes(site))
+            : link.sites,
+          true
+        )
+      : siteFeatures([link])
+export const pickedLayers = ["picked", "picked-page"]
 // The pin of the list row under the mouse, ringed on the desktop.
 export const hoveredSource = "hovered"
-// Each area's sites that pass the filters.
-export const areaData = (area: Area, shown: readonly Site[]) =>
-  siteFeatures(shown.filter((site) => site.area === area))
+// Each area's sites that pass the filters, less a picked page's, which its
+// own layer shows: fitted wider than the clusters' last zoom, they'd be
+// counted in a bubble under their own pins.
+export const areaData = (
+  area: Area,
+  shown: readonly Site[],
+  picked?: Site | Page
+) =>
+  siteFeatures(
+    shown.filter(
+      (site) =>
+        site.area === area &&
+        !(picked && isPage(picked) && picked.sites.includes(site))
+    )
+  )
 const zoneSources = ["fills", "edges"]
 const unclustered: ExpressionSpecification = ["!", ["has", "point_count"]]
 // A cluster's bubble grows with its count.
@@ -329,7 +355,7 @@ export function mapStyle(
     hovered,
     imagery,
   }: {
-    picked?: Site
+    picked?: Site | Page
     shown?: readonly Site[]
     showZones?: boolean
     hovered?: Site
@@ -355,6 +381,20 @@ export function mapStyle(
   // Names in the land's colour as their halo, so a name over the shore has
   // no blue rim.
   const siteName = { "text-color": p.pinText, "text-halo-color": p.landHalo }
+  const pickedLayout = (overlap: boolean) =>
+    ({
+      "icon-image": shape(true),
+      "icon-allow-overlap": true,
+      "icon-ignore-placement": true,
+      "text-field": ["get", "name"],
+      "text-font": font.medium,
+      "text-size": 12.5,
+      "text-allow-overlap": overlap,
+      "text-variable-anchor": ["left", "right", "top", "bottom"],
+      "text-radial-offset": 1.1,
+      "text-justify": "auto",
+      "text-max-width": 10,
+    }) satisfies SymbolLayerSpecification["layout"]
   const style: StyleSpecification = {
     version: 8,
     // A theme change swaps the colours at once, as the rest of the app does.
@@ -387,7 +427,7 @@ export function mapStyle(
           areaSource(area),
           {
             type: "geojson",
-            data: areaData(area, shown),
+            data: areaData(area, shown, picked),
             cluster: true,
             clusterMaxZoom: 11,
             clusterRadius: 34,
@@ -396,7 +436,7 @@ export function mapStyle(
           } satisfies GeoJSONSourceSpecification,
         ])
       ),
-      [pickedSource]: { type: "geojson", data: pickedData(picked) },
+      [pickedSource]: { type: "geojson", data: pickedData(picked, shown) },
       [hoveredSource]: { type: "geojson", data: pickedData(hovered) },
     },
     layers: [
@@ -890,18 +930,22 @@ export function mapStyle(
         id: "picked",
         type: "symbol",
         source: pickedSource,
+        filter: ["!", ["has", "page"]],
+        layout: pickedLayout(true),
+        paint: { ...siteName, "text-halo-width": 1.6 },
+      },
+      // A page's sites, every pin there and each name where it fits, as
+      // Whittle Rock's 33 would otherwise pile up.
+      {
+        id: "picked-page",
+        type: "symbol",
+        source: pickedSource,
+        filter: ["has", "page"],
+        // Its pins also keep the names off each other's dots.
         layout: {
-          "icon-image": shape(true),
-          "icon-allow-overlap": true,
-          "icon-ignore-placement": true,
-          "text-field": ["get", "name"],
-          "text-font": font.medium,
-          "text-size": 12.5,
-          "text-allow-overlap": true,
-          "text-variable-anchor": ["left", "right", "top", "bottom"],
-          "text-radial-offset": 1.1,
-          "text-justify": "auto",
-          "text-max-width": 10,
+          ...pickedLayout(false),
+          "icon-ignore-placement": false,
+          "text-optional": true,
         },
         paint: { ...siteName, "text-halo-width": 1.6 },
       },
