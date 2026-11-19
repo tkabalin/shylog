@@ -21,13 +21,20 @@ import {
   areas,
   fetched,
   siteById,
-  type Access,
   type Area,
   type Site,
   type SiteFeature,
   type SiteType,
   wikivoyage,
 } from "../../../../web/src/map/sites.ts"
+import {
+  compass,
+  goodFors,
+  matchesTags,
+  needs,
+  seasons,
+  ways,
+} from "../../../../web/src/map/tags.ts"
 import { mpaRules, zoneRules } from "../../../../web/src/map/zone-rules.ts"
 import { Rejected } from "../../apply/rejected.ts"
 import { addTool, readHints as read } from "../tool.ts"
@@ -40,7 +47,6 @@ const features = featuresJson as Record<string, SiteFeature[]>
 
 const areaKeys = Object.keys(areas) as [Area, ...Area[]]
 const types = ["reef", "wreck", "fresh"] as const satisfies SiteType[]
-const ways = ["shore", "boat", "both"] as const satisfies Access[]
 const limits = [
   "allowed",
   "business-only",
@@ -64,10 +70,48 @@ const searchInput = z.strictObject({
   types: z.array(z.enum(types)).optional().describe("Any of these"),
   access: z
     .array(z.enum(ways))
+    .max(ways.length)
     .optional()
     .describe(
-      "Any of these, how its page says you get in: shore (usually from the shore), boat, or both (either way, including a boat dive whose page gives a shore entry, which shoreEntry marks as a long swim or a climb where the page calls it hard); pass shore and both for every site dived from the shore. A site whose page doesn't say is left out"
+      "Any of these ways in, as its page says: shore or boat. A site dived both ways counts as either, including a boat dive whose page gives a shore entry, which shoreEntry marks as a long swim or a climb where the page calls it hard. A site whose page doesn't say is left out"
     ),
+  wind: z
+    .array(z.enum(compass))
+    .max(compass.length)
+    .optional()
+    .describe(
+      "Compass points of the wind forecast: sites whose page says they're good in or after any of them. A site whose page names no good wind is left out"
+    ),
+  swell: z
+    .array(z.enum(compass))
+    .max(compass.length)
+    .optional()
+    .describe(
+      "Compass points the swell comes from: leaves out sites whose page says they're exposed to any of them"
+    ),
+  season: z
+    .array(z.enum(seasons))
+    .max(seasons.length)
+    .optional()
+    .describe("Sites whose page says they're at their best in any of these"),
+  noSpecialSkills: z
+    .boolean()
+    .optional()
+    .describe(
+      "True for sites whose page says they need no special skills, or are fine for entry-level divers or training; a deep site can still need none, so check its depth, and a site with none may still ask for a skill, which avoid leaves out"
+    ),
+  avoid: z
+    .array(z.enum(needs))
+    .max(needs.length)
+    .optional()
+    .describe(
+      "Leaves out sites whose page asks for any of these skills (dsmb: deploying a delayed surface marker buoy)"
+    ),
+  goodFor: z
+    .array(z.enum(goodFors))
+    .max(goodFors.length)
+    .optional()
+    .describe("Sites whose page says they're good for any of these"),
   minDepthM: z.number().optional().describe("On the site's max depth"),
   maxDepthM: z
     .number()
@@ -128,6 +172,12 @@ const summary = (site: Site) =>
     type: site.type,
     access: site.access,
     shoreEntry: site.shoreEntry,
+    goodInWind: site.wind,
+    exposedToSwell: site.swell,
+    bestSeason: site.season,
+    noSpecialSkills: site.noSpecialSkills,
+    needs: site.needs,
+    goodFor: site.goodFor,
     maxDepthM: site.depth,
     approximateDepth: site.approximate,
     diving: divingLimit(site) ?? "allowed",
@@ -152,7 +202,7 @@ export function siteTools(server: McpServer) {
   addTool(server, "search_map_sites", {
     title: "Search the dive site map",
     description:
-      "Find dive sites on the Explore map of the Cape Peninsula and False Bay, from Wikivoyage, by name, area, type, shore or boat access, max depth, who may dive there and distance from a point. These are not the log's own sites. Returns one short row per site with its id, which get_map_site takes for the site's full text.",
+      "Find dive sites on the Explore map of the Cape Peninsula and False Bay, from Wikivoyage, by name, area, type, shore or boat access, the wind and swell forecast, season, skills, what a site is good for, max depth, who may dive there and distance from a point. The condition, skill and good-for tags are what each page says, read by hand: a page silent on wind, season, special skills or what it's good for drops out of those filters, and swell and avoid leave out only the sites a page names. Read a site's Conditions with get_map_site before recommending it. These are not the log's own sites. Returns one short row per site with its id, which get_map_site takes for the site's full text.",
     input: searchInput,
     hints: read,
     run(search) {
@@ -168,15 +218,13 @@ export function siteTools(server: McpServer) {
           (site) =>
             (!search.areas?.length || search.areas.includes(site.area)) &&
             (!search.types?.length || search.types.includes(site.type)) &&
-            (!search.access?.length ||
-              (site.access !== undefined &&
-                search.access.includes(site.access))) &&
             (!bounded ||
               (site.depth !== undefined &&
                 site.depth >= (search.minDepthM ?? -Infinity) &&
                 site.depth <= (search.maxDepthM ?? Infinity))) &&
             (!search.diving?.length ||
-              search.diving.includes(divingLimit(site) ?? "allowed"))
+              search.diving.includes(divingLimit(site) ?? "allowed")) &&
+            matchesTags(site, search)
         )
         .map((site) => ({
           site,

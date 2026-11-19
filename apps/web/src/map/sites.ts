@@ -1,5 +1,7 @@
 import raw from "./sites.geojson?raw"
 
+import type { Compass, GoodFor, Need, Season } from "./tag-values"
+
 // The dive site map's sites, from Wikivoyage (scripts/map/sites.ts writes
 // the file). Imported as text, as Vite reads only .json as JSON, and part
 // of the map's own chunk.
@@ -10,6 +12,7 @@ export type SiteType = "reef" | "wreck" | "fresh"
 // which counts a hard shore entry off a boat dive and says why it's hard.
 export type Access = "shore" | "boat" | "both"
 export type ShoreEntry = "long swim" | "climb"
+export type { Compass, GoodFor, Need, Season } from "./tag-values"
 
 export type Site = {
   id: string
@@ -22,6 +25,15 @@ export type Site = {
   description?: string
   access?: Access
   shoreEntry?: ShoreEntry
+  // Its page's tags, read by hand (scripts/map/page-tags.json): good winds,
+  // swell exposure, best seasons, no special skills (said so, or fine for
+  // entry-level divers or training), the skills asked for, what it's good for.
+  wind?: Compass[]
+  swell?: Compass[]
+  season?: Season[]
+  noSpecialSkills?: true
+  needs?: Need[]
+  goodFor?: GoodFor[]
   // The Wikivoyage page it comes from, and its section on a shared page;
   // none where the list links a page nobody has written.
   page?: string

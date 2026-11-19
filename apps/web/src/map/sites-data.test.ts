@@ -3,11 +3,13 @@ import { statSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 
 import { apart, printed } from "../../scripts/map/wikitext"
+import pageTags from "../../scripts/map/page-tags.json"
 import pins from "../../scripts/map/wikivoyage.json"
 import features from "./features.json"
 import pages from "./pages.json"
 import type { Part } from "./page-text"
 import type { SiteFeature } from "./sites"
+import { compass, goodFors, needs, seasons } from "./tags"
 import raw from "./sites.geojson?raw"
 
 // What the refresh script writes, checked as it lands in a pull request.
@@ -166,6 +168,53 @@ describe("sites.geojson", () => {
       // Only a site with a shore entry can have a hard one.
       if (properties.shoreEntry !== undefined) {
         expect(properties.access, properties.id).toBe("both")
+      }
+    }
+  })
+
+  // Read from each page by hand (scripts/map/page-tags.json), so only the
+  // values Explore's filters and the MCP search offer.
+  it("tags sites only with values the filters know", () => {
+    const known: Record<string, string[]> = {
+      wind: compass,
+      swell: compass,
+      season: seasons,
+      needs,
+      goodFor: goodFors,
+    }
+    let tagged = 0
+    for (const { properties } of sites) {
+      for (const [field, values] of Object.entries(known)) {
+        const set = properties[field] as string[] | undefined
+        if (set) tagged++
+        for (const value of set ?? []) {
+          expect(values, `${properties.id} ${field}`).toContain(value)
+        }
+      }
+      expect([undefined, true], properties.id).toContain(
+        properties.noSpecialSkills
+      )
+    }
+    expect(tagged).toBeGreaterThan(800)
+  })
+
+  // A hand edit to the tags file shows up only once the refresh runs again.
+  it("carries each page's tags as the tags file has them", () => {
+    const fields = [
+      "wind",
+      "swell",
+      "season",
+      "noSpecialSkills",
+      "needs",
+      "goodFor",
+    ]
+    const tags = pageTags as Record<string, Record<string, unknown>>
+    for (const { properties } of sites) {
+      const page = properties.page ? tags[properties.page] : undefined
+      for (const field of fields) {
+        expect(properties[field], `${properties.id} ${field}`).toEqual(
+          page?.[field]
+        )
       }
     }
   })

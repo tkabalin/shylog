@@ -1,0 +1,2501 @@
+{
+  "13th Apostle": {
+    "said": [
+      "No special skills required.",
+      "the ability to deploy a DSMB is recommended",
+      "There are several swim-throughs"
+    ],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "A-Frame": {
+    "said": [
+      "The site may be dived during or after westerly winds",
+      "is generally a good winter dive site",
+      "The site is usually at its best in winter",
+      "No special skills required.",
+      "This is a popular site for training",
+      "Much of the site is suitable for snorkelling",
+      "it is also popular as a night dive site",
+      "There are a few swim-throughs among the boulder groups"
+    ],
+    "wind": ["w"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "snorkelling", "training", "swim-throughs"]
+  },
+  "Albatross Rock": {
+    "said": [
+      "The site is exposed to wind and sea from the north west to south west",
+      "most likely to be diveable in late spring and summer",
+      "No special skills required."
+    ],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer", "spring"],
+    "noSpecialSkills": true
+  },
+  "Alpha Reef": {
+    "said": [
+      "waves from the south east and south west",
+      "The site will usually be at its best in winter",
+      "The site is suitable for relatively inexperienced divers",
+      "Ability to navigate by compass, and reasonable fitness and agility are required for a shore dive"
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"]
+  },
+  "Ammunition Barges": {
+    "said": [
+      "The site is moderately exposed to wind and waves from the south east",
+      "The site is usually at its best in winter",
+      "The site is suitable for novice divers and for snorkelling"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "Andre se Gat": {
+    "said": ["No special skills recommended."],
+    "noSpecialSkills": true
+  },
+  "Ankers": {
+    "said": [
+      "often at its best during or after south easterly winds (offshore)",
+      "Long period south west swell will refract into the cove",
+      "it is directly exposed to north westerly wind and waves",
+      "No special skills required.",
+      "This site is suitable for night dives, novices and snorkellers."
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "snorkelling"]
+  },
+  "Anvil Rock": {
+    "said": [
+      "The site is exposed to wind and waves from all directions",
+      "a DSMB and reel, to let the boat know where you are surfacing",
+      "some small caves and tight swim-throughs",
+      "No special skills required, but much of the site is deeper than 18m, so it is more suited to advanced divers"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Atlantis Reef": {
+    "said": [
+      "The site is often at its best during or after a westerly wind",
+      "may be good even during an easterly if it is not too strong",
+      "The site is exposed to south east wind and waves",
+      "moderately exposed to south westerly swell",
+      "The site is usually at its best in winter",
+      "it is recommended that entry level divers and others with imperfect buoyancy control avoid diving there",
+      "Divers who intend to explore beyond the vicinity of the pinnacles are advised to deploy a DSMB",
+      "there is a complex swimthrough formed by jumbled boulders"
+    ],
+    "wind": ["e", "w"],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "needs": ["dsmb", "buoyancy"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Bakoven Rock": {
+    "said": [
+      "Exposed to westerly swells.",
+      "Best during or after south easterly winds",
+      "The site is usually at its best in summer",
+      "No special skills required.",
+      "This should be a good site for night dives, and is also good for snorkelling.",
+      "when the south westerly swell is low and short"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "snorkelling"]
+  },
+  "Balcony": {
+    "said": [
+      "Usually best during or after south easterly winds.",
+      "exposed to north west wind and waves",
+      "Usually considered a summer dive",
+      "No special skills required. Suitable for novices and training exercises, snorkelling and night dives.",
+      "This site is mostly used as a training site"
+    ],
+    "wind": ["se"],
+    "swell": ["nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "snorkelling", "training"]
+  },
+  "Bantry Bay": {
+    "said": [
+      "this spot is quite exposed to the south west swell",
+      "The site is usually at its best in early summer",
+      "No special skills required, Suitable for night dives in good conditions"
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["night"]
+  },
+  "Batsata Rock": {
+    "said": [
+      "It would usually be a winter dive.",
+      "No special skills required."
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true
+  },
+  "Bikini Beach": {
+    "said": [
+      "Best during or after south easterly winds.",
+      "No special skills required. The site is suitable for training exercises including night dives."
+    ],
+    "wind": ["se"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "training"]
+  },
+  "Bill Liltved's Reef": {
+    "said": [
+      "and swells from the southwest",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "A decompression buoy is strongly recommended",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"]
+  },
+  "Billy's Reef": {
+    "said": [
+      "The site is exposed to wind and waves from all directions",
+      "is likely to be at its best in winter",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "A decompression buoy is strongly recommended"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Blomvlei": {
+    "said": [
+      "The site is exposed to all winds and swells with a westerly component",
+      "may be good after a southeaster",
+      "The site is likely to be at its best in summer",
+      "DSMBs are also recommended if ascent occurs away from the shotline"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb"]
+  },
+  "Blouklip": {
+    "said": [
+      "Best during or after south-easterly winds (summer).",
+      "No special skills required. The area is suitable for snorkelling."
+    ],
+    "wind": ["se"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "Blousteen Ridge": {
+    "said": [
+      "The site is exposed to waves from the north west and to a lesser degree from the south west",
+      "It is more likely to be good in summer or at any other time when there is low south west swell and the wind has been blowing from the south east",
+      "No special skills required."
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "Blue Flame Reef": {
+    "said": [
+      "should most often be good in winter",
+      "The ability to deploy a DSMB is recommended."
+    ],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Blue Rock Quarry": {
+    "said": [
+      "The site is usually at its best at the end of summer",
+      "Very suitable for training. No special skills required.",
+      "a light, reel and dsmb are recommended"
+    ],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["training"]
+  },
+  "Boardroom pinnacle": {
+    "said": [
+      "No special skills required.",
+      "the ability to deploy a DSMB is recommended",
+      "There are several swimthroughs"
+    ],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Boat Rock": {
+    "said": [
+      "Generally considered a winter dive site",
+      "No special skills required. The site is occasionally used for night dives.",
+      "A compass will help keep track of where you are on a boat dive and is essential on a shore dive if you wish to return under water",
+      "a strong south-easter or one that blows for a long time will push up a swell that will make it unpleasant all the way down"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation"],
+    "goodFor": ["night"]
+  },
+  "Bordjiesrif": {
+    "said": [
+      "Winter dive area",
+      "Exposed to south easterly winds and waves",
+      "Suitable for training and entry level divers, and popular as a snorkelling site"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling", "training"]
+  },
+  "Bruce's Mark": {
+    "said": [
+      "and swells from the southwest",
+      "A DSMB is recommended to alert the boat crew to your position when surfacing",
+      "The site is exposed to wind and waves from all directions",
+      "the boulders form a couple of swim-throughs"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Brunswick": {
+    "said": [
+      "The site can sometimes be dived in easterly winds as long as they are not too strong",
+      "The site is usually dived in winter",
+      "No special skills required. Suitable for night dives"
+    ],
+    "wind": ["e"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["night"]
+  },
+  "Buffels Bay": {
+    "said": [
+      "The site is exposed to wind and waves from the south east",
+      "some south west swell will make it round the corner",
+      "No special skills required."
+    ],
+    "swell": ["se", "sw"],
+    "noSpecialSkills": true
+  },
+  "Canyon": {
+    "said": [
+      "The site is exposed to south westerly swells",
+      "Conditions suitable for diving this site will be most common in summer",
+      "the best times to dive are during or directly after an extended period of moderate to strong south easterly winds, and this generally happens in summer",
+      "Ability to deploy a DSMB from mid-water is strongly recommended.",
+      "large swells or wind waves from the north west to the south west are likely to produce unsafe or unpleasant conditions"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb"]
+  },
+  "Caravan Reef": {
+    "said": [
+      "Generally considered a winter dive site",
+      "No special skills required",
+      "Surface marker buoy recommended if you ascend away from the boat",
+      "a strong southeaster or one that blows for a long time will push up a swell that will make it unpleasant all the way down"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Castle Rocks": {
+    "said": [
+      "Usually considered to be a winter dive",
+      "Swell from the south west or south east will cause surge",
+      "This is a popular training area for entry level divers, and is also suitable as a base point for night dives.",
+      "A moderate level of fitness and agility is required for shore access at these sites.",
+      "one large swim-through"
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "needs": ["fitness"],
+    "goodFor": ["night", "training", "swim-throughs"]
+  },
+  "Castor Rock": {
+    "said": [
+      "Generally considered a winter dive, as this is when conditions are most likely to be good",
+      "The site is shallow and suited to entry level divers",
+      "a tall steep pinnacle with overhangs and swim-throughs"
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["swim-throughs"]
+  },
+  "Cleeve's Tunnel": {
+    "said": [
+      "The site is exposed to westerly winds and seas",
+      "The site should be good in flat seas during or soon after south easterly winds.",
+      "The site is usually at its best in summer",
+      "the main tunnel extends through from north to south"
+    ],
+    "wind": ["se"],
+    "swell": ["w"],
+    "season": ["summer"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Clifton Rocks": {
+    "said": [
+      "The entry and exit area is exposed to north west swell",
+      "The dive site is exposed to both north and south west swell",
+      "The site is usually at its best in summer",
+      "No special skills required.",
+      "There are areas of sand bottom which would be suited to basic skills exercises",
+      "This is a good area for snorkelling.",
+      "A reasonable level of fitness is required for shore entries",
+      "several smallish swim-throughs",
+      "The site will be best when the swell is low and short, which is often associated with south easterly winds."
+    ],
+    "wind": ["se"],
+    "swell": ["n", "sw", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["snorkelling", "training", "swim-throughs"]
+  },
+  "Colebrooke": {
+    "said": [
+      "The site is exposed to the prevailing southwesterly swells",
+      "No special skills are required or recommended."
+    ],
+    "swell": ["sw"],
+    "noSpecialSkills": true
+  },
+  "Container Bay": {
+    "said": [
+      "The site is exposed to swell from the south west",
+      "is often good in south easterly winds",
+      "The site is usually at its best in summer",
+      "No special skills required. The site is suitable for snorkelling"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "Coral Gardens (Oudekraal)": {
+    "said": [
+      "Often at its best during or after south easterly winds (offshore).",
+      "The site is exposed to the south west swell",
+      "Keep a lookout for times when the south west swell is low with a short period. This will usually be in summer",
+      "The site requires fitness and good buoyancy control.",
+      "are suitable for beginners to snorkel",
+      "with occasional swim-throughs"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "needs": ["fitness", "buoyancy"],
+    "goodFor": ["snorkelling", "swim-throughs"]
+  },
+  "Coral Gardens (Rooi-els)": {
+    "said": [
+      "Exposed to south west swell.",
+      "Usually best after several days of south east wind in summer.",
+      "The northern pinnacle has a cave/swim-through under a big boulder",
+      "a few small cavern swimthroughs and a stone arch",
+      "a reel and DSMB is suggested for boat dives",
+      "No special skills required"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Cow and Calf": {
+    "said": [
+      "it is usually best during or after south easterly winds",
+      "The site is usually at its best in summer",
+      "This is a suitable site for inexperienced divers",
+      "A reasonable level of fitness and agility is required for shore entry",
+      "The slot and the swim-through to Stone Dog Gully.",
+      "Night dives are best done from a boat",
+      "It is slightly protected from south west swell but is shallow and there will be surge"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["night", "swim-throughs"]
+  },
+  "D-Frame": {
+    "said": [
+      "The site is usually at its best in winter",
+      "No special skills are required for boat dives",
+      "Shore divers need to be fit and competent at compass navigation",
+      "A SMB or DSMB is recommended"
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "dsmb", "fitness"]
+  },
+  "Dale Brook": {
+    "said": [
+      "The site is exposed to south easterly wind and waves.",
+      "Keep a lookout for times when it is calm or the wind is north westerly with minimal swell.",
+      "The site is usually at its best during winter",
+      "No special skills required. This is an excellent site for novice snorkellers, and should be good for night dives if the sea is very flat.",
+      "Reasonable fitness is required for shore entries."
+    ],
+    "wind": ["nw"],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["night", "snorkelling"]
+  },
+  "Deep South Whittle Reef": {
+    "said": [
+      "The site is exposed to wind and waves from all directions",
+      "is likely to be at its best in winter",
+      "The ability to deploy a decompression buoy",
+      "A DSMB is strongly recommended"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Di's Cracks": {
+    "said": [
+      "The site is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "Good buoyancy control, trim, and finning technique is necessary",
+      "A DSMB is recommended for the ascent",
+      "There are several swim-throughs right under the pinnacle"
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "needs": ["dsmb", "buoyancy"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Die Josie": {
+    "said": [
+      "Best after south easterly winds. Exposed to south westerly swells.",
+      "The site is exposed to westerly winds and swell",
+      "is often good in south easterly winds",
+      "The site is usually at its best in summer",
+      "No special skills required. This site is suitable for boat dives at night"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["night"]
+  },
+  "Die Perd": {
+    "said": [
+      "The site is exposed to westerly swells and wind",
+      "South-westerly swell will significantly affect diving due to surge conditions",
+      "The site is usually at its best in summer",
+      "No special skills required.",
+      "There are some minor swim-throughs and overhangs."
+    ],
+    "swell": ["sw", "w"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["swim-throughs"]
+  },
+  "Disa": {
+    "said": [
+      "The site is exposed to all winds and swells with a westerly component",
+      "may be good after a southeaster",
+      "The site is likely to be at its best in summer"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"]
+  },
+  "Dome Rock": {
+    "said": [
+      "The site is exposed to south easterly winds and waves, so should be dived in westerly winds.",
+      "The site is usually at its best in autumn, winter or spring",
+      "No special skills required.",
+      "A DSMB is recommended if you are likely to surface away from the shotline"
+    ],
+    "wind": ["w"],
+    "swell": ["se"],
+    "season": ["autumn", "winter", "spring"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Dreadlocks Reef": {
+    "said": [
+      "The site is exposed to westerly winds and swell",
+      "is often good in South Easterly winds",
+      "The site is usually at its best in summer",
+      "The depth is suitable for entry level divers.",
+      "No special skills required for boat dive."
+    ],
+    "wind": ["se"],
+    "swell": ["w"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "Duiker Island": {
+    "said": [
+      "The site is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "No special skills required, suitable for novices and for snorkelling."
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "East Shoal": {
+    "said": [
+      "The site is exposed to swells from the south west",
+      "No special skills required. Reasonable fitness is recommended"
+    ],
+    "swell": ["sw"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"]
+  },
+  "False Bay Yacht Club moorings": {},
+  "Fan Reef": {
+    "said": [
+      "Generally considered a winter dive site",
+      "No special skills are required, though buoyancy control and finning skills should be adequate to avoid damage",
+      "A DSMB and reel are recommended in case it is necessary to surface away from the shotline.",
+      "There is a small swimthrough"
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb", "buoyancy"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Finlay's Deep": {
+    "said": [
+      "The site is exposed to swell from the south east, and to a certain extent, from the south west.",
+      "The site is usually at its best in winter",
+      "no special skills are required"
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true
+  },
+  "Finlay's Point": {
+    "said": [
+      "The site is exposed to south easterly winds and swell",
+      "The site is usually at its best in winter",
+      "No special skills required. The site is suitable for novices.",
+      "Some fitness and agility is recommended for shore entry.",
+      "There are a few large and very colourful swinthroughs under these boulders"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Finlay's Point offshore pinnacles": {
+    "said": [
+      "No special skills required, Enough of the site is shallower than 18 m for it to be suitable for entry level divers.",
+      "making good navigation skills essential",
+      "overhangs, caves and swimthroughs"
+    ],
+    "noSpecialSkills": true,
+    "needs": ["navigation"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Fish Hoek Reef": {
+    "said": [
+      "No special skills required. The depth is suitable for entry level divers.",
+      "A compass is recommended if this is done as a shore dive."
+    ],
+    "noSpecialSkills": true,
+    "needs": ["navigation"]
+  },
+  "Fisherman's Beach": {
+    "said": [
+      "may be good in north westerly or south westerly winds",
+      "No special skills required.",
+      "Suitable for novice snorkelers.",
+      "The site is exposed to wind and waves from the south east"
+    ],
+    "wind": ["sw", "nw"],
+    "swell": ["se"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "Friskies Pinnacle": {
+    "said": [
+      "The site is usually at its best in winter",
+      "No special skills required. The site is shallow enough for entry level divers.",
+      "a strong south easterly wind will eventually produce a sea large enough to be a problem"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true
+  },
+  "Froggy Pond": {
+    "said": [
+      "so it is usually at its best in winter",
+      "suitable for training exercises",
+      "this a suitable site for entry level training dives",
+      "There is plenty of shallow reef for novice snorkellers.",
+      "The site is exposed to wind and waves from the south east"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling", "training"]
+  },
+  "GB Reef": {
+    "said": [
+      "is likely to be at its best in winter",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "A decompression buoy is strongly recommended",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "GB South Reef": {
+    "said": [
+      "is likely to be at its best in winter",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "A decompression buoy is strongly recommended",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Geldkis": {
+    "said": [
+      "The site is often at its best during or after south easterly winds",
+      "It is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "No special skills are required.",
+      "For a shore dive a fair level of fitness is required",
+      "Ability to navigate back by compass is recommended",
+      "Many of the boulders are arranged such that there are overhangs, swim-throughs and caves under them.",
+      "Big swimthroughs, crevices and chimney.",
+      "Walls exposed to the south west and north west swells"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Geldkis Blinder": {
+    "said": [
+      "Often good during or after south easterly winds",
+      "The site is exposed to south westerly swells",
+      "The site is usually at its best during summer",
+      "No special skills are required for a boat dive",
+      "For a shore dive a fair level of fitness is required",
+      "Ability to navigate back by compass is recommended",
+      "A deployable SMB is suggested for boat dives",
+      "There is a large portal arch swim-through",
+      "Walls exposed to the south west and north west swells"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "dsmb", "fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Giant's Castle": {
+    "said": [
+      "The site is exposed to swell from the south and south-east",
+      "The site will generally be at its best in winter",
+      "No special skills are needed",
+      "the ability to deploy a DSMB is recommended"
+    ],
+    "swell": ["se", "s"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Glencairn Barge": {
+    "said": [
+      "The site is usually at its best in winter",
+      "No special skills required on boat dives.",
+      "Good fitness and ability to navigate with a compass are required for shore dives.",
+      "On night dives a light on the shot line will help divers find their way back"
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"],
+    "goodFor": ["night"]
+  },
+  "Glencairn Fan Garden": {
+    "said": [
+      "the site is usually at its best in winter",
+      "No special skills required, the site is suitable for entry level divers.",
+      "A DSMB is recommended if you plan to go far from the shotline",
+      "The site is exposed to south easterly wind and waves."
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Good Hope Reef": {
+    "said": ["No special skills are required"],
+    "noSpecialSkills": true
+  },
+  "Groot Pannekoek": {
+    "said": [
+      "Best after South Easterly winds (offshore).",
+      "The dive site is exposed to the South West swell",
+      "The site is usually at its best in summer",
+      "The site requires fitness if dived from the shore",
+      "Ability to navigate back underwater is recommended if there is a south east wind forecast."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "needs": ["navigation", "fitness"]
+  },
+  "HNMS Bato": {
+    "said": [
+      "Generally best in winter.",
+      "No special skills required.",
+      "Suitable site for novice snorkellers"
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "Hakka Reef": {
+    "said": [
+      "The site will probably be at its best in summer after a strong south-easterly wind",
+      "exposed to the wind and to swells from all directions with some west in them",
+      "good buoyancy control and finning techniques are essential",
+      "There are a few swim-throughs and deep protected gullies in the area known as Sven's Caves",
+      "No special skills required, but because of the strong surge and delicate corals and invertebrates, good buoyancy control and finning techniques are essential"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["buoyancy"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Harvest Capella": {
+    "said": [
+      "so should be dived in south-easterly winds",
+      "The site is usually at its best in summer",
+      "No special skills required. The site is suitable for entry level divers if the weather and sea conditions are acceptable.",
+      "The site is exposed to north westerly winds and seas"
+    ],
+    "wind": ["se"],
+    "swell": ["nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "Hermes": {
+    "said": [
+      "The site is likely to be at its best in summer after a southeasterly wind",
+      "No special skills required. The depth is suitable for entry level divers.",
+      "The site is exposed to northwesterly winds and waves",
+      "the prevailing southwesterly swells will often refract around Green Point and break on the shore"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "Het Huis te Kraaiestein": {
+    "said": [
+      "is diveable in strong southeasterly winds",
+      "The site is usually at its best in summer",
+      "No special skills required.",
+      "Popular area for training and night dives.",
+      "This is an area well sheltered from the south west swell, but as it is shallow, there is usually some surge."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "training"]
+  },
+  "Highfields": {
+    "said": [
+      "is often good in south easterly winds in summer",
+      "The site is usually at its best in summer",
+      "It is essential to be able to find your way back to the shotline",
+      "A DSMB is strongly recommended",
+      "The site is exposed to wind and waves from the north west and west"
+    ],
+    "wind": ["se"],
+    "swell": ["w", "nw"],
+    "season": ["summer"],
+    "needs": ["navigation", "dsmb"]
+  },
+  "Humpback Ridge": {
+    "said": [
+      "should be dived in calm or south-easterly winds",
+      "The site is usually at its best in summer",
+      "No special skills required",
+      "The site is suitable for fairly fit entry level divers.",
+      "The site is exposed to westerly wind and waves",
+      "when the prevailing south-westerly swell is moderate to low"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"]
+  },
+  "Insanity Reef": {
+    "said": [
+      "waves from the south east and south west",
+      "The site will usually be at its best in winter",
+      "No special skills are required for boat dives.",
+      "The ability to navigate using a compass is necessary for a shore dive as is a reasonable level of fitness",
+      "A SMB to indicate your position to boats, and a compass to navigate to and from the reef are necessary for shore entry dives.",
+      "a small sand-bottomed swim-through with about 4 entrances"
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Josh's Reef": {
+    "said": [
+      "the ability to deploy a decompression buoy",
+      "A decompression buoy is strongly recommended",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"]
+  },
+  "Justins Caves": {
+    "said": [
+      "The site is often at its best during or after south easterly winds",
+      "It is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "No special skills required.",
+      "Reasonable fitness and agility are recommended",
+      "A compass is recommended",
+      "Several swim-throughs and caves"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Kalk Bay Harbour Wall": {
+    "said": [
+      "The site is usually at its best in winter",
+      "No special skills are required.",
+      "This is a popular training area for commercial and scientific divers.",
+      "If you intend to go far from the wall a compass and SMB are recommended"
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation"],
+    "goodFor": ["training"]
+  },
+  "Kanobi's Wall": {
+    "said": [
+      "The site is exposed to westerly swells and wind",
+      "South westerly swell will significantly affect diving",
+      "The site is usually at its best in summer",
+      "a DSMB and compass are recommended",
+      "Divers should be adequately skilled at buoyancy control in surge",
+      "Large swimthrough, at 13 m depth"
+    ],
+    "swell": ["sw", "w"],
+    "season": ["summer"],
+    "needs": ["navigation", "dsmb", "buoyancy"],
+    "goodFor": ["swim-throughs"]
+  },
+  "King Emperor": {
+    "said": [
+      "so should be dived after southeasterly winds",
+      "is more likely to be good in summer",
+      "The site is exposed to wind and seas from the southwest and northwest"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "season": ["summer"]
+  },
+  "Klein Pannekoek": {
+    "said": [
+      "Best after south-easterly winds (offshore).",
+      "The site requires fitness if dived from the shore.",
+      "The ability to navigate back underwater on a shore entry dive is strongly recommended"
+    ],
+    "wind": ["se"],
+    "needs": ["navigation", "fitness"]
+  },
+  "Klein Tafelberg": {
+    "said": [
+      "The site is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "Ability to navigate with a compass and to deploy a DSMB are necessary for the deep dive route.",
+      "No special skills are required, but appropriate certification for the depth is expected."
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "dsmb"]
+  },
+  "Kruis": {
+    "said": [
+      "The site is exposed to south west swell.",
+      "The site is usually at its best during or after south easterly wind in summer",
+      "No special skills required."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "Ledges": {
+    "said": [
+      "Best during or after South Easterly winds.",
+      "No special skills required for boat dive.",
+      "Reasonable fitness would be required for shore dive"
+    ],
+    "wind": ["se"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"]
+  },
+  "Livingstone Reef": {
+    "said": [
+      "or if the wind is somewhat from the west",
+      "is often good in winter",
+      "The ability to deploy a DSMB is recommended.",
+      "The site is exposed to south easterly wind and waves",
+      "if the wave period is long there may be significant surge",
+      "a few overhangs and small swim-throughs",
+      "No special skills required, Most of the site is deeper than the recommended limit for most entry level divers"
+    ],
+    "wind": ["w"],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Logies Bay": {
+    "said": [
+      "The site is exposed to swells from the west, and is often good during or after south easterly winds.",
+      "The site is usually at its best in summer",
+      "No special skills required.",
+      "if the swell is large or long period it will get into the bay"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "Lonehill Reef": {
+    "said": [
+      "The ability to deploy a decompression buoy",
+      "A DSMB is strongly recommended"
+    ],
+    "needs": ["dsmb"]
+  },
+  "Long Beach Simon's Town": {
+    "said": [
+      "it is usually at its best in winter",
+      "No special skills are required.",
+      "The site is popular for training exercises and night dives",
+      "is very popular as a training site and for night dives",
+      "produce high enough waves to be a hazard"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "training"]
+  },
+  "Lorry Bay": {
+    "said": [
+      "the wind is calm or from the south east, for a high probability of good conditions",
+      "The site is partly exposed to south westerly swell",
+      "The site is usually at its best in summer",
+      "Suitable for night dives and for novice divers and trainees.",
+      "often used for training and night dives"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "training"]
+  },
+  "MFV Orotava": {
+    "said": [
+      "The site is exposed to swell from the south east, and to a certain extent, from the south west.",
+      "The site is usually at its best in winter",
+      "The engine room is accessible for the appropriately skilled and equipped diver",
+      "you can swim into the superstructure from the forward end above the winch"
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "goodFor": ["swim-throughs"]
+  },
+  "MFV Princess Elizabeth": {
+    "said": [
+      "The site is exposed to swell from the south east, and to a certain extent, from the south west.",
+      "The site is usually at its best in winter",
+      "Various penetrations are possible to the competent and properly equipped diver."
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "goodFor": ["swim-throughs"]
+  },
+  "MV Afrikaner": {
+    "said": [
+      "The site is exposed to all winds and swells with a westerly component",
+      "may be good after a southeaster",
+      "The site is likely to be at its best in summer",
+      "a reel with DSMB to mark ascent position",
+      "are strongly recommended"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb"]
+  },
+  "MV Antipolis": {
+    "said": [
+      "No special skills required.",
+      "Reasonable fitness and agility are recommended",
+      "The site has been used for training and snorkelling.",
+      "particularly if penetration is intended"
+    ],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["snorkelling", "training", "swim-throughs"]
+  },
+  "MV Aster": {
+    "said": [
+      "The site is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "This makes it a very suitable site for wreck penetration training.",
+      "the Aster is a good wreck for wreck penetration training",
+      "Penetrations of varying levels of difficulty are possible.",
+      "it is still important to maintain precise buoyancy control",
+      "No special skills are required unless penetration is intended"
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["buoyancy"],
+    "goodFor": ["training", "swim-throughs"]
+  },
+  "MV Daeyang Family": {
+    "said": [
+      "swells from the north west and southwest",
+      "The site is usually at its best in summer",
+      "No special skills recommended. The site is suitable for entry level divers of reasonable skill if the conditions are good.",
+      "A DSMB and reel are recommended if you are not going to ascend at the shotline."
+    ],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "MV Gemsbok": {
+    "said": [
+      "The site is exposed to all winds and swells with a westerly component",
+      "may be good after a southeaster",
+      "The site is likely to be at its best in summer",
+      "DSMB with reel",
+      "are necessary",
+      "A large hatch on the foredeck gives access to part of the interior.",
+      "If penetrations are planned, the appropriate equipment must be used."
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "MV Katsu Maru": {
+    "said": [
+      "The site is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "The hull is said to provide challenging penetrations.",
+      "There are a few places where access to the interior is reasonably practicable",
+      "No special skills required unless penetration is intended"
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["swim-throughs"]
+  },
+  "MV Ker Yar Vor and the Jo May": {
+    "said": [
+      "should be dived when the wind is from the south, preferably south east, and is often good in strong south easterly winds",
+      "The site is usually at its best in summer",
+      "No special skills recommended.",
+      "The site is exposed to north westerly winds and seas"
+    ],
+    "wind": ["se", "s"],
+    "swell": ["nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "MV Rockeater": {
+    "said": [
+      "The site is exposed to swell from the south east, and to a certain extent, from the south west.",
+      "The site is usually at its best in winter",
+      "Limited but challenging penetrations have been reported."
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "goodFor": ["swim-throughs"]
+  },
+  "MV Romelia": {
+    "said": [
+      "The site is exposed to wind and swell from the south west and north west",
+      "so should be dived during or after a period of calm or south easterly wind",
+      "The site is usually at its best in summer",
+      "No special skills required."
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "MV Seli 1": {
+    "said": [
+      "waves from the west and north-west",
+      "so should be dived in easterly winds or a calm",
+      "is most likely to be diveable in summer, during or after south easterly winds",
+      "No special skills required."
+    ],
+    "wind": ["e", "se"],
+    "swell": ["w", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "MV Treasure": {
+    "said": [
+      "swells from the north west and south west",
+      "The site should be at its best in summer",
+      "Each diver should carry a DSMB and reel"
+    ],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb"]
+  },
+  "MV Winton": {
+    "said": [
+      "waves from the west and north-west",
+      "so should be dived in easterly winds or a calm",
+      "is most likely to be diveable in summer, during or after south easterly winds",
+      "No special skills needed"
+    ],
+    "wind": ["e", "se"],
+    "swell": ["w", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "Maidstone Rock": {
+    "said": [
+      "so should be dived in westerly winds or a calm",
+      "The site should usually be at its best in winter",
+      "Ability to deploy a DSMB recommended.",
+      "good buoyancy control is needed to stay above 18 m",
+      "The site is exposed to wind and waves from the southeast",
+      "long period swells from the southwest will cause strong surge",
+      "No special skills required"
+    ],
+    "wind": ["w"],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb", "buoyancy"]
+  },
+  "Midway Ridge": {
+    "said": [
+      "is likely to be at its best in winter",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "A decompression buoy is strongly recommended",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Mike's Point": {
+    "said": ["No special skills required."],
+    "noSpecialSkills": true
+  },
+  "Miller's Point": {
+    "said": [
+      "No special skills required.",
+      "The protected cove at the end of the point is suitable for training entry level divers",
+      "The area is suitable for night dives and for snorkelling.",
+      "some smallish swim-throughs"
+    ],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "snorkelling", "training", "swim-throughs"]
+  },
+  "Moddergat": {
+    "said": [
+      "swell from the south-west",
+      "No special skills required. The site is shallow enough for entry level divers."
+    ],
+    "swell": ["sw"],
+    "noSpecialSkills": true
+  },
+  "Mooivlei": {
+    "said": [
+      "may be good after a southeaster",
+      "The site is exposed to all winds and swells with a westerly component",
+      "The site is likely to be at its best in summer",
+      "DSMBs are also recommended if ascent occurs away from the shotline"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb"]
+  },
+  "Muizenberg trawler wrecks": {
+    "said": [
+      "should be dived in westerly winds or a calm",
+      "The site is exposed to southerly swells",
+      "The site is usually at its best in winter",
+      "No special skills required.",
+      "Limited access to the hull of the eastern wreck is possible through the deck frames",
+      "south easterly wind waves",
+      "will feel the surge if there is a south westerly swell running"
+    ],
+    "wind": ["w"],
+    "swell": ["se", "s", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["swim-throughs"]
+  },
+  "Murphy's": {
+    "said": [
+      "The site is exposed to south easterly wind and swell",
+      "The site is at its best in winter",
+      "No special skills required. Entry-level divers can dive the site if reasonably competent and able to use a DSMB.",
+      "DSMB highly recommended"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Mushroom Pinnacle": {
+    "said": [
+      "Usually at its best after south easterly winds in summer",
+      "The site is exposed to westerly swells",
+      "No special skills are required, other than the ability to find a position using compass bearings",
+      "For a shore dive a fair level of fitness is required as there is a long swim to and from the site",
+      "Ability to navigate back by compass is recommended",
+      "a low and fairly cramped swim-through between"
+    ],
+    "wind": ["se"],
+    "swell": ["w"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Noah's Ark": {
+    "said": [
+      "Mostly this will be autumn or winter",
+      "No special skills required.",
+      "A good wreck for beginners",
+      "Reasonable fitness is necessary to do this as a shore dive, due to the long swim.",
+      "A compass is necessary if you wish to return to shore or navigate between the wrecks under water"
+    ],
+    "season": ["autumn", "winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"]
+  },
+  "North Island Reef": {
+    "said": [
+      "is likely to be at its best in winter",
+      "This includes carrying and using appropriate gases and deploying a decompression buoy to mark the position of the divers during ascent.",
+      "A decompression buoy is strongly recommended",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "North Paw": {
+    "said": [
+      "is more likely to be good after south east wind",
+      "The site is exposed to the south west swell",
+      "The site is usually at its best in summer",
+      "would make a very interesting night dive",
+      "Some of the boulders have swim-throughs between or under them",
+      "A shot line and/or DSMB is recommended",
+      "No special skills required, though the ability to deploy a DSMB is useful in case you are separated from the group or need to surface away from the shot line"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["night", "swim-throughs"]
+  },
+  "Off-Whittle Ridge": {
+    "said": [
+      "swells from the southwest",
+      "No special skills required or recommended.",
+      "A DSMB and reel are recommended to alert the boat's crew of your position when surfacing.",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Offshore Barges": {
+    "said": [
+      "The site will usually be at its best in early winter",
+      "The ability to deploy a DSMB is strongly recommended."
+    ],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Omega Reef": {
+    "said": [
+      "The site is usually at its best in winter",
+      "If you plan to surface away from the shotline, a DSMB is recommended.",
+      "so there are some overhangs and a swim-through",
+      "The site is completely exposed to weather and seas from the south and east",
+      "No special skills required"
+    ],
+    "swell": ["e", "se", "s"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Outer Photographer's Reef": {
+    "said": [
+      "The site is usually at its best in winter",
+      "No special skills required.",
+      "Ability to deploy a DSMB is recommended."
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "P87": {
+    "said": [
+      "so should be dived in winter",
+      "is often good in normal winter westerlies",
+      "No special skills required or recommended. The site is suitable for entry level divers"
+    ],
+    "wind": ["w"],
+    "season": ["winter"],
+    "noSpecialSkills": true
+  },
+  "Partridge Point": {
+    "said": [
+      "The site is often at its best after a north west wind",
+      "may be good even during an easterly if it is not too strong",
+      "is moderately exposed to south westerly swell",
+      "The site is usually at its best in winter",
+      "No special skills are required.",
+      "Reasonable buoyancy control is desirable to avoid damaging the reef life.",
+      "would be a good area for snorkelling",
+      "forming overhangs and swim-throughs in a few places",
+      "The site is exposed to south east wind and waves"
+    ],
+    "wind": ["e", "nw"],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["buoyancy"],
+    "goodFor": ["snorkelling", "swim-throughs"]
+  },
+  "Penguin Point": {
+    "said": [
+      "The site is usually considered a winter dive",
+      "No special skills required. Suitable for novice divers and snorkellers.",
+      "The site is exposed to south easterly winds and waves"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "Percy's Hole": {
+    "said": [
+      "The site is usually at its best during or after south easterly wind in summer",
+      "The site is exposed to south west swell.",
+      "No special skills are required. The site is suitable for novice divers and some areas are good snorkelling",
+      "Moderate fitness and agility is required for shore dives.",
+      "This is a good site for night dives",
+      "Under this is the tunnel (swim-through) in a deep part of the gully."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["night", "snorkelling", "swim-throughs"]
+  },
+  "Phil's Bay": {
+    "said": [
+      "Best after south-easter, but swell must be low.",
+      "The site is exposed to swell and wind from the south west and to a lesser extent north west",
+      "The site is usually at its best in summer",
+      "No special skills required. Suitable for night dives if conditions are appropriate."
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["night"]
+  },
+  "Phoenix Shoal": {
+    "said": [
+      "The site is usually at its best in winter",
+      "No special skills required."
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true
+  },
+  "Phone Reef": {
+    "said": [
+      "The site will usually be at its best in winter",
+      "The ability to deploy a DSMB is strongly recommended",
+      "The site is exposed to wind and waves from the south-east"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Photographer's Reef": {
+    "said": [
+      "and in moderate north westerly winds",
+      "The site is usually at its best in winter",
+      "No special skills are required for boat dives.",
+      "Reasonable fitness, the ability to navigate by compass, and ability to predict air endurance reasonably accurately are required for shore dives.",
+      "making the area very suitable for navigation exercises",
+      "Several swimthroughs formed by boulders wedged into gaps between outcrops."
+    ],
+    "wind": ["nw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"],
+    "goodFor": ["training", "swim-throughs"]
+  },
+  "Pie Rock and Outer Castle reefs": {
+    "said": [
+      "Generally considered a late autumn and winter dive site",
+      "within the range for entry level divers",
+      "otherwise no special skills are required for boat dives",
+      "Ability to navigate using a compass and fitness to swim the distance are required for a shore dive.",
+      "Swim-through under the rock at Outer Castle",
+      "a strong south-easter or one that blows for a long time will push up a swell that will make it unpleasant all the way down",
+      "A long low south westerly swell may produce surge and a small break over the top"
+    ],
+    "swell": ["se", "sw"],
+    "season": ["autumn", "winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Pinnacle": {
+    "said": [
+      "the wind is calm or from the south east, for a high probability of good conditions",
+      "The site is partly exposed to south westerly swell",
+      "The site is usually at its best in summer",
+      "No special skills required.",
+      "Night dives are best done from a boat",
+      "This is a popular site for training and for novice divers",
+      "A reasonable level of fitness is recommended for shore diving"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["night", "training"]
+  },
+  "Pyramid Rock reef and Shark Alley": {
+    "said": [
+      "Swell from the south west or south east will cause surge",
+      "Usually considered to be a winter dive",
+      "No special skills required. A good site for the fit and competent snorkeller.",
+      "A reasonable level of fitness and agility is required for the shore entries.",
+      "One of them has a large swim-through under it."
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["snorkelling", "swim-throughs"]
+  },
+  "Quarry": {
+    "said": [
+      "the site is usually at its best in winter",
+      "No special skills are required. The site is suitable for novices and snorkelling, and appears suitable for night dives.",
+      "The site is exposed to south easterly wind and waves."
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "snorkelling"]
+  },
+  "RMS Athens": {
+    "said": [
+      "can be dived during south easterly winds with little risk",
+      "The site is very exposed to westerly seas, and moderately exposed to south westerly swell",
+      "is most likely to be  good in summer",
+      "No special skills recommended.",
+      "Fitness should be sufficient to deal with the wave conditions of the day."
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"]
+  },
+  "Rachel's Reef": {
+    "said": [
+      "should be dived in calm or south-easterly winds",
+      "The site is usually at its best in summer",
+      "The site is suitable for fairly fit entry level divers.",
+      "There are small caves and swim-throughs reported from the south-west part of the reef",
+      "The site is exposed to westerly wind and waves",
+      "when the prevailing south-westerly swell is moderate to low"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Rambler Rock": {
+    "said": [
+      "The site is usually at its best in winter and spring",
+      "No special skills required, but much of the reef is below the depths recommended for entry level divers"
+    ],
+    "season": ["winter", "spring"],
+    "noSpecialSkills": true
+  },
+  "Random Rocks Reefs": {
+    "said": [
+      "so should be dived in westerly winds",
+      "It should be at its best in autumn, winter or spring",
+      "A DSMB is recommended to alert the skipper of your position when surfacing away from the shotline.",
+      "The site is exposed to south easterly winds and waves",
+      "No special skills required"
+    ],
+    "wind": ["w"],
+    "swell": ["se"],
+    "season": ["autumn", "winter", "spring"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Reigersdaal": {
+    "said": [
+      "An offshore wind (southeaster) and high tide are likely to improve conditions",
+      "the site is exposed to both the prevailing southwesterly swell, and the common winter northwesterly seas",
+      "No special skills recommended."
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "noSpecialSkills": true
+  },
+  "Robben Island steamer wreck": {
+    "said": [
+      "may be good after a strong south easterly wind",
+      "The site is exposed to westerly swells",
+      "The site should be at its best in late summer",
+      "Deep diving skills are recommended, and the ability to deploy a DSMB in case you don't get back to the shotline."
+    ],
+    "wind": ["se"],
+    "swell": ["w"],
+    "season": ["summer"],
+    "needs": ["dsmb"]
+  },
+  "Rocklands blinder": {
+    "said": [
+      "Winter dive site, should be good after north-westerlies.",
+      "No special skills required for boat dives.",
+      "Ability to navigate by compass, and reasonable fitness and agility are required for a shore dive."
+    ],
+    "wind": ["nw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"]
+  },
+  "Rocky Bank": {
+    "said": [
+      "the prevailing south-westerly open ocean swell is not greatly attenuated by the bottom when it reaches the bank",
+      "The ability to deploy a DSMB is recommended even for no-stop dives.",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"]
+  },
+  "Rocky Bay": {
+    "said": [
+      "the wind is calm or moderate from the south east, for a high probability of good conditions",
+      "The site is exposed to south westerly swell",
+      "The site is usually at its best in early summer",
+      "No special skills required. Moderate fitness and agility is required for a shore entry."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"]
+  },
+  "Roman Rock": {
+    "said": [
+      "The site is usually at its best in winter and spring.",
+      "No special skills required"
+    ],
+    "season": ["winter", "spring"],
+    "noSpecialSkills": true
+  },
+  "Rooi-els Point": {
+    "said": [
+      "Exposed to south westerly swells.",
+      "No special skills required.",
+      "Moderate fitness and agility is needed for the shore entry and exit"
+    ],
+    "swell": ["sw"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"]
+  },
+  "SAS Bloemfontein": {
+    "said": [
+      "The site is exposed to the southwesterly swell.",
+      "DSMB and spool should be carried by each diver in case of ascent off the shotline.",
+      "Penetrations should only be planned by suitably competent divers",
+      "is affected by wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "SAS Fleur": {
+    "said": [
+      "The ability to deploy a DSMB is strongly recommended.",
+      "A considerable part of the interior is accessible through holes in the side and deck plating and through hatchways",
+      "On subsequent dives if you intend penetration, assess the condition of the structure first",
+      "The area is exposed to wind and swell from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "SAS Gelderland": {
+    "said": [
+      "The site is exposed to south west and north west swell end winds",
+      "The site is usually at its best in summer",
+      "Ability to deploy a DSMB is recommended."
+    ],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb"]
+  },
+  "SAS Good Hope": {
+    "said": [
+      "The site is exposed to swell from the south east, and to a certain extent, from the south west.",
+      "The site is usually at its best in winter",
+      "A DSMB is recommended in case you have to ascend away from the shotline.",
+      "The interior of the hull is now accessible from many places"
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "SAS Pietermaritzburg": {
+    "said": [
+      "waves from the south east and southwest",
+      "a south-easterly swell will often reduce visibility",
+      "The site is usually dived in the winter",
+      "No special skills required for non-penetration dives.",
+      "The site is also suitable for night dives.",
+      "Penetrations of the quarterdeck section are relatively straightforward."
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "swim-throughs"]
+  },
+  "SAS Transvaal": {
+    "said": [
+      "The site is exposed to swell from the south east, and to a certain extent, from the south west.",
+      "The site is usually at its best in winter",
+      "Penetrations should be planned with this risk in mind."
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "goodFor": ["swim-throughs"]
+  },
+  "SATS General Botha": {
+    "said": [
+      "DSMBs or a Jersey upline are also strongly recommended in case the shot line can not be reached for ascent"
+    ],
+    "needs": ["dsmb"]
+  },
+  "SS Bia": {
+    "said": [
+      "so should be dived in low swell and offshore (south easterly) winds",
+      "The site is exposed to westerly swells",
+      "These conditions are most common in summer",
+      "No special skills required."
+    ],
+    "wind": ["se"],
+    "swell": ["w"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "SS Cape Matapan": {
+    "said": [
+      "It is likely to be good in south easterly winds",
+      "The site is exposed to wind and waves from the north west, and to a lesser degree from the southwest, so should be dived the south west swell is low",
+      "The site will usually be at its best in summer",
+      "The ability to deploy a DSMB and navigate by compass is strongly recommended."
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "season": ["summer"],
+    "needs": ["navigation", "dsmb"]
+  },
+  "SS Clan Monroe": {
+    "said": [
+      "is more likely to be good in offshore south easterlies",
+      "The site is usually at its best in summer",
+      "No special skills required. The site is suitable for entry level divers and snorkellers if conditions are good.",
+      "The site is exposed to westerly winds and waves"
+    ],
+    "wind": ["se"],
+    "swell": ["w"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "SS Clan Stuart": {
+    "said": [
+      "Dive during or after westerly winds.",
+      "Generally a winter dive",
+      "Suitable for entry level divers.",
+      "It is suitable for training and night dives",
+      "suitable for reasonably competent snorkellers",
+      "A reasonable level of fitness is desirable to carry the kit",
+      "The site is exposed to south easterly wind and waves"
+    ],
+    "wind": ["w"],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["night", "snorkelling", "training"]
+  },
+  "SS Hypatia": {
+    "said": [
+      "This reef is exposed to the south west swell.",
+      "The site is usually at its best in summer",
+      "No special skills recommended. In a suitably low swell the site is appropriate for entry level divers."
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "SS Lusitania": {
+    "said": [
+      "The ability to deploy a DSMB is strongly recommended, as is the fitness and agility to get back into the boat after the dive quickly",
+      "Ability to follow a compass bearing is necessary if the upper water visibility is bad"
+    ],
+    "needs": ["navigation", "dsmb", "fitness"]
+  },
+  "SS Maori": {
+    "said": [
+      "The site is often at its best during or after a southeasterly wind.",
+      "The bay is partially protected from southwest swell, but some of it will get around Duiker point and will cause surge on the wreck.",
+      "The site is usually at its best in spring and summer",
+      "No special skills required.",
+      "The site has been used for night dives",
+      "Strong swells with a westerly component, particularly from the north west"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer", "spring"],
+    "noSpecialSkills": true,
+    "goodFor": ["night"]
+  },
+  "SS Oakburn and BOS 400": {
+    "said": [
+      "The site is exposed to swell from the west",
+      "The site is usually at its best in summer",
+      "No special skills required for non-penetration dives.",
+      "Penetration is possible"
+    ],
+    "swell": ["w"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["swim-throughs"]
+  },
+  "SS SA Seafarer": {
+    "said": [
+      "This area is exposed to the south west swell",
+      "The site is more likely to be at its best in summer",
+      "No special skills recommended."
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "SS Thomas T Tucker": {
+    "said": [
+      "The site is very exposed to wind and sea from the north west to south west",
+      "if a westerly swell picks up you will have to leave",
+      "The site is most likely to be diveable in late spring and summer",
+      "No special skills required."
+    ],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer", "spring"],
+    "noSpecialSkills": true
+  },
+  "SS Umhlali": {
+    "said": [
+      "is often good in south easterly winds as long as they are not too strong",
+      "The site is exposed to swell and wind waves from the south west and north west",
+      "The site is usually at its best in spring summer and early autumn",
+      "No special skills required. The site is also suitable for snorkelling"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "nw"],
+    "season": ["summer", "autumn", "spring"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "ST Godetia": {
+    "said": [
+      "The site is exposed to south westerly swell",
+      "No special skills are required. The site is shallow enough for entry level divers."
+    ],
+    "swell": ["sw"],
+    "noSpecialSkills": true
+  },
+  "SURG Pinnacles": {
+    "said": [
+      "the best times to dive are during or directly after an extended period of moderate to strong south easterly winds, and this generally happens in summer",
+      "The site is exposed to swells with a westerly component",
+      "Ability to deploy a DSMB from mid-water is strongly recommended, good buoyancy control is essential.",
+      "There are also some swim-throughs"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb", "buoyancy"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Sandy Cove": {
+    "said": [
+      "Often good during or after southeasterly winds.",
+      "The cove is exposed to northwesterly winds, waves and swells",
+      "The site is usually at its best in summer",
+      "The site is very popular as an entry level training venue",
+      "It is also a suitable site for snorkelling and night dives.",
+      "The site is popular for open water training exercises",
+      "There are several small caves and swimthroughs under the group of large rocks"
+    ],
+    "wind": ["se"],
+    "swell": ["nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "snorkelling", "training", "swim-throughs"]
+  },
+  "Sandy-top Ridge": {
+    "said": [
+      "is likely to be at its best in winter",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Sao Jose Paquete d' Africa": {
+    "said": ["No special skills recommended."],
+    "noSpecialSkills": true
+  },
+  "Sea Point Ridge Pinnacles": {
+    "said": [
+      "is often good after strong south easterly winds",
+      "The site is exposed to wind and waves from the north west to the south west, so should be dived when the westerly swells are low",
+      "The site is usually at its best in summer",
+      "buoyancy control should be good enough to surface without a visible reference",
+      "No special skills required, the site is too deep for open water divers, and buoyancy control should be good enough to surface without a visible reference"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["buoyancy"]
+  },
+  "Seal Island": {
+    "said": [
+      "wind waves and swell from the southeast",
+      "No special skills required.",
+      "Cage dives are usually done on snorkel."
+    ],
+    "swell": ["se"],
+    "noSpecialSkills": true,
+    "goodFor": ["snorkelling"]
+  },
+  "Sentinel": {
+    "said": [
+      "Best after south easterly winds (summer).",
+      "Exposed to south westerly swells",
+      "No special skills required.",
+      "Some fitness and agility is needed for shore access",
+      "If you plan to do a shore dive to 30 m, a compass is essential",
+      "The site is suitable for snorkeling."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"],
+    "goodFor": ["snorkelling"]
+  },
+  "Sherwood Forest": {
+    "said": [
+      "The site is often at its best during or after a westerly wind",
+      "either light winds or south-westerly wind",
+      "A north-westerly wind will not usually be a problem for diving",
+      "is moderately exposed to south westerly swell",
+      "The site is usually at its best in winter",
+      "A DSMB and reel is recommended to alert the boat crew of your position when surfacing",
+      "The site is exposed to south east wind and waves",
+      "may be good even during an easterly if it is not too strong"
+    ],
+    "wind": ["e", "sw", "w", "nw"],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Sickle Reef": {
+    "said": [
+      "and swells from the southwest",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"]
+  },
+  "Simon's Town Jetty": {},
+  "Smits Cliff": {
+    "said": [
+      "It would usually be a winter dive.",
+      "No special skills required."
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true
+  },
+  "Smits Reef": {
+    "said": [
+      "The site is exposed to swell from the south east, and to a certain extent, from the south west.",
+      "The site is usually at its best in winter",
+      "no special skills are required",
+      "form a group of swim-throughs, overhangs, gaps and caves"
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["swim-throughs"]
+  },
+  "South Island Reef": {
+    "said": [
+      "is likely to be at its best in winter",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "South Paw": {
+    "said": [
+      "is often good after south east wind",
+      "The site is exposed to the south west swell",
+      "The site is usually at its best in summer",
+      "a large boulder with an arch against the main rocks",
+      "A DSMB is suggested",
+      "No special skills required, but the ability to deploy a DSMB would be useful"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "South-west Reefs": {},
+  "Southwood's Corner": {
+    "said": [
+      "is likely to be at its best in winter",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Spaniard Rock": {
+    "said": [
+      "Usually considered a winter dive site",
+      "No special skills required for the dive.",
+      "Some fitness and agility is required for the climb down and back up to the road.",
+      "A suitable site for competent snorkellers.",
+      "The site is exposed to south easterly winds and waves"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["snorkelling"]
+  },
+  "Star Wall": {
+    "said": [
+      "the best times to dive are during or directly after an extended period of moderate to strong south easterly winds",
+      "The site is exposed to south westerly swells",
+      "large swells or wind waves from the north west to the south west are likely to produce unsafe or unpleasant conditions",
+      "Conditions suitable for diving this site will be most common in summer",
+      "Ability to deploy a DSMB from mid-water is strongly recommended, good buoyancy control is essential.",
+      "There are several small caves and swimthroughs in this area",
+      "the M&M Cave swimthrough is large enough to turn a scooter inside"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb", "buoyancy"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Star of Africa": {
+    "said": [
+      "The site is completely exposed to westerly swells, from northwest to southwest",
+      "is more likely to be good in summer",
+      "a DSMB is recommended in case you have to surface elsewhere",
+      "No special skills are required"
+    ],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Steenbras Ridge": {
+    "said": [
+      "The ability to deploy a DSMB is recommended.",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"]
+  },
+  "Stef's Reef": {
+    "said": [
+      "and swells from the southwest",
+      "deploying a decompression buoy to mark the position of the divers during ascent",
+      "The site is exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"]
+  },
+  "Steps": {
+    "said": [
+      "Often at its best after a south easterly wind.",
+      "The site is exposed to the south west swell",
+      "The site is usually at its best in summer",
+      "No special skills required."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "Stern Reef": {
+    "said": [
+      "No special skills required for boat dive.",
+      "Some fitness and agility required for shore entry and exit.",
+      "with quite a nice swim-through"
+    ],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Stonehenge": {
+    "said": [
+      "so best when the south west swell component is low and short. This may occur during or after south easterly winds.",
+      "The site is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "There are plenty of shallow areas suitable for entry level divers",
+      "No special skills required.",
+      "so a DSMB is recommended in case you do not get back to the shotline",
+      "has several large swim-throughs under the pinnacles"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Strawberry Rocks": {
+    "said": [
+      "The site is often at its best during or after south easterly winds",
+      "It is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "No special skills are required for a boat dive",
+      "For a shore dive a fair level of fitness is required as there is a long swim to and from the site.",
+      "Ability to navigate back by compass is recommended",
+      "there are overhangs, swim-throughs and caves under them"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "fitness"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Sunfish Pinnacle": {
+    "said": [
+      "is often good in south easterly winds",
+      "The site is exposed to south westerly swell and winds",
+      "The site is usually at its best in summer",
+      "The ability to deploy a DSMB is recommended."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "needs": ["dsmb"]
+  },
+  "Sunny Cove": {
+    "said": [
+      "Often at its best during or after westerly winds.",
+      "Usually considered a winter dive site",
+      "No special skills are required.",
+      "Moderate fitness and agility are required for the shore access.",
+      "The site is suitable for snorkelling and has been used for training entry level divers."
+    ],
+    "wind": ["w"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["snorkelling", "training"]
+  },
+  "Super Fan Reef": {
+    "said": [
+      "The site will usually be at its best in winter",
+      "The ability to deploy a DSMB is strongly recommended",
+      "The site is exposed to wind and waves from the south-east"
+    ],
+    "swell": ["se"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "T.S. McEwan": {
+    "said": [
+      "may be good after a southeaster",
+      "The site is exposed to all winds and swells with a westerly component",
+      "The site is likely to be at its best in summer",
+      "The site is exposed to wind and wavaes fron the northeast and southeast"
+    ],
+    "wind": ["se"],
+    "swell": ["ne", "se", "sw", "w", "nw"],
+    "season": ["summer"]
+  },
+  "Tafelberg Deep": {
+    "said": [
+      "The site is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "Compass and DSMB with reel or spool are necessary due to the nature of the dive."
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "needs": ["navigation", "dsmb"]
+  },
+  "Tafelberg Reef": {
+    "said": [
+      "Keep a lookout for times when the south west swell is low and has a short period, after a day or two of strong south-easterly wind. These particularly good conditions",
+      "The site is exposed to south-westerly swells",
+      "The site is usually at its best in summer",
+      "No special skills required",
+      "there are sites within their recommended depth range",
+      "the ability to deploy a DSMB is strongly recommended",
+      "which can be useful for training purposes",
+      "there are several other small caves and swimthroughs at the site"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"],
+    "goodFor": ["training", "swim-throughs"]
+  },
+  "Target Reef": {
+    "said": [
+      "Conditions are more likely to be good in winter, or at any other time when the wind is westerly.",
+      "The site will usually be at its best in winter",
+      "No special skills are required. The central part of the site is shallow enough for entry level divers.",
+      "Reasonable buoyancy control is recommended",
+      "The site is exposed to wind and waves from the south east",
+      "the swell refracting around Cape Point into False Bay may be sufficient to make the site undiveable"
+    ],
+    "wind": ["w"],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["buoyancy"]
+  },
+  "Three Anchor Bay": {
+    "said": ["No special skills required."],
+    "noSpecialSkills": true
+  },
+  "Tivoli Pinnacles": {
+    "said": [
+      "should be dived when the prevailing swell and wind is westerly to at least some extent, or when it is calm",
+      "The site is usually at its best in winter",
+      "No special skills are required. Most of the site is in the depth range suitable for entry level divers",
+      "If you plan to surface away from the shotline, a DSMB is recommended.",
+      "The site is exposed to wind and waves from the south east",
+      "a significant part of the swell will make it round Cape Point, and the surge may be uncomfortable"
+    ],
+    "wind": ["w"],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Tony's Reef": {
+    "said": [
+      "More exposed to south west swell than Pinnacle",
+      "No special skills required."
+    ],
+    "swell": ["sw"],
+    "noSpecialSkills": true
+  },
+  "Torch Reef": {
+    "said": [
+      "The site is usually at its best in winter",
+      "No special skills required"
+    ],
+    "season": ["winter"],
+    "noSpecialSkills": true
+  },
+  "Tristania": {
+    "said": [
+      "may be good after a southeaster",
+      "The site is exposed to all winds and to swells with a westerly component",
+      "The site is likely to be at its best in summer"
+    ],
+    "wind": ["se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"]
+  },
+  "Troglodyte's Cove": {
+    "said": [
+      "No special skills required.",
+      "Reasonable fitness and agility are required for shore entry."
+    ],
+    "noSpecialSkills": true,
+    "needs": ["fitness"]
+  },
+  "Twin Towers": {
+    "said": [
+      "so should be dived in calm or south easterly winds",
+      "The site is usually at its best in summer",
+      "The site is exposed to Westerly winds and seas"
+    ],
+    "wind": ["se"],
+    "swell": ["w"],
+    "season": ["summer"]
+  },
+  "Two Oceans Aquarium": {
+    "said": [
+      "Uncertified visitors can participate in a short Discover Scuba short course taught by an experienced on-site instructor."
+    ],
+    "goodFor": ["training"]
+  },
+  "Vogelsteen": {
+    "said": [
+      "so it is usually best during or after south easterly winds",
+      "The site is usually at its best in summer",
+      "No special skills required.",
+      "Moderate fitness and agility is required for shore entry.",
+      "This area is good for snorkelling.",
+      "It is slightly protected from south west swell but is shallow and there will be surge"
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["fitness"],
+    "goodFor": ["snorkelling"]
+  },
+  "Vulcan Rock": {
+    "said": [
+      "What you want is a few days of low south westerly swell with strong south-easters in the afternoons",
+      "The site is exposed to south westerly swells",
+      "The site is usually at its best in summer",
+      "No special skills required",
+      "A reel with DSMB, Light and Compass are also recommended.",
+      "There is a swim-through cavern directly under Vulcan rock."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true,
+    "needs": ["navigation", "dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Western Deep": {
+    "said": [
+      "The site will usually be at its best in winter",
+      "deploying a decompression buoy to mark the position of the divers during ascent"
+    ],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "Whale Rock": {
+    "said": [
+      "This reef is exposed to the south west swell.",
+      "The site is usually at its best in summer",
+      "No special skills required."
+    ],
+    "swell": ["sw"],
+    "season": ["summer"],
+    "noSpecialSkills": true
+  },
+  "Whirlpool cove": {
+    "said": [
+      "is often good in strong southeasterly winds",
+      "The site is exposed to the prevailing southwesterly swell",
+      "No special skills required."
+    ],
+    "wind": ["se"],
+    "swell": ["sw"],
+    "noSpecialSkills": true
+  },
+  "Whittle Rock": {
+    "said": [
+      "The ability to deploy a DSMB is recommended",
+      "a large swim-through at about 18 m depth",
+      "The sites are exposed to wind and waves from all directions"
+    ],
+    "swell": ["n", "ne", "e", "se", "s", "sw", "w", "nw"],
+    "needs": ["dsmb"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Wilhelm's Wall": {
+    "said": [
+      "so should be dived in low swells and easterly winds, and is likely to be good after a strong southeaster",
+      "swells from the northwest to southwest",
+      "It is likely to be good most often in summer",
+      "the ability to deploy a DSMB is recommended",
+      "Good buoyancy skills are also important",
+      "Some swim-throughs have been reported"
+    ],
+    "wind": ["e", "se"],
+    "swell": ["sw", "w", "nw"],
+    "season": ["summer"],
+    "needs": ["dsmb", "buoyancy"],
+    "goodFor": ["swim-throughs"]
+  },
+  "Windmill Beach": {
+    "said": [
+      "The site is usually at its best in winter",
+      "No special skills required. The site is popular as a training area for entry level divers.",
+      "The site is also suitable for snorkelling and for night dives.",
+      "a small cove with sandy bottom that is suitable for training exercises",
+      "The site is exposed to south easterly wind and waves",
+      "long period swell can cause a strong surge between the rocks"
+    ],
+    "swell": ["se", "sw"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "goodFor": ["night", "snorkelling", "training"]
+  },
+  "Windmill Offshore Reefs": {
+    "said": [
+      "The sites are usually at their best in winter, during or after moderate westerly winds",
+      "Several of the sites are in the depth range appropriate for entry level divers",
+      "No special skills are required",
+      "A DSMB is recommended if you are likely to surface away from the shotline"
+    ],
+    "wind": ["w"],
+    "season": ["winter"],
+    "noSpecialSkills": true,
+    "needs": ["dsmb"]
+  },
+  "Windtoy Reef": {
+    "said": [
+      "swell from both southwest and less often, from southeast",
+      "deploying a decompression buoy to mark the position of the divers during ascent"
+    ],
+    "swell": ["se", "sw"],
+    "needs": ["dsmb"]
+  },
+  "Wreckless Ridge": {
+    "said": [
+      "The site will probably usually be at its best in winter",
+      "deploying a decompression buoy to mark the position of the divers during ascent"
+    ],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  },
+  "York Shoal": {
+    "said": [
+      "No special skills recommended. There is a large area above 18m and therefore suitable for entry level divers.",
+      "The site is exposed to waves from the south east"
+    ],
+    "swell": ["se"],
+    "noSpecialSkills": true
+  },
+  "Zigzag Reef": {
+    "said": [
+      "The site is exposed to swell from the south and south-east",
+      "The site will generally be at its best in winter",
+      "The ability to deploy a DSMB is recommended"
+    ],
+    "swell": ["se", "s"],
+    "season": ["winter"],
+    "needs": ["dsmb"]
+  }
+}
