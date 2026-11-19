@@ -19,6 +19,11 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
   <img src="docs/screenshots/readme/stats-sections.png" width="250" alt="Statistics further down: dives by depth band, the surface conditions opened to show their split, and habits">
   <img src="docs/screenshots/readme/import.png" width="250" alt="Import: download from the Suunto D4i on the server's cable, or import a Subsurface file, with the last import's counts">
 </p>
+<p>
+  <img src="docs/screenshots/readme/explore.png" width="250" alt="Explore: the Cape Peninsula and False Bay with 409 dive sites in clusters, the marine protected areas' zones and the no-diving band round Cape Point">
+  <img src="docs/screenshots/readme/explore-satellite.png" width="250" alt="The satellite view from Miller's Point to Castle Rocks, with the dive sites named over the reefs and the edge of the Castle Rock no-take zone">
+  <img src="docs/screenshots/readme/explore-site.png" width="250" alt="SS Clan Stuart's page: a 9 m wreck in the Table Mountain marine protected area, with its site map, a sonar image and an aerial photo, then its Wikivoyage sections">
+</p>
 
 - **[Calculations checked against Subsurface's own code](docs/calculations.md)**: Subsurface's functions are copied into [one small C++ program](packages/core/test/reference/subsurface.cpp) and run side by side with Shylog's TypeScript on thousands of random dives from [fast-check](https://fast-check.dev), aimed at the boundaries where bugs hide. Every rounded figure must match exactly, on every CI run.
 - **[UDDF that other apps can open](docs/export.md)**: the UDDF Shylog writes is checked in CI against the official [UDDF 3.2.1 schema](fixtures/uddf/uddf_v321.xsd), with each departure from it listed in [export.md](docs/export.md). CI also opens it with Subsurface's own import and checks that each dive comes out the same, gas and cylinders included, so a log moved to Subsurface arrives intact.
