@@ -2,7 +2,8 @@
 import { validateStyleMin } from "@maplibre/maplibre-gl-style-spec"
 import { describe, expect, it, vi } from "vitest"
 
-import { mapStyle, oklch, placesZoom } from "./style"
+import { pageById, siteById, sites } from "./sites"
+import { areaData, mapStyle, oklch, pickedData, placesZoom } from "./style"
 
 const tiles = "pmtiles:///assets/basemap-test.pmtiles"
 
@@ -20,6 +21,11 @@ describe("oklch", () => {
 describe("mapStyle", () => {
   it.each(["light", "dark"] as const)("is a valid %s style", (theme) => {
     expect(validateStyleMin(mapStyle(theme, tiles))).toEqual([])
+  })
+
+  it("is valid with a whole page picked", () => {
+    const picked = pageById.get("page:castor-rock")
+    expect(validateStyleMin(mapStyle("light", tiles, { picked }))).toEqual([])
   })
 
   it("keeps the coastal names and adds OpenStreetMap's from one zoom", () => {
@@ -112,6 +118,44 @@ describe("mapStyle", () => {
       expect(layer?.layout).toMatchObject({
         "text-field": ["coalesce", ["get", "name:en"], ["get", "name"]],
       })
+    }
+  })
+})
+
+describe("pickedData", () => {
+  it("has a site's pin, or every pin a picked page shares, flagged", () => {
+    const one = pickedData(siteById.get("a-frame"))
+    expect(one.features.map((f) => f.properties)).toEqual([
+      { id: "a-frame", name: "A-Frame", type: "reef" },
+    ])
+    const page = pageById.get("page:castle-rocks")!
+    const all = pickedData(page)
+    expect(all.features.map((f) => f.properties.id)).toEqual(
+      page.sites.map(({ id }) => id)
+    )
+    expect(all.features.every((f) => "page" in f.properties)).toBe(true)
+    expect(pickedData().features).toEqual([])
+  })
+
+  it("shows only the sites of a picked page the filters leave", () => {
+    const page = pageById.get("page:castle-rocks")!
+    const [kept] = page.sites
+    expect(
+      pickedData(page, [kept!]).features.map((f) => f.properties.id)
+    ).toEqual([kept!.id])
+  })
+})
+
+describe("areaData", () => {
+  it("leaves a picked page's sites to its own layer, out of the clusters", () => {
+    const page = pageById.get("page:castle-rocks")!
+    const ids = (picked?: Parameters<typeof areaData>[2]) =>
+      areaData("false-bay", sites, picked).features.map((f) => f.properties.id)
+    for (const { id } of page.sites) {
+      expect(ids()).toContain(id)
+      expect(ids(page)).not.toContain(id)
+      // A single site picked stays in its area, under its picked pin.
+      expect(ids(siteById.get(id))).toContain(id)
     }
   })
 })

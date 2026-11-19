@@ -43,7 +43,16 @@ import { extractUrl } from "./extract"
 import { exploreHome } from "./home"
 import { keyRefused } from "./imagery"
 import { cardWidth } from "./card-width"
-import { areas, siteById, sites, type Area, type Site } from "./sites"
+import {
+  areas,
+  isPage,
+  mapLink,
+  siteById,
+  sites,
+  type Area,
+  type Page,
+  type Site,
+} from "./sites"
 import {
   areaData,
   areaSource,
@@ -56,6 +65,7 @@ import {
   mapStyle,
   nameLayers,
   pickedData,
+  pickedLayers,
   pickedSource,
   pinImage,
   pinImages,
@@ -132,7 +142,7 @@ let hoveredSite: Site | undefined
 // What the current style was built with: a change made before it loaded
 // had no source or layer to go to, so it is applied once it has.
 const built = { shown: sites as readonly Site[], zones: true }
-function styleNow(theme: MapTheme, picked?: Site) {
+function styleNow(theme: MapTheme, picked?: Site | Page) {
   built.shown = shownSites
   built.zones = zonesOn
   return mapStyle(theme, tiles, {
@@ -171,11 +181,19 @@ function applyImagery(
 function applyShown(map: MapLibre) {
   if (!map.getSource(areaSource("atlantic"))) return
   built.shown = shownSites
+  const picked = shownPick.current ? mapLink(shownPick.current) : undefined
   for (const area of Object.keys(areas) as Area[]) {
     void map
       .getSource<GeoJSONSource>(areaSource(area))
-      ?.setData(areaData(area, shownSites))
+      ?.setData(areaData(area, shownSites, picked))
       .then(() => mark(map, marked.current, true))
+      .catch(() => {})
+  }
+  // A picked page shows only the sites the filters leave.
+  if (picked && isPage(picked)) {
+    void map
+      .getSource<GeoJSONSource>(pickedSource)
+      ?.setData(pickedData(picked, shownSites))
       .catch(() => {})
   }
 }
@@ -192,14 +210,30 @@ function applyZones(map: MapLibre) {
 const sameSites = (a: readonly Site[], b: readonly Site[]) =>
   a === b || (a.length === b.length && a.every((site, i) => site === b[i]))
 
-// A site's name shown as picked, or not, by feature state.
+// The sites a pick shows: the one, or every site a picked page shares.
+const sitesOf = (link: Site | Page) => (isPage(link) ? link.sites : [link])
+// The middle of what a pick shows.
+function centreOf(link: Site | Page): [number, number] {
+  const shown = sitesOf(link)
+  const lons = shown.map(({ lon }) => lon)
+  const lats = shown.map(({ lat }) => lat)
+  return [
+    (Math.min(...lons) + Math.max(...lons)) / 2,
+    (Math.min(...lats) + Math.max(...lats)) / 2,
+  ]
+}
+
+// A site's name shown as picked, or not, by feature state: a page's every
+// site's, as the picked layer shows them.
 function mark(map: MapLibre, id: string | undefined, picked: boolean) {
-  const site = id ? siteById.get(id) : undefined
-  if (!site || !map.getSource(areaSource(site.area))) return
-  map.setFeatureState(
-    { source: areaSource(site.area), id: site.id },
-    { picked }
-  )
+  const link = id ? mapLink(id) : undefined
+  for (const site of link ? sitesOf(link) : []) {
+    if (!map.getSource(areaSource(site.area))) continue
+    map.setFeatureState(
+      { source: areaSource(site.area), id: site.id },
+      { picked }
+    )
+  }
 }
 
 // A finger's reach around a tap, in pixels, so wet hands still hit a pin.
@@ -280,7 +314,7 @@ const away = () => {}
 // The site the camera aimed at, until the map is moved by hand, and the
 // picked site the map shows and the one whose pin it has marked, which
 // waits for the picked layer to have the site. Kept with the map.
-const held: { current?: Site } = {}
+const held: { current?: Site | Page } = {}
 // How far the desktop's card reaches over the map, which a cluster's zoom
 // aims beside.
 let coverLeft = 0
@@ -322,7 +356,7 @@ function homeView(element: HTMLElement, desk: boolean) {
 function create(
   element: HTMLDivElement,
   theme: MapTheme,
-  picked: Site | undefined,
+  picked: Site | Page | undefined,
   desk: boolean
 ) {
   // A new map's imagery hasn't come yet, whatever the last one's did.
@@ -334,7 +368,7 @@ function create(
     // Where it was left, or at a site in the address, or the coast.
     ...(camera ??
       (picked && {
-        center: [picked.lon, picked.lat] as LngLatLike,
+        center: centreOf(picked) as LngLatLike,
         zoom: siteZoom,
       }) ??
       homeView(element, desk)),
@@ -433,7 +467,7 @@ function create(
       [point.x + reach, point.y + reach],
     ]
     const hits = created.queryRenderedFeatures(box, {
-      layers: [...pinLayers, ...clusterLayers, "picked"],
+      layers: [...pinLayers, ...clusterLayers, ...pickedLayers],
     })
     const distance = (hit: MapGeoJSONFeature) => {
       const at = created.project(pointOf(hit))
@@ -474,7 +508,12 @@ function create(
   })
   // One target for every layer, so moving from a name onto its pin
   // doesn't fire the name's leave after the pin's enter.
-  const pointable = [...pinLayers, ...nameLayers, ...clusterLayers, "picked"]
+  const pointable = [
+    ...pinLayers,
+    ...nameLayers,
+    ...clusterLayers,
+    ...pickedLayers,
+  ]
   created.on("mouseenter", pointable, () => {
     created.getCanvas().style.cursor = "pointer"
   })
@@ -590,7 +629,7 @@ export default function Basemap({
   // The controls, sheet and cards over the map.
   children?: ReactNode
 }) {
-  const picked = site ? siteById.get(site) : undefined
+  const picked = site ? mapLink(site) : undefined
   const map = useRef<MapLibre | null>(null)
   const theme = useMapTheme()
   // A map kept in another theme is made again rather than shown wrong.
@@ -711,19 +750,56 @@ export default function Basemap({
   // middle of what the sheet or card leaves showing. A site in the address
   // when the map opens is placed there at once.
   const cover = useRef<Cover & { site?: string }>({ left: 0, bottom: 0 })
-  const waiting = useRef<{ site: Site; jump: boolean }>(undefined)
-  const aim = useCallback((site: Site, jump: boolean) => {
-    const current = map.current
-    const { left, bottom } = cover.current
-    held.current = site
-    current?.easeTo({
-      center: [site.lon, site.lat],
-      zoom: Math.max(current.getZoom(), siteZoom),
-      offset: [left / 2, -bottom / 2],
-      duration: jump ? 0 : 450,
-      easing: themeEasing("--ease-drawer"),
-    })
-  }, [])
+  const waiting = useRef<{ site: Site | Page; jump: boolean }>(undefined)
+  const aim = useCallback(
+    (link: Site | Page, jump: boolean) => {
+      const current = map.current
+      const { left, bottom } = cover.current
+      held.current = link
+      const move = {
+        duration: jump ? 0 : 450,
+        easing: themeEasing("--ease-drawer"),
+      }
+      // A page fits all its sites into what the sheet or card leaves, clear
+      // of the phone's pill row, but no closer than a site's own look.
+      if (isPage(link) && current) {
+        const lons = link.sites.map(({ lon }) => lon)
+        const lats = link.sites.map(({ lat }) => lat)
+        const box = current.getContainer()
+        const top = desk ? 40 : 88
+        // Room past the outer pins for their names, which sit beside them
+        // on either side, less where the map has little to spare.
+        const across = Math.min(112, (box.clientWidth - left - 120) / 2)
+        const down = Math.min(40, (box.clientHeight - bottom - top - 80) / 2)
+        const camera = current.cameraForBounds(
+          [
+            [Math.min(...lons), Math.min(...lats)],
+            [Math.max(...lons), Math.max(...lats)],
+          ],
+          {
+            padding: {
+              left: left + Math.max(8, across),
+              right: Math.max(8, across),
+              top,
+              bottom: bottom + Math.max(8, down),
+            },
+            maxZoom: 16,
+          }
+        )
+        if (camera) return current.easeTo({ ...camera, ...move })
+      }
+      current?.easeTo({
+        center: centreOf(link),
+        // A page, too big to fit, keeps the zoom it has.
+        zoom: isPage(link)
+          ? current.getZoom()
+          : Math.max(current.getZoom(), siteZoom),
+        offset: [left / 2, -bottom / 2],
+        ...move,
+      })
+    },
+    [desk]
+  )
   // The move waits for the sheet to say what it covers, a render after a
   // first pick, and until the map is moved by hand keeps the site in the
   // middle of what's left as that changes (a peek rewrapped, a wider card).
@@ -794,12 +870,17 @@ export default function Basemap({
     }
     const jump = !placed.current
     placed.current = true
+    const before = shownPick.current ? mapLink(shownPick.current) : undefined
     shownPick.current = picked?.id
+    // A page's sites leave their areas' clusters while it's picked.
+    if ((before && isPage(before)) || (picked && isPage(picked))) {
+      applyShown(current)
+    }
     // The old pin's mark goes and the new one's comes once the picked layer
     // has the site, so its name never shows twice or not at all.
     void current
       .getSource<GeoJSONSource>(pickedSource)
-      ?.setData(pickedData(picked))
+      ?.setData(pickedData(picked, shownSites))
       .then(() => {
         if (map.current !== current || shownPick.current !== picked?.id) {
           return

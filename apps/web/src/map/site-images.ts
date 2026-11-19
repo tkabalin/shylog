@@ -2,6 +2,7 @@ import creditsUrl from "./image-credits.json?url"
 import { imageUrls } from "./image-urls"
 import listUrl from "./images.json?url"
 import { fetchJson, loadOnce, useJsonFile } from "./json-file"
+import { pages } from "./sites"
 
 // The site maps, sonar images, aerial photos and wrecks' plans each site's
 // page shows, from Wikimedia Commons: scripts/map/sites.ts lists them and
@@ -33,6 +34,15 @@ type List = {
 }
 type Credit = Omit<SiteImage, "kind" | "caption" | "src" | "thumb">
 
+// A whole page's images, from its sites' lists: those every one of them has
+// (the page's own maps) first, then each site's own, once each.
+export function pageImages(lists: readonly (readonly string[])[]) {
+  const shared = (lists[0] ?? []).filter((name) =>
+    lists.every((list) => list.includes(name))
+  )
+  return [...new Set([...shared, ...lists.flat()])]
+}
+
 const imagesFile = loadOnce(() =>
   Promise.all([
     fetchJson<List>(listUrl),
@@ -47,18 +57,26 @@ const imagesFile = loadOnce(() =>
       if (!src || !thumb) continue
       byFile.set(file, { ...listed, ...credit, src, thumb })
     }
-    return new Map(
-      Object.entries(list.sites).map(([id, names]) => [
-        id,
-        names.flatMap((name) => byFile.get(name) ?? []),
-      ])
-    )
+    const files = (names: readonly string[]) =>
+      names.flatMap((name) => byFile.get(name) ?? [])
+    return new Map([
+      ...Object.entries(list.sites).map(
+        ([id, names]) => [id, files(names)] as const
+      ),
+      ...pages.map(
+        (page) =>
+          [
+            page.id,
+            files(pageImages(page.sites.map(({ id }) => list.sites[id] ?? []))),
+          ] as const
+      ),
+    ])
   })
 )
 
 const none: SiteImage[] = []
 
-// A site's images, undefined until the lists have come.
+// A site's or a whole page's images, undefined until the lists have come.
 export function useSiteImages(id: string) {
   const { loaded } = useJsonFile(imagesFile, id)
   return loaded && (loaded.get(id) ?? none)

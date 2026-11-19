@@ -77,13 +77,20 @@ import { withoutView, type ExploreSearch } from "./search"
 import { ImageViewer } from "./image-viewer"
 import { SiteCard, SiteSheet } from "./site-sheet"
 import { SiteList } from "./site-list"
-import { siteById, sites, type Site } from "./sites"
+import { isPage, mapLink, sites, type Page, type Site } from "./sites"
 import { ZoneRulesList } from "./zone-rules-list"
 import type { Mpa } from "./zone-rules"
 
 // The list's search, kept while the app runs, so the list opens again as
 // it was left.
 let kept = ""
+
+// Whether the filters leave a pick on the map: a page while any of its
+// sites shows.
+const shownWith = (link: Site | Page, filters: SiteFilters) =>
+  isPage(link)
+    ? link.sites.some((site) => matchesSite(site, filters))
+    : matchesSite(link, filters)
 
 // The dive site map with what floats over it: on a phone the filters, the
 // site count that opens the list, Map options and the site's sheet; from
@@ -161,10 +168,10 @@ export default function Explore({
   )
   // A filter that hides the picked site puts it down.
   const setFilters = (next: SiteFilters) => {
-    const picked = search.site ? siteById.get(search.site) : undefined
+    const picked = search.site ? mapLink(search.site) : undefined
     replace({
       ...searchOf(next),
-      ...(picked && !matchesSite(picked, next) && { site: undefined }),
+      ...(picked && !shownWith(picked, next) && { site: undefined }),
     })
   }
   // On a phone the list and the rules are screens a level deeper, so they
@@ -244,18 +251,18 @@ export default function Explore({
     const changed = !!set && set !== filters
     if (!changed && !site && !root) return
     // The map's entry still has its site, which the list's filters may hide.
-    const held = mapSite ? siteById.get(mapSite) : undefined
+    const held = mapSite ? mapLink(mapSite) : undefined
     replace({
       ...(changed && searchOf(set)),
       ...(root
         ? { site: undefined }
         : site
           ? { site }
-          : changed && held && !matchesSite(held, set) && { site: undefined }),
+          : changed && held && !shownWith(held, set) && { site: undefined }),
     })
   }, [view, filters, replace, mapSite])
 
-  const picked = search.site ? siteById.get(search.site) : undefined
+  const picked = search.site ? mapLink(search.site) : undefined
   const listed = useMemo(() => searchSites(query, filtered), [query, filtered])
   // Only the desktop's list rings a pin; a pick or the rules replace it
   // with no mouseleave, so the ring would stay behind.
@@ -874,7 +881,7 @@ function RulesCard({
   onBack,
 }: {
   mpa?: Mpa
-  from?: Site
+  from?: Site | Page
   onBack: () => void
 }) {
   const back = useEffectEvent(onBack)

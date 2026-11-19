@@ -36,7 +36,16 @@ import { siteZone } from "./find"
 import { ImageStrip } from "./image-strip"
 import { withSite } from "./search"
 import { SiteText } from "./site-text"
-import { areas, siteById, siteTypes, wikivoyage, type Site } from "./sites"
+import {
+  areas,
+  isPage,
+  mapLink,
+  pageOf,
+  siteTypes,
+  wikivoyage,
+  type Page,
+  type Site,
+} from "./sites"
 import { zoneRules, type Mpa } from "./zone-rules"
 
 // The zone rules, opened at a marine protected area from a site's zone row.
@@ -44,14 +53,19 @@ type OnRules = (mpa: Mpa) => void
 // Opens the site's image at this place in its strip, full screen.
 type OnImage = (index: number) => void
 
+// What a sheet or card shows: a site, or a whole page several share.
+type Shown = Site | Page
+
 // A link in the text opens another site in place of this one, so the sheet
-// keeps the way back: each step's site and how far down its text it was.
-type Step = { from: string; to: string; scroll: number }
+// keeps the way back: each step's site, how far down its text it was, and
+// whether it was raised (or read more), as a page's rows show without.
+type Step = { from: string; to: string; scroll: number; open: boolean }
 function useTrail(
   id: string | undefined,
   scroller: RefObject<HTMLElement | null>,
+  open: boolean,
   // Runs as the site gone back to shows, in the same render, so it opens
-  // raised with nothing in between.
+  // raised with nothing in between, if it was.
   arrive: (id: string) => void
 ) {
   const [trail, setTrail] = useState<Step[]>([])
@@ -64,7 +78,7 @@ function useTrail(
     setLeaving(undefined)
     if (leaving && id === leaving.from) {
       setTrail(trail.slice(0, -1))
-      arrive(id)
+      if (leaving.open) arrive(id)
     } else if (trail.length && trail.at(-1)!.to !== id) {
       // A site reached any other way, from a pin or after a close, ends it.
       setTrail([])
@@ -73,10 +87,11 @@ function useTrail(
   const follow = useCallback(
     (to: string) => {
       if (!id) return
-      const step = { from: id, to, scroll: scroller.current?.scrollTop ?? 0 }
+      const scroll = scroller.current?.scrollTop ?? 0
+      const step = { from: id, to, scroll, open }
       setTrail((steps) => [...(steps.at(-1)?.to === id ? steps : []), step])
     },
-    [id, scroller]
+    [id, scroller, open]
   )
   const back = trail.at(-1)?.to === id ? trail.at(-1) : undefined
   const restore = useRef<Step>(undefined)
@@ -103,7 +118,7 @@ export function SiteSheet({
   onRules,
   onImage,
 }: {
-  site?: Site
+  site?: Shown
   // A swipe down past the peek.
   onClose: () => void
   onRules: OnRules
@@ -125,7 +140,12 @@ export function SiteSheet({
   const raised = !!site && raisedFor === site.id
   // Put down, it forgets, so the same site picked again opens at its peek.
   if (!site && raisedFor) setRaisedFor(undefined)
-  const { back, follow, goBack } = useTrail(site?.id, content, setRaisedFor)
+  const { back, follow, goBack } = useTrail(
+    site?.id,
+    content,
+    raised,
+    setRaisedFor
+  )
   const [title, setTitle] = useState<HTMLElement | null>(null)
   // A new element each render would undo SiteText's memo.
   const end = useMemo(() => shown && <WikivoyageRow site={shown} />, [shown])
@@ -226,11 +246,27 @@ export function SiteSheet({
                         }
                       />
                     </div>
+                    {/* A page's sites are what it's for, so they come
+                        first, as on the desktop card. */}
+                    {isPage(shown) && (
+                      <Related
+                        shown={shown}
+                        onFollow={follow}
+                        className="mb-3"
+                      />
+                    )}
                     <ImageStrip
                       site={shown}
                       onOpen={onImage}
                       className="-mx-4 scroll-px-4 px-4 pt-1 pb-2"
                     />
+                    {!isPage(shown) && (
+                      <Related
+                        shown={shown}
+                        onFollow={follow}
+                        className="mt-2"
+                      />
+                    )}
                     <SiteText
                       site={shown}
                       className="pt-2 pb-8"
@@ -264,7 +300,7 @@ export function SiteCard({
   onRules,
   onImage,
 }: {
-  site: Site
+  site: Shown
   onRules: OnRules
   onImage: OnImage
 }) {
@@ -275,7 +311,7 @@ export function SiteCard({
   const more = moreFor === site.id
   const close = useRef<HTMLAnchorElement>(null)
   const scroller = useRef<HTMLDivElement>(null)
-  const { back, follow, goBack } = useTrail(site.id, scroller, setMoreFor)
+  const { back, follow, goBack } = useTrail(site.id, scroller, more, setMoreFor)
   const online = useOnline()
   const { width, edge } = useCardWidth()
   // Its inset and width, as drawn: a narrow window caps it.
@@ -393,6 +429,10 @@ export function SiteCard({
               </Button>
             }
           />
+          {/* A page's sites are what it's for, so they show at once. */}
+          {isPage(site) && (
+            <PageSites page={site} onFollow={follow} desk className="mt-5" />
+          )}
           {more && (
             <>
               <ImageStrip
@@ -400,6 +440,9 @@ export function SiteCard({
                 onOpen={onImage}
                 className="-mx-2.5 mt-5 scroll-px-2.5 px-2.5"
               />
+              {!isPage(site) && (
+                <Related shown={site} onFollow={follow} desk className="mt-5" />
+              )}
               <SiteText site={site} className="mt-5" onFollow={follow} />
             </>
           )}
@@ -440,7 +483,7 @@ function CompactBar({
   title,
   back,
 }: {
-  site: Site
+  site: Shown
   raised: boolean
   scroller: RefObject<HTMLElement | null>
   title: HTMLElement | null
@@ -473,7 +516,7 @@ function CompactBar({
       {back && (
         <BackLink
           back={back}
-          aria-label={`Back to ${siteById.get(back.id)?.name}`}
+          aria-label={`Back to ${mapLink(back.id)?.name}`}
           className="grid size-11 shrink-0 place-items-center rounded-full text-primary active:opacity-50 active:duration-0"
         >
           <IconChevronLeft className="size-5.5" />
@@ -518,7 +561,7 @@ function Offline() {
 }
 
 // The phone's Read on Wikivoyage, after the text, which reads offline.
-function WikivoyageRow({ site }: { site: Site }) {
+function WikivoyageRow({ site }: { site: Shown }) {
   const online = useOnline()
   const page = wikivoyage(site)
   if (!page) return null
@@ -548,7 +591,7 @@ function Summary({
   titleRef,
   onRules,
 }: {
-  site: Site
+  site: Shown
   desk?: boolean
   // The rules at the site's marine protected area, from its zone row.
   onRules: OnRules
@@ -564,7 +607,9 @@ function Summary({
   titleRef?: (element: HTMLElement | null) => void
 }) {
   // Cached per site: the card re-renders on every move of a drag on its edge.
-  const zone = siteZone(site)
+  // A page's sites can lie in different zones, so it names none.
+  const zone = isPage(site) ? undefined : siteZone(site)
+  const blurb = isPage(site) ? undefined : site.description
   const rule = zone && zoneRules[zone.id]
   const noDive = zone?.kind === "no-dive"
   const page = wikivoyage(site)
@@ -616,6 +661,7 @@ function Summary({
   // A site on a shared page, named for a part of it ("Deep End"), says
   // which page: the reef or wreck it's on.
   const on =
+    !isPage(site) &&
     site.section &&
     site.page &&
     !site.name.toLowerCase().includes(site.page.toLowerCase())
@@ -632,7 +678,7 @@ function Summary({
               className="relative z-10 -mx-1 -my-[13px] flex w-fit max-w-full items-center rounded-sm px-1 py-[13px] text-[13px] leading-[18px] font-medium text-primary outline-offset-2 active:opacity-50 active:duration-0"
             >
               <IconChevronLeft className="-ml-1 size-4 shrink-0" />
-              <span className="truncate">{siteById.get(back.id)?.name}</span>
+              <span className="truncate">{mapLink(back.id)?.name}</span>
             </BackLink>
           ) : (
             <p className="text-[13px] text-pretty text-muted-foreground">
@@ -681,13 +727,15 @@ function Summary({
           </dd>
         </div>
         <div className="flex flex-col gap-0.5">
-          <dt className="text-xs text-muted-foreground">Type</dt>
-          <dd className="text-[17px] font-semibold tracking-[-0.01em]">
-            {siteTypes[site.type]}
+          <dt className="text-xs text-muted-foreground">
+            {isPage(site) ? "Sites" : "Type"}
+          </dt>
+          <dd className="text-[17px] font-semibold tracking-[-0.01em] tabular-nums">
+            {isPage(site) ? site.sites.length : siteTypes[site.type]}
           </dd>
         </div>
       </dl>
-      {site.description ? (
+      {blurb ? (
         <div className="relative">
           <p
             ref={setDescription}
@@ -696,7 +744,7 @@ function Summary({
               clamp && cut && "line-clamp-3"
             )}
           >
-            {site.description}
+            {blurb}
             {/* Kept in the line while the clamp hides it, so a cut can't
                 come and go as it shows. */}
             {read && " "}
@@ -762,5 +810,111 @@ function Summary({
         </div>
       )}
     </>
+  )
+}
+
+// One collation for the page's rows, as the list's.
+const names = new Intl.Collator("en")
+
+// A whole page's sites, A to Z, each opening its own sheet with the way
+// back to the page.
+function PageSites({
+  page,
+  onFollow,
+  desk = false,
+  className,
+}: {
+  page: Page
+  onFollow: (id: string) => void
+  desk?: boolean
+  className?: string
+}) {
+  const sorted = useMemo(
+    () => [...page.sites].sort((a, b) => names.compare(a.name, b.name)),
+    [page]
+  )
+  // Most pages give one depth for all their sites, the page's own, which
+  // the summary shows, so a row shows its depth only where it differs.
+  const own = (site: Site) =>
+    site.depth !== undefined && site.depth !== page.depth
+  return (
+    <ul
+      aria-label={`Sites on ${page.name}`}
+      className={cn("overflow-hidden rounded-[10px] border", className)}
+    >
+      {sorted.map((site) => (
+        <li key={site.id} className="border-b last:border-b-0">
+          <Link
+            to="/explore"
+            search={withSite(site.id)}
+            replace
+            onClick={() => onFollow(site.id)}
+            className={cn(
+              "flex min-h-12 items-center gap-3 pr-2.5 pl-3 text-[15px] transition-colors duration-150 outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset data-press:bg-muted data-press:duration-0",
+              desk && "min-h-10 text-sm hover:bg-muted/60"
+            )}
+          >
+            <span className="min-w-0 flex-1 py-2.5 [overflow-wrap:anywhere]">
+              {site.name}
+            </span>
+            {own(site) && (
+              <span className="shrink-0 text-muted-foreground tabular-nums">
+                {site.approximate && "≈ "}
+                {site.depth} m
+              </span>
+            )}
+            <IconChevronRight className="size-4.5 shrink-0 text-muted-foreground" />
+          </Link>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+// Under a page's own rows; or, on one of its sites, the way to the whole
+// page, for a dive at none of its sites in particular.
+function Related({
+  shown,
+  onFollow,
+  desk = false,
+  className,
+}: {
+  shown: Shown
+  onFollow: (id: string) => void
+  desk?: boolean
+  className?: string
+}) {
+  if (isPage(shown)) {
+    return (
+      <PageSites
+        page={shown}
+        onFollow={onFollow}
+        desk={desk}
+        className={className}
+      />
+    )
+  }
+  const page = pageOf(shown)
+  if (!page) return null
+  return (
+    <Link
+      to="/explore"
+      search={withSite(page.id)}
+      replace
+      onClick={() => onFollow(page.id)}
+      className={cn(
+        "flex min-h-12 items-center gap-3 rounded-[10px] border pr-2.5 pl-3 text-[15px] transition-colors duration-150 outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/50 data-press:bg-muted data-press:duration-0",
+        desk && "min-h-10 text-sm hover:bg-muted/60",
+        className
+      )}
+    >
+      <span className="min-w-0 flex-1 py-2.5 [overflow-wrap:anywhere]">
+        {page.name}
+      </span>
+      <span className="shrink-0 text-muted-foreground tabular-nums">
+        {page.sites.length} sites
+      </span>
+      <IconChevronRight className="size-4.5 shrink-0 text-muted-foreground" />
+    </Link>
   )
 }
