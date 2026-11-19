@@ -57,6 +57,42 @@ test("renames a site with Save @writes", async ({ page, restore }) => {
   await expect(page).toHaveURL(/\/you\/entities\?/)
 })
 
+test("opens a site linked to Explore's map there, in the detail's place @writes", async ({
+  page,
+  restore,
+}) => {
+  const name = `E2E Site ${unique()}`
+  await newSite(page, restore, name, { mapSite: "a-frame" })
+  await page.goto(`/you/entities?kind=site&q=${encodeURIComponent(name)}`)
+  await page.getByRole("link", { name: new RegExp(`^${name},`) }).click()
+  await page.getByRole("link", { name: "Open in Explore" }).click()
+  await expect(page).toHaveURL(/\/explore\?/)
+  expect(new URL(page.url()).searchParams.get("site")).toBe("a-frame")
+  await expect(page.getByRole("dialog", { name: "A-Frame" })).toBeVisible()
+  // Another tab, so Back skips the detail it replaced.
+  await page.goBack()
+  await expect(page).toHaveURL(/\/you\/entities\?kind=site/)
+})
+
+test("unlinks a site from Explore's map, keeping the site, and undoes it @writes", async ({
+  page,
+  restore,
+}) => {
+  const name = `E2E Site ${unique()}`
+  const id = await newSite(page, restore, name, { mapSite: "a-frame" })
+  const mapSite = async () =>
+    (await getLog(page.request)).sites.find((site) => site.id === id)?.mapSite
+  await page.goto(`/you/entities/site/${id}`)
+  await page.getByRole("button", { name: "Unlink from Explore" }).click()
+  const open = page.getByRole("link", { name: "Open in Explore" })
+  await expect(open).toHaveCount(0)
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(name)
+  expect(await mapSite()).toBeNull()
+  await page.getByRole("button", { name: "Undo" }).click()
+  await expect(open).toBeVisible()
+  expect(await mapSite()).toBe("a-frame")
+})
+
 // A phone can't ask before iOS's back swipe leaves, so what was typed is kept
 // for the session instead, until Save.
 const kept = (page: Page, key: string) =>
