@@ -654,8 +654,8 @@ test.describe("at phone width", () => {
       .getByRole("button", { name: `List of ${sites.length} sites` })
       .click()
     const list = page.getByRole("region", { name: "Dive sites" })
-    await list.getByRole("combobox", { name: "Access, Shore or boat" }).click()
-    await page.getByRole("option", { name: "By boat" }).click()
+    await list.getByRole("combobox", { name: "Access, Any access" }).click()
+    await page.getByRole("option", { name: "Boat", exact: true }).click()
     await page.keyboard.press("Escape")
     const boat = sites.filter(byBoat).length
     await expect(list.getByRole("listitem")).toHaveCount(boat)
@@ -683,8 +683,8 @@ test.describe("at phone width", () => {
       .getByRole("button", { name: `List of ${sites.length} sites` })
       .click()
     const list = page.getByRole("region", { name: "Dive sites" })
-    await list.getByRole("combobox", { name: "Access, Shore or boat" }).click()
-    await page.getByRole("option", { name: "By boat" }).click()
+    await list.getByRole("combobox", { name: "Access, Any access" }).click()
+    await page.getByRole("option", { name: "Boat", exact: true }).click()
     await page.keyboard.press("Escape")
     // The map's entry under the list still had A-Frame, a shore dive.
     await page.goBack()
@@ -699,12 +699,12 @@ test.describe("at phone width", () => {
   }) => {
     await page.goto("/explore?site=a-frame")
     await drawn(page)
-    await page.getByRole("combobox", { name: "Access, Shore or boat" }).click()
-    await page.getByRole("option", { name: "By boat" }).click()
+    await page.getByRole("combobox", { name: "Access, Any access" }).click()
+    await page.getByRole("option", { name: "Boat", exact: true }).click()
     await page.keyboard.press("Escape")
     await expect(
-      page.getByRole("combobox", { name: "Access, By boat" })
-    ).toHaveText(/By boat/)
+      page.getByRole("combobox", { name: "Access, Boat" })
+    ).toHaveText(/^Boat/)
     const count = sites.filter(byBoat).length
     await expect(
       page.getByRole("button", { name: `List of ${count} sites` })

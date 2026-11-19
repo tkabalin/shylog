@@ -4,8 +4,7 @@ import { cn } from "cn"
 import { divingLimit, zoneNote } from "./find"
 import { areas, siteTypes, type Access, type Area, type Site } from "./sites"
 
-// How you get in, in a word: "From shore" and "By boat" are the filter's,
-// too long for a row.
+// How you get in, in the Access filter's words.
 const ways: Record<Access, string> = {
   shore: "Shore",
   boat: "Boat",
