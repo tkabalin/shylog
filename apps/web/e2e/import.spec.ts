@@ -67,6 +67,8 @@ test("imports an export against hand-logged dives, end to end @writes", async ({
     })
 
   await page.goto("/")
+  // Leaving a screen while its code still loads makes WebKit reload it.
+  await expect(page.getByRole("heading", { name: "Log" })).toBeAttached()
   await page.goto("/import")
   await expect(page.getByText("Import a Subsurface file")).toBeVisible()
   await page.locator('input[type="file"]').setInputFiles({
@@ -227,6 +229,8 @@ test("takes the values the review switched on from the computer @writes", async 
     })
 
   await page.goto("/")
+  // Leaving a screen while its code still loads makes WebKit reload it.
+  await expect(page.getByRole("heading", { name: "Log" })).toBeAttached()
   await page.goto("/import")
   await page.locator('input[type="file"]').setInputFiles({
     name: "d4i.uddf",
