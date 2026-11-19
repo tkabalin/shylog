@@ -30,9 +30,19 @@ describe("matchesTags", () => {
     expect(matchesTags(site({}), { wind: ["se"] })).toBe(false)
   })
 
+  it("counts the wind's points either side, round past north too", () => {
+    expect(matchesTags(blouklip, { wind: ["e"] })).toBe(true)
+    expect(matchesTags(blouklip, { wind: ["s"] })).toBe(true)
+    expect(matchesTags(blouklip, { wind: ["ne"] })).toBe(false)
+    expect(matchesTags(site({ wind: ["nw"] }), { wind: ["n"] })).toBe(true)
+    expect(matchesTags(site({ wind: ["n"] }), { wind: ["nw"] })).toBe(true)
+  })
+
   it("drops only a site exposed to the swell, not one silent on it", () => {
     expect(matchesTags(blouklip, { swell: ["sw", "nw"] })).toBe(false)
     expect(matchesTags(blouklip, { swell: ["sw"] })).toBe(true)
+    // Swell counts its own point only.
+    expect(matchesTags(blouklip, { swell: ["w"] })).toBe(true)
     expect(matchesTags(site({}), { swell: ["sw"] })).toBe(true)
   })
 

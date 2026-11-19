@@ -85,7 +85,7 @@ const searchInput = z.strictObject({
     .max(compass.length)
     .optional()
     .describe(
-      "Compass points of the wind forecast: sites whose page says they're good in or after any of them. A site whose page names no good wind is left out"
+      "Compass points of the wind forecast: sites whose page says they're good in or after any of them or a point either side (north-west finds sites good in a westerly). A site whose page names no good wind is left out"
     ),
   swell: z
     .array(z.enum(compass))
