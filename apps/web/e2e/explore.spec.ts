@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
 import type { Part } from "../src/map/page-text"
-import { still } from "./ui"
+import { coloursStatusBar, still } from "./ui"
 
 // The sites and their text as the refresh script wrote them, so a refresh
 // that rewords a page doesn't fail these tests.
@@ -773,6 +773,7 @@ test.describe("at phone width", () => {
       viewer.getByRole("img", { name: first, exact: true })
     ).toBeVisible()
     await expect(viewer.getByText(first, { exact: true })).toBeVisible()
+    expect(await coloursStatusBar(viewer)).toBe(true)
     // The credit links to the picture's own page on Commons.
     await expect(
       viewer

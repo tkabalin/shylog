@@ -221,10 +221,13 @@ function Viewer({
           />
         </Shown>
       </div>
+      {/* Fixed rather than absolute, which sits the same, so iOS colours the
+          status bar from this bar. Under a box that fills the screen, as the
+          viewer does, it keeps the status bar's old colour. */}
       <div
         ref={top}
         className={cn(
-          "absolute inset-x-0 top-0 grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 bg-neutral-950 pt-[calc(env(safe-area-inset-top)+1rem)] pr-[calc(env(safe-area-inset-right)+1rem)] pl-[calc(env(safe-area-inset-left)+1rem)]",
+          "fixed inset-x-0 top-0 grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 bg-neutral-950 pt-[calc(env(safe-area-inset-top)+1rem)] pr-[calc(env(safe-area-inset-right)+1rem)] pl-[calc(env(safe-area-inset-left)+1rem)]",
           bars
         )}
       >

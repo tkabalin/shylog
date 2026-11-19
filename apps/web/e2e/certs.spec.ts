@@ -2,7 +2,7 @@ import { expect, type APIRequestContext, type Page } from "@playwright/test"
 
 import { deleteCard, getLog, putCard, test } from "./api"
 import { png } from "./png"
-import { still } from "./ui"
+import { coloursStatusBar, still } from "./ui"
 
 // Digits only: a base-36 tag can spell a word ("mwnamebc"), and a loose
 // locator such as getByLabel("Name") then matches a row holding it.
@@ -96,6 +96,7 @@ test("adds two screenshots as one card, swipes, reorders, renames and deletes it
   await row.click()
   const viewer = page.getByRole("dialog", { name })
   await expect(viewer).toBeVisible()
+  expect(await coloursStatusBar(viewer)).toBe(true)
   await expect(
     viewer.getByRole("tab", { name: "Screenshot 1" })
   ).toHaveAttribute("aria-selected", "true")
