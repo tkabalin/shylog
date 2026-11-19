@@ -25,6 +25,12 @@ describe("search_map_sites", () => {
         area: "False Bay coast",
         type: "reef",
         access: "shore",
+        goodInWind: site.wind,
+        exposedToSwell: site.swell,
+        bestSeason: site.season,
+        noSpecialSkills: site.noSpecialSkills,
+        needs: site.needs,
+        goodFor: site.goodFor,
         maxDepthM: site.depth,
         diving: "allowed",
         zone: "Boulders no-take zone",
@@ -58,16 +64,57 @@ describe("search_map_sites", () => {
 
   it("filters by how its page says you get in", async () => {
     const shore = await search({ access: ["shore"], limit: 200 })
-    expect(shore.sites.map((site) => site.id)).toContain("a-frame")
-    expect(shore.sites.every((site) => site.access === "shore")).toBe(true)
-    const either = await search({ access: ["shore", "both"], limit: 200 })
-    expect(either.sites.length).toBeGreaterThan(shore.sites.length)
+    const ids = shore.sites.map((site) => site.id)
+    expect(ids).toContain("a-frame")
+    // A site dived both ways is a shore dive too, as on the map.
+    expect(ids).toContain("sentinel")
+    expect(
+      shore.sites.every(
+        (site) => site.access === "shore" || site.access === "both"
+      )
+    ).toBe(true)
     // Noble Reef is a boat dive off Rocky Bay's shore entry.
     expect(siteById.get("rocky-bay")!.access).toBe("both")
     expect(siteById.get("rocky-bay/noble-reef")!.access).toBe("boat")
     // A boat dive whose page gives a long swim from the shore is both.
     const [dFrame] = (await search({ name: "d-frame" })).sites
     expect(dFrame).toMatchObject({ access: "both", shoreEntry: "long swim" })
+  })
+
+  it("filters on the page tags as Explore's filters do", async () => {
+    const { sites: found } = await search({
+      wind: ["se"],
+      swell: ["sw"],
+      noSpecialSkills: true,
+      limit: 200,
+    })
+    expect(found.length).toBeGreaterThan(0)
+    for (const site of found) {
+      expect(site.goodInWind).toContain("se")
+      expect(site.exposedToSwell ?? []).not.toContain("sw")
+      expect(site.noSpecialSkills).toBe(true)
+    }
+    const night = await search({ limit: 200, goodFor: ["night"] })
+    expect(night.sites.length).toBeGreaterThan(0)
+    for (const site of night.sites) expect(site.goodFor).toContain("night")
+    // Sites pinned in and out: Blouklip is a summer dive in a south-easter,
+    // SS Maori is exposed to north-west swell, Sentinel asks for fitness.
+    const ids = async (args: Record<string, unknown>) =>
+      (await search({ limit: 200, ...args })).sites.map((site) => site.id)
+    expect(await ids({ wind: ["se"], season: ["summer"] })).toContain(
+      "blouklip"
+    )
+    expect(await ids({ swell: ["nw"] })).not.toContain("ss-maori")
+    expect(await ids({ swell: ["se"] })).toContain("ss-maori")
+    expect(await ids({ avoid: ["fitness"] })).not.toContain("sentinel")
+    expect(await ids({ avoid: ["dsmb"] })).toContain("sentinel")
+  })
+
+  it("refuses a value the tags don't have", async () => {
+    const reply = await callTool(await client(), "search_map_sites", {
+      wind: ["up"],
+    })
+    expect(reply).toMatchObject({ isError: true })
   })
 
   it("filters by who may dive there", async () => {

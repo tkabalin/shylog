@@ -5,6 +5,16 @@ import { format, resolveConfig } from "prettier"
 
 import { dropEmptyHeadings, type Part } from "../../src/map/page-text.ts"
 import {
+  compass,
+  goodFors,
+  needs,
+  seasons,
+  type Compass,
+  type GoodFor,
+  type Need,
+  type Season,
+} from "../../src/map/tag-values.ts"
+import {
   apart,
   blocks,
   capital,
@@ -56,6 +66,7 @@ const cache = join(import.meta.dirname, ".cache/wikivoyage")
 const pinsPath = join(import.meta.dirname, "wikivoyage.json")
 const fixesPath = join(import.meta.dirname, "site-fixes.json")
 const pageFixesPath = join(import.meta.dirname, "page-fixes.json")
+const pageTagsPath = join(import.meta.dirname, "page-tags.json")
 const sitesPath = join(import.meta.dirname, "../../src/map/sites.geojson")
 const pagesPath = join(import.meta.dirname, "../../src/map/pages.json")
 const imagesPath = join(import.meta.dirname, "../../src/map/images.json")
@@ -84,6 +95,20 @@ type Area = "atlantic" | "false-bay" | "offshore" | "east" | "fresh"
 type Access = "shore" | "boat" | "both"
 type ShoreEntry = "long swim" | "climb"
 
+// What a page says about its conditions and who it suits, read from it by
+// hand with the words each tag came from: the winds it's good in or after,
+// the swell it's exposed to, its best seasons, whether it needs no special
+// skills (said so, or fine for entry-level divers or training),
+// the skills it asks for and what it's good for.
+type Tags = {
+  wind?: Compass[]
+  swell?: Compass[]
+  season?: Season[]
+  noSpecialSkills?: true
+  needs?: Need[]
+  goodFor?: GoodFor[]
+}
+
 type Site = {
   id: string
   name: string
@@ -94,6 +119,7 @@ type Site = {
   description?: string
   access?: Access
   shoreEntry?: ShoreEntry
+  tags?: Tags
   page: string
   section?: string
   // A site of its own on a page it shares, which has a part of that page.
@@ -322,6 +348,10 @@ type PageFix = {
 
 const { pins, list, pages: revisions, written } = await read()
 const fixes = JSON.parse(readFileSync(fixesPath, "utf8")) as Record<string, Fix>
+const pageTags = JSON.parse(readFileSync(pageTagsPath, "utf8")) as Record<
+  string,
+  Tags & { said?: string[] }
+>
 const pageFixes = JSON.parse(readFileSync(pageFixesPath, "utf8")) as Record<
   string,
   PageFix
@@ -617,6 +647,46 @@ for (const site of sites) {
   const { access, shoreEntry } = pageFixes[site.page] ?? {}
   if (access) site.access = access
   if (shoreEntry) site.shoreEntry = shoreEntry
+  const { said: _, ...tags } = pageTags[site.page] ?? {}
+  void _
+  if (Object.keys(tags).length) site.tags = tags
+}
+// Only tags and values the filters know, so a slip in the hand-written file
+// can't reach the map unnoticed.
+const known: Record<string, readonly string[]> = {
+  wind: compass,
+  swell: compass,
+  season: seasons,
+  needs,
+  goodFor: goodFors,
+}
+for (const [name, entry] of Object.entries(pageTags)) {
+  for (const [key, value] of Object.entries(entry)) {
+    if (key === "said" || (key === "noSpecialSkills" && value === true))
+      continue
+    const of = known[key]
+    if (
+      !of ||
+      !Array.isArray(value) ||
+      !value.length ||
+      value.some((each) => !of.includes(each))
+    )
+      throw new Error(`${name}: no such tag as ${key} ${JSON.stringify(value)}`)
+  }
+}
+// As the page fixes: every page read, and each tag's words still there.
+for (const [name, { said = [] }] of Object.entries(pageTags)) {
+  const words = pageWords.get(name)
+  if (words === undefined)
+    throw new Error(`Page tags for ${name}, which isn't a page`)
+  for (const each of said) {
+    if (!words.includes(each.replace(/\s+/g, " "))) {
+      console.warn(`${name}: the page no longer says "${each}"`)
+    }
+  }
+}
+for (const name of Object.keys(pageText)) {
+  if (!(name in pageTags)) console.warn(`${name}: no one has read its tags`)
 }
 
 for (const [id, fix] of Object.entries(fixes)) {
@@ -773,6 +843,7 @@ const features = sites.map((site) => {
       approximate: site.approximate,
       access: site.access,
       shoreEntry: site.shoreEntry,
+      ...site.tags,
     },
   })
 })
