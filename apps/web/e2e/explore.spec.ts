@@ -1423,10 +1423,17 @@ test.describe("at desktop width", () => {
     await expect(page).toHaveURL(bySite(to.id))
     const next = page.getByRole("region", { name: to.name })
     // Back to the page, its card as it was, not read on.
-    await next.getByRole("link", { name: castor.name, exact: true }).click()
+    await next
+      .getByRole("navigation", { name: "breadcrumb" })
+      .getByRole("link", { name: castor.name })
+      .click()
     await expect(page).toHaveURL(bySite(castor.id))
     await expect(card.getByRole("button", { name: "Read more" })).toBeVisible()
-    // And from a site's card, once read on, to its whole page.
+    // And from a site's card to its whole page: by the page's name beside
+    // the area, and, once read on, by its row.
+    await page.goto(`/explore?site=${to.id}`)
+    await next.getByRole("link", { name: castor.name, exact: true }).click()
+    await expect(page).toHaveURL(bySite(castor.id))
     await page.goto(`/explore?site=${to.id}`)
     await next.getByRole("button", { name: "Read more" }).click()
     await next
@@ -1481,7 +1488,11 @@ test.describe("at desktop width", () => {
     await link.click()
     const next = page.getByRole("region", { name: site(linked).name })
     await expect(next.getByRole("button", { name: "Read more" })).toBeVisible()
-    await next.getByRole("link", { name: aFrame.name }).first().click()
+    // The way back is a crumb, as desktop's sub-screens have it.
+    await next
+      .getByRole("navigation", { name: "breadcrumb" })
+      .getByRole("link", { name: aFrame.name })
+      .click()
     await expect(page).toHaveURL(bySite("a-frame"))
     // Its text open again, with the section left open.
     await expect(card.getByRole("button", { name: "Read less" })).toBeVisible()
