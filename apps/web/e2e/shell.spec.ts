@@ -580,7 +580,7 @@ test.describe("at desktop width", () => {
       sites.getByRole("heading", { name: "Fresh water" })
     ).toBeAttached()
     // Back sits in the footer, as the dialog's other views have it.
-    await sites.getByRole("button", { name: "Sites" }).click()
+    await sites.getByRole("button", { name: "Sites", exact: true }).click()
     await expect(
       dialog.getByRole("button", { name: "New custom site" })
     ).toBeVisible()

@@ -41,7 +41,7 @@ import { useDesk } from "@/hooks/use-desk"
 import type { NewEntity } from "@/dive/form/values"
 import { isReturn } from "@/lib/keys"
 import { exploreOn } from "@/map/enabled"
-import type { Area, Site as MapSite } from "@/map/sites"
+import type { Area, Page as MapPage } from "@/map/sites"
 
 import {
   countText,
@@ -51,7 +51,14 @@ import {
   nameLimit,
   tidyName,
 } from "./match"
-import { fromMapSite, logSites, regionFor } from "./new-site"
+import {
+  fromMapSite,
+  isMapPage,
+  logSites,
+  pickablePages,
+  regionFor,
+  type MapLink,
+} from "./new-site"
 import {
   BarButton,
   focusInPlace,
@@ -76,12 +83,21 @@ export interface SiteRow {
 // Explore's sites, from the map's own chunk, so they stay out of the app's
 // first load. Asked for as the form opens, so they're in before the sheet
 // is, and the service worker keeps the chunk for a dive logged offline.
+// With the pages it offers whole, worked out once.
 type MapSites = Pick<
   typeof import("@/map/sites"),
-  "sites" | "areas" | "siteTypes" | "searchSites"
->
+  "sites" | "areas" | "siteTypes" | "searchSites" | "searchPages"
+> & { pages: MapPage[] }
 let mapSites: Promise<MapSites> | undefined
-const loadMapSites = () => (mapSites ??= import("@/map/sites"))
+const loadMapSites = () =>
+  (mapSites ??= import("@/map/sites").then((map) => ({
+    sites: map.sites,
+    areas: map.areas,
+    siteTypes: map.siteTypes,
+    searchSites: map.searchSites,
+    searchPages: map.searchPages,
+    pages: pickablePages(map.pages),
+  })))
 
 // The sites once in, and whether they can't be had, as on a phone offline
 // before the service worker has the chunk: then only a typed site is offered.
@@ -213,21 +229,20 @@ export function SiteSheet({
   }
   const ownSite = useMemo(() => logSites(sites), [sites])
   // The log's own site where it already has this one, else a new one.
-  const pickMapSite = (site: MapSite) => {
-    const existing = ownSite(site)
+  const pickMapSite = (link: MapLink) => {
+    const existing = ownSite(link)
     if (existing) return pick(existing.id)
-    const made = fromMapSite(site, map!.areas[site.area], regions, sites)
+    const made = fromMapSite(link, map!.areas[link.area], regions, sites)
     onCreate(made.entities)
     pick(made.id)
   }
   // A custom site named as one of Explore's is likely that one, which
   // would come filled in and linked; typing it in stays allowed.
-  const mapTwin =
+  const isTwin = (link: MapLink) =>
+    !ownSite(link) && placeKey(link.name, "ZA") === placeKey(name, "ZA")
+  const mapTwin: MapLink | undefined =
     !duplicate && name && country === "ZA" && map
-      ? map.sites.find(
-          (site) =>
-            !ownSite(site) && placeKey(site.name, "ZA") === placeKey(name, "ZA")
-        )
+      ? (map.sites.find(isTwin) ?? map.pages.find(isTwin))
       : undefined
   // A typed search seeds a new site's name, capitalised as iOS would, by
   // code point, so a name starting with an emoji survives.
@@ -465,9 +480,9 @@ function SiteList({
   // Whether Explore's sites are offered at all, shown before they load so
   // the row doesn't drop in as the sheet opens.
   mapOffered: boolean
-  ownSite: (site: MapSite) => SiteRow | undefined
+  ownSite: (link: MapLink) => SiteRow | undefined
   onExplore: () => void
-  onPickMapSite: (site: MapSite) => void
+  onPickMapSite: (link: MapLink) => void
   onNew: () => void
   addLabel: string
 }) {
@@ -495,17 +510,14 @@ function SiteList({
   const listed = new Set(results.map(({ site }) => site.id))
   const fromMap =
     key && map
-      ? map
-          .searchSites(deferred)
-          .flatMap((site) => {
+      ? [...map.searchPages(deferred, map.pages), ...map.searchSites(deferred)]
+          .flatMap((site: MapLink) => {
             const own = ownSite(site)
             if (own && listed.has(own.id)) return []
             const match = matchName(site.name, deferred)
             return [{ site, own, rank: match?.rank ?? 2, parts: match?.parts }]
           })
-          .sort(
-            (a, b) => a.rank - b.rank || a.site.name.localeCompare(b.site.name)
-          )
+          .sort((a, b) => a.rank - b.rank || byName(a.site, b.site))
       : []
   const recent = [...sites]
     .filter((site) => site.last)
@@ -697,22 +709,36 @@ function SiteButton({
 // What sets a map site apart, as Explore's list says it: its area where
 // it isn't under its area's heading, its type where it isn't a reef (most
 // are), and its depth. Blue Rock Quarry's spots share one depth, the
-// quarry's, so they name the quarry instead.
-const mapPlace = (site: MapSite, map: MapSites, withArea: boolean) =>
-  site.area === "fresh" && site.page
-    ? site.page
-    : [
-        withArea && map.areas[site.area],
-        site.type !== "reef" && map.siteTypes[site.type],
-        site.depth !== undefined &&
-          `${site.approximate ? "≈ " : ""}${site.depth} m`,
+// quarry's, so they name the quarry instead. A whole page says how many
+// sites it shares.
+const mapPlace = (site: MapLink, map: MapSites, withArea: boolean) =>
+  isMapPage(site)
+    ? [
+        withArea && site.area !== "fresh" && map.areas[site.area],
+        siteCount(site),
       ]
         .filter(Boolean)
         .join(" · ")
+    : site.area === "fresh" && site.page
+      ? site.page
+      : [
+          withArea && map.areas[site.area],
+          site.type !== "reef" && map.siteTypes[site.type],
+          site.depth !== undefined &&
+            `${site.approximate ? "≈ " : ""}${site.depth} m`,
+        ]
+          .filter(Boolean)
+          .join(" · ")
 
 // Explore's sites the picker's search shows before Show all, as one letter
 // finds most of the 409.
 const mapShown = 8
+
+const siteCount = (page: MapPage) => `${page.sites.length} sites`
+
+// By name, a whole page before a site of the same name.
+const byName = (a: MapLink, b: MapLink) =>
+  a.name.localeCompare(b.name) || Number(isMapPage(b)) - Number(isMapPage(a))
 
 // A site on Explore's map, with its dive count where the log has it.
 function MapSiteButton({
@@ -723,10 +749,10 @@ function MapSiteButton({
   name,
   place,
 }: {
-  site: MapSite
+  site: MapLink
   own: SiteRow | undefined
   current: boolean
-  onPick: (site: MapSite) => void
+  onPick: (site: MapLink) => void
   name: ReactNode
   place: string
 }) {
@@ -771,19 +797,20 @@ function MapSiteList({
 }: {
   map: MapSites
   initial: string
-  ownSite: (site: MapSite) => SiteRow | undefined
+  ownSite: (link: MapLink) => SiteRow | undefined
   value: string | null
-  onPick: (site: MapSite) => void
+  onPick: (site: MapLink) => void
   onNew: (name: string) => void
 }) {
   const desk = useDesk()
   const [query, setQuery] = useState(initial)
   const typed = tidyName(useDeferredValue(query))
-  const found = map.searchSites(typed)
+  const found: MapLink[] = [
+    ...map.searchPages(typed, map.pages),
+    ...map.searchSites(typed),
+  ]
   const groups = (Object.keys(map.areas) as Area[]).flatMap((area) => {
-    const inArea = found
-      .filter((site) => site.area === area)
-      .sort((a, b) => a.name.localeCompare(b.name))
+    const inArea = found.filter((site) => site.area === area).sort(byName)
     return inArea.length ? [{ area, sites: inArea }] : []
   })
   return (
@@ -868,7 +895,7 @@ function NewSite({
   duplicate: SiteRow | undefined
   reserved: boolean
   // One of Explore's sites with the name typed, offered filled in instead.
-  mapTwin: MapSite | undefined
+  mapTwin: MapLink | undefined
   onUseMapTwin: () => void
   onUse: () => void
   onCountry: () => void

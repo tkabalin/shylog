@@ -268,6 +268,119 @@ describe("a site from Explore", () => {
   })
 })
 
+describe("a whole page from Explore", () => {
+  const castorRock: SiteRow = {
+    id: "site-castor",
+    name: "Castor Rock",
+    countryCode: "ZA",
+    region: "False Bay coast",
+    mapSite: "page:castor-rock",
+    count: 3,
+    last: "2026-02-01T09:00:00",
+  }
+
+  it("is offered above its sites by the search, and added linked to the page", async () => {
+    const { onCreate, onChange } = await showWithMap()
+    search("Search or add a site", "castle rocks")
+    const row = button(/^Castle Rocks/)!
+    expect(row.textContent).toContain("False Bay coast · 3 sites")
+    click(row)
+    const [[entities]] = onCreate.mock.calls
+    expect(entities).toMatchObject([
+      { kind: "region", fields: { name: "False Bay coast" } },
+      {
+        kind: "site",
+        fields: {
+          name: "Castle Rocks",
+          countryCode: "ZA",
+          regionId: entities[0].id,
+          bodyOfWater: "oceanSea",
+          mapSite: "page:castle-rocks",
+        },
+      },
+    ])
+    expect(onChange).toHaveBeenCalledWith(entities[1].id)
+  })
+
+  it("leads its area in the Dive sites list, with the log's own and its dives", async () => {
+    const { onChange, onCreate } = await showWithMap([...sites, castorRock])
+    click(button("From Explore"))
+    search("Search dive sites", "castor rock")
+    const rows = [...document.querySelectorAll("button")].filter((b) =>
+      b.textContent!.includes("sites")
+    )
+    expect(rows[0]!.textContent).toMatch(/^Castor Rock6 sites3 dives/)
+    click(rows[0]!)
+    expect(onChange).toHaveBeenLastCalledWith("site-castor")
+    expect(onCreate).not.toHaveBeenCalled()
+  })
+
+  it("isn't offered where one of its sites has its name", async () => {
+    await showWithMap()
+    search("Search or add a site", "roman rock")
+    expect(document.body.textContent).toContain("Roman Rock")
+    expect(document.body.textContent).not.toMatch(/\d+ sites/)
+  })
+
+  it("uses the log's site linked to a page for the site of the page's name", async () => {
+    // The server can link Roman Rock to its whole page, which the picker
+    // doesn't offer, as the rock is the place by that name.
+    const roman: SiteRow = {
+      id: "site-roman",
+      name: "Roman Rock",
+      countryCode: "ZA",
+      region: "False Bay coast",
+      mapSite: "page:roman-rock",
+      count: 2,
+      last: "2026-03-01T09:00:00",
+    }
+    const { onCreate, onChange } = await showWithMap([...sites, roman])
+    click(button("From Explore"))
+    search("Search dive sites", "roman rock")
+    click(button(/^Roman Rock.*2 dives/)!)
+    expect(onChange).toHaveBeenLastCalledWith("site-roman")
+    expect(onCreate).not.toHaveBeenCalled()
+  })
+
+  it("takes a name of its own where the log's is linked to one of its sites", async () => {
+    const castle: SiteRow = {
+      id: "site-castle",
+      name: "Castle Rocks",
+      countryCode: "ZA",
+      region: "False Bay",
+      mapSite: "castle-rocks/point-reefs",
+      count: 1,
+      last: "2026-01-14T09:00:00",
+    }
+    const { onCreate } = await showWithMap([...sites, castle])
+    click(button("From Explore"))
+    search("Search dive sites", "castle rocks")
+    click(
+      [...document.querySelectorAll("button")].find((b) =>
+        b.textContent!.includes("3 sites")
+      )!
+    )
+    const [[entities]] = onCreate.mock.calls
+    expect(entities.at(-1).fields).toMatchObject({
+      name: "Castle Rocks, all sites",
+      mapSite: "page:castle-rocks",
+    })
+  })
+
+  it("offers a typed page's name filled in", async () => {
+    const { onCreate } = await showWithMap()
+    click(button("New custom site"))
+    type(field("site-name"), "Castor rock")
+    expect(document.body.textContent).toContain("Castor Rock is on Explore")
+    click(button("Use it"))
+    const [[entities]] = onCreate.mock.calls
+    expect(entities.at(-1).fields).toMatchObject({
+      name: "Castor Rock",
+      mapSite: "page:castor-rock",
+    })
+  })
+})
+
 const field = (id: string) => document.querySelector<HTMLInputElement>(`#${id}`)
 
 const pressReturn = (input: HTMLInputElement) =>
