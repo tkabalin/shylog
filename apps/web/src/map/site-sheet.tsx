@@ -5,9 +5,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react"
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer"
@@ -32,9 +29,9 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { useOnline } from "@/data/sync-status"
-import { localValue } from "@/lib/local-value"
 
 import { useMapFrame } from "./basemap"
+import { useCardWidth } from "./card-edge"
 import { siteZone } from "./find"
 import { ImageStrip } from "./image-strip"
 import { withSite } from "./search"
@@ -260,20 +257,6 @@ export function SiteSheet({
   )
 }
 
-// The card's width, which a drag on its edge sets, kept on this device.
-const narrowest = 360
-const widest = 640
-const clampWidth = (width: number) =>
-  Math.min(widest, Math.max(narrowest, width))
-const cardWidth = localValue(
-  "explore-card-width",
-  (stored) => {
-    const width = Number(stored ?? narrowest)
-    return Number.isFinite(width) ? clampWidth(width) : narrowest
-  },
-  String
-)
-
 // From desk: up, a card over the map's left side, as tall as its summary
 // until Read more grows it to the window's height for the page's text.
 export function SiteCard({
@@ -285,7 +268,7 @@ export function SiteCard({
   onRules: OnRules
   onImage: OnImage
 }) {
-  const { container, onCover } = useMapFrame()
+  const { onCover } = useMapFrame()
   // Read more for one site: another opens collapsed, in the same card, so
   // only the first opening slides in.
   const [moreFor, setMoreFor] = useState<string>()
@@ -294,29 +277,19 @@ export function SiteCard({
   const scroller = useRef<HTMLDivElement>(null)
   const { back, follow, goBack } = useTrail(site.id, scroller, setMoreFor)
   const online = useOnline()
-  const stored = useSyncExternalStore(cardWidth.subscribe, cardWidth.get)
-  // Held while the edge is dragged, and stored once it's let go.
-  const [dragged, setDragged] = useState<number>()
-  const width = dragged ?? stored
+  const { width, edge } = useCardWidth()
   // Its inset and width, as drawn: a narrow window caps it.
   const card = useRef<HTMLElement>(null)
-  // The most a narrow window leaves it (60% of the map), so the handle
-  // reports and steps from the width drawn, not the one stored.
-  const [cap, setCap] = useState(widest)
-  const drawn = Math.min(width, cap)
   useLayoutEffect(() => {
     const element = card.current
     if (!element) return
-    const report = () => {
-      const map = container?.clientWidth ?? 0
-      setCap(Math.min(map - 24, map * 0.6))
+    const report = () =>
       onCover({ left: 12 + element.offsetWidth, bottom: 0 }, site.id)
-    }
     report()
     const observer = new ResizeObserver(report)
     observer.observe(element)
     return () => observer.disconnect()
-  }, [container, onCover, site.id])
+  }, [onCover, site.id])
   // Escape puts the site down, as it closes a dialog, unless it's for a
   // field or a menu.
   useEffect(() => {
@@ -331,36 +304,6 @@ export function SiteCard({
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [])
-  // A drag on the card's right edge widens it, or the arrow keys on the
-  // handle, with the cursor kept as the edge's once it stops at a limit.
-  const resize = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const handle = event.currentTarget
-    const from = event.clientX - width
-    let to = width
-    handle.setPointerCapture(event.pointerId)
-    document.documentElement.style.cursor = "col-resize"
-    const move = (moved: PointerEvent) => {
-      to = clampWidth(moved.clientX - from)
-      setDragged(to)
-    }
-    const end = () => {
-      handle.removeEventListener("pointermove", move)
-      handle.removeEventListener("pointerup", end)
-      handle.removeEventListener("pointercancel", end)
-      document.documentElement.style.cursor = ""
-      cardWidth.set(to)
-      setDragged(undefined)
-    }
-    handle.addEventListener("pointermove", move)
-    handle.addEventListener("pointerup", end)
-    handle.addEventListener("pointercancel", end)
-  }
-  const nudge = (event: ReactKeyboardEvent) => {
-    const step = { ArrowLeft: -16, ArrowRight: 16 }[event.key]
-    if (!step) return
-    event.preventDefault()
-    cardWidth.set(clampWidth(drawn + step))
-  }
   return (
     // At most 60% of the map, so some of it shows beside the card.
     <div
@@ -462,24 +405,7 @@ export function SiteCard({
           )}
         </div>
       </section>
-      {/* shadcn's resizable handle with its grip: a pill on the card's
-          right edge, halfway down, that says the edge moves; a shade
-          darker than shadcn's, to read over the map. It reaches out from
-          the edge, clear of the card's scrollbar. */}
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize"
-        aria-valuemin={narrowest}
-        aria-valuemax={widest}
-        aria-valuenow={drawn}
-        tabIndex={0}
-        onPointerDown={resize}
-        onKeyDown={nudge}
-        className="group/edge absolute inset-y-3 -right-2.5 flex w-2.5 cursor-col-resize touch-none items-center outline-none"
-      >
-        <div className="-ml-0.5 h-6 w-1 rounded-lg bg-ring transition-colors group-hover/edge:bg-muted-foreground group-focus-visible/edge:bg-muted-foreground group-focus-visible/edge:ring-3 group-focus-visible/edge:ring-ring/50 group-active/edge:bg-foreground" />
-      </div>
+      {edge}
     </div>
   )
 }
