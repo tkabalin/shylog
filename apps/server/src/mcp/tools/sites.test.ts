@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { fetched, siteById, sites } from "../../../../web/src/map/sites.ts"
+import {
+  fetched,
+  pageById,
+  siteById,
+  sites,
+} from "../../../../web/src/map/sites.ts"
 import { testApp } from "../../../test/app.ts"
 import { callTool, mcpClient } from "../../../test/mcp.ts"
 
@@ -167,6 +172,22 @@ describe("search_map_sites", () => {
     }
   })
 
+  it("finds a page's sites by the page's name, each naming its page", async () => {
+    // Castor Rock's pinnacles have names of their own.
+    const found = (await search({ name: "castor rock" })).sites
+    expect(found.map((row) => row.id).sort()).toEqual(
+      pageById
+        .get("page:castor-rock")!
+        .sites.map((site) => site.id)
+        .sort()
+    )
+    for (const row of found) expect(row.pageId).toBe("page:castor-rock")
+    // A site alone on its page has no page to link.
+    expect((await search({ name: "a frame" })).sites[0]).not.toHaveProperty(
+      "pageId"
+    )
+  })
+
   it("refuses a value the tags don't have", async () => {
     const reply = await callTool(await client(), "search_map_sites", {
       wind: ["up"],
@@ -213,9 +234,12 @@ describe("search_map_sites", () => {
   })
 
   it("sorts names as English does, whatever the machine's locale", async () => {
-    // By code unit, the capitals would put "drop" last.
+    // By code unit, the capitals would put "drop" last. The page's other
+    // sites, found by its name, sort among them too.
     expect(
-      (await search({ name: "bruce's" })).sites.map((site) => site.name)
+      (await search({ name: "bruce's" })).sites
+        .map((site) => site.name as string)
+        .filter((name) => name.startsWith("Bruce's"))
     ).toEqual(["Bruce's drop", "Bruce's Mark", "Bruce's Reef"])
   })
 
@@ -260,6 +284,8 @@ describe("search_map_sites", () => {
 describe("get_map_site", () => {
   const get = async (id: string) =>
     (await callTool(await client(), "get_map_site", { id })).json()
+  const getPage = async (id: string) =>
+    (await get(id)) as Row & { sites: Row[]; text: string }
 
   it("gives the site's page, zone and its marine protected area's rules", async () => {
     const site = await get("a-frame")
@@ -322,14 +348,49 @@ describe("get_map_site", () => {
     expect(site).not.toHaveProperty("credit")
   })
 
+  it("gives a whole page by its pageId: its sites and its text from the top", async () => {
+    const page = await getPage("page:castle-rocks")
+    expect(page).toMatchObject({
+      id: "page:castle-rocks",
+      name: "Castle Rocks",
+      area: "False Bay coast",
+      maxDepthM: pageById.get("page:castle-rocks")!.depth,
+      wikivoyage:
+        "https://en.wikivoyage.org/wiki/Diving_the_Cape_Peninsula_and_False_Bay/Castle_Rocks",
+      credit: `Text adapted from Wikivoyage's contributors under CC BY-SA 4.0, read ${fetched}`,
+    })
+    expect(page.sites.map(({ id }) => id)).toEqual([
+      "castle-rocks/north-castle",
+      "castle-rocks/point-reefs",
+      "castle-rocks/inner-castle",
+    ])
+    expect(page.sites[0]).toMatchObject({
+      name: "North Castle",
+      diving: "allowed",
+      zone: "Castle Rock no-take zone",
+    })
+    // The page from its top, every section in its place.
+    expect(page.text).not.toMatch(/^# /)
+    expect(page.text).toContain("North Castle")
+    expect(page.text).toContain("Inner Castle")
+  })
+
+  it("tells a page from the site that has its slug", async () => {
+    expect((await get("ss-lusitania")).name).toBe("SS Lusitania")
+    expect((await get("ss-lusitania")).type).toBe("wreck")
+    const page = await getPage("page:ss-lusitania")
+    expect(page.sites.length).toBeGreaterThan(1)
+    expect(page).not.toHaveProperty("type")
+  })
+
   it("refuses an id the map doesn't have", async () => {
-    const reply = await callTool(await client(), "get_map_site", {
-      id: "site-long-beach",
-    })
-    expect(reply).toMatchObject({
-      isError: true,
-      text: "id: No map site has that id",
-    })
+    for (const id of ["site-long-beach", "page:a-frame"]) {
+      const reply = await callTool(await client(), "get_map_site", { id })
+      expect(reply).toMatchObject({
+        isError: true,
+        text: "id: No map site or page has that id",
+      })
+    }
   })
 })
 

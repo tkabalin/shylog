@@ -95,7 +95,7 @@ export function entityRefs(db: Db) {
           .get(same)
         if (linked && linked !== site.mapSite) {
           throw new Rejected(
-            `The log's ${nameOf(db, "site", same)} is ${linked} on Explore's map; give this site a name of its own, such as the name with its page`,
+            `The log's ${nameOf(db, "site", same)} is ${linked} on Explore's map; give this site a name of its own, or change that one's link with edit_entity`,
             422,
             ["site"]
           )

@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { statSync } from "node:fs"
+import { mapPagePrefix } from "@shylog/core"
 import { describe, expect, it } from "vitest"
 
 import { apart, printed } from "../../scripts/map/wikitext"
@@ -61,6 +62,27 @@ describe("sites.geojson", () => {
       expect(Number.isInteger(properties.depth), properties.id).toBe(true)
       expect(properties.depth, properties.id).toBeGreaterThan(0)
       expect(properties.depth, properties.id).toBeLessThanOrEqual(100)
+    }
+  })
+
+  // A log site linked to a whole page finds it by the slug its sites share,
+  // so that slug must name one page, in one area, and never be a site's id.
+  it("gives each page one slug its sites share, in one area", () => {
+    const slugs = new Map<string, Feature[]>()
+    for (const site of sites) {
+      if (site.properties.page === undefined) continue
+      const slug = site.properties.id.split("/")[0]!
+      slugs.set(slug, [...(slugs.get(slug) ?? []), site])
+    }
+    for (const [slug, shared] of slugs) {
+      expect(new Set(shared.map((s) => s.properties.page)).size, slug).toBe(1)
+      expect(new Set(shared.map((s) => s.properties.area)).size, slug).toBe(1)
+    }
+    const titles = new Set(sites.map((site) => site.properties.page))
+    titles.delete(undefined)
+    expect(slugs.size).toBe(titles.size)
+    for (const site of sites) {
+      expect(site.properties.id.startsWith(mapPagePrefix)).toBe(false)
     }
   })
 

@@ -698,6 +698,29 @@ describe("edit_entity", () => {
     })
   })
 
+  it("links a site to a whole page several of Explore's sites share", async () => {
+    const link = (mapSite: string) =>
+      callTool(client, "edit_entity", {
+        kind: "site",
+        id: "site-long-beach",
+        mapSite,
+      })
+    expect((await link("page:castle-rocks")).json()).toEqual({
+      id: "site-long-beach",
+      name: "Long Beach",
+    })
+    expect(
+      row("SELECT map_site AS mapSite FROM sites WHERE id = 'site-long-beach'")
+    ).toEqual({ mapSite: "page:castle-rocks" })
+    // A page with one site is that site, so it has no page link.
+    expect(await link("page:a-frame")).toMatchObject({
+      isError: true,
+      text: expect.stringContaining(
+        "mapSite: No dive site or page on Explore's map has that id"
+      ),
+    })
+  })
+
   it("never makes one under an id it doesn't know", async () => {
     const reply = await callTool(client, "edit_entity", {
       kind: "trip",

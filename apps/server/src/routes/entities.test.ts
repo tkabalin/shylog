@@ -156,6 +156,10 @@ describe("PUT /api/entities/:kind/:id", () => {
     expect((await put("site", sodwana, { mapSite: "A Frame" })).status).toBe(
       400
     )
+    // Or to a whole page several of its sites share.
+    await put("site", sodwana, { mapSite: "page:castor-rock" })
+    expect(await site()).toMatchObject({ mapSite: "page:castor-rock" })
+    expect((await put("site", sodwana, { mapSite: "page:" })).status).toBe(400)
     await put("site", sodwana, { mapSite: null })
     expect(await site()).toMatchObject({ mapSite: null })
     // The link alone changes no dive's figures, so it skips their pass.
