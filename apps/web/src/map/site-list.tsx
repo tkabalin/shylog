@@ -2,14 +2,7 @@ import { memo, useMemo } from "react"
 import { cn } from "cn"
 
 import { divingLimit, zoneNote } from "./find"
-import { areas, siteTypes, type Access, type Area, type Site } from "./sites"
-
-// How you get in, in the Access filter's words.
-const ways: Record<Access, string> = {
-  shore: "Shore",
-  boat: "Boat",
-  both: "Shore or boat",
-}
+import { accessNames, areas, siteTypes, type Area, type Site } from "./sites"
 
 // The sites grouped by area under sticky headings, each with its count. It
 // is also the map's alternative for screen readers. Memoised, as the desktop
@@ -116,7 +109,7 @@ function Row({
   const parts = [
     // Not under the Fresh water heading, which already says so.
     site.type !== "reef" && site.area !== "fresh" && siteTypes[site.type],
-    site.access && ways[site.access],
+    site.access && accessNames[site.access],
     site.depth !== undefined &&
       `${site.approximate ? "≈ " : ""}${site.depth} m`,
   ].filter(Boolean)

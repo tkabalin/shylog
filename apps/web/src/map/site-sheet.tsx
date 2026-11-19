@@ -37,6 +37,7 @@ import { ImageStrip } from "./image-strip"
 import { withSite } from "./search"
 import { SiteText } from "./site-text"
 import {
+  accessNames,
   areas,
   isPage,
   mapLink,
@@ -703,9 +704,11 @@ function Summary({
           </div>
         )}
       </div>
+      {/* The three figures that pick a dive. They wrap rather than squeeze
+          on a narrow phone ("Wreck" beside "Shore or boat"). */}
       <dl
         className={cn(
-          "grid grid-cols-[repeat(2,max-content)] gap-x-10",
+          "flex flex-wrap gap-x-8 gap-y-2.5",
           desk ? "mt-4 mb-3.5" : "mt-3.5 mb-3"
         )}
       >
@@ -732,6 +735,12 @@ function Summary({
           </dt>
           <dd className="text-[17px] font-semibold tracking-[-0.01em] tabular-nums">
             {isPage(site) ? site.sites.length : siteTypes[site.type]}
+          </dd>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <dt className="text-xs text-muted-foreground">Access</dt>
+          <dd className="text-[17px] font-semibold tracking-[-0.01em] whitespace-nowrap">
+            {site.access ? accessNames[site.access] : "–"}
           </dd>
         </div>
       </dl>

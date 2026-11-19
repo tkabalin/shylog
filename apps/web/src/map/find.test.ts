@@ -52,6 +52,15 @@ describe("pages", () => {
     expect(mapLink("page:castle-rocks")).toBe(castle)
   })
 
+  it("gives a page its sites' one way in, or both where they differ", () => {
+    for (const page of pages) {
+      const ways = new Set(page.sites.flatMap(({ access }) => access ?? []))
+      expect(page.access, page.id).toBe(
+        ways.size === 0 ? undefined : ways.size === 1 ? [...ways][0] : "both"
+      )
+    }
+  })
+
   it("keeps a page apart from the site that has its slug", () => {
     expect(mapLink("ss-lusitania")).toBe(site("ss-lusitania"))
     expect(isPage(mapLink("page:ss-lusitania")!)).toBe(true)
