@@ -7,6 +7,10 @@ import { DiveForm } from "./dive-form"
 import { button, click, render, testDive, testLog, type } from "./testing"
 import { changedFields, differences, fromDive, type FormValues } from "./values"
 
+// The site picker's Explore sites are its own test's; off here, so their
+// chunk doesn't load into every form outside act.
+vi.mock("@/map/enabled", () => ({ exploreOn: false }))
+
 // A dive paired with the D4i: max depth and duration typed by hand and
 // different from the computer's, average depth and the minimum temperature
 // straight from the computer.

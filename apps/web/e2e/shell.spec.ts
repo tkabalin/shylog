@@ -568,6 +568,24 @@ test.describe("at desktop width", () => {
     await expect(dialog).toBeHidden()
   })
 
+  test("browses Explore's dive sites in the site picker's dialog, and goes back", async ({
+    page,
+  }) => {
+    await page.goto("/dive/new")
+    await page.getByRole("button", { name: /^Site,/ }).click()
+    const dialog = page.getByRole("dialog", { name: "Site" })
+    await dialog.getByRole("button", { name: "From Explore" }).click()
+    const sites = page.getByRole("dialog", { name: "Dive sites" })
+    await expect(
+      sites.getByRole("heading", { name: "Fresh water" })
+    ).toBeAttached()
+    // Back sits in the footer, as the dialog's other views have it.
+    await sites.getByRole("button", { name: "Sites" }).click()
+    await expect(
+      dialog.getByRole("button", { name: "New custom site" })
+    ).toBeVisible()
+  })
+
   test("folds the sidebar to a rail of icons, and keeps it folded", async ({
     page,
     browserName,

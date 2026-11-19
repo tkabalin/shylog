@@ -24,7 +24,7 @@ test("adds a dive with a new site and buddy, which uploads and gets its number @
   await expect(page.getByRole("heading", { name: "New dive" })).toBeVisible()
 
   await openSheet(page, /^Site,/)
-  await sheet(page).getByRole("button", { name: "New site" }).click()
+  await sheet(page).getByRole("button", { name: "New custom site" }).click()
   await sheet(page).getByLabel("Name").fill(name)
   await sheet(page).getByRole("button", { name: "Add", exact: true }).click()
   await expect(
@@ -110,7 +110,7 @@ test("saving a milestone dive bursts and says what the number means @writes", as
   await page.goto("/")
   await page.getByRole("link", { name: "Log a dive" }).click()
   await openSheet(page, /^Site,/)
-  await sheet(page).getByRole("button", { name: "New site" }).click()
+  await sheet(page).getByRole("button", { name: "New custom site" }).click()
   await sheet(page).getByLabel("Name").fill(name)
   await sheet(page).getByRole("button", { name: "Add", exact: true }).click()
   // Fill once the sheet has gone, as delete.spec's draft test does.
@@ -145,7 +145,7 @@ test("uploads a dive saved offline once the server answers again @writes", async
   await page.goto("/")
   await page.getByRole("link", { name: "Log a dive" }).click()
   await openSheet(page, /^Site,/)
-  await sheet(page).getByRole("button", { name: "New site" }).click()
+  await sheet(page).getByRole("button", { name: "New custom site" }).click()
   await sheet(page).getByLabel("Name").fill(name)
   await sheet(page).getByRole("button", { name: "Add", exact: true }).click()
   // Fill once the sheet has gone, as delete.spec's draft test does.
@@ -231,6 +231,40 @@ test("ignores a dive from the form, which takes away its number @writes", async 
     ignored: true,
     number: null,
   })
+})
+
+// Not saved, so the log keeps no A-Frame for other tests to find.
+test("picks a new dive's site from Explore's dive sites, filled in from the map", async ({
+  page,
+}) => {
+  await page.goto("/dive/new")
+  await openSheet(page, /^Site,/)
+  // The picker's own search finds it under the log's sites.
+  await sheet(page).getByLabel("Search or add a site").fill("a frame")
+  const found = sheet(page).locator("section", {
+    has: page.getByRole("heading", { name: "Explore dive sites" }),
+  })
+  await expect(found.getByRole("button", { name: /^A-Frame/ })).toContainText(
+    "False Bay coast"
+  )
+
+  // And the full list, by area, has it too.
+  await sheet(page).getByLabel("Clear search").click()
+  await sheet(page).getByRole("button", { name: "From Explore" }).click()
+  await expect(
+    sheet(page).getByRole("heading", { name: "Atlantic coast" })
+  ).toBeVisible()
+  await sheet(page).getByLabel("Search dive sites").fill("a frame")
+  await sheet(page)
+    .getByRole("button", { name: /^A-Frame/ })
+    .click()
+  await expect(sheet(page)).toBeHidden()
+  await expect(
+    page.getByRole("button", { name: /^Site,/ })
+  ).toHaveAccessibleName("Site, A-Frame")
+
+  await page.getByRole("button", { name: "Cancel" }).click()
+  await page.getByRole("button", { name: "Discard changes" }).click()
 })
 
 test("keeps the form's values and offers Try again when the server can't be reached", async ({

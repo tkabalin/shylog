@@ -204,6 +204,7 @@ export function SheetSearch({
   label,
   capitalise,
   maxLength,
+  autoFocus,
   className,
 }: {
   value: string
@@ -211,13 +212,15 @@ export function SheetSearch({
   label: string
   capitalise?: boolean
   maxLength?: number
+  autoFocus?: boolean
   className?: string
 }) {
   return (
     <InputGroup
       variant="filled"
+      // Sized for a mouse in a desktop dialog, as the Log's search is.
       className={cn(
-        "has-[[data-slot=input-group-control]:focus-visible]:border-transparent has-[[data-slot=input-group-control]:focus-visible]:ring-0",
+        "has-[[data-slot=input-group-control]:focus-visible]:border-transparent has-[[data-slot=input-group-control]:focus-visible]:ring-0 desk:h-9 desk:rounded-lg",
         className
       )}
     >
@@ -232,6 +235,7 @@ export function SheetSearch({
         onChange={(event) => onChange(event.target.value)}
         enterKeyHint="search"
         maxLength={maxLength}
+        autoFocus={autoFocus}
         onKeyDown={(event) => {
           if (!isReturn(event)) return
           event.preventDefault()

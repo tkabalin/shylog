@@ -27,6 +27,10 @@ import {
   type FormValues,
 } from "./values"
 
+// The site picker's Explore sites are its own test's; off here, so their
+// chunk doesn't load into every form outside act.
+vi.mock("@/map/enabled", () => ({ exploreOn: false }))
+
 const filled = (values: Partial<FormValues> = {}): FormValues => ({
   ...emptyValues("2026-07-22"),
   time: "08:10",
@@ -433,7 +437,7 @@ describe("a new dive", () => {
       "Unknown site"
     )
     click(button(/^Site/))
-    click(button("New site"))
+    click(button("New custom site"))
     expect(button(/^Country/)!.textContent).toContain("Vietnam")
   })
 

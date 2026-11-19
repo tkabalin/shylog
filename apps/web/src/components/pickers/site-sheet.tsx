@@ -1,4 +1,11 @@
-import { useRef, useState, type ReactNode } from "react"
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
 import {
   bodiesOfWater,
   countryCodes,
@@ -21,6 +28,7 @@ import {
   IconChevronRight,
   IconDroplet,
   IconFlag,
+  IconMap2,
   IconPlus,
   IconSalt,
 } from "@tabler/icons-react"
@@ -32,6 +40,8 @@ import { useConnected, useOnline } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import type { NewEntity } from "@/dive/form/values"
 import { isReturn } from "@/lib/keys"
+import { exploreOn } from "@/map/enabled"
+import type { Area, Site as MapSite } from "@/map/sites"
 
 import {
   countText,
@@ -41,6 +51,7 @@ import {
   nameLimit,
   tidyName,
 } from "./match"
+import { fromMapSite, logSites, regionFor } from "./new-site"
 import {
   BarButton,
   FullSheetContent,
@@ -55,8 +66,42 @@ export interface SiteRow {
   name: string
   countryCode: string
   region: string | null
+  // The dive site on Explore's map it was added from.
+  mapSite: string | null
   count: number
   last: string
+}
+
+// Explore's sites, from the map's own chunk, so they stay out of the app's
+// first load. Asked for as the form opens, so they're in before the sheet
+// is, and the service worker keeps the chunk for a dive logged offline.
+type MapSites = Pick<
+  typeof import("@/map/sites"),
+  "sites" | "areas" | "siteTypes" | "searchSites"
+>
+let mapSites: Promise<MapSites> | undefined
+const loadMapSites = () => (mapSites ??= import("@/map/sites"))
+
+// The sites once in, and whether they can't be had, as on a phone offline
+// before the service worker has the chunk: then only a typed site is offered.
+function useMapSites() {
+  const [loaded, setLoaded] = useState<MapSites | null>(null)
+  const [failed, setFailed] = useState(false)
+  useEffect(() => {
+    if (!exploreOn) return
+    let live = true
+    loadMapSites().then(
+      (map) => live && setLoaded(map),
+      () => {
+        mapSites = undefined
+        if (live) setFailed(true)
+      }
+    )
+    return () => {
+      live = false
+    }
+  }, [])
+  return { map: loaded, offered: exploreOn && !failed }
 }
 
 export interface RegionRow {
@@ -66,15 +111,19 @@ export interface RegionRow {
   sites: number
 }
 
-type View = "list" | "create" | "country" | "body"
+type View = "list" | "explore" | "create" | "country" | "body"
+// The views holding a new site's fields, which only Cancel or Add close.
+const editing = (view: View) =>
+  view === "create" || view === "country" || view === "body"
 
 const countryNames = countryCodes
   .map((code) => ({ code, name: countryName(code) }))
   .sort((a, b) => a.name.localeCompare(b.name))
 
 // The site picker (SitePickerHifi as a full-height sheet): search,
-// recent sites and every site by country, or a new site whose country and
-// body of water lists push in within the same sheet.
+// recent sites and every site by country, a site from Explore's map, or a
+// new site whose country and body of water lists push in within the same
+// sheet.
 export function SiteSheet({
   open,
   onOpenChange,
@@ -103,6 +152,7 @@ export function SiteSheet({
   const [move, setMove] = useState<"forward" | "back" | null>(null)
   const [query, setQuery] = useState("")
   const [draft, setDraft] = useState(() => blankSite(defaultCountry))
+  const { map, offered: mapOffered } = useMapSites()
   const go = (next: View, backwards = false) => {
     setMove(backwards ? "back" : "forward")
     setView(next)
@@ -140,20 +190,9 @@ export function SiteSheet({
     const regionName = tidyName(draft.region)
     let regionId: Id<"region"> | undefined
     if (regionName) {
-      const existing = regions.find(
-        (region) =>
-          region.countryCode === country &&
-          normaliseName(region.name) === normaliseName(regionName)
-      )
-      regionId = existing?.id as Id<"region"> | undefined
-      if (!regionId) {
-        regionId = newId("region")
-        entities.push({
-          kind: "region",
-          id: regionId,
-          fields: { name: regionName, countryCode: country },
-        })
-      }
+      const region = regionFor(regionName, country, regions)
+      regionId = region.regionId
+      entities.push(...region.entities)
     }
     const id = newId("site")
     entities.push({
@@ -171,6 +210,35 @@ export function SiteSheet({
     onCreate(entities)
     pick(id)
   }
+  const ownSite = useMemo(() => logSites(sites), [sites])
+  // The log's own site where it already has this one, else a new one.
+  const pickMapSite = (site: MapSite) => {
+    const existing = ownSite(site)
+    if (existing) return pick(existing.id)
+    const made = fromMapSite(site, map!.areas[site.area], regions, sites)
+    onCreate(made.entities)
+    pick(made.id)
+  }
+  // A custom site named as one of Explore's is likely that one, which
+  // would come filled in and linked; typing it in stays allowed.
+  const mapTwin =
+    !duplicate && name && country === "ZA" && map
+      ? map.sites.find(
+          (site) =>
+            !ownSite(site) && placeKey(site.name, "ZA") === placeKey(name, "ZA")
+        )
+      : undefined
+  // A typed search seeds a new site's name, capitalised as iOS would, by
+  // code point, so a name starting with an emoji survives.
+  const newSite = (text: string) => {
+    setDraft({
+      ...blankSite(defaultCountry),
+      name: text
+        ? Array.from(text)[0].toUpperCase() + Array.from(text).slice(1).join("")
+        : "",
+    })
+    go("create")
+  }
 
   const views: Record<View, ReactNode> = {
     list: (
@@ -180,19 +248,23 @@ export function SiteSheet({
         onQuery={setQuery}
         value={value}
         onPick={pick}
-        onNew={() => {
-          // The typed search seeds the name, capitalised as iOS would.
-          setDraft({
-            ...blankSite(defaultCountry),
-            // By code point, so a name starting with an emoji survives.
-            name: typed
-              ? Array.from(typed)[0].toUpperCase() +
-                Array.from(typed).slice(1).join("")
-              : "",
-          })
-          go("create")
-        }}
-        addLabel={typed ? `Add “${typed}”` : "New site"}
+        map={map}
+        mapOffered={mapOffered}
+        ownSite={ownSite}
+        onExplore={() => go("explore")}
+        onPickMapSite={pickMapSite}
+        onNew={() => newSite(typed)}
+        addLabel={typed ? `Add “${typed}”` : "New custom site"}
+      />
+    ),
+    explore: map && (
+      <MapSiteList
+        map={map}
+        initial={query}
+        ownSite={ownSite}
+        value={value}
+        onPick={pickMapSite}
+        onNew={(text) => newSite(tidyName(text))}
       />
     ),
     create: (
@@ -202,6 +274,8 @@ export function SiteSheet({
         regions={regions}
         duplicate={duplicate}
         reserved={reserved}
+        mapTwin={mapTwin}
+        onUseMapTwin={() => mapTwin && pickMapSite(mapTwin)}
         onUse={() => duplicate && pick(duplicate.id)}
         onCountry={() => go("country")}
         onBody={() => go("body")}
@@ -239,9 +313,15 @@ export function SiteSheet({
         }
       />
     ),
+    explore: (
+      <SheetBar
+        title="Dive sites"
+        start={<BackButton label="Sites" onClick={() => go("list", true)} />}
+      />
+    ),
     create: (
       <SheetBar
-        title="New site"
+        title="New custom site"
         start={<BackButton label="Sites" onClick={() => go("list", true)} />}
         end={
           <BarButton
@@ -258,7 +338,10 @@ export function SiteSheet({
       <SheetBar
         title="Country"
         start={
-          <BackButton label="New site" onClick={() => go("create", true)} />
+          <BackButton
+            label="New custom site"
+            onClick={() => go("create", true)}
+          />
         }
       />
     ),
@@ -266,7 +349,10 @@ export function SiteSheet({
       <SheetBar
         title="Body of water"
         start={
-          <BackButton label="New site" onClick={() => go("create", true)} />
+          <BackButton
+            label="New custom site"
+            onClick={() => go("create", true)}
+          />
         }
       />
     ),
@@ -279,11 +365,11 @@ export function SiteSheet({
       // While a new site is being filled in only Cancel or Add close the
       // sheet, as iOS holds a sheet with edits: a swipe or a tap outside
       // would lose it.
-      disablePointerDismissal={view !== "list"}
+      disablePointerDismissal={editing(view)}
       onOpenChange={(next, details) => {
         if (
           !next &&
-          view !== "list" &&
+          editing(view) &&
           (details.reason === "swipe" || details.reason === "escape-key")
         )
           return
@@ -306,7 +392,7 @@ export function SiteSheet({
           <div
             ref={keyboardPad}
             // A drag on a new site's fields scrolls, never pulls the sheet.
-            data-base-ui-swipe-ignore={view !== "list" ? "" : undefined}
+            data-base-ui-swipe-ignore={editing(view) ? "" : undefined}
             className="flex-1 overflow-y-auto overscroll-contain px-4 pt-1 pb-[max(1.5rem,env(safe-area-inset-bottom),var(--keyboard,0px))]"
           >
             {views[view]}
@@ -360,6 +446,11 @@ function SiteList({
   onQuery,
   value,
   onPick,
+  map,
+  mapOffered,
+  ownSite,
+  onExplore,
+  onPickMapSite,
   onNew,
   addLabel,
 }: {
@@ -368,6 +459,14 @@ function SiteList({
   onQuery: (query: string) => void
   value: string | null
   onPick: (id: string) => void
+  // Explore's sites, or null until they load or where they can't.
+  map: MapSites | null
+  // Whether Explore's sites are offered at all, shown before they load so
+  // the row doesn't drop in as the sheet opens.
+  mapOffered: boolean
+  ownSite: (site: MapSite) => SiteRow | undefined
+  onExplore: () => void
+  onPickMapSite: (site: MapSite) => void
   onNew: () => void
   addLabel: string
 }) {
@@ -388,6 +487,25 @@ function SiteList({
         .filter((row) => row != null)
         .sort((a, b) => a.rank - b.rank || b.site.count - a.site.count)
     : []
+  // Explore's sites the search finds, past the log's own already listed,
+  // ranked as the log's are: names starting with the text first. A step
+  // behind the typing, as one letter finds most of the 409.
+  const deferred = useDeferredValue(typed)
+  const listed = new Set(results.map(({ site }) => site.id))
+  const fromMap =
+    key && map
+      ? map
+          .searchSites(deferred)
+          .flatMap((site) => {
+            const own = ownSite(site)
+            if (own && listed.has(own.id)) return []
+            const match = matchName(site.name, deferred)
+            return [{ site, own, rank: match?.rank ?? 2, parts: match?.parts }]
+          })
+          .sort(
+            (a, b) => a.rank - b.rank || a.site.name.localeCompare(b.site.name)
+          )
+      : []
   const recent = [...sites]
     .filter((site) => site.last)
     .sort((a, b) => b.last.localeCompare(a.last))
@@ -425,22 +543,71 @@ function SiteList({
             <IconPlus aria-hidden className="size-5 shrink-0" />
             <span className="truncate">{addLabel}</span>
           </button>
+          {mapOffered && (
+            <button
+              type="button"
+              onClick={onExplore}
+              className="flex min-h-13 items-center gap-3 pr-3.5 pl-4 text-left text-base font-medium text-primary transition-colors duration-150 hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
+            >
+              <IconMap2 aria-hidden className="size-5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">From Explore</span>
+              <IconChevronRight
+                aria-hidden
+                className="size-4.5 shrink-0 text-muted-foreground/60"
+              />
+            </button>
+          )}
         </SheetSection>
       </div>
       {key ? (
-        results.length ? (
-          <SheetSection>
-            {results.map(({ site, parts }) => (
-              <SiteButton
-                key={site.id}
-                site={site}
-                current={site.id === value}
-                onPick={onPick}
-                name={parts ? <Highlighted parts={parts} /> : site.name}
-                place={place(site)}
-              />
-            ))}
-          </SheetSection>
+        results.length || fromMap.length ? (
+          <>
+            {results.length > 0 && (
+              <SheetSection>
+                {results.map(({ site, parts }) => (
+                  <SiteButton
+                    key={site.id}
+                    site={site}
+                    current={site.id === value}
+                    onPick={onPick}
+                    name={parts ? <Highlighted parts={parts} /> : site.name}
+                    place={place(site)}
+                  />
+                ))}
+              </SheetSection>
+            )}
+            {fromMap.length > 0 && (
+              <SheetSection title="Explore dive sites">
+                {fromMap.slice(0, mapShown).map(({ site, own, parts }) => (
+                  <MapSiteButton
+                    key={site.id}
+                    site={site}
+                    own={own}
+                    current={!!own && own.id === value}
+                    onPick={onPickMapSite}
+                    name={parts ? <Highlighted parts={parts} /> : site.name}
+                    place={mapPlace(site, map!, true)}
+                  />
+                ))}
+                {/* The rest in the Dive sites list, with this search. */}
+                {fromMap.length > mapShown && (
+                  <button
+                    type="button"
+                    onClick={onExplore}
+                    className="flex min-h-12 items-center gap-3 pr-3.5 pl-4 text-left text-[15px] font-medium text-primary transition-colors duration-150 hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
+                  >
+                    <span className="min-w-0 flex-1">
+                      Show all {countText(fromMap.length)}
+                    </span>
+                    <IconChevronRight
+                      aria-hidden
+                      className="size-4.5 shrink-0 text-muted-foreground/60"
+                    />
+                  </button>
+                )}
+              </SheetSection>
+            )}
+          </>
         ) : (
           <p className="py-6 text-center text-sm text-muted-foreground">
             No sites match.
@@ -526,12 +693,170 @@ function SiteButton({
   )
 }
 
+// What sets a map site apart, as Explore's list says it: its area where
+// it isn't under its area's heading, its type where it isn't a reef (most
+// are), and its depth. Blue Rock Quarry's spots share one depth, the
+// quarry's, so they name the quarry instead.
+const mapPlace = (site: MapSite, map: MapSites, withArea: boolean) =>
+  site.area === "fresh" && site.page
+    ? site.page
+    : [
+        withArea && map.areas[site.area],
+        site.type !== "reef" && map.siteTypes[site.type],
+        site.depth !== undefined &&
+          `${site.approximate ? "≈ " : ""}${site.depth} m`,
+      ]
+        .filter(Boolean)
+        .join(" · ")
+
+// Explore's sites the picker's search shows before Show all, as one letter
+// finds most of the 409.
+const mapShown = 8
+
+// A site on Explore's map, with its dive count where the log has it.
+function MapSiteButton({
+  site,
+  own,
+  current,
+  onPick,
+  name,
+  place,
+}: {
+  site: MapSite
+  own: SiteRow | undefined
+  current: boolean
+  onPick: (site: MapSite) => void
+  name: ReactNode
+  place: string
+}) {
+  return (
+    <button
+      type="button"
+      aria-current={current || undefined}
+      onClick={() => onPick(site)}
+      className="flex min-h-14 items-center gap-3 py-2 pr-3.5 pl-4 text-left transition-colors duration-150 hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
+    >
+      {/* The map's longest names differ only past a phone's width ("Steenbras
+          Deep North Pinnacle or 2nd Pinnacle"), so they wrap in full, as
+          does the depth after the longest area. */}
+      <span className="flex min-w-0 flex-1 flex-col gap-px">
+        <span className="text-base font-medium tracking-[-0.01em]">{name}</span>
+        {place && (
+          <span className="text-[13px] text-muted-foreground">{place}</span>
+        )}
+      </span>
+      {own && own.count > 0 && (
+        <span className="shrink-0 text-[13px] text-muted-foreground tabular-nums">
+          {diveCount(own.count)}
+        </span>
+      )}
+      <IconCheck
+        aria-hidden
+        className={cn("size-5 shrink-0 text-primary", !current && "invisible")}
+      />
+    </button>
+  )
+}
+
+// Every site on Explore's map, by area as the map's list has them, with
+// its own search, starting from the picker's.
+function MapSiteList({
+  map,
+  initial,
+  ownSite,
+  value,
+  onPick,
+  onNew,
+}: {
+  map: MapSites
+  initial: string
+  ownSite: (site: MapSite) => SiteRow | undefined
+  value: string | null
+  onPick: (site: MapSite) => void
+  onNew: (name: string) => void
+}) {
+  const desk = useDesk()
+  const [query, setQuery] = useState(initial)
+  const typed = tidyName(useDeferredValue(query))
+  const found = map.searchSites(typed)
+  const groups = (Object.keys(map.areas) as Area[]).flatMap((area) => {
+    const inArea = found
+      .filter((site) => site.area === area)
+      .sort((a, b) => a.name.localeCompare(b.name))
+    return inArea.length ? [{ area, sites: inArea }] : []
+  })
+  return (
+    <div className="flex flex-col gap-5">
+      <div>
+        <SheetSearch
+          className="mb-3"
+          value={query}
+          onChange={setQuery}
+          label="Search dive sites"
+          // With a keyboard at hand, as a new site's name has it; a phone
+          // waits for a tap, so its keyboard doesn't cover the list.
+          autoFocus={desk}
+        />
+        {!groups.length && (
+          <SheetSection>
+            <button
+              type="button"
+              onClick={() => onNew(query)}
+              className="flex min-h-13 items-center gap-3 px-4 text-left text-base font-medium text-primary transition-colors duration-150 hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
+            >
+              <IconPlus aria-hidden className="size-5 shrink-0" />
+              <span className="truncate">
+                {tidyName(query)
+                  ? `Add “${tidyName(query)}”`
+                  : "New custom site"}
+              </span>
+            </button>
+          </SheetSection>
+        )}
+      </div>
+      {groups.map(({ area, sites: inArea }) => (
+        // Off-screen areas skip layout and paint, so the push's first frame
+        // waits only for the rows in view; sized near enough to scroll true.
+        // A pixel round the card, as the containment clips its ring.
+        <div
+          key={area}
+          className="-m-px p-px"
+          style={{
+            contentVisibility: "auto",
+            containIntrinsicSize: `auto ${28 + inArea.length * 57}px`,
+          }}
+        >
+          <SheetSection title={map.areas[area]}>
+            {inArea.map((site) => {
+              const own = ownSite(site)
+              const parts = typed ? matchName(site.name, typed)?.parts : null
+              return (
+                <MapSiteButton
+                  key={site.id}
+                  site={site}
+                  own={own}
+                  current={!!own && own.id === value}
+                  onPick={onPick}
+                  name={parts ? <Highlighted parts={parts} /> : site.name}
+                  place={mapPlace(site, map, false)}
+                />
+              )
+            })}
+          </SheetSection>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function NewSite({
   draft,
   onDraft,
   regions,
   duplicate,
   reserved,
+  mapTwin,
+  onUseMapTwin,
   onUse,
   onCountry,
   onBody,
@@ -541,6 +866,9 @@ function NewSite({
   regions: RegionRow[]
   duplicate: SiteRow | undefined
   reserved: boolean
+  // One of Explore's sites with the name typed, offered filled in instead.
+  mapTwin: MapSite | undefined
+  onUseMapTwin: () => void
   onUse: () => void
   onCountry: () => void
   onBody: () => void
@@ -635,6 +963,17 @@ function NewSite({
               </BarButton>
             </div>
           )
+        )}
+        {mapTwin && (
+          <div className="flex items-center gap-2.5 py-1.5 pr-1.5 pl-4 text-[13px] text-muted-foreground">
+            <IconMap2 aria-hidden className="size-4 shrink-0" />
+            <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+              {mapTwin.name} is one of Explore’s dive sites
+            </span>
+            <BarButton strong onClick={onUseMapTwin} className="text-[13px]">
+              Use it
+            </BarButton>
+          </div>
         )}
       </SheetSection>
 
@@ -805,7 +1144,7 @@ export function CountryList({
   value,
   onPick,
 }: {
-  sites: SiteRow[]
+  sites: Pick<SiteRow, "countryCode" | "last">[]
   value: string | null
   onPick: (code: CountryCode) => void
 }) {

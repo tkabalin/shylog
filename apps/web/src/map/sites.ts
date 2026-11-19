@@ -1,3 +1,5 @@
+import { normaliseName } from "@shylog/core"
+
 import raw from "./sites.geojson?raw"
 
 import type { Compass, GoodFor, Need, Season } from "./tag-values"
@@ -68,6 +70,23 @@ export const sites: Site[] = collection.features.map(
 )
 
 export const siteById = new Map(sites.map((site) => [site.id, site]))
+
+// The list's search, among the sites the filters leave, as the Log's search
+// narrows its filtered cards: names alone, ignoring case, accents,
+// punctuation and spaces, so "millers" finds Miller's Point and "a frame"
+// A-Frame.
+const fold = (text: string) =>
+  normaliseName(text).replace(/[^\p{L}\p{N}\p{M}]/gu, "")
+const folded = new Map<string, string>()
+export function searchSites(query: string, among: readonly Site[] = sites) {
+  const needle = fold(query)
+  if (!needle) return among
+  return among.filter((site) => {
+    let name = folded.get(site.id)
+    if (name === undefined) folded.set(site.id, (name = fold(site.name)))
+    return name.includes(needle)
+  })
+}
 
 // In the list's order, each clustering on its own.
 export const areas: Record<Area, string> = {
