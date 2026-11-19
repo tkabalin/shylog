@@ -30,6 +30,9 @@ const spreadEdge = (degrees: number) => {
 const wedge = `M50 50 L${spreadEdge(-56)} A${trackRadius + 6} ${trackRadius + 6} 0 0 1 ${spreadEdge(56)} Z`
 
 const short = (point: Compass) => point.toUpperCase()
+// A wind or swell from a point, as a forecast names it: "south-easterly".
+const fromPoint = (point: Compass) =>
+  `${compassOptions.find(({ value }) => value === point)!.label.toLowerCase()}erly`
 
 // The pointer's angle round the dial's centre, clockwise from north, or
 // none in the hub or outside the dial's circle.
@@ -57,6 +60,7 @@ const nearest = (from: number, to: number) =>
 export function CompassDial({
   name,
   any,
+  says,
   icon,
   spread = false,
   value,
@@ -64,6 +68,10 @@ export function CompassDial({
 }: {
   name: string
   any: string
+  // What the filter keeps for the point picked, said under the dial, as
+  // wind keeps the sites good in it and swell drops those exposed to it.
+  // Its article too, as a forecast's "an easterly".
+  says: (from: ReactNode, article: "a" | "an") => ReactNode
   icon: ReactNode
   spread?: boolean
   value: Compass | undefined
@@ -282,14 +290,24 @@ export function CompassDial({
       </div>
       <p
         className={cn(
-          "text-sm",
+          // Under the dial's middle, as two lines once it says what it
+          // keeps, which they're kept for, so a pick doesn't move the sheet.
+          "min-h-[2lh] text-center text-sm text-balance",
           value ? "font-medium text-foreground" : "text-muted-foreground"
         )}
       >
-        {value
-          ? compassOptions.find((option) => option.value === value)!.label +
-            (spread ? `, ${short(range[0]!)} to ${short(range[2]!)}` : "")
-          : "Any"}
+        {/* "south-easterly" never breaks at its hyphen. */}
+        {value ? (
+          <>
+            {says(
+              <span className="whitespace-nowrap">{fromPoint(value)}</span>,
+              value === "e" ? "an" : "a"
+            )}
+            {spread && `, ${short(range[0]!)} to ${short(range[2]!)}`}
+          </>
+        ) : (
+          any
+        )}
       </p>
     </div>
   )

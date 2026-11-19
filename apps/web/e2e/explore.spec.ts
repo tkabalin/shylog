@@ -1295,7 +1295,18 @@ test.describe("at desktop width", () => {
     await expect(
       dialog.getByRole("button", { name: `Show ${southEasterly} sites` })
     ).toBeVisible()
-    await expect(dialog.getByText("South-east, E to S")).toBeVisible()
+    await expect(
+      dialog.getByText("Sites good in a south-easterly, E to S")
+    ).toBeVisible()
+    await expect(dialog.getByText("Any swell", { exact: true })).toBeVisible()
+    await dialog
+      .getByRole("group", { name: "Swell" })
+      .getByRole("button", { name: "South-west" })
+      .click()
+    await expect(
+      dialog.getByText("Sites not exposed to south-westerly swell")
+    ).toBeVisible()
+    await dialog.getByRole("button", { name: "Any swell" }).click()
     await dialog.getByRole("button", { name: "Any wind" }).click()
     await expect(
       points.getByRole("button", { name: "South-east" })
