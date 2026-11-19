@@ -113,6 +113,11 @@ test("saving a milestone dive bursts and says what the number means @writes", as
   await sheet(page).getByRole("button", { name: "New site" }).click()
   await sheet(page).getByLabel("Name").fill(name)
   await sheet(page).getByRole("button", { name: "Add", exact: true }).click()
+  // Fill once the sheet has gone, as delete.spec's draft test does.
+  await expect(sheet(page)).toBeHidden()
+  await expect(
+    page.getByRole("button", { name: /^Site,/ })
+  ).toHaveAccessibleName(`Site, ${name}`)
   await page.locator("#field-time").fill("09:00")
   await page.getByLabel("Duration").fill("40")
   await page.getByLabel("Max depth").fill("18")
@@ -143,6 +148,11 @@ test("uploads a dive saved offline once the server answers again @writes", async
   await sheet(page).getByRole("button", { name: "New site" }).click()
   await sheet(page).getByLabel("Name").fill(name)
   await sheet(page).getByRole("button", { name: "Add", exact: true }).click()
+  // Fill once the sheet has gone, as delete.spec's draft test does.
+  await expect(sheet(page)).toBeHidden()
+  await expect(
+    page.getByRole("button", { name: /^Site,/ })
+  ).toHaveAccessibleName(`Site, ${name}`)
   await page.locator("#field-time").fill("09:00")
   await page.getByLabel("Duration").fill("40")
   await page.getByLabel("Max depth").fill("12")
