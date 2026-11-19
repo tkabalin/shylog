@@ -469,10 +469,10 @@ const floatingPill = cn(
   "not-data-active:hover:bg-background data-active:bg-background data-active:text-foreground dark:data-active:bg-background"
 )
 
-// The access and max depth pills after the Log's Clear, as how you get in
-// matters most when picking a dive. From desk: up the type and page tags
-// follow as pills of their own; a phone's row has no room, so they share one
-// Filters sheet.
+// The access pill first, after the Log's Clear, as how you get in matters
+// most when picking a dive, then max depth. From desk: up the type sits
+// between them and the page tags follow as pills of their own; a phone's row
+// has no room, so they share one Filters sheet.
 function Filters({
   filters,
   onChange,
@@ -504,7 +504,8 @@ function Filters({
   const wayIn = (
     <MultiFilter
       name="Access"
-      any="Shore or boat"
+      // Not "Shore or boat", which a list row uses for a site dived both ways.
+      any="Any access"
       unset="Access"
       options={accessOptions}
       value={filters.access ?? []}
@@ -527,6 +528,18 @@ function Filters({
         />
       )}
       {wayIn}
+      {desk && (
+        <MultiFilter
+          name="Type"
+          any="Any type"
+          unset="Type"
+          options={typeOptions}
+          value={filters.types}
+          onChange={(types) => onChange({ ...filters, types })}
+          {...clear.menu}
+          className={pill}
+        />
+      )}
       <RangeFilter
         label="Max depth"
         noun="max depth"
@@ -540,16 +553,6 @@ function Filters({
       />
       {desk ? (
         <>
-          <MultiFilter
-            name="Type"
-            any="Any type"
-            unset="Type"
-            options={typeOptions}
-            value={filters.types}
-            onChange={(types) => onChange({ ...filters, types })}
-            {...clear.menu}
-            className={pill}
-          />
           <TagPill
             conditionsOnly
             name="Conditions"

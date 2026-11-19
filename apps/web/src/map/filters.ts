@@ -34,8 +34,8 @@ export const typeOptions: Option<SiteType>[] = [
 
 export const accessOptions: Option<Way>[] = [
   // Not "Shore dives", which the list's rows use for the MPA rule.
-  { value: "shore", label: "From shore" },
-  { value: "boat", label: "By boat" },
+  { value: "shore", label: "Shore" },
+  { value: "boat", label: "Boat" },
 ]
 
 export const compassOptions: Option<Compass>[] = [
