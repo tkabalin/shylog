@@ -115,6 +115,58 @@ describe("search_map_sites", () => {
     expect(await ids({ avoid: ["dsmb"] })).toContain("sentinel")
   })
 
+  it("collapses a page's sites into its first row on request", async () => {
+    // Every row, page by page.
+    const collapsed = async (args: Record<string, unknown>) => {
+      const rows: Row[] = []
+      for (let offset = 0; ; offset += 200) {
+        const { sites: page } = await search({
+          ...args,
+          collapseSubsites: true,
+          limit: 200,
+          offset,
+        })
+        rows.push(...page)
+        if (page.length < 200) return rows
+      }
+    }
+    const of = (row: Row) => (row.alsoOnPage ?? []) as { id: string }[]
+    const rows = await collapsed({})
+    // One row per page, and a site with no page on its own.
+    expect(rows).toHaveLength(
+      new Set(sites.map((site) => site.page ?? site.id)).size
+    )
+    const pages = rows.map((row) => row.page).filter(Boolean)
+    expect(new Set(pages).size).toBe(pages.length)
+    // The page covering the most sites: its row names it and the rest.
+    const counts = new Map<string, number>()
+    for (const { page } of sites) {
+      if (page) counts.set(page, (counts.get(page) ?? 0) + 1)
+    }
+    const [busiest, size] = [...counts].sort((a, b) => b[1] - a[1])[0]!
+    expect(of(rows.find((row) => row.page === busiest)!)).toHaveLength(size - 1)
+    // The row kept is the first in the sort order: here the deepest.
+    for (const row of await collapsed({ sort: "deepest" })) {
+      for (const { id } of of(row)) {
+        expect(siteById.get(id)!.depth ?? -1).toBeLessThanOrEqual(
+          (row.maxDepthM as number | undefined) ?? -1
+        )
+      }
+    }
+    // Only matches fold in: with wrecks asked for, no reef of their pages.
+    for (const row of await collapsed({ types: ["wreck"] })) {
+      for (const { id } of of(row)) {
+        expect(siteById.get(id)!.type).toBe("wreck")
+      }
+    }
+    // Without it, every site has its own row and none carries the others.
+    const plain = await search({ name: "whittle", limit: 200 })
+    for (const row of plain.sites) {
+      expect(row).not.toHaveProperty("alsoOnPage")
+      expect(row).not.toHaveProperty("page")
+    }
+  })
+
   it("refuses a value the tags don't have", async () => {
     const reply = await callTool(await client(), "search_map_sites", {
       wind: ["up"],

@@ -141,6 +141,12 @@ const searchInput = z.strictObject({
     .describe(
       "A point in decimal degrees; rows then give the distance from it"
     ),
+  collapseSubsites: z
+    .boolean()
+    .optional()
+    .describe(
+      "True for one row per Wikivoyage page: a page that covers several sites shows only its first match in the sort order, with the page's name in page and its other matches in alsoOnPage. The row's figures and tags are that one site's. Paging counts the rows"
+    ),
   sort: z
     .enum(["name", "distance", "deepest"])
     .optional()
@@ -193,6 +199,25 @@ const summary = (site: Site) =>
     description: site.description,
   })
 
+// The rows in order, each page's first standing for the others on it, which
+// it carries; a row with no page stands alone.
+function collapse<T>(rows: T[], pageOf: (row: T) => string | undefined) {
+  const first = new Map<string, T & { others: T[] }>()
+  const kept: (T & { others: T[] })[] = []
+  for (const row of rows) {
+    const page = pageOf(row)
+    const held = page === undefined ? undefined : first.get(page)
+    if (held) {
+      held.others.push(row)
+      continue
+    }
+    const keep = { ...row, others: [] }
+    if (page !== undefined) first.set(page, keep)
+    kept.push(keep)
+  }
+  return kept
+}
+
 // The site's own section first, as its sheet shows it, then its page under
 // the page's name.
 function fullText(site: Site) {
@@ -244,13 +269,24 @@ export function siteTools(server: McpServer) {
               ? (b.site.depth ?? -1) - (a.site.depth ?? -1)
               : names.compare(a.site.name, b.site.name)
         )
-      const { page, showing } = paged(found, search.offset, search.limit)
+      // A page's later matches fold into its first, which is the row kept.
+      const rows = search.collapseSubsites
+        ? collapse(found, ({ site }) => site.page)
+        : found.map((row) => ({ ...row, others: [] }))
+      const { page, showing } = paged(rows, search.offset, search.limit)
       return {
         showing,
-        sites: page.map(({ site, km }) =>
+        sites: page.map(({ site, km, others }) =>
           compact({
             ...summary(site),
             distanceKm: km === undefined ? undefined : Math.round(km * 10) / 10,
+            page: search.collapseSubsites ? site.page : undefined,
+            alsoOnPage: others.length
+              ? others.map(({ site: other }) => ({
+                  id: other.id,
+                  name: other.name,
+                }))
+              : undefined,
           })
         ),
       }
