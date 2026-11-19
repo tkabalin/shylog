@@ -143,7 +143,7 @@ function EntitiesPage() {
         <SheetSearch
           value={q}
           onChange={(next) => setSearch({ q: next || undefined })}
-          label={`Search ${label.title.toLowerCase()}`}
+          label={`Search ${label.many}`}
           // A desktop's as compact as the Log's.
           className="desk:h-9 desk:rounded-lg"
         />
@@ -216,10 +216,10 @@ function EntitiesPage() {
           ) : (
             <p className="py-6 text-center text-sm text-muted-foreground">
               {key
-                ? `No ${label.title.toLowerCase()} match.`
+                ? `No ${label.many} match.`
                 : pickable(kind)
-                  ? `No ${label.title.toLowerCase()} yet.`
-                  : `No ${label.title.toLowerCase()} yet. They’re added from a dive’s form.`}
+                  ? `No ${label.many} yet.`
+                  : `No ${label.many} yet. They’re added from a dive’s form.`}
             </p>
           )}
         </div>

@@ -53,7 +53,7 @@ test("renames a site with Save @writes", async ({ page, restore }) => {
   const log = await getLog(page.request)
   expect(log.sites.find((site) => site.id === id)?.name).toBe(`${name} North`)
   // Back returns to the list it was opened from.
-  await page.getByRole("link", { name: "Sites", exact: true }).click()
+  await page.getByRole("link", { name: "Sites dived", exact: true }).click()
   await expect(page).toHaveURL(/\/you\/entities\?/)
 })
 
