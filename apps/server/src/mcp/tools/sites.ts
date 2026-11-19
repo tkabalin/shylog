@@ -63,11 +63,16 @@ const searchInput = z.strictObject({
     ),
   areas: z
     .array(z.enum(areaKeys))
+    .max(areaKeys.length)
     .optional()
     .describe(
       `Any of these: ${areaKeys.map((key) => `${key} (${areas[key]})`).join(", ")}`
     ),
-  types: z.array(z.enum(types)).optional().describe("Any of these"),
+  types: z
+    .array(z.enum(types))
+    .max(types.length)
+    .optional()
+    .describe("Any of these"),
   access: z
     .array(z.enum(ways))
     .max(ways.length)
@@ -121,6 +126,7 @@ const searchInput = z.strictObject({
     ),
   diving: z
     .array(z.enum(limits))
+    .max(limits.length)
     .optional()
     .describe(
       "Any of these, from the strictest zone the site lies in: allowed (no limit, no-take zones included), business-only (scuba only with an authorised dive business, round Robben Island), shore-only (Cape Point's inner abalone band), no-diving"
