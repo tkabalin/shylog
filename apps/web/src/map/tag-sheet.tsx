@@ -14,18 +14,17 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Haptic } from "@/lib/haptic"
 
+import { CompassDial } from "./compass-dial"
 import {
-  accessOptions,
-  compassOptions,
   filterSites,
   goodForOptions,
   searchOf,
   seasonOptions,
   siteCount,
   skillOptions,
+  typeOptions,
   type SiteFilters,
 } from "./filters"
-import type { Compass } from "./sites"
 
 // The sheet behind the phone's Filters pill, with every filter the pills
 // don't hold, and behind the desktop's Conditions pill, with only those.
@@ -59,55 +58,52 @@ export default function TagSheet({
     setWasOpen(open)
     if (open) setDraft(filters)
   }
+  // The phone's row keeps the way in and the depth; the sheet has the rest.
   const cleared: SiteFilters = conditionsOnly
     ? { ...draft, wind: [], swell: [], season: [] }
-    : { types: draft.types, depth: draft.depth }
+    : { types: [], depth: draft.depth, access: draft.access }
   const shown = filterSites(draft).length
-  // A hairline under the title once the filters scroll under it, as iOS's
-  // sheets draw one.
-  const [scrolled, setScrolled] = useState(false)
 
   return (
     <Drawer showSwipeHandle open={open && mounted} onOpenChange={onOpenChange}>
       <DrawerContent finalFocus={returnFocus}>
-        <DrawerHeader
-          className={cn(
-            "border-b transition-colors duration-150",
-            scrolled ? "border-border" : "border-transparent"
-          )}
-        >
+        <DrawerHeader className="pb-4">
           <DrawerTitle>{conditionsOnly ? "Conditions" : "Filters"}</DrawerTitle>
         </DrawerHeader>
         {/* A pull down from the top of the filters drags the sheet, as an
             iOS sheet's does; a scroll part way down scrolls them. */}
-        <div
-          onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}
-          className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 pt-2 pb-6"
-        >
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain px-4 pb-6">
           {!conditionsOnly && (
-            <Group title="Way in">
+            <Group title="Type">
               <Chips
-                options={accessOptions}
-                value={draft.access ?? []}
-                onChange={(access) => setDraft({ ...draft, access })}
+                options={typeOptions}
+                value={draft.types}
+                onChange={(types) => setDraft({ ...draft, types })}
               />
             </Group>
           )}
           <div className="grid grid-cols-2 gap-4">
-            <Group title="Today's wind">
-              <CompassGrid
-                name="Today's wind"
+            <Group title="Wind">
+              <CompassDial
+                name="Wind"
+                any="Any wind"
                 icon={<IconWind aria-hidden />}
-                value={draft.wind ?? []}
-                onChange={(wind) => setDraft({ ...draft, wind })}
+                spread
+                value={draft.wind?.[0]}
+                onChange={(wind) =>
+                  setDraft({ ...draft, wind: wind ? [wind] : [] })
+                }
               />
             </Group>
-            <Group title="Today's swell">
-              <CompassGrid
-                name="Today's swell"
+            <Group title="Swell">
+              <CompassDial
+                name="Swell"
+                any="Any swell"
                 icon={<IconRipple aria-hidden />}
-                value={draft.swell ?? []}
-                onChange={(swell) => setDraft({ ...draft, swell })}
+                value={draft.swell?.[0]}
+                onChange={(swell) =>
+                  setDraft({ ...draft, swell: swell ? [swell] : [] })
+                }
               />
             </Group>
           </div>
@@ -212,67 +208,6 @@ function Chips<T extends string>({
           <Haptic />
         </ToggleGroupItem>
       ))}
-    </ToggleGroup>
-  )
-}
-
-// The eight points laid out as a compass: north at the top, and the wind
-// or swell's icon at the centre.
-const layout: (Compass | "centre")[] = [
-  "nw",
-  "n",
-  "ne",
-  "w",
-  "centre",
-  "e",
-  "sw",
-  "s",
-  "se",
-]
-
-function CompassGrid({
-  name,
-  icon,
-  value,
-  onChange,
-}: {
-  name: string
-  icon: React.ReactNode
-  value: Compass[]
-  onChange: (value: Compass[]) => void
-}) {
-  return (
-    <ToggleGroup
-      multiple
-      aria-label={name}
-      value={value}
-      onValueChange={(next) => onChange(next as Compass[])}
-      // Sized for a finger on a phone and for a mouse from desk: up.
-      className="grid aspect-square w-full max-w-44 grid-cols-3 grid-rows-3 gap-1.5 desk:max-w-32"
-    >
-      {layout.map((point) =>
-        point === "centre" ? (
-          <span
-            key={point}
-            className="flex items-center justify-center text-muted-foreground [&_svg]:size-5"
-          >
-            {icon}
-          </span>
-        ) : (
-          <ToggleGroupItem
-            key={point}
-            value={point}
-            aria-label={compassOptions.find((o) => o.value === point)!.label}
-            className={cn(
-              chip,
-              "size-full min-w-0 px-0 uppercase desk:size-full desk:px-0"
-            )}
-          >
-            {point}
-            <Haptic />
-          </ToggleGroupItem>
-        )
-      )}
     </ToggleGroup>
   )
 }

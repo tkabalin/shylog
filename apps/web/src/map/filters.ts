@@ -95,8 +95,10 @@ export function filtersOf(search: Search): SiteFilters {
     types: listOf(search.types, typeOptions),
     depth: decodeRange(search.depth, depthScale),
     access: listOf(search.access, accessOptions),
-    wind: listOf(search.wind, compassOptions),
-    swell: listOf(search.swell, compassOptions),
+    // One wind and one swell, as a forecast gives one of each: an older
+    // address with several keeps its first.
+    wind: listOf(search.wind, compassOptions).slice(0, 1),
+    swell: listOf(search.swell, compassOptions).slice(0, 1),
     season: listOf(search.season, seasonOptions),
     skills: listOf(search.skills, skillOptions),
     goodFor: listOf(search.good, goodForOptions),
@@ -124,14 +126,15 @@ export const filterCount = (filters: SiteFilters) =>
   Object.values(searchOf(filters)).filter(Boolean).length
 
 // How many chips are ticked, for the Conditions pill and the phone's Filters
-// pill: two Good for chips are two, as they read.
+// pill, which holds the types but not the access, as it has a pill of its
+// own there: two Good for chips are two, as they read.
 export const conditionTicks = (filters: SiteFilters) =>
   (filters.wind?.length ?? 0) +
   (filters.swell?.length ?? 0) +
   (filters.season?.length ?? 0)
 export const tagTicks = (filters: SiteFilters) =>
   conditionTicks(filters) +
-  (filters.access?.length ?? 0) +
+  filters.types.length +
   (filters.skills?.length ?? 0) +
   (filters.goodFor?.length ?? 0)
 
