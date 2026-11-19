@@ -4,14 +4,20 @@ import { bodiesOfWater, defaultWaterType, waterTypes } from "../enums.ts"
 import { idSchema } from "../ids.ts"
 import { choice, countryCode, name } from "./common.ts"
 
+// A link to a whole page several of the map's sites share, for a dive at
+// none of them in particular. Not the bare slug: six such pages have a site
+// by that id.
+export const mapPagePrefix = "page:"
+
 // The id of a dive site on Explore's map (its page and section, such as
-// `whittle-rock/west-pinnacle`), which holds across the map's refreshes.
+// `whittle-rock/west-pinnacle`), or of a page (`page:castor-rock`), which
+// holds across the map's refreshes.
 export const mapSiteId = z
   .string()
   .max(120)
   .regex(
-    /^[a-z0-9]+(-[a-z0-9]+)*(\/[a-z0-9]+(-[a-z0-9]+)*)?$/,
-    "Expected a dive site id from Explore's map"
+    /^(page:[a-z0-9]+(-[a-z0-9]+)*|[a-z0-9]+(-[a-z0-9]+)*(\/[a-z0-9]+(-[a-z0-9]+)*)?)$/,
+    "Expected a dive site or page id from Explore's map"
   )
 
 export const entityKinds = [
