@@ -54,6 +54,7 @@ import {
 import { fromMapSite, logSites, regionFor } from "./new-site"
 import {
   BarButton,
+  focusInPlace,
   FullSheetContent,
   keyboardPad,
   SheetBar,
@@ -920,7 +921,7 @@ function NewSite({
             name="search-site"
             // With a keyboard at hand, typing starts in an empty name at once;
             // a phone waits for a tap, so its keyboard doesn't jump up.
-            autoFocus={desk && !draft.name}
+            ref={desk && !draft.name ? focusInPlace : undefined}
             value={draft.name}
             onChange={(event) =>
               onDraft({ ...draft, name: event.target.value })

@@ -22,6 +22,10 @@ vi.mock("@/map/enabled", () => ({
   },
 }))
 
+// A phone unless a test sits at a desk, where the sheet is a dialog.
+const desk = vi.hoisted(() => ({ on: false }))
+vi.mock("@/hooks/use-desk", () => ({ useDesk: () => desk.on }))
+
 const sites: SiteRow[] = testSites.map((site) => ({
   id: site.id,
   name: site.name,
@@ -84,6 +88,28 @@ async function showWithMap(rows = sites, regionRows = regions) {
   await act(() => import("@/map/sites"))
   return shown
 }
+
+describe("at a desk", () => {
+  // Mid-slide the field sits past the dialog's edge, where scrolling to it
+  // shifted the dialog sideways and jolted the view as the slide ended.
+  it("focuses a view's field without scrolling to it", async () => {
+    desk.on = true
+    onTestFinished(() => void (desk.on = false))
+    const focus = vi.spyOn(HTMLElement.prototype, "focus")
+    onTestFinished(() => focus.mockRestore())
+    await showWithMap()
+    click(button("From Explore"))
+    const search = document.querySelector(
+      'input[aria-label="Search dive sites"]'
+    )
+    expect(document.activeElement).toBe(search)
+    expect(focus).toHaveBeenLastCalledWith({ preventScroll: true })
+    click(button("Sites"))
+    click(button("New custom site"))
+    expect(document.activeElement).toBe(document.getElementById("site-name"))
+    expect(focus).toHaveBeenLastCalledWith({ preventScroll: true })
+  })
+})
 
 describe("a site from Explore", () => {
   it("isn't offered where Explore is off", () => {
