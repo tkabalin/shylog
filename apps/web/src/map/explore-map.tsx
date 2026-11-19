@@ -43,6 +43,7 @@ import { depthScale } from "@/log/filters"
 import { PageBar, useBack } from "@/you/bar"
 
 import Basemap, { listCard, useMapFrame, type MapState } from "./basemap"
+import { useCardWidth } from "./card-edge"
 import { searchSites } from "./find"
 import {
   imageryFailed,
@@ -679,23 +680,25 @@ function Card({
     observer.observe(element)
     return () => observer.disconnect()
   }, [onCover, site])
+  const { width, edge } = useCardWidth()
   return (
-    <section
-      ref={card}
-      aria-label={label}
-      // The size the map's first fit aims beside.
-      style={{
-        top: listCard.inset,
-        left: listCard.inset,
-        width: listCard.width,
-      }}
+    // At most 60% of the map, so some of it shows beside the card.
+    <div
+      style={{ top: listCard.inset, left: listCard.inset, width }}
       className={cn(
-        "absolute z-10 flex max-h-[calc(100%-1.5rem)] max-w-[min(calc(100%-1.5rem),60%)] flex-col overflow-hidden rounded-[14px] bg-popover text-popover-foreground shadow-lg ring-1 ring-foreground/10",
+        "absolute z-10 flex max-h-[calc(100%-1.5rem)] max-w-[min(calc(100%-1.5rem),60%)]",
         className
       )}
     >
-      {children}
-    </section>
+      <section
+        ref={card}
+        aria-label={label}
+        className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-[14px] bg-popover text-popover-foreground shadow-lg ring-1 ring-foreground/10"
+      >
+        {children}
+      </section>
+      {edge}
+    </div>
   )
 }
 

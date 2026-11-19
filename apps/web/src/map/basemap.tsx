@@ -42,6 +42,7 @@ import { aerialAt } from "./aerial"
 import { extractUrl } from "./extract"
 import { exploreHome } from "./home"
 import { keyRefused } from "./imagery"
+import { cardWidth } from "./card-width"
 import { areas, siteById, sites, type Area, type Site } from "./sites"
 import {
   areaData,
@@ -97,7 +98,7 @@ export type MapState = "drawn" | "failed"
 
 // The desktop's list card, which the first fit aims beside: its inset from
 // the map's edge and its width.
-export const listCard = { inset: 12, width: 360 }
+export const listCard = { inset: 12 }
 
 // How much of the map the sheet or card hides, which camera moves aim
 // beside: the phone's sheet from the bottom, the desktop card from the left.
@@ -300,13 +301,13 @@ function homeView(element: HTMLElement, desk: boolean) {
           [18.3, -34.43],
           [18.93, -33.78],
         ]) as LngLatBoundsLike,
-    // Beside the desktop's list card, 12 px in and 360 px wide.
+    // Beside the desktop's list card, 12 px in and as wide as it was left.
     fitBoundsOptions: {
       padding: desk
         ? {
             left:
               Math.min(
-                listCard.inset + listCard.width,
+                listCard.inset + cardWidth.get(),
                 element.clientWidth * 0.6
               ) + 8,
             top: 8,

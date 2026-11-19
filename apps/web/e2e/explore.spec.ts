@@ -1287,7 +1287,7 @@ test.describe("at desktop width", () => {
     await expect(wikivoyage).toHaveAttribute("href", /wikivoyage\.org/)
   })
 
-  test("widens the card from its edge, and keeps the width", async ({
+  test("widens the cards from their edge, and keeps the width", async ({
     page,
   }) => {
     await page.goto("/explore?site=a-frame")
@@ -1304,6 +1304,13 @@ test.describe("at desktop width", () => {
     await page.keyboard.press("ArrowRight")
     await page.reload()
     await expect.poll(async () => (await card.boundingBox())!.width).toBe(376)
+    // The list's card has the same edge and shares the width.
+    await page.goto("/explore")
+    const list = page.getByRole("region", { name: "Dive sites" })
+    await expect.poll(async () => (await list.boundingBox())!.width).toBe(376)
+    await page.getByRole("separator", { name: "Resize" }).focus()
+    await page.keyboard.press("ArrowRight")
+    await expect.poll(async () => (await list.boundingBox())!.width).toBe(392)
   })
 
   test("leaves out Read more for a site with no page", async ({ page }) => {
