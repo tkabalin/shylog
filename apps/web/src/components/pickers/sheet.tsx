@@ -196,6 +196,12 @@ export function SheetSection({
   )
 }
 
+// Focuses a field as its view mounts, without the scroll autoFocus does:
+// mid-slide the field sits past the dialog's edge, so that scroll shifted
+// the dialog sideways and the view jolted as the slide unwound it.
+export const focusInPlace = (field: HTMLInputElement | null) =>
+  field?.focus({ preventScroll: true })
+
 // A sheet's search, as SitePickerHifi draws it: filled, with its own clear
 // button rather than the browser's, and Return closing the keyboard.
 export function SheetSearch({
@@ -235,7 +241,7 @@ export function SheetSearch({
         onChange={(event) => onChange(event.target.value)}
         enterKeyHint="search"
         maxLength={maxLength}
-        autoFocus={autoFocus}
+        ref={autoFocus ? focusInPlace : undefined}
         onKeyDown={(event) => {
           if (!isReturn(event)) return
           event.preventDefault()
