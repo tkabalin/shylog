@@ -151,9 +151,7 @@ describe("a site from Explore", () => {
     const { onCreate } = await showWithMap()
     click(button("New custom site"))
     type(field("site-name"), "a-frame")
-    expect(document.body.textContent).toContain(
-      "A-Frame is one of Explore’s dive sites"
-    )
+    expect(document.body.textContent).toContain("A-Frame is on Explore")
     click(button("Use it"))
     const [[entities]] = onCreate.mock.calls
     expect(entities.at(-1).fields).toMatchObject({ mapSite: "a-frame" })

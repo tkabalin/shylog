@@ -944,33 +944,33 @@ function NewSite({
           />
         </div>
         {reserved ? (
-          <div className="flex min-h-11 items-center gap-2.5 py-1.5 pr-4 pl-4 text-[13px] text-muted-foreground">
-            <IconAlertTriangle aria-hidden className="size-4 shrink-0" />
-            <span className="min-w-0 flex-1">
+          <div className="flex min-h-11 items-center gap-2.5 pr-4 pl-4 text-[15px] text-muted-foreground">
+            <IconAlertTriangle aria-hidden className="size-4.5 shrink-0" />
+            <span className="min-w-0 flex-1 py-2.5 leading-5">
               Unknown site is kept for imported dives. Give it another name.
             </span>
           </div>
         ) : (
           duplicate && (
-            <div className="flex items-center gap-2.5 py-1.5 pr-1.5 pl-4 text-[13px] text-muted-foreground">
-              <IconAlertTriangle aria-hidden className="size-4 shrink-0" />
-              <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+            <div className="flex min-h-11 items-center gap-2.5 pr-1.5 pl-4 text-[15px] text-muted-foreground">
+              <IconAlertTriangle aria-hidden className="size-4.5 shrink-0" />
+              <span className="min-w-0 flex-1 py-2.5 leading-5 [overflow-wrap:anywhere]">
                 {duplicate.name} already exists in{" "}
                 {countryName(duplicate.countryCode)}
               </span>
-              <BarButton strong onClick={onUse} className="text-[13px]">
+              <BarButton strong onClick={onUse} className="text-[15px]">
                 Use it
               </BarButton>
             </div>
           )
         )}
         {mapTwin && (
-          <div className="flex items-center gap-2.5 py-1.5 pr-1.5 pl-4 text-[13px] text-muted-foreground">
-            <IconMap2 aria-hidden className="size-4 shrink-0" />
-            <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-              {mapTwin.name} is one of Explore’s dive sites
+          <div className="flex min-h-11 items-center gap-2.5 pr-1.5 pl-4 text-[15px] text-muted-foreground">
+            <IconMap2 aria-hidden className="size-4.5 shrink-0" />
+            <span className="min-w-0 flex-1 py-2.5 leading-5 [overflow-wrap:anywhere]">
+              {mapTwin.name} is on Explore
             </span>
-            <BarButton strong onClick={onUseMapTwin} className="text-[13px]">
+            <BarButton strong onClick={onUseMapTwin} className="text-[15px]">
               Use it
             </BarButton>
           </div>
