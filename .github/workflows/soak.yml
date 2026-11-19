@@ -50,8 +50,9 @@ jobs:
     needs: changed
     if: needs.changed.outputs.soak == 'true'
     runs-on: ubuntu-latest
-    # The serial write lane takes about three minutes a pass.
-    timeout-minutes: 45
+    # The serial write lane takes about three minutes a pass, and tracing
+    # every attempt adds about 40% to the slowest shard's half hour.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -71,9 +72,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # The JSON report names each failing test for the report job. Each
-      # shard's has its own name, so the reports land side by side.
+      # shard's has its own name, so the reports land side by side. A failed
+      # attempt keeps its trace, as a stall seen once can't be replayed.
       - id: e2e
-        run: pnpm test:e2e --repeat-each=5 --shard=${{ matrix.shard }}/3 --reporter=github,html,json
+        run: pnpm test:e2e --repeat-each=5 --shard=${{ matrix.shard }}/3 --reporter=github,html,json --trace=retain-on-failure
         env:
           PLAYWRIGHT_JSON_OUTPUT_FILE: soak-results/shard-${{ matrix.shard }}.json
       - if: ${{ !cancelled() && steps.e2e.outcome != 'skipped' }}
