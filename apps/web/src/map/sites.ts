@@ -83,6 +83,8 @@ export type Page = {
   // The deepest of its sites.
   depth?: number
   approximate?: true
+  // How its sites are got into: their one way, or both where they differ.
+  access?: Access
 }
 
 // The generator gives every site on a page that page's slug before any "/",
@@ -107,6 +109,7 @@ export const pages: Page[] = [...onPage]
           : most,
       undefined
     )
+    const ways = new Set(shared.flatMap(({ access }) => access ?? []))
     return {
       id: mapPagePrefix + slug,
       name: shared[0]!.page!,
@@ -115,6 +118,9 @@ export const pages: Page[] = [...onPage]
       sites: shared,
       ...(deepest && { depth: deepest.depth }),
       ...(deepest?.approximate && { approximate: true as const }),
+      ...(ways.size && {
+        access: ways.size === 1 ? [...ways][0]! : ("both" as const),
+      }),
     }
   })
 export const pageById = new Map(pages.map((page) => [page.id, page]))
@@ -166,6 +172,13 @@ export const siteTypes: Record<SiteType, string> = {
   reef: "Reef",
   wreck: "Wreck",
   fresh: "Fresh water",
+}
+
+// How you get in, in the Access filter's words.
+export const accessNames: Record<Access, string> = {
+  shore: "Shore",
+  boat: "Boat",
+  both: "Shore or boat",
 }
 
 // The site's page, at its section on a shared page, as Wikivoyage links it;

@@ -209,7 +209,12 @@ test.describe("at phone width", () => {
     await expect(sheet.getByRole("definition").first()).toHaveText(
       `${aFrame.approximate ? "≈ " : ""}${aFrame.depth} m`
     )
-    await expect(sheet.getByRole("definition").last()).toHaveText("Reef")
+    // Max depth, type and how you get in, in the Access filter's words.
+    await expect(sheet.getByRole("definition")).toHaveText([
+      `${aFrame.approximate ? "≈ " : ""}${aFrame.depth} m`,
+      "Reef",
+      { shore: "Shore", boat: "Boat", both: "Shore or boat" }[aFrame.access!],
+    ])
     await expect(
       sheet.getByText(aFrame.description!.slice(0, 40)).first()
     ).toBeVisible()
