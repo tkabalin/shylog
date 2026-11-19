@@ -67,7 +67,8 @@ test.describe("at phone width", () => {
     await page.route(
       (url) => pages.includes(url.pathname),
       async (route) => {
-        const response = await route.fetch()
+        // Once more where the server closed the kept-alive socket as it was reused.
+        const response = await route.fetch({ maxRetries: 1 })
         const body = (await response.text()).replace(
           '<meta name="shylog-explore" content="on"',
           '<meta name="shylog-explore" content="off"'

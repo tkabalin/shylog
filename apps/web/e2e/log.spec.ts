@@ -320,7 +320,8 @@ const newerServer = (page: Page) =>
   page.route("**/api/log", async (route) => {
     const headers = { ...route.request().headers() }
     delete headers["if-none-match"]
-    const res = await route.fetch({ headers })
+    // Once more where the server closed the kept-alive socket as it was reused.
+    const res = await route.fetch({ headers, maxRetries: 1 })
     const log = (await res.json()) as { schemaVersion: number }
     await route.fulfill({
       response: res,

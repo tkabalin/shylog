@@ -252,7 +252,8 @@ test("warns that saving is paused after a failed database check", async ({
   page,
 }) => {
   await page.route("**/api/health", async (route) => {
-    const res = await route.fetch()
+    // Once more where the server closed the kept-alive socket as it was reused.
+    const res = await route.fetch({ maxRetries: 1 })
     await route.fulfill({
       response: res,
       json: { ...(await res.json()), writesPaused: true },
@@ -320,7 +321,8 @@ async function failedNight(page: Page) {
   const failedAt = new Date().toISOString()
   let failed = true
   await page.route("**/api/health", async (route) => {
-    const res = await route.fetch()
+    // Once more where the server closed the kept-alive socket as it was reused.
+    const res = await route.fetch({ maxRetries: 1 })
     await route.fulfill({
       response: res,
       json: {
@@ -330,7 +332,8 @@ async function failedNight(page: Page) {
     })
   })
   await page.route("**/api/export/run", async (route) => {
-    const res = await route.fetch()
+    // Once more where the server closed the kept-alive socket as it was reused.
+    const res = await route.fetch({ maxRetries: 1 })
     if (res.ok()) failed = false
     await route.fulfill({ response: res })
   })
