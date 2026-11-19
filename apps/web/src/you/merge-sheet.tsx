@@ -128,7 +128,7 @@ export function MergeSheet({
           <SheetSearch
             value={query}
             onChange={setQuery}
-            label={`Search ${label.title.toLowerCase()}`}
+            label={`Search ${label.many}`}
           />
           <div
             role="radiogroup"
@@ -198,7 +198,7 @@ export function MergeSheet({
             ) : (
               <p className="py-6 text-center text-sm text-muted-foreground">
                 {key
-                  ? `No ${label.title.toLowerCase()} match.`
+                  ? `No ${label.many} match.`
                   : `No other ${label.one} can be merged into this one.`}
               </p>
             )}
