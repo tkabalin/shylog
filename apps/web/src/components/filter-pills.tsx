@@ -195,23 +195,30 @@ export function useClearShown(filtered: boolean) {
 export function ClearFilters({
   shown,
   onClear,
+  fold = true,
   className,
 }: {
   shown: boolean
   onClear: () => void
+  // Off in a row that wraps, where the slide would carry pills across lines.
+  fold?: boolean
   className?: string
 }) {
+  const button = (
+    <button
+      type="button"
+      aria-label="Clear filters"
+      onClick={onClear}
+      className={cn(pillTrigger, "pr-2.5 text-foreground", className)}
+    >
+      <IconX aria-hidden />
+      Clear
+    </button>
+  )
+  if (!fold) return shown ? button : null
   return (
     <Fold open={shown} appear={false} timing="pill" className="shrink-0">
-      <button
-        type="button"
-        aria-label="Clear filters"
-        onClick={onClear}
-        className={cn(pillTrigger, "pr-2.5 text-foreground", className)}
-      >
-        <IconX aria-hidden />
-        Clear
-      </button>
+      {button}
     </Fold>
   )
 }

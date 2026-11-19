@@ -14,6 +14,11 @@ type Site = {
   depth?: number
   approximate?: true
   description?: string
+  access?: "shore" | "boat" | "both"
+  wind?: string[]
+  noSpecialSkills?: true
+  needs?: string[]
+  goodFor?: string[]
 }
 const read = (file: string) =>
   JSON.parse(readFileSync(`${import.meta.dirname}/../src/map/${file}`, "utf8"))
@@ -732,13 +737,65 @@ test.describe("at phone width", () => {
     await expect(list.getByRole("listitem")).toHaveCount(sites.length)
   })
 
+  // Night dives from the shore, a site dived both ways included.
+  const nightFromShore = sites.filter(
+    ({ goodFor, access }) =>
+      goodFor?.includes("night") && (access === "shore" || access === "both")
+  ).length
+
+  test("filters on the page tags from one sheet", async ({ page }) => {
+    await page.goto("/explore")
+    await drawn(page)
+    await page.getByRole("button", { name: "Filters", exact: true }).click()
+    const sheet = page.getByRole("dialog", { name: "Filters" })
+    await still(sheet)
+    await sheet.getByRole("button", { name: "Night dives" }).click()
+    await sheet.getByRole("button", { name: "From shore" }).click()
+    // Reset clears the sheet's own ticks before they're applied.
+    await sheet.getByRole("button", { name: "Reset" }).click()
+    await expect(sheet.getByRole("button", { name: "Reset" })).toBeDisabled()
+    await sheet.getByRole("button", { name: "Night dives" }).click()
+    await sheet.getByRole("button", { name: "From shore" }).click()
+    await sheet
+      .getByRole("button", { name: `Show ${nightFromShore} sites` })
+      .click()
+    await expect(sheet).toBeHidden()
+    await expect(page).toHaveURL(/good=night/)
+    await expect(page).toHaveURL(/access=shore/)
+    await expect(
+      page.getByRole("button", { name: "Filters, 2 set", exact: true })
+    ).toBeVisible()
+    await expect(
+      page.getByRole("button", { name: `List of ${nightFromShore} sites` })
+    ).toBeVisible()
+  })
+
+  test("opens with the page tags from the address, ticked in the sheet", async ({
+    page,
+  }) => {
+    await page.goto("/explore?good=night&access=shore")
+    await drawn(page)
+    await expect(
+      page.getByRole("button", { name: `List of ${nightFromShore} sites` })
+    ).toBeVisible()
+    await page.getByRole("button", { name: "Filters, 2 set" }).click()
+    const sheet = page.getByRole("dialog", { name: "Filters" })
+    await still(sheet)
+    await expect(
+      sheet.getByRole("button", { name: "Night dives" })
+    ).toHaveAttribute("aria-pressed", "true")
+    await expect(
+      sheet.getByRole("button", { name: "From shore" })
+    ).toHaveAttribute("aria-pressed", "true")
+  })
+
   test("clears every filter from the map, keeping the picked site", async ({
     page,
   }) => {
-    await page.goto("/explore?types=wreck&depth=18-30&site=ss-maori")
+    await page.goto("/explore?types=wreck&depth=18-30&wind=se&site=ss-maori")
     await drawn(page)
     await page.getByRole("button", { name: "Clear filters" }).click()
-    await expect(page).not.toHaveURL(/types=|depth=/)
+    await expect(page).not.toHaveURL(/types=|depth=|wind=/)
     await expect(page).toHaveURL(bySite("ss-maori"))
     await expect(
       page.getByRole("button", { name: `List of ${sites.length} sites` })
@@ -1083,6 +1140,52 @@ test.describe("at phone width", () => {
 
 test.describe("at desktop width", () => {
   test.use({ viewport: { width: 1024, height: 768 } })
+
+  test("filters on today's wind from the Conditions pill", async ({ page }) => {
+    await page.goto("/explore")
+    await drawn(page)
+    await page.getByRole("button", { name: "Conditions", exact: true }).click()
+    const dialog = page.getByRole("dialog", { name: "Conditions" })
+    await still(dialog)
+    await dialog
+      .getByRole("group", { name: "Today's wind" })
+      .getByRole("button", { name: "South-east" })
+      .click()
+    const count = sites.filter(({ wind }) => wind?.includes("se")).length
+    await dialog.getByRole("button", { name: `Show ${count} sites` }).click()
+    await expect(dialog).toBeHidden()
+    await expect(page).toHaveURL(/wind=se/)
+    const card = page.getByRole("region", { name: "Dive sites" })
+    await expect(
+      card.getByText(`${count} sites`, { exact: true })
+    ).toBeVisible()
+    await expect(
+      card.getByRole("button", { name: "Conditions, 1 set", exact: true })
+    ).toHaveText("Conditions · 1")
+  })
+
+  test("filters on skills from their own pill, keeping the order ticked", async ({
+    page,
+  }) => {
+    await page.goto("/explore")
+    await drawn(page)
+    const card = page.getByRole("region", { name: "Dive sites" })
+    await card.getByRole("combobox", { name: "Skills, Any skills" }).click()
+    await page.getByRole("option", { name: "No DSMB" }).click()
+    await page.getByRole("option", { name: "No special skills" }).click()
+    await page.keyboard.press("Escape")
+    await expect(page).toHaveURL(/skills=dsmb%2Cbasic|skills=dsmb,basic/)
+    await expect(
+      card.getByRole("combobox", { name: "Skills, No DSMB, No special skills" })
+    ).toHaveText(/No DSMB \+ 1/)
+    const count = sites.filter(
+      ({ noSpecialSkills, needs }) =>
+        noSpecialSkills && !needs?.includes("dsmb")
+    ).length
+    await expect(
+      card.getByText(`${count} sites`, { exact: true })
+    ).toBeVisible()
+  })
 
   test("opens a site in a card over the map's left side", async ({ page }) => {
     await page.goto("/explore?site=a-frame")

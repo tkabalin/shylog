@@ -1,7 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest"
 
-import { filterSites, filtersOf, matchesSite, searchOf } from "./filters"
+import {
+  conditionTicks,
+  filterCount,
+  filterSites,
+  filtersOf,
+  matchesSite,
+  searchOf,
+  tagTicks,
+} from "./filters"
 import { sites, type Site } from "./sites"
 
 const reef = (depth?: number): Site => ({
@@ -18,21 +26,69 @@ describe("filtersOf", () => {
   it("keeps the known types once each, and a range inside the scale", () => {
     expect(
       filtersOf({ types: "wreck,reef,wreck,cave", depth: "18-30" })
-    ).toEqual({ types: ["wreck", "reef"], depth: { min: 18, max: 30 } })
+    ).toMatchObject({ types: ["wreck", "reef"], depth: { min: 18, max: 30 } })
   })
 
   it("reads the whole scale, or none, as no filter", () => {
-    expect(filtersOf({ depth: "0-40" })).toEqual({
+    expect(filterCount(filtersOf({ depth: "0-40" }))).toBe(0)
+    expect(filtersOf({})).toEqual({
       types: [],
       depth: undefined,
+      access: [],
+      wind: [],
+      swell: [],
+      season: [],
+      skills: [],
+      goodFor: [],
     })
-    expect(filtersOf({})).toEqual({ types: [], depth: undefined })
+  })
+
+  it("keeps the known tags once each, in the order ticked", () => {
+    expect(
+      filtersOf({
+        access: "boat,shore,cave",
+        wind: "se,se,up",
+        swell: "sw",
+        season: "winter,summer",
+        skills: "fitness,basic",
+        good: "night,nap",
+      })
+    ).toMatchObject({
+      access: ["boat", "shore"],
+      wind: ["se"],
+      swell: ["sw"],
+      season: ["winter", "summer"],
+      skills: ["fitness", "basic"],
+      goodFor: ["night"],
+    })
+  })
+})
+
+describe("tagTicks", () => {
+  it("counts each ticked chip, not each group", () => {
+    const filters = filtersOf({
+      wind: "se,nw",
+      good: "night,snorkelling",
+      skills: "basic",
+    })
+    expect(tagTicks(filters)).toBe(5)
+    expect(conditionTicks(filters)).toBe(2)
+    expect(tagTicks(filtersOf({ types: "wreck", depth: "18-30" }))).toBe(0)
   })
 })
 
 describe("searchOf", () => {
   it("writes back what filtersOf reads, and nothing for no filter", () => {
-    const search = { types: "wreck,fresh", depth: "18-30" }
+    const search = {
+      types: "wreck,fresh",
+      depth: "18-30",
+      access: "shore",
+      wind: "se,nw",
+      swell: "sw",
+      season: "summer",
+      skills: "basic,dsmb",
+      good: "night,swim-throughs",
+    }
     expect(searchOf(filtersOf(search))).toEqual(search)
     expect(searchOf({ types: [] })).toEqual({
       types: undefined,
