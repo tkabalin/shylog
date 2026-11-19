@@ -4,7 +4,9 @@ import { deleteCard, getLog, putCard, test } from "./api"
 import { png } from "./png"
 import { still } from "./ui"
 
-const unique = () => Date.now().toString(36)
+// Digits only: a base-36 tag can spell a word ("mwnamebc"), and a loose
+// locator such as getByLabel("Name") then matches a row holding it.
+const unique = () => String(Date.now())
 
 // Two screenshots of different shapes and colours, as the picker gives them.
 const shots = [
