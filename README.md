@@ -39,6 +39,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 - Work out SAC rate, MOD, max PO₂, CNS and OTU, surface intervals and statistics across the whole log, with the patterns worth knowing about picked out and a celebration at each dive-number milestone.
 - Export the whole log as UDDF and CSV each night, or download either from You.
 - Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
+- Find somewhere to dive around Cape Town on Explore: a map of the Cape Peninsula and False Bay's 409 dive sites from Wikivoyage, found by type and depth, each with its page, site maps and sonar images, the marine protected areas' zones and who may dive where, and a satellite view. The map, pages and images stay on the phone for a boat with no signal, and an instance for a diver elsewhere can turn Explore off.
 - Keep a packing checklist to tick off before a dive.
 - Install to the home screen, with one instance per diver.
 - Work with the log from Claude Code and Claude Desktop, through an MCP server on the tailnet: look a dive up by its number, search past dives, log and edit dives, tidy sites, people, dive centres and trips, and search Explore's dive sites.
@@ -48,7 +49,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 ```mermaid
 flowchart LR
     subgraph phone["Diver's phone"]
-        pwa["React PWA<br/>app shell cached by a service worker"]
+        pwa["React PWA<br/>app, dive site map and images cached by a service worker"]
         mirror[("IndexedDB: log mirror<br/>the whole log, for reading offline")]
         queue[("IndexedDB: draft queue<br/>new dives saved offline")]
         pwa <--> mirror
@@ -63,11 +64,13 @@ flowchart LR
         app --> files
     end
     watch["Dive computer<br/>on a USB cable"]
+    esri["Esri World Imagery<br/>Explore's satellite tiles"]
     pwa -- "HTTPS over the tailnet" --> ts
     app -.-> watch
+    pwa -.-> esri
 ```
 
-Solid arrows are the request path, from the phone through Tailscale to the database; the dotted arrow is the download from the dive computer through `dctool`; cylinders are data stores.
+Solid arrows are the request path, from the phone through Tailscale to the database; the dotted arrows are the download from the dive computer through `dctool` and the one call that leaves the tailnet, Explore's satellite tiles straight from Esri; cylinders are data stores.
 
 The phone keeps a mirror of the whole log, so the app opens and reads without signal, and a separate queue for dives logged offline. A sync brings the mirror up to date but never touches the queue, so a dive saved without signal can't be lost to a refresh. Drafts upload when there is signal and the server applies each one whole or not at all; edits to dives already on the server are plain API calls. The app container shares the Tailscale sidecar's network and listens nowhere else, so the only way in is Tailscale Serve, which tells the app who is calling. See [docs/offline-sync.md](docs/offline-sync.md) for the sync rules and [docs/security.md](docs/security.md) for the identity checks.
 
