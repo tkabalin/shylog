@@ -17,12 +17,15 @@ import {
   IconCheck,
   IconDroplet,
   IconSalt,
+  IconMap2,
   IconMapPin,
   IconTrash,
+  IconUnlink,
   IconUsers,
 } from "@tabler/icons-react"
-import { useRouter } from "@tanstack/react-router"
+import { Link, useRouter } from "@tanstack/react-router"
 import { cn } from "cn"
+import { toast } from "sonner"
 
 import { DiscardSheet } from "@/components/discard-sheet"
 import { LeaveGuard, type Leave } from "@/components/leave-guard"
@@ -84,6 +87,7 @@ import { months } from "@/format/dates"
 import { depth } from "@/format/figures"
 import { useDesk } from "@/hooks/use-desk"
 import { readKept, useKeptForm } from "@/lib/kept"
+import { exploreOn } from "@/map/enabled"
 import { useHoldUpdate } from "@/update"
 
 import { PageBar, useBack } from "./bar"
@@ -185,6 +189,8 @@ export function EntityDetail({
   const desk = useDesk()
   const label = kindLabels[kind]
   const saved = valuesOf(log, kind, id)
+  // The dive site on Explore's map it was added from; not edited here.
+  const mapSite = kind === "site" ? log.sites.get(id)?.mapSite : null
   // On a phone, edits left unsaved come back, unless the entity has changed
   // since they were typed over it, which they mustn't silently undo.
   const keptKey = `entity:${kind}:${id}`
@@ -201,6 +207,7 @@ export function EntityDetail({
   const [sheet, setSheet] = useState<Sheet>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string>()
+  const [unlinkError, setUnlinkError] = useState<string>()
   const [conflict, setConflict] = useState<Entity>()
   const [nameError, setNameError] = useState<string>()
   const [deleteError, setDeleteError] = useState<string>()
@@ -393,6 +400,35 @@ export function EntityDetail({
       } else {
         setError(failure instanceof Error ? failure.message : String(failure))
       }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // Only the link goes; anything typed into the fields waits for Save.
+  // The app can't link a site again, so a slip is undone from the toast.
+  const unlink = async () => {
+    const was = mapSite
+    setBusy(true)
+    setUnlinkError(undefined)
+    try {
+      await putEntity(kind, id, { mapSite: null })
+      toast("Unlinked from Explore", {
+        action: {
+          label: "Undo",
+          onClick: () =>
+            void putEntity(kind, id, { mapSite: was }).catch(
+              (failure: unknown) =>
+                toast(
+                  failure instanceof Error ? failure.message : String(failure)
+                )
+            ),
+        },
+      })
+    } catch (failure) {
+      setUnlinkError(
+        failure instanceof Error ? failure.message : String(failure)
+      )
     } finally {
       setBusy(false)
     }
@@ -684,6 +720,45 @@ export function EntityDetail({
               </p>
             )}
           </div>
+        )}
+
+        {/* Where Explore is off there's no map to open or leave. */}
+        {mapSite && exploreOn && (
+          <section aria-label="Explore">
+            <Card className="gap-0 divide-y py-0">
+              {/* Into another tab, so it takes this screen's place in
+                  history rather than going one level deeper. */}
+              <Link
+                to="/explore"
+                search={{ site: mapSite }}
+                replace
+                className="flex min-h-12 items-center gap-2 px-4 text-[15px] font-medium text-primary transition-colors duration-150 select-none hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
+              >
+                <IconMap2 aria-hidden className="size-[1.15em]" />
+                Open in Explore
+              </Link>
+              {/* Its fields are the diver's to change, so a site edited
+                  into another place can drop the link; it stays a site.
+                  Plain, as the card's one accent is the way to the map. */}
+              <button
+                type="button"
+                disabled={frozen || busy}
+                onClick={unlink}
+                className="flex min-h-12 items-center gap-2 px-4 text-left text-[15px] font-medium transition-colors duration-150 select-none enabled:hover:bg-muted/60 disabled:text-muted-foreground/60 enabled:data-press:bg-muted enabled:data-press:duration-0"
+              >
+                <IconUnlink aria-hidden className="size-[1.15em]" />
+                Unlink from Explore
+              </button>
+            </Card>
+            {unlinkError && (
+              <p
+                role="alert"
+                className="mt-2 px-1 text-[13px] text-destructive"
+              >
+                {unlinkError}
+              </p>
+            )}
+          </section>
         )}
 
         {(dives.length > 0 || choosing) && (
