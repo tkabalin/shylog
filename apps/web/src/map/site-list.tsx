@@ -1,8 +1,16 @@
 import { memo, useMemo } from "react"
 import { cn } from "cn"
 
-import { zoneNote } from "./find"
-import { areas, siteTypes, type Area, type Site } from "./sites"
+import { divingLimit, zoneNote } from "./find"
+import { areas, siteTypes, type Access, type Area, type Site } from "./sites"
+
+// How you get in, in a word: "From shore" and "By boat" are the filter's,
+// too long for a row.
+const ways: Record<Access, string> = {
+  shore: "Shore",
+  boat: "Boat",
+  both: "Shore or boat",
+}
 
 // The sites grouped by area under sticky headings, each with its count. It
 // is also the map's alternative for screen readers. Memoised, as the desktop
@@ -103,9 +111,13 @@ function Row({
   onHover?: (id: string | undefined) => void
 }) {
   const note = zoneNote(site)
+  // A boat dive in a shore-only zone can't be dived as its page has it.
+  const warn =
+    note?.warn || (site.access === "boat" && divingLimit(site) === "shore-only")
   const parts = [
     // Not under the Fresh water heading, which already says so.
     site.type !== "reef" && site.area !== "fresh" && siteTypes[site.type],
+    site.access && ways[site.access],
     site.depth !== undefined &&
       `${site.approximate ? "≈ " : ""}${site.depth} m`,
   ].filter(Boolean)
@@ -140,18 +152,19 @@ function Row({
         {(parts.length > 0 || note) && (
           <span
             className={cn(
-              "truncate text-muted-foreground tabular-nums",
+              "flex min-w-0 text-muted-foreground tabular-nums",
               desk ? "text-xs" : "text-[13px]"
             )}
           >
-            {parts.join(" · ")}
+            <span className="truncate">{parts.join(" · ")}</span>
+            {/* Who may dive is never cut off, as "No diving" warns. */}
             {note && (
-              <>
+              <span
+                className={cn("shrink-0 whitespace-pre", warn && "text-warn")}
+              >
                 {parts.length > 0 && " · "}
-                <span className={cn(note.warn && "text-warn")}>
-                  {note.text}
-                </span>
-              </>
+                {note.text}
+              </span>
             )}
           </span>
         )}
