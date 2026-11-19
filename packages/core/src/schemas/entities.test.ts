@@ -43,13 +43,30 @@ describe("entityFields", () => {
     ).toBe("salt")
   })
 
-  it("takes a link to a dive site on Explore's map by its id", () => {
+  it("takes a link to a dive site or a page on Explore's map by its id", () => {
     const site = { name: "West Pinnacle", countryCode: "ZA" }
-    for (const mapSite of ["a-frame", "whittle-rock/west-pinnacle"])
+    for (const mapSite of [
+      "a-frame",
+      "whittle-rock/west-pinnacle",
+      "page:castor-rock",
+      "page:ss-lusitania",
+    ])
       expect(entityFields.site.parse({ ...site, mapSite }).mapSite).toBe(
         mapSite
       )
-    for (const mapSite of ["", "A-Frame", "a/b/c", "a--b", "-a", "a b"])
+    for (const mapSite of [
+      "",
+      "A-Frame",
+      "a/b/c",
+      "a--b",
+      "-a",
+      "a b",
+      "page:",
+      "page:a/b",
+      "Page:a",
+      "page:a--b",
+      "pages:a",
+    ])
       expect(entityFields.site.safeParse({ ...site, mapSite }).success).toBe(
         false
       )

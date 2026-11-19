@@ -124,7 +124,7 @@ erDiagram
     TEXT region_id FK "nullable"
     TEXT body_of_water
     TEXT water_type "salt or fresh"
-    TEXT map_site "Explore's site id, nullable"
+    TEXT map_site "Explore's site id or page:<slug>, nullable"
   }
   people {
     TEXT id PK
