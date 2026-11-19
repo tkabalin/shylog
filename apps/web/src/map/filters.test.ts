@@ -43,12 +43,12 @@ describe("filtersOf", () => {
     })
   })
 
-  it("keeps the known tags once each, in the order ticked", () => {
+  it("keeps the known tags once each, in the order ticked, and one wind and swell", () => {
     expect(
       filtersOf({
         access: "boat,shore,cave",
-        wind: "se,se,up",
-        swell: "sw",
+        wind: "up,se,nw",
+        swell: "sw,se",
         season: "winter,summer",
         skills: "fitness,basic",
         good: "night,nap",
@@ -67,13 +67,17 @@ describe("filtersOf", () => {
 describe("tagTicks", () => {
   it("counts each ticked chip, not each group", () => {
     const filters = filtersOf({
-      wind: "se,nw",
+      wind: "se",
+      swell: "sw",
       good: "night,snorkelling",
       skills: "basic",
     })
     expect(tagTicks(filters)).toBe(5)
     expect(conditionTicks(filters)).toBe(2)
-    expect(tagTicks(filtersOf({ types: "wreck", depth: "18-30" }))).toBe(0)
+    // The phone's sheet holds the types; the access and depth have pills.
+    expect(
+      tagTicks(filtersOf({ types: "wreck", access: "shore", depth: "18-30" }))
+    ).toBe(1)
   })
 })
 
@@ -83,7 +87,7 @@ describe("searchOf", () => {
       types: "wreck,fresh",
       depth: "18-30",
       access: "shore",
-      wind: "se,nw",
+      wind: "se",
       swell: "sw",
       season: "summer",
       skills: "basic,dsmb",

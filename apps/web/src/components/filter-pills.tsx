@@ -94,6 +94,7 @@ function FilterSelect({
 export function MultiFilter<T extends string>({
   name,
   any,
+  unset = any,
   options,
   value,
   onChange,
@@ -103,6 +104,9 @@ export function MultiFilter<T extends string>({
 }: {
   name: string
   any: string
+  // The pill's words with nothing ticked, where they're shorter than the
+  // menu's first option.
+  unset?: string
   options: { value: T; label: string }[]
   value: T[]
   onChange: (value: T[]) => void
@@ -115,7 +119,7 @@ export function MultiFilter<T extends string>({
     options.find((option) => option.value === item)?.label ?? item
   // One by name, more as "Night + 1", as the dive form's buddy row reads.
   const text = !value.length
-    ? any
+    ? unset
     : `${labelOf(value[0]!)}${value.length > 1 ? ` + ${value.length - 1}` : ""}`
   return (
     <Select
@@ -195,30 +199,31 @@ export function useClearShown(filtered: boolean) {
 export function ClearFilters({
   shown,
   onClear,
-  fold = true,
+  iconOnly = false,
   className,
 }: {
   shown: boolean
   onClear: () => void
-  // Off in a row that wraps, where the slide would carry pills across lines.
-  fold?: boolean
+  // Its cross alone, for a row too full for the word.
+  iconOnly?: boolean
   className?: string
 }) {
-  const button = (
-    <button
-      type="button"
-      aria-label="Clear filters"
-      onClick={onClear}
-      className={cn(pillTrigger, "pr-2.5 text-foreground", className)}
-    >
-      <IconX aria-hidden />
-      Clear
-    </button>
-  )
-  if (!fold) return shown ? button : null
   return (
     <Fold open={shown} appear={false} timing="pill" className="shrink-0">
-      {button}
+      <button
+        type="button"
+        aria-label="Clear filters"
+        onClick={onClear}
+        className={cn(
+          pillTrigger,
+          "text-foreground",
+          iconOnly ? "px-2.5" : "pr-2.5",
+          className
+        )}
+      >
+        <IconX aria-hidden />
+        {!iconOnly && "Clear"}
+      </button>
     </Fold>
   )
 }

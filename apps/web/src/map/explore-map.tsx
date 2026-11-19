@@ -77,7 +77,7 @@ import { withoutView, type ExploreSearch } from "./search"
 import { ImageViewer } from "./image-viewer"
 import { SiteCard, SiteSheet } from "./site-sheet"
 import { SiteList } from "./site-list"
-import { siteById, type Site } from "./sites"
+import { siteById, sites, type Site } from "./sites"
 import { ZoneRulesList } from "./zone-rules-list"
 import type { Mpa } from "./zone-rules"
 
@@ -264,6 +264,7 @@ export default function Explore({
   if (hovered && (!listShown || !listed.some(({ id }) => id === hovered))) {
     setHovered(undefined)
   }
+  const { rowRef, pillRef, countRef, numberOnly } = useNumberOnly(!desk)
   const pills = (props: { float?: boolean; className?: string }) => (
     <Filters filters={filters} onChange={setFilters} {...props} />
   )
@@ -294,6 +295,12 @@ export default function Explore({
             ) : (
               <ListCard
                 total={listed.length}
+                of={sites.length}
+                onClear={
+                  filterCount(filters)
+                    ? () => setFilters({ types: [] })
+                    : undefined
+                }
                 query={query}
                 onQuery={setQuery}
                 filters={pills({})}
@@ -317,6 +324,7 @@ export default function Explore({
         ) : (
           <>
             <div
+              ref={rowRef}
               role="group"
               aria-label="Filters"
               // Room below for the pills' shadow, which the scrolling row
@@ -325,6 +333,7 @@ export default function Explore({
             >
               {pills({ float: true })}
               <button
+                ref={pillRef}
                 type="button"
                 aria-label={`List of ${siteCount(filtered.length)}`}
                 onClick={() => open("list")}
@@ -332,11 +341,22 @@ export default function Explore({
                 className={cn(
                   floatingPill,
                   pillShape,
-                  "ml-auto pl-2.5 tabular-nums after:absolute after:inset-x-0 after:-inset-y-1"
+                  "ml-auto pl-2.5 tabular-nums after:absolute after:-inset-x-1 after:-inset-y-1"
                 )}
               >
                 <IconMapPin aria-hidden />
-                <span aria-live="polite">{siteCount(filtered.length)}</span>
+                <span aria-live="polite" className="flex">
+                  {filtered.length}
+                  <span
+                    ref={countRef}
+                    className={cn(
+                      "overflow-hidden whitespace-pre transition-opacity duration-150 ease-out",
+                      numberOnly && "max-w-0 opacity-0"
+                    )}
+                  >
+                    {filtered.length === 1 ? " site" : " sites"}
+                  </span>
+                </span>
               </button>
             </div>
             <div className="absolute top-13 right-3 z-[5]">
@@ -396,6 +416,48 @@ export default function Explore({
   )
 }
 
+// The phone's site count drops its word, keeping the number, once the pills
+// before it leave no room for it, as Clear's does with a filter set. The
+// word's natural width stays readable while it's folded.
+function useNumberOnly(phone: boolean) {
+  const row = useRef<HTMLDivElement>(null)
+  const pill = useRef<HTMLButtonElement>(null)
+  const count = useRef<HTMLSpanElement>(null)
+  const [numberOnly, setNumberOnly] = useState(false)
+  useLayoutEffect(() => {
+    const box = row.current
+    if (!phone || !box) return
+    const fit = () => {
+      const button = pill.current
+      const word = count.current
+      const before = button?.previousElementSibling as HTMLElement | null
+      if (!button || !before || !word) return
+      // The free room between the last pill and the count, which its
+      // ml-auto takes up, against the word, with a pixel or two over.
+      const room = button.offsetLeft - before.offsetLeft - before.offsetWidth
+      const needs = word.scrollWidth - word.offsetWidth
+      const overflows = box.scrollWidth > box.clientWidth
+      setNumberOnly((folded) => (folded ? room - 6 < needs + 2 : overflows))
+    }
+    // Each pill, Clear's too as it comes, so a label's change refits.
+    const observer = new ResizeObserver(fit)
+    const watch = () => {
+      observer.disconnect()
+      observer.observe(box)
+      for (const child of box.children) observer.observe(child)
+      fit()
+    }
+    watch()
+    const added = new MutationObserver(watch)
+    added.observe(box, { childList: true })
+    return () => {
+      observer.disconnect()
+      added.disconnect()
+    }
+  }, [phone])
+  return { rowRef: row, pillRef: pill, countRef: count, numberOnly }
+}
+
 const pillShape = "h-9 gap-1 rounded-full px-3 text-[13px] font-medium"
 // Solid over the map, and untinted when set: a tint read badly over the
 // busy map, and the pill's words already say what's set.
@@ -407,9 +469,10 @@ const floatingPill = cn(
   "not-data-active:hover:bg-background data-active:bg-background data-active:text-foreground dark:data-active:bg-background"
 )
 
-// The type and max depth pills, the Log's tag filter and Depth range, after
-// its Clear. From desk: up the page tags follow as pills of their own; a
-// phone's row has no room, so they share one Filters sheet.
+// The access and max depth pills after the Log's Clear, as how you get in
+// matters most when picking a dive. From desk: up the type and page tags
+// follow as pills of their own; a phone's row has no room, so they share one
+// Filters sheet.
 function Filters({
   filters,
   onChange,
@@ -438,23 +501,32 @@ function Filters({
     const id = setTimeout(() => void loadTagSheet(), 1000)
     return () => clearTimeout(id)
   }, [])
+  const wayIn = (
+    <MultiFilter
+      name="Access"
+      any="Shore or boat"
+      unset="Access"
+      options={accessOptions}
+      value={filters.access ?? []}
+      onChange={(access) => onChange({ ...filters, access })}
+      {...clear.menu}
+      className={pill}
+    />
+  )
   const pills = (
     <>
-      <ClearFilters
-        shown={clear.shown}
-        onClear={() => onChange({ types: [] })}
-        fold={!desk}
-        className={float ? floatingPill : undefined}
-      />
-      <MultiFilter
-        name="Type"
-        any="Any type"
-        options={typeOptions}
-        value={filters.types}
-        onChange={(types) => onChange({ ...filters, types })}
-        {...clear.menu}
-        className={pill}
-      />
+      {/* From desk: up Clear is in the card's heading, by the count, where
+          it moves no pill as it comes and goes. */}
+      {!desk && (
+        <ClearFilters
+          shown={clear.shown}
+          onClear={() => onChange({ types: [] })}
+          // Over the map the row has the site count to fit as well.
+          iconOnly={float}
+          className={float ? cn(floatingPill, "after:-inset-x-1") : undefined}
+        />
+      )}
+      {wayIn}
       <RangeFilter
         label="Max depth"
         noun="max depth"
@@ -469,11 +541,12 @@ function Filters({
       {desk ? (
         <>
           <MultiFilter
-            name="Way in"
-            any="Shore or boat"
-            options={accessOptions}
-            value={filters.access ?? []}
-            onChange={(access) => onChange({ ...filters, access })}
+            name="Type"
+            any="Any type"
+            unset="Type"
+            options={typeOptions}
+            value={filters.types}
+            onChange={(types) => onChange({ ...filters, types })}
             {...clear.menu}
             className={pill}
           />
@@ -489,6 +562,7 @@ function Filters({
           <MultiFilter
             name="Skills"
             any="Any skills"
+            unset="Skills"
             options={skillOptions}
             value={filters.skills ?? []}
             onChange={(skills) => onChange({ ...filters, skills })}
@@ -498,6 +572,7 @@ function Filters({
           <MultiFilter
             name="Good for"
             any="Good for anything"
+            unset="Good for"
             options={goodForOptions}
             value={filters.goodFor ?? []}
             onChange={(goodFor) => onChange({ ...filters, goodFor })}
@@ -707,12 +782,17 @@ function Card({
 let folded = false
 function ListCard({
   total,
+  of,
+  onClear,
   query,
   onQuery,
   filters,
   children,
 }: {
   total: number
+  of: number
+  // While a filter is set: the count reads "32 of 409 sites" beside it.
+  onClear?: () => void
   query: string
   onQuery: (query: string) => void
   filters: React.ReactNode
@@ -728,8 +808,19 @@ function ListCard({
         </h2>
         <div className="flex items-center gap-2 self-center">
           <span className="text-[13px] whitespace-nowrap text-muted-foreground tabular-nums">
-            {siteCount(total)}
+            {onClear ? `${total} of ${siteCount(of)}` : siteCount(total)}
           </span>
+          {onClear && (
+            <Button
+              variant="ghost"
+              size="xs"
+              aria-label="Clear filters"
+              onClick={onClear}
+              className="-mx-1 text-[13px]"
+            >
+              Clear
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon-sm"
