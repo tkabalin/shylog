@@ -110,7 +110,8 @@ for (const { title, body } of issues)
   try {
     const known = open.find((issue) => issue.title === title)
     if (known) gh("issue", "comment", String(known.number), "--body", body)
-    else gh("issue", "create", "--title", title, "--body", body)
+    else
+      gh("issue", "create", "--title", title, "--body", body, "--label", "bug")
   } catch (error) {
     console.error(`Couldn't file "${title}": ${error.message}`)
     process.exitCode = 1
