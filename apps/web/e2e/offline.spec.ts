@@ -79,7 +79,7 @@ const badge = (page: Page) =>
 async function logDive(page: Page, site: string) {
   await page.getByRole("button", { name: /^Site,/ }).click()
   await still(sheet(page))
-  await sheet(page).getByRole("button", { name: "New site" }).click()
+  await sheet(page).getByRole("button", { name: "New custom site" }).click()
   await sheet(page).getByLabel("Name").fill(site)
   await sheet(page).getByRole("button", { name: "Add", exact: true }).click()
   await expect(

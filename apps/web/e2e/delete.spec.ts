@@ -158,7 +158,7 @@ test("deletes a draft for good, with the draft wording", async ({ page }) => {
   await page.getByRole("button", { name: /^Site,/ }).click()
   const picker = page.getByRole("dialog")
   await still(picker)
-  await picker.getByRole("button", { name: "New site" }).click()
+  await picker.getByRole("button", { name: "New custom site" }).click()
   await picker.getByLabel("Name").fill("Draft Reef")
   await picker.getByRole("button", { name: "Add", exact: true }).click()
   // Fill once the sheet has gone, not while its exit hands focus back to the
