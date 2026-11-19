@@ -55,7 +55,7 @@ Repeating only the changed specs leaves a gap: a change to the app can bring a r
 
 A night with nothing new to find is skipped. If only docs, `.claude/`, Markdown files or the Claude Desktop extension, which no browser test touches, changed since the last soak that passed, the soak job doesn't run, and the skipped night counts as passing so the comparison carries forward. Anything that can't be checked, such as a failed fetch of the old commit, soaks anyway.
 
-When a soak on `main` fails, a report job reads each shard's JSON results and opens one issue per failing test, or comments on that test's existing issue, so each flake is fixed and closed on its own. More than five failing tests in a night is treated as something broken, not that many flakes, and gets a single issue for the night. Every issue the job opens is labelled `bug`.
+When a soak on `main` fails, a report job reads each shard's JSON results and opens one issue per failing test, or comments on that test's existing issue, so each flake is fixed and closed on its own. Every failed attempt keeps its Playwright trace in the shard's artifact, since a rare stall may not come back on the retry that pull requests trace. Tracing every attempt makes the soak about 40% slower, which a nightly run can afford. More than five failing tests in a night is treated as something broken, not that many flakes, and gets a single issue for the night. Every issue the job opens is labelled `bug`.
 
 ## The image
 
