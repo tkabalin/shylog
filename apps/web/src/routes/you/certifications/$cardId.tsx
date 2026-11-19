@@ -133,6 +133,13 @@ function Viewer({ card }: { card: Card }) {
       data-slot="card-viewer"
       className="dark fixed inset-0 z-50 flex flex-col bg-neutral-950 pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-neutral-50"
     >
+      {/* iOS colours the status bar from a fixed box at the top, but keeps
+          its old colour under one that fills the screen, as this one does.
+          This short one under the status bar turns it dark. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-x-0 top-0 h-[max(0.75rem,env(safe-area-inset-top))] bg-neutral-950"
+      />
       <div className="grid shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-4 pt-4">
         <Link
           to="/you/certifications"

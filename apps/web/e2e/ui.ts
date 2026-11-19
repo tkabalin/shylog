@@ -51,3 +51,24 @@ export async function listed(page: Page) {
     .allTextContents()
   return counts.reduce((sum, text) => sum + Number(text.replace(/\D/g, "")), 0)
 }
+
+// Whether a full-screen viewer has a short fixed box of its own colour at
+// the top. iOS colours the status bar from such a box, and keeps the old
+// colour under one that fills the screen, as the viewer itself does.
+export async function coloursStatusBar(viewer: Locator) {
+  return viewer.evaluate((root) => {
+    const colour = getComputedStyle(root).backgroundColor
+    return [...root.querySelectorAll("*")].some((element) => {
+      const style = getComputedStyle(element)
+      const box = element.getBoundingClientRect()
+      return (
+        style.position === "fixed" &&
+        style.backgroundColor === colour &&
+        box.top <= 4 &&
+        box.height > 10 &&
+        box.height < innerHeight * 0.9 &&
+        box.width >= innerWidth * 0.9
+      )
+    })
+  })
+}
