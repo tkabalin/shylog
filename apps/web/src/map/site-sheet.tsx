@@ -242,6 +242,7 @@ export function SiteSheet({
                         clamp={!raised}
                         back={backTo}
                         onRules={onRules}
+                        onFollow={follow}
                         raise={
                           raised ? undefined : () => setRaisedFor(shown.id)
                         }
@@ -375,8 +376,28 @@ export function SiteCard({
                   Dive sites
                 </BreadcrumbLink>
               </BreadcrumbItem>
+              {/* The way back, where a row or a link came from, is a crumb
+                  here, as desktop's sub-screens have it; a phone's sheet
+                  has a Back row instead. */}
+              {back && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem className="min-w-0">
+                    <BreadcrumbLink
+                      className="-mx-1 truncate rounded-sm px-1 outline-offset-2"
+                      render={
+                        <BackLink back={{ id: back.from, onClick: goBack }} />
+                      }
+                    >
+                      {mapLink(back.from)?.name}
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                </>
+              )}
               <BreadcrumbSeparator />
-              <BreadcrumbItem className="min-w-0">
+              <BreadcrumbItem
+                className={cn("min-w-0", back && "max-w-1/2 shrink-0")}
+              >
                 <BreadcrumbPage className="truncate">
                   {site.name}
                 </BreadcrumbPage>
@@ -407,7 +428,7 @@ export function SiteCard({
             site={site}
             desk
             onRules={onRules}
-            back={back && { id: back.from, onClick: goBack }}
+            onFollow={follow}
             more={
               <Button
                 variant="outline"
@@ -591,6 +612,7 @@ function Summary({
   clamp = false,
   titleRef,
   onRules,
+  onFollow,
 }: {
   site: Shown
   desk?: boolean
@@ -606,6 +628,8 @@ function Summary({
   // The description to three lines, at the phone's peek.
   clamp?: boolean
   titleRef?: (element: HTMLElement | null) => void
+  // Opens another site or page in place of this one, keeping the way back.
+  onFollow: (id: string) => void
 }) {
   // Cached per site: the card re-renders on every move of a drag on its edge.
   // A page's sites can lie in different zones, so it names none.
@@ -659,15 +683,10 @@ function Summary({
       </button>
     )
   const Title = desk ? "h2" : DrawerPrimitive.Title
-  // A site on a shared page, named for a part of it ("Deep End"), says
-  // which page: the reef or wreck it's on.
-  const on =
-    !isPage(site) &&
-    site.section &&
-    site.page &&
-    !site.name.toLowerCase().includes(site.page.toLowerCase())
-      ? site.page
-      : undefined
+  // A site on a shared page says which: the reef or wreck it's on, which
+  // opens whole from its row below. Always, even where its name says so
+  // ("Noah's Ark - Eastern wreck"), so every such site reads alike.
+  const on = isPage(site) ? undefined : pageOf(site)
   return (
     <>
       <div className="flex items-start gap-2">
@@ -684,7 +703,22 @@ function Summary({
           ) : (
             <p className="text-[13px] text-pretty text-muted-foreground">
               {areas[site.area]}
-              {on && ` · ${on}`}
+              {/* The reef or wreck it's on opens whole, so it's a link,
+                  reaching past its words for a wet finger. */}
+              {on && (
+                <>
+                  {" · "}
+                  <Link
+                    to="/explore"
+                    search={withSite(on.id)}
+                    replace
+                    onClick={() => onFollow(on.id)}
+                    className="relative rounded-sm text-primary outline-offset-2 after:absolute after:-inset-x-1 after:-inset-y-3 active:opacity-50 active:duration-0 desk:hover:underline"
+                  >
+                    {on.name}
+                  </Link>
+                </>
+              )}
             </p>
           )}
           <Title
@@ -842,10 +876,9 @@ function PageSites({
     () => [...page.sites].sort((a, b) => names.compare(a.name, b.name)),
     [page]
   )
-  // Most pages give one depth for all their sites, the page's own, which
-  // the summary shows, so a row shows its depth only where it differs.
-  const own = (site: Site) =>
-    site.depth !== undefined && site.depth !== page.depth
+  // Most pages give one depth for all their sites, which the summary shows,
+  // so the rows leave it out; where they differ, every row has its own.
+  const depths = new Set(page.sites.map(({ depth }) => depth)).size > 1
   return (
     <ul
       aria-label={`Sites on ${page.name}`}
@@ -866,7 +899,7 @@ function PageSites({
             <span className="min-w-0 flex-1 py-2.5 [overflow-wrap:anywhere]">
               {site.name}
             </span>
-            {own(site) && (
+            {depths && site.depth !== undefined && (
               <span className="shrink-0 text-muted-foreground tabular-nums">
                 {site.approximate && "≈ "}
                 {site.depth} m
