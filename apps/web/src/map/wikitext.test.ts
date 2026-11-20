@@ -132,6 +132,15 @@ describe("quotes", () => {
       "the Pre-Cambrian *Peninsula* pluton"
     )
   })
+
+  it("parts a mark ending in punctuation from the word after it", () => {
+    expect(quotes("'''Cavern:'''From the gully")).toBe(
+      "**Cavern:** From the gully"
+    )
+    expect(quotes("'''Kelly's anchor'''* A large")).toBe(
+      "**Kelly's anchor*** A large"
+    )
+  })
 })
 
 describe("pageLines", () => {
