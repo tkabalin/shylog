@@ -216,9 +216,9 @@ function PatternRow({
   const row = "flex w-full items-center gap-3 py-3.5 pr-3 pl-4 text-left"
   if (!pattern.groups.length) return <div className={row}>{content}</div>
   return (
-    // Hovering or pressing the sentence tints the groups open under it too,
-    // so the open item reads as one rather than a strip over a plain block.
-    <div className="transition-colors duration-150 has-[>button[data-press]]:bg-muted has-[>button[data-press]]:duration-0 control-hover:bg-muted/60">
+    // Only the sentence tints, not the groups open under it, which flashed
+    // a large block grey as it closed.
+    <div>
       <button
         type="button"
         aria-expanded={open}
@@ -226,7 +226,7 @@ function PatternRow({
         onClick={onToggle}
         className={cn(
           row,
-          "transition-colors duration-150 outline-none select-none [-webkit-touch-callout:none] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset"
+          "transition-colors duration-150 outline-none select-none [-webkit-touch-callout:none] hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset data-press:bg-muted data-press:duration-0"
         )}
       >
         {content}

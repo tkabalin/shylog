@@ -128,10 +128,11 @@ export function Ranked({
               .closest("#main")
               ?.scrollBy(0, button.getBoundingClientRect().top - before)
           }}
+          // Dims rather than tints: a grey bar that jumped below the rows
+          // it opened left the flash where the eye wasn't.
           className={cn(
             listRow,
-            pressable,
-            "min-h-11 border-t font-medium text-primary"
+            "min-h-11 border-t font-medium text-primary transition-opacity hover:opacity-70 active:opacity-50 active:duration-0"
           )}
         >
           <span className="flex-1">
