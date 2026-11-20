@@ -387,7 +387,17 @@ export function quotes(line: string) {
     const want = [...(bold ? ["**"] : []), ...(italic ? ["*"] : [])]
     let keep = 0
     while (keep < open.length && want.includes(open[keep])) keep++
-    out += open.splice(keep).reverse().join("") + spaces
+    const closing = open.splice(keep).reverse().join("")
+    // Markdown doesn't close a mark after punctuation that runs into a word
+    // ("**Cavern:**From" shows its asterisks), so a space goes between.
+    if (
+      closing &&
+      !spaces &&
+      /[^\p{L}\p{N}]$/u.test(out) &&
+      /^[\p{L}\p{N}]/u.test(words)
+    )
+      spaces = " "
+    out += closing + spaces
     const opening = want.filter((mark) => !open.includes(mark))
     open.push(...opening)
     out += opening.join("") + words
