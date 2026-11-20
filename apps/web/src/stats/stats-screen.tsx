@@ -492,9 +492,7 @@ function AirConsumption({
             ]}
           />
         </div>
-        {/* Hovering or pressing the row tints the distribution open under
-            it too, so the open item reads as one, as the conditions' do. */}
-        <div className="group/distribution -mx-4 border-t transition-colors duration-150 has-[>button[data-press]]:bg-muted has-[>button[data-press]]:duration-0 control-hover:bg-muted/60">
+        <div className="-mx-4 border-t">
           <button
             type="button"
             aria-expanded={open}
@@ -502,7 +500,12 @@ function AirConsumption({
               setStill(false)
               setOpen(!open)
             }}
-            className={cn(listRow, "font-medium text-primary")}
+            // Dims as the app's other blue text buttons do: a grey flash
+            // over the open distribution covered half the screen.
+            className={cn(
+              listRow,
+              "font-medium text-primary transition-opacity hover:opacity-70 active:opacity-50 active:duration-0"
+            )}
           >
             <span className="flex-1">Distribution</span>
             <IconChevronDown
@@ -524,11 +527,6 @@ function AirConsumption({
   )
 }
 
-// The figures' cells are opaque, as they draw the hairlines between them,
-// so they take the row's hover and press tints themselves.
-const withRow =
-  "[@media(hover:hover)_and_(pointer:fine)]:group-has-[>button:hover]/distribution:bg-[color-mix(in_oklab,var(--muted)_60%,var(--card))] group-has-[>button[data-press]]/distribution:bg-muted"
-
 // The average again with its median and spread, the best and worst dive,
 // and a histogram of every rate.
 function Distribution({ stats, log }: { stats: Statistics; log: LogView }) {
@@ -537,7 +535,7 @@ function Distribution({ stats, log }: { stats: Statistics; log: LogView }) {
     <>
       <dl className="grid grid-cols-6 gap-px border-t bg-border">
         <Figure
-          className={cn("col-span-2", withRow)}
+          className="col-span-2"
           // Whole on its line, rather than broken at the hyphen.
           term={
             <span>
@@ -548,13 +546,13 @@ function Distribution({ stats, log }: { stats: Statistics; log: LogView }) {
           unit="L/min"
         />
         <Figure
-          className={cn("col-span-2", withRow)}
+          className="col-span-2"
           term="Median"
           value={rate(median!)}
           unit="L/min"
         />
         <Figure
-          className={cn("col-span-2", withRow)}
+          className="col-span-2"
           term="Standard deviation"
           value={deviation == null ? "–" : `±${rate(deviation)}`}
           unit={deviation == null ? undefined : "L/min"}
@@ -562,7 +560,7 @@ function Distribution({ stats, log }: { stats: Statistics; log: LogView }) {
         {/* One rated dive is both, so neither shows. */}
         {best && trend.length > 1 && (
           <Figure
-            className={cn("col-span-3", withRow)}
+            className="col-span-3"
             term="Best"
             value={rate(best.sac)}
             unit="L/min"
@@ -572,7 +570,7 @@ function Distribution({ stats, log }: { stats: Statistics; log: LogView }) {
         )}
         {worst && trend.length > 1 && (
           <Figure
-            className={cn("col-span-3", withRow)}
+            className="col-span-3"
             term="Worst"
             value={rate(worst.sac)}
             unit="L/min"
