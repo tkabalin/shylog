@@ -65,6 +65,11 @@ const mixName = (percent: number) =>
       ? "Pure O₂"
       : `EAN${percentText(percent)}`
 
+// To the hundredth, but up past a line, so a row there never reads as the
+// limit itself (1.401 bar as 1.40 under "MOD @ 1.4"). Up from whole mbar.
+const ppO2Text = (bar: number, over: boolean) =>
+  (over ? Math.ceil(Math.round(bar * 1000) / 10) / 100 : bar).toFixed(2)
+
 // Rows are one height, so a marker's place is a row's edge.
 const rowHeight = 46
 
@@ -331,7 +336,7 @@ function NdlPage() {
                             : "text-muted-foreground"
                       )}
                     >
-                      {po2At(oxygen, depth, salt).toFixed(2)}
+                      {ppO2Text(po2At(oxygen, depth, salt), over)}
                     </span>
                   </div>
                 )
