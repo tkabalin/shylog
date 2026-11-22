@@ -254,7 +254,12 @@ function Milestones({
               setStill(false)
               setOpen(!open)
             }}
-            className={cn(listRow, pressable, "font-medium text-primary")}
+            // Dims as Distribution does: a grey tint over the milestones
+            // it opens flashed a large block as they closed.
+            className={cn(
+              listRow,
+              "font-medium text-primary transition-opacity hover:opacity-70 active:opacity-50 active:duration-0"
+            )}
           >
             <span className="flex-1">Milestones passed</span>
             <span className="text-sm text-muted-foreground tabular-nums">

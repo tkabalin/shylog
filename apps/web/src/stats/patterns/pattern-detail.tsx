@@ -216,8 +216,8 @@ function PatternRow({
   const row = "flex w-full items-center gap-3 py-3.5 pr-3 pl-4 text-left"
   if (!pattern.groups.length) return <div className={row}>{content}</div>
   return (
-    // Only the sentence tints, not the groups open under it, which flashed
-    // a large block grey as it closed.
+    // Only the sentence dims, as a text button would, not the groups open
+    // under it: a grey tint over them flashed a large block as it closed.
     <div>
       <button
         type="button"
@@ -226,7 +226,7 @@ function PatternRow({
         onClick={onToggle}
         className={cn(
           row,
-          "transition-colors duration-150 outline-none select-none [-webkit-touch-callout:none] hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset data-press:bg-muted data-press:duration-0"
+          "transition-opacity duration-150 outline-none select-none [-webkit-touch-callout:none] hover:opacity-70 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset data-press:opacity-50 data-press:duration-0"
         )}
       >
         {content}

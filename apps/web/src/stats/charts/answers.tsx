@@ -91,16 +91,17 @@ function AnswerRow({
   const id = useId()
   const Icon = row.icon
   return (
-    // Only the row tints, not the strip open under it, which flashed a
-    // large block grey as it closed.
+    // Only the row answers a press, not the strip open under it, which
+    // flashed a large block as it closed.
     <div>
       {/* The button's box covers the row, so all of it toggles, and the
           info icon sits above it rather than as a button inside a button.
-          Only the toggle tints the row: the icon has its own press. */}
+          Only the toggle dims the row, as a text button would rather than
+          a grey bar across it: the icon has its own press. */}
       <div
         className={cn(
           listRow,
-          "relative min-h-13 gap-2.5 has-[>button:focus-visible]:ring-3 has-[>button:focus-visible]:ring-ring/50 has-[>button:focus-visible]:ring-inset has-[>button[data-press]]:bg-muted has-[>button[data-press]]:duration-0 control-hover:bg-muted/60"
+          "relative min-h-13 gap-2.5 transition-opacity has-[>button:focus-visible]:ring-3 has-[>button:focus-visible]:ring-ring/50 has-[>button:focus-visible]:ring-inset has-[>button[data-press]]:opacity-50 has-[>button[data-press]]:duration-0 [@media(hover:hover)_and_(pointer:fine)]:has-[>button:hover]:opacity-70"
         )}
       >
         <Icon aria-hidden className="size-4.5 shrink-0 text-muted-foreground" />
