@@ -344,8 +344,8 @@ function NdlPage() {
                   key={mark.key}
                   data-glide={mark.key}
                   aria-hidden
-                  style={{ top: mark.index * rowHeight - 11 }}
-                  className="pointer-events-none absolute inset-x-0 z-10 h-[22px]"
+                  style={{ top: mark.index * rowHeight - 13 }}
+                  className="pointer-events-none absolute inset-x-0 z-10 h-[26px]"
                 >
                   <span
                     className={cn(
@@ -355,14 +355,21 @@ function NdlPage() {
                   />
                   <span
                     className={cn(
-                      "absolute top-0 left-3 inline-flex h-[22px] items-center gap-1.5 rounded-full bg-card pr-2.5 pl-2 text-xs font-semibold whitespace-nowrap tabular-nums ring-[1.5px]",
+                      "absolute top-0 left-3 inline-flex h-[26px] items-center gap-1.5 rounded-full bg-card pr-2.5 pl-2 whitespace-nowrap tabular-nums ring-[1.5px]",
                       mark.past
                         ? "text-destructive ring-destructive"
                         : "text-warn ring-warn"
                     )}
                   >
                     <i className="size-[7px] rounded-full bg-current" />
-                    MOD @ {mark.bar.toFixed(1)} ppO₂: {mark.depth.toFixed(1)} m
+                    {/* The depth first and at the table's size, as it's
+                        what the line is read for. */}
+                    <span className="text-[15px] font-bold">
+                      {mark.depth.toFixed(1)} m
+                    </span>
+                    <span className="text-xs font-medium opacity-80">
+                      MOD {mark.bar.toFixed(1)}
+                    </span>
                   </span>
                 </div>
               ))}
