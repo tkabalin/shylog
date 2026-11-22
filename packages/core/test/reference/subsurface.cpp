@@ -849,6 +849,284 @@ static std::vector<depth_label> depth_labels(const std::vector<plot_data> &data,
 	return labels;
 }
 
+// core/deco.cpp and core/planner.cpp: Bühlmann ZHL-16C and the planner's
+// Recreational mode, for one open-circuit gas with no helium, Bühlmann only,
+// at the planner's default rates (core/pref.cpp).
+#define WV_PRESSURE 0.0627
+#define N2_IN_AIR 781
+
+static const double buehlmann_N2_a[] = { 1.1696, 1.0, 0.8618, 0.7562,
+					 0.62, 0.5043, 0.441, 0.4,
+					 0.375, 0.35, 0.3295, 0.3065,
+					 0.2835, 0.261, 0.248, 0.2327 };
+
+static const double buehlmann_N2_b[] = { 0.5578, 0.6514, 0.7222, 0.7825,
+					 0.8126, 0.8434, 0.8693, 0.8910,
+					 0.9092, 0.9222, 0.9319, 0.9403,
+					 0.9477, 0.9544, 0.9602, 0.9653 };
+
+static const double buehlmann_N2_t_halflife[] = { 5.0, 8.0, 12.5, 18.5,
+					   27.0, 38.3, 54.3, 77.0,
+					   109.0, 146.0, 187.0, 239.0,
+					   305.0, 390.0, 498.0, 635.0 };
+
+static const double buehlmann_N2_factor_expositon_one_second[] = {
+	2.30782347297664E-003, 1.44301447809736E-003, 9.23769302935806E-004, 6.24261986779007E-004,
+	4.27777107246730E-004, 3.01585140931371E-004, 2.12729727268379E-004, 1.50020603047807E-004,
+	1.05980191127841E-004, 7.91232600646508E-005, 6.17759153688224E-005, 4.83354552742732E-005,
+	3.78761777920511E-005, 2.96212356654113E-005, 2.31974277413727E-005, 1.81926738960225E-005
+};
+
+static const double buehlmann_He_a[] = { 1.6189, 1.383, 1.1919, 1.0458,
+					 0.922, 0.8205, 0.7305, 0.6502,
+					 0.595, 0.5545, 0.5333, 0.5189,
+					 0.5181, 0.5176, 0.5172, 0.5119 };
+
+static const double buehlmann_He_b[] = { 0.4770, 0.5747, 0.6527, 0.7223,
+					 0.7582, 0.7957, 0.8279, 0.8553,
+					 0.8757, 0.8903, 0.8997, 0.9073,
+					 0.9122, 0.9171, 0.9217, 0.9267 };
+
+struct buehlmann_config {
+	double satmult;
+	double desatmult;
+	int last_deco_stop_in_mtr;
+	double gf_high;
+	double gf_low;
+	double gf_low_position_min;
+};
+
+static struct buehlmann_config buehlmann_config = {
+	.satmult = 1.0,
+	.desatmult = 1.0,
+	.last_deco_stop_in_mtr =  0,
+	.gf_high = 0.75,
+	.gf_low = 0.35,
+	.gf_low_position_min = 1.0,
+};
+
+struct deco_state {
+	double tissue_n2_sat[16];
+	double tissue_he_sat[16];
+	double tissue_inertgas_saturation[16];
+	double buehlmann_inertgas_a[16];
+	double buehlmann_inertgas_b[16];
+	double gf_low_pressure_this_dive;
+};
+
+static void set_gf(short gflow, short gfhigh)
+{
+	if (gflow != -1)
+		buehlmann_config.gf_low = (double)gflow / 100.0;
+	if (gfhigh != -1)
+		buehlmann_config.gf_high = (double)gfhigh / 100.0;
+}
+
+static double tissue_tolerance_calc(deco_state *ds, const water &w)
+{
+	int ci = -1;
+	double ret_tolerance_limit_ambient_pressure = 0.0;
+	double gf_high = buehlmann_config.gf_high;
+	double gf_low = buehlmann_config.gf_low;
+	double surface = get_surface_pressure(w) / 1000.0;
+	double lowest_ceiling = 0.0;
+	double tissue_lowest_ceiling[16];
+
+	for (ci = 0; ci < 16; ci++) {
+		ds->buehlmann_inertgas_a[ci] = ((buehlmann_N2_a[ci] * ds->tissue_n2_sat[ci]) + (buehlmann_He_a[ci] * ds->tissue_he_sat[ci])) / ds->tissue_inertgas_saturation[ci];
+		ds->buehlmann_inertgas_b[ci] = ((buehlmann_N2_b[ci] * ds->tissue_n2_sat[ci]) + (buehlmann_He_b[ci] * ds->tissue_he_sat[ci])) / ds->tissue_inertgas_saturation[ci];
+	}
+
+	for (ci = 0; ci < 16; ci++) {
+		tissue_lowest_ceiling[ci] = (ds->buehlmann_inertgas_b[ci] * ds->tissue_inertgas_saturation[ci] - gf_low * ds->buehlmann_inertgas_a[ci] * ds->buehlmann_inertgas_b[ci]) /
+					     ((1.0 - ds->buehlmann_inertgas_b[ci]) * gf_low + ds->buehlmann_inertgas_b[ci]);
+		if (tissue_lowest_ceiling[ci] > lowest_ceiling)
+			lowest_ceiling = tissue_lowest_ceiling[ci];
+		if (lowest_ceiling > ds->gf_low_pressure_this_dive)
+			ds->gf_low_pressure_this_dive = lowest_ceiling;
+	}
+	for (ci = 0; ci < 16; ci++) {
+		double tolerated;
+
+		if ((surface / ds->buehlmann_inertgas_b[ci] + ds->buehlmann_inertgas_a[ci] - surface) * gf_high + surface <
+		    (ds->gf_low_pressure_this_dive / ds->buehlmann_inertgas_b[ci] + ds->buehlmann_inertgas_a[ci] - ds->gf_low_pressure_this_dive) * gf_low + ds->gf_low_pressure_this_dive)
+			tolerated = (-ds->buehlmann_inertgas_a[ci] * ds->buehlmann_inertgas_b[ci] * (gf_high * ds->gf_low_pressure_this_dive - gf_low * surface) -
+				     (1.0 - ds->buehlmann_inertgas_b[ci]) * (gf_high - gf_low) * ds->gf_low_pressure_this_dive * surface +
+				     ds->buehlmann_inertgas_b[ci] * (ds->gf_low_pressure_this_dive - surface) * ds->tissue_inertgas_saturation[ci]) /
+				    (-ds->buehlmann_inertgas_a[ci] * ds->buehlmann_inertgas_b[ci] * (gf_high - gf_low) +
+				     (1.0 - ds->buehlmann_inertgas_b[ci]) * (gf_low * ds->gf_low_pressure_this_dive - gf_high * surface) +
+				     ds->buehlmann_inertgas_b[ci] * (ds->gf_low_pressure_this_dive - surface));
+		else
+			tolerated = ret_tolerance_limit_ambient_pressure;
+
+		if (tolerated >= ret_tolerance_limit_ambient_pressure)
+			ret_tolerance_limit_ambient_pressure = tolerated;
+	}
+	return ret_tolerance_limit_ambient_pressure;
+}
+
+static double factor(int period_in_seconds, int ci)
+{
+	if (period_in_seconds == 1)
+		return buehlmann_N2_factor_expositon_one_second[ci];
+
+	// ln(2)/60 = 1.155245301e-02
+	return 1.0 - exp(-period_in_seconds * 1.155245301e-02 / buehlmann_N2_t_halflife[ci]);
+}
+
+// add_segment, with fill_pressures for open circuit inlined.
+static void add_segment(deco_state *ds, double pressure, int o2, int period_in_seconds)
+{
+	double amb_pressure = pressure - WV_PRESSURE;
+	double pressures_n2 = (1000 - get_o2(o2)) / 1000.0 * amb_pressure;
+	double pressures_he = 0 / 1000.0 * amb_pressure;
+
+	for (int ci = 0; ci < 16; ci++) {
+		double pn2_oversat = pressures_n2 - ds->tissue_n2_sat[ci];
+		double phe_oversat = pressures_he - ds->tissue_he_sat[ci];
+		double n2_f = factor(period_in_seconds, ci);
+		double he_f = factor(period_in_seconds, ci);
+		double n2_satmult = pn2_oversat > 0 ? buehlmann_config.satmult : buehlmann_config.desatmult;
+		double he_satmult = phe_oversat > 0 ? buehlmann_config.satmult : buehlmann_config.desatmult;
+
+		ds->tissue_n2_sat[ci] += n2_satmult * pn2_oversat * n2_f;
+		ds->tissue_he_sat[ci] += he_satmult * phe_oversat * he_f;
+		ds->tissue_inertgas_saturation[ci] = ds->tissue_n2_sat[ci] + ds->tissue_he_sat[ci];
+	}
+}
+
+static void clear_deco(deco_state *ds, double surface_pressure)
+{
+	*ds = deco_state();
+	for (int ci = 0; ci < 16; ci++) {
+		ds->tissue_n2_sat[ci] = (surface_pressure - WV_PRESSURE) * N2_IN_AIR / 1000;
+		ds->tissue_he_sat[ci] = 0.0;
+	}
+	ds->gf_low_pressure_this_dive = surface_pressure + buehlmann_config.gf_low_position_min;
+}
+
+static int deco_allowed_depth(const water &w, double tissues_tolerance, double surface_pressure, bool smooth)
+{
+	double pressure_delta;
+
+	/* Avoid negative depths */
+	pressure_delta = tissues_tolerance > surface_pressure ? tissues_tolerance - surface_pressure : 0.0;
+
+	int depth = rel_mbar_to_depth(w, lrint(pressure_delta * 1000));
+
+	if (!smooth)
+		depth = lrint(ceil(depth / 3000.0) * 3000.0);
+
+	if (depth > 0 && depth < buehlmann_config.last_deco_stop_in_mtr * 1000)
+		depth = buehlmann_config.last_deco_stop_in_mtr * 1000;
+
+	return depth;
+}
+
+static const int ascratelast6m = 9000 / 60, ascratestops = 9000 / 60, ascrate50 = 9000 / 60, ascrate75 = 9000 / 60;
+static const int descrate = 18000 / 60;
+static const int base_timestep = 2;
+
+static int ascent_velocity(int depth, int avg_depth, int)
+{
+	if (depth * 4 > avg_depth * 3) {
+		return ascrate75;
+	} else {
+		if (depth * 2 > avg_depth) {
+			return ascrate50;
+		} else {
+			if (depth > 6000)
+				return ascratestops;
+			else
+				return ascratelast6m;
+		}
+	}
+}
+
+static bool trial_ascent(deco_state *ds, int wait_time, int trial_depth, int stoplevel, int avg_depth, int bottom_time, int o2, double surface_pressure, const water &w)
+{
+	bool clear_to_ascend = true;
+	deco_state trial_cache = *ds;
+
+	if (wait_time)
+		add_segment(ds, depth_to_bar(w, trial_depth), o2, wait_time);
+
+	while (trial_depth > stoplevel) {
+		double tolerance_limit;
+		int deltad = ascent_velocity(trial_depth, avg_depth, bottom_time) * base_timestep;
+		if (deltad > trial_depth) /* don't test against depth above surface */
+			deltad = trial_depth;
+		add_segment(ds, depth_to_bar(w, trial_depth), o2, base_timestep);
+		tolerance_limit = tissue_tolerance_calc(ds, w);
+		if (deco_allowed_depth(w, tolerance_limit, surface_pressure, 1) > trial_depth - deltad) {
+			/* We should have stopped */
+			clear_to_ascend = false;
+			break;
+		}
+		trial_depth -= deltad;
+	}
+	*ds = trial_cache;
+	return clear_to_ascend;
+}
+
+// The planner in Recreational mode on a plan that descends to `depth` at
+// the default rate (drop to first depth) and enters nothing else: the
+// bottom's end in seconds from the start, or -1 for PLAN_ERROR_RECREATIONAL_EXCEEDS_NDL.
+static int recreational_bottom_time(const water &w, int o2, int depth, int gflow, int gfhigh)
+{
+	deco_state ds_storage, *ds = &ds_storage;
+	set_gf(gflow, gfhigh);
+	double surface_pressure = get_surface_pressure(w) / 1000.0;
+
+	// The plan's samples: the surface at 0 and the first depth after the descent.
+	int descent = depth / descrate;
+	std::vector<sample> samples = { { 0, 0, 0 }, { descent, depth, 0 } };
+
+	// tissue_at_end, after init_decompression with no earlier dive.
+	clear_deco(ds, surface_pressure);
+	tissue_tolerance_calc(ds, w);
+	int lastdepth = 0, t0 = 0;
+	for (size_t i = 0; i < samples.size(); i++) {
+		int t1 = samples[i].time;
+		if (i)
+			lastdepth = samples[i - 1].depth;
+		for (int j = t0; j < t1; j++) {
+			int d = interpolate(lastdepth, samples[i].depth, j - t0, t1 - t0);
+			add_segment(ds, depth_to_bar(w, d), o2, 1);
+		}
+		t0 = t1;
+	}
+
+	int bottom_time, clock;
+	bottom_time = clock = samples.back().time;
+	int avg_depth = 0;
+	{
+		// average_max_depth over the plan's one segment
+		long long integral = (long long)descent * depth / 2;
+		avg_depth = descent ? (int)(integral / descent) : 0;
+	}
+	int timestep = 60;
+	if (trial_ascent(ds, 0, depth, 0, avg_depth, bottom_time, o2, surface_pressure, w)) {
+		do {
+			add_segment(ds, depth_to_bar(w, depth), o2, timestep);
+			clock += timestep;
+		} while (trial_ascent(ds, 0, depth, 0, avg_depth, bottom_time, o2, surface_pressure, w) &&
+			 clock < 6 * 3600);
+		clock -= timestep;
+		return clock;
+	}
+	return -1;
+}
+
+// core/dive.cpp: dive::best_o2, with the limit passed in.
+static int best_o2(const water &w, int depth, int po2)
+{
+	int permille = (po2 * 100 / depth_to_mbar(w, depth)) * 10;
+	if (permille > 1000)
+		permille = 1000;
+	return permille;
+}
+
 static std::vector<sample> read_samples(std::istream &in)
 {
 	size_t n;
@@ -966,6 +1244,16 @@ int main()
 			for (auto &l: depths)
 				printf(" %d %d %d", l.sec, l.depth, l.kind);
 			printf("\n");
+		} else if (command == "ndl") {
+			water w;
+			int o2, depth, gflow, gfhigh;
+			in >> w.salinity >> w.surface_mbar >> o2 >> depth >> gflow >> gfhigh;
+			printf("%d\n", recreational_bottom_time(w, o2, depth, gflow, gfhigh));
+		} else if (command == "best") {
+			water w;
+			int depth, po2;
+			in >> w.salinity >> w.surface_mbar >> depth >> po2;
+			printf("%d\n", best_o2(w, depth, po2));
 		} else {
 			printf("unknown %s\n", command.c_str());
 		}
