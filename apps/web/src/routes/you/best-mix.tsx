@@ -51,13 +51,14 @@ function EanxPage() {
   const [typed, setTyped] = useState<string | null>(null)
   const list = useRef<HTMLDivElement>(null)
   const header = useRef<HTMLDivElement>(null)
+  const exact = depth == null ? null : bestMix(depth * 1000, maxPo2, salt)
+  // Air once no mix is safe at the depth, the nearest to safe the list has.
   const glide = useGlide(
     list,
     header,
-    depth == null ? "310" : "exact",
+    exact == null ? "310" : exact >= airOxygen ? "exact" : String(airOxygen),
     `${depth} ${maxPo2}`
   )
-  const exact = depth == null ? null : bestMix(depth * 1000, maxPo2, salt)
   // The exact mix before the depth changed: a row's MOD turns red or back
   // as the exact row glides past it. Dropped once the glide is over, so
   // nothing else that changes a colour, a theme say, waits for it.
