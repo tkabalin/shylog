@@ -6,7 +6,7 @@ import { cn } from "cn"
 import { Card } from "@/components/ui/card"
 import { useLog } from "@/data/log"
 import { crossingDelay, glideDuration, useGlide } from "@/lib/glide"
-import { modelNote, ndlText, useNdlModel, warmNdl } from "@/tools/ndl-model"
+import { ndlText, useNdlModel, warmNdl } from "@/tools/ndl-model"
 import { ModelPicker, Stepper, ToolHeading } from "@/tools/parts"
 import { PageBar } from "@/you/bar"
 
@@ -220,14 +220,6 @@ function EanxPage() {
                   crossing={passed(row.oxygen)}
                 />
               ))}
-              <p
-                data-glide="note"
-                className="order-last border-t px-4 pt-3 pb-5 text-[13px] leading-normal text-muted-foreground"
-              >
-                {depth == null
-                  ? "Enter a target depth to see each mix’s NDL and the exact mix for it."
-                  : `Red MODs are shallower than ${depth} m. The exact mix is for your maximum PO₂ of ${maxPo2.toFixed(1)} bar, set on You. ${modelNote(model)}`}
-              </p>
             </div>
           </Card>
         </section>

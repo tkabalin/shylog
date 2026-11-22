@@ -9,7 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { useLog } from "@/data/log"
 import { Haptic } from "@/lib/haptic"
 import { crossingDelay, glideDuration, useGlide } from "@/lib/glide"
-import { modelNote, ndlText, useNdlModel, warmNdl } from "@/tools/ndl-model"
+import { ndlText, useNdlModel, warmNdl } from "@/tools/ndl-model"
 import { ModelPicker, Stepper, ToolHeading } from "@/tools/parts"
 import { PageBar } from "@/you/bar"
 
@@ -346,15 +346,6 @@ function NdlPage() {
                   </span>
                 </div>
               ))}
-              <p
-                data-glide="note"
-                className="border-t px-4 pt-3 pb-5 text-[13px] leading-normal text-muted-foreground"
-              >
-                {modelNote(model)}{" "}
-                {limit < 1.6
-                  ? `Orange rows are past your maximum PO₂ of ${limit.toFixed(1)} bar, red rows past 1.6.`
-                  : `Red rows are past your maximum PO₂ of ${limit.toFixed(1)} bar.`}
-              </p>
             </div>
           </Card>
         </section>

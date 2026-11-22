@@ -2,11 +2,17 @@ import type { ReactNode } from "react"
 import { IconMinus, IconPlus } from "@tabler/icons-react"
 import { cn } from "cn"
 
+import { Info } from "@/components/info"
 import { Card } from "@/components/ui/card"
 import { Segmented } from "@/dive/form/rows"
 import { Haptic } from "@/lib/haptic"
 import { isReturn } from "@/lib/keys"
-import { ndlModels, setNdlModel, useNdlModel } from "@/tools/ndl-model"
+import {
+  modelInfo,
+  ndlModels,
+  setNdlModel,
+  useNdlModel,
+} from "@/tools/ndl-model"
 
 // A small heading over a tool's card, as You's sections have.
 export function ToolHeading({
@@ -131,7 +137,14 @@ export function ModelPicker({ className }: { className?: string }) {
   const model = useNdlModel()
   return (
     <section aria-labelledby="ndl-model" className={cn(className)}>
-      <ToolHeading id="ndl-model">NDL model</ToolHeading>
+      <ToolHeading id="ndl-model">
+        <span className="flex items-center gap-1.5">
+          NDL model
+          <Info term="the NDL model" title={modelInfo[model].title}>
+            {modelInfo[model].body}
+          </Info>
+        </span>
+      </ToolHeading>
       <Segmented
         labelledBy="ndl-model"
         value={model}
