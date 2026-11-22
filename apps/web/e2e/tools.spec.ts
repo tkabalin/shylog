@@ -49,17 +49,17 @@ test("NDL table moves the MOD line with the mix, and Back returns to You", async
   await page.goto("/you")
   await page.getByRole("link", { name: /NDL table/ }).click()
   await expect(page).toHaveURL("/you/ndl")
-  await expect(page.getByText("MOD @ 1.4 ppO₂: 33.2 m")).toBeVisible()
+  await expect(page.getByText("33.2 m", { exact: true })).toBeVisible()
   // Subsurface's planner in Recreational mode, GF 30/85: 23 min 40 s.
   await expect(row(page, /^30 m/)).toContainText("23 min")
   await expect(row(page, /^30 m/)).toContainText("1.29")
 
   await page.getByRole("button", { name: "EAN36" }).click()
-  await expect(page.getByText("MOD @ 1.4 ppO₂: 28.4 m")).toBeVisible()
+  await expect(page.getByText("28.4 m", { exact: true })).toBeVisible()
   await expect(page.getByText("Mix · EAN36")).toBeVisible()
 
   await page.getByRole("textbox", { name: "Oxygen percentage" }).fill("40")
-  await expect(page.getByText("MOD @ 1.4 ppO₂: 24.6 m")).toBeVisible()
+  await expect(page.getByText("24.6 m", { exact: true })).toBeVisible()
 
   await page.goBack()
   await expect(page).toHaveURL("/you")
