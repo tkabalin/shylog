@@ -53,7 +53,11 @@ function stepped(percent: number, direction: -1 | 1) {
 const percentText = (percent: number) => percent.toFixed(1).replace(/\.0$/, "")
 
 const mixName = (percent: number) =>
-  percent <= 21 ? "Air" : `EAN${percentText(percent)}`
+  percent <= 21
+    ? "Air"
+    : percent >= 100
+      ? "Pure O₂"
+      : `EAN${percentText(percent)}`
 
 // Rows are one height, so a marker's place is a row's edge.
 const rowHeight = 46
@@ -242,7 +246,7 @@ function NdlPage() {
                 NDL
               </span>
               <span role="columnheader" className="text-right">
-                PO₂
+                ppO₂
               </span>
             </div>
             <div
@@ -338,7 +342,7 @@ function NdlPage() {
                     )}
                   >
                     <i className="size-[7px] rounded-full bg-current" />
-                    MOD {mark.bar.toFixed(1)} · {mark.depth.toFixed(1)} m
+                    MOD @ {mark.bar.toFixed(1)} ppO₂: {mark.depth.toFixed(1)} m
                   </span>
                 </div>
               ))}
