@@ -577,3 +577,41 @@ test("keeps the screen on where the browser can @writes", async ({
   await page.goto(`/you/certifications/${id}`)
   await expect(page.getByRole("heading", { name })).toBeVisible()
 })
+
+test("gives a zoomed card the whole screen, and the bars come back at rest @writes", async ({
+  page,
+  restore,
+}) => {
+  const id = `card-${crypto.randomUUID()}`
+  const name = `E2E Zoom ${unique()}`
+  await putCard(page.request, id, name, [shots[0]!.buffer, shots[1]!.buffer])
+  restore((request) => deleteCard(request, id))
+  await page.goto(`/you/certifications/${id}`)
+  const viewer = page.getByRole("dialog", { name })
+  const close = viewer.getByRole("link", { name: "Close" })
+  const dots = viewer.getByRole("tablist")
+  const img = viewer.getByRole("img", { name: `${name}, screenshot 1 of 2` })
+  await expect(img).toBeVisible()
+  // Clear of both bars at rest.
+  const card = (await img.boundingBox())!
+  const bar = (await close.boundingBox())!
+  expect(card.y).toBeGreaterThan(bar.y + bar.height)
+
+  // Ctrl and the wheel, as a trackpad's pinch is sent, zoom about the card.
+  await page.mouse.move(card.x + card.width / 2, card.y + card.height / 2)
+  await page.keyboard.down("Control")
+  await page.mouse.wheel(0, -200)
+  await page.keyboard.up("Control")
+  for (const each of [close, dots])
+    await expect(
+      each.locator("xpath=ancestor::div[parent::div[@role='dialog']]")
+    ).toHaveCSS("opacity", "0")
+
+  await page.keyboard.down("Control")
+  await page.mouse.wheel(0, 400)
+  await page.keyboard.up("Control")
+  for (const each of [close, dots])
+    await expect(
+      each.locator("xpath=ancestor::div[parent::div[@role='dialog']]")
+    ).toHaveCSS("opacity", "1")
+})
