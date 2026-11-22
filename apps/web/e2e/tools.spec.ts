@@ -11,11 +11,6 @@ test("Best nitrox mix finds the exact mix for a depth, and Back returns to You",
   await page.goto("/you")
   await page.getByRole("link", { name: /Best nitrox mix/ }).click()
   await expect(page).toHaveURL("/you/best-mix")
-  // The info beside the picker names the model picked.
-  await page.getByRole("button", { name: "About the NDL model" }).click()
-  await expect(page.getByText("Bühlmann GF 30/85")).toBeVisible()
-  await page.keyboard.press("Escape")
-
   const depth = page.getByRole("textbox", { name: "Target depth in metres" })
   await depth.fill("35")
   // 1.4 bar over 4,550 mbar, rounded down to the tenth: 30.7 %, whose MOD
@@ -31,17 +26,21 @@ test("Best nitrox mix finds the exact mix for a depth, and Back returns to You",
 
   // The model is shared with the NDL table, and kept on the phone.
   // 36 m is 118.1 fsw, and 30.1 % reads at 100.7 fsw, so the 110 row.
-  await page.getByRole("button", { name: "US Navy" }).click()
+  // Picked from the NDL heading's sheet, which says what each model is.
+  await page.getByRole("button", { name: "NDL model, GF 85" }).click()
+  await expect(
+    page.getByText("Bühlmann ZHL-16C, gradient factors 30/85")
+  ).toBeVisible()
+  await page.getByRole("option", { name: /^US Navy/ }).click()
   await expect(row(page, /^30\.1%/)).toContainText("20 min")
 
   // Pushed from You, so Back returns there.
   await page.goBack()
   await expect(page).toHaveURL("/you")
   await page.getByRole("link", { name: /NDL table/ }).click()
-  await expect(page.getByRole("button", { name: "US Navy" })).toHaveAttribute(
-    "aria-pressed",
-    "true"
-  )
+  await expect(
+    page.getByRole("button", { name: "NDL model, US Navy" })
+  ).toBeVisible()
 })
 
 test("NDL table moves the MOD line with the mix, and Back returns to You", async ({

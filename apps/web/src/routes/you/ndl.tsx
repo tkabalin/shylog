@@ -12,7 +12,7 @@ import { crossingDelay, glideDuration, useGlide } from "@/lib/glide"
 import { ndlText, useNdlModel, warmNdl } from "@/tools/ndl-model"
 import {
   Controls,
-  ModelPicker,
+  NdlHeading,
   Stepper,
   stuckHeader,
   ToolHeading,
@@ -248,8 +248,6 @@ function NdlPage() {
           </Stepper>
         </Controls>
 
-        <ModelPicker />
-
         <section aria-labelledby="ndl-depths" className="mt-4">
           <ToolHeading id="ndl-depths">By depth</ToolHeading>
           {/* Clipped, not hidden, so the header can stick as the page
@@ -268,9 +266,7 @@ function NdlPage() {
               )}
             >
               <span role="columnheader">Depth</span>
-              <span role="columnheader" className="text-right">
-                NDL
-              </span>
+              <NdlHeading />
               <span role="columnheader" className="text-right">
                 ppO₂
               </span>

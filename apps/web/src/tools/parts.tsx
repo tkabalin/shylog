@@ -1,14 +1,23 @@
-import { useLayoutEffect, useRef, type ReactNode } from "react"
-import { IconMinus, IconPlus } from "@tabler/icons-react"
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react"
+import {
+  IconCheck,
+  IconMinus,
+  IconPlus,
+  IconSelector,
+} from "@tabler/icons-react"
 import { cn } from "cn"
 
-import { Info } from "@/components/info"
 import { Card } from "@/components/ui/card"
-import { Segmented } from "@/dive/form/rows"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import { Haptic } from "@/lib/haptic"
 import { isReturn } from "@/lib/keys"
 import {
-  modelInfo,
+  modelDetail,
   ndlModels,
   setNdlModel,
   useNdlModel,
@@ -208,27 +217,72 @@ export function Stepper({
   )
 }
 
-// The NDL model both tools share, picked on either.
-export function ModelPicker() {
+// The NDL column's heading, with the model its figures come from: one
+// choice both tools share, picked from either. In the heading, so it stays
+// in view once the header sticks.
+export function NdlHeading({ className }: { className?: string }) {
   const model = useNdlModel()
+  const [open, setOpen] = useState(false)
+  const label = ndlModels.find((option) => option.value === model)!.label
   return (
-    <section aria-labelledby="ndl-model">
-      <ToolHeading id="ndl-model">
-        <span className="flex items-center gap-1.5">
-          NDL model
-          <Info term="the NDL model" title={modelInfo[model].title}>
-            {modelInfo[model].body}
-          </Info>
-        </span>
-      </ToolHeading>
-      <Segmented
-        labelledBy="ndl-model"
-        value={model}
-        onChange={(next) => {
-          if (next) setNdlModel(next)
-        }}
-        options={ndlModels}
-      />
-    </section>
+    <span role="columnheader" className={cn("text-right", className)}>
+      NDL{" "}
+      <button
+        type="button"
+        aria-label={`NDL model, ${label}`}
+        onClick={() => setOpen(true)}
+        // Its tap area grown to about 44px.
+        className="relative inline-flex cursor-pointer items-center gap-0.5 whitespace-nowrap text-foreground transition-opacity duration-150 ease-out after:absolute after:-inset-x-2 after:-inset-y-3.5 hover:opacity-70 active:opacity-50 active:duration-0"
+      >
+        {label}
+        <IconSelector aria-hidden className="size-3.5 text-muted-foreground" />
+      </button>
+      <Drawer showSwipeHandle open={open} onOpenChange={setOpen}>
+        <DrawerContent>
+          <DrawerHeader className="pb-4">
+            <DrawerTitle>NDL model</DrawerTitle>
+          </DrawerHeader>
+          <div
+            role="listbox"
+            aria-label="NDL model"
+            className="overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]"
+          >
+            {ndlModels.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={model === option.value}
+                onClick={() => {
+                  setNdlModel(option.value)
+                  setOpen(false)
+                }}
+                className="flex min-h-15 w-full items-center gap-3 border-t px-4 py-2 text-left transition-colors duration-150 hover:bg-muted/60 data-press:bg-muted data-press:duration-0"
+              >
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-base font-medium">{option.label}</span>
+                  <span className="text-[13px] text-muted-foreground">
+                    {modelDetail[option.value]}
+                  </span>
+                </span>
+                {model === option.value && (
+                  <IconCheck
+                    aria-hidden
+                    className="size-5 shrink-0 text-primary"
+                  />
+                )}
+              </button>
+            ))}
+            {/* What the figures count, which no table says. */}
+            <p className="border-t px-4 pt-3 text-[13px] text-muted-foreground">
+              Bühlmann plans a first dive of the day as Subsurface does: down at
+              18 m/min, then straight up at 9 m/min. The Navy table is read at
+              the next deeper row, nitrox at its equivalent air depth. Both
+              count from leaving the surface.
+            </p>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </span>
   )
 }
