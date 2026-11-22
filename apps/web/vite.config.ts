@@ -45,8 +45,11 @@ export default defineConfig({
       injectRegister: false,
       manifest: false,
       workbox: {
-        // The dive sites' page text is the JSON.
-        globPatterns: ["**/*.{js,css,html,svg,png,woff2,json}"],
+        // The dive sites' page text is the JSON, and webp the dive computers'
+        // pictures. The sites' own images are far too big, so they're left
+        // to the runtime cache below.
+        globPatterns: ["**/*.{js,css,html,svg,png,webp,woff2,json}"],
+        globIgnores: ["**/assets/site-*.webp"],
         // The first install takes the open page, so it works offline
         // without a reload; an update still waits, as nothing else is open.
         clientsClaim: true,
