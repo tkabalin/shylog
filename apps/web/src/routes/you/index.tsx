@@ -4,6 +4,7 @@ import {
   IconAlertTriangle,
   IconBackpack,
   IconCertificate,
+  IconFlask,
   IconServer,
   IconUser,
   IconVersions,
@@ -62,6 +63,11 @@ const revision =
   (import.meta.env.VITE_REVISION as string | undefined)?.slice(0, 7) ?? "dev"
 
 const none = "—"
+
+const tools = [
+  { to: "/you/packing", icon: IconBackpack, label: "Packing list" },
+  { to: "/you/best-mix", icon: IconFlask, label: "Best mix" },
+] as const
 
 const deletedCount = (log: LogView) =>
   [...log.dive.values()].filter((dive) => dive.deletedAt).length
@@ -134,6 +140,21 @@ function YouPage() {
         {/* Drawn before the first sync too, so nothing moves down when the
             log arrives. */}
         <DiverCard settings={log?.settings} cards={log?.cards} />
+
+        {/* Drawn before the first sync too: the two planning tools work
+            on the phone alone, offline included. */}
+        <Section title="Tools">
+          {tools.map(({ to, icon, label }) => (
+            <Link
+              key={to}
+              to={to}
+              state={{ pushed: true }}
+              className={cn(listRow, pressable)}
+            >
+              <RowContent icon={icon} label={label} chevron />
+            </Link>
+          ))}
+        </Section>
 
         {/* Drawn before the first sync as well, or its arrival pushed
             Export down under a finger already on a row. */}
@@ -469,13 +490,6 @@ function DiverCard({
             value={cards != null ? countText(cards.length) : null}
             chevron
           />
-        </Link>
-        <Link
-          to="/you/packing"
-          state={{ pushed: true }}
-          className={cn(listRow, pressable)}
-        >
-          <RowContent icon={IconBackpack} label="Packing list" chevron />
         </Link>
       </Card>
       <SaveFailure error={failure} />

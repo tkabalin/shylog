@@ -23,6 +23,7 @@ import { Route as ImportDoneRouteImport } from './routes/import/done'
 import { Route as ImportReviewRouteImport } from './routes/import/review'
 import { Route as StatsPatternsRouteImport } from './routes/stats_.patterns'
 import { Route as YouIndexRouteImport } from './routes/you/index'
+import { Route as YouBestMixRouteImport } from './routes/you/best-mix'
 import { Route as YouCertificationsRouteRouteImport } from './routes/you/certifications/route'
 import { Route as YouDeletedRouteImport } from './routes/you/deleted'
 import { Route as YouPackingRouteImport } from './routes/you/packing'
@@ -106,6 +107,11 @@ const YouIndexRoute = YouIndexRouteImport.update({
   path: '/you/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const YouBestMixRoute = YouBestMixRouteImport.update({
+  id: '/you/best-mix',
+  path: '/you/best-mix',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const YouCertificationsRouteRoute = YouCertificationsRouteRouteImport.update({
   id: '/you/certifications',
   path: '/you/certifications',
@@ -181,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/import/done': typeof ImportDoneRoute
   '/import/review': typeof ImportReviewRoute
   '/stats/patterns': typeof StatsPatternsRoute
+  '/you/best-mix': typeof YouBestMixRoute
   '/you/deleted': typeof YouDeletedRoute
   '/you/packing': typeof YouPackingRoute
   '/import/': typeof ImportIndexRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/import/done': typeof ImportDoneRoute
   '/import/review': typeof ImportReviewRoute
   '/stats/patterns': typeof StatsPatternsRoute
+  '/you/best-mix': typeof YouBestMixRoute
   '/you/deleted': typeof YouDeletedRoute
   '/you/packing': typeof YouPackingRoute
   '/import': typeof ImportIndexRoute
@@ -238,6 +246,7 @@ export interface FileRoutesById {
   '/import/done': typeof ImportDoneRoute
   '/import/review': typeof ImportReviewRoute
   '/stats_/patterns': typeof StatsPatternsRoute
+  '/you/best-mix': typeof YouBestMixRoute
   '/you/deleted': typeof YouDeletedRoute
   '/you/packing': typeof YouPackingRoute
   '/import/': typeof ImportIndexRoute
@@ -268,6 +277,7 @@ export interface FileRouteTypes {
     | '/import/done'
     | '/import/review'
     | '/stats/patterns'
+    | '/you/best-mix'
     | '/you/deleted'
     | '/you/packing'
     | '/import/'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/import/done'
     | '/import/review'
     | '/stats/patterns'
+    | '/you/best-mix'
     | '/you/deleted'
     | '/you/packing'
     | '/import'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/import/done'
     | '/import/review'
     | '/stats_/patterns'
+    | '/you/best-mix'
     | '/you/deleted'
     | '/you/packing'
     | '/import/'
@@ -353,6 +365,7 @@ export interface RootRouteChildren {
   ImportDoneRoute: typeof ImportDoneRoute
   ImportReviewRoute: typeof ImportReviewRoute
   StatsPatternsRoute: typeof StatsPatternsRoute
+  YouBestMixRoute: typeof YouBestMixRoute
   YouDeletedRoute: typeof YouDeletedRoute
   YouPackingRoute: typeof YouPackingRoute
   ImportIndexRoute: typeof ImportIndexRoute
@@ -464,6 +477,13 @@ declare module '@tanstack/react-router' {
       path: '/you'
       fullPath: '/you/'
       preLoaderRoute: typeof YouIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/you/best-mix': {
+      id: '/you/best-mix'
+      path: '/you/best-mix'
+      fullPath: '/you/best-mix'
+      preLoaderRoute: typeof YouBestMixRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/you/certifications': {
@@ -593,6 +613,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImportDoneRoute: ImportDoneRoute,
   ImportReviewRoute: ImportReviewRoute,
   StatsPatternsRoute: StatsPatternsRoute,
+  YouBestMixRoute: YouBestMixRoute,
   YouDeletedRoute: YouDeletedRoute,
   YouPackingRoute: YouPackingRoute,
   ImportIndexRoute: ImportIndexRoute,

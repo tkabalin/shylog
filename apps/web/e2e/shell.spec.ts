@@ -513,6 +513,22 @@ test.describe("at desktop width", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0)
   })
 
+  test("shows You's tools in the centred column under a breadcrumb", async ({
+    page,
+  }) => {
+    for (const [path, title] of [["/you/best-mix", "Best mix"]]) {
+      await page.goto(path)
+      const crumbs = page.getByRole("navigation", { name: "breadcrumb" })
+      await expect(crumbs.getByRole("link", { name: "You" })).toBeVisible()
+      await expect(crumbs).toContainText(title!)
+      const table = page.getByRole("table")
+      await expect(table).toBeVisible()
+      const box = (await table.boundingBox())!
+      // 36rem, less the column's 1rem sides.
+      expect(box.width).toBeCloseTo(544, 0)
+    }
+  })
+
   test("edits the packing list from header buttons, asking before leaving with changes", async ({
     page,
   }) => {
