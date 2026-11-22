@@ -125,7 +125,7 @@ function EanxPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <PageBar back={back} title="Best mix" />
+      <PageBar back={back} title="Best nitrox mix" />
       <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 pt-2 md:mx-auto md:w-full md:max-w-xl desk:pb-4">
         <section aria-labelledby="best-mix-depth">
           <ToolHeading id="best-mix-depth">Target depth</ToolHeading>
@@ -171,19 +171,24 @@ function EanxPage() {
             <div
               role="row"
               className={cn(
-                "grid h-9 shrink-0 items-center gap-x-2 border-b px-4 text-xs font-semibold text-muted-foreground",
+                "grid min-h-9 shrink-0 items-center gap-x-2 border-b px-4 py-1.5 text-xs leading-tight font-semibold text-muted-foreground",
                 contingency
                   ? "grid-cols-[minmax(0,1.15fr)_repeat(3,minmax(0,1fr))]"
                   : "grid-cols-[minmax(0,1.15fr)_repeat(2,minmax(0,1fr))]"
               )}
             >
               <span role="columnheader">O₂</span>
+              {/* Broken after the @ when narrow, never inside the
+                  figure and its unit. */}
               <span role="columnheader" className="text-right">
-                MOD {maxPo2.toFixed(1)}
+                MOD @{" "}
+                <span className="whitespace-nowrap">
+                  {maxPo2.toFixed(1)} ppO₂
+                </span>
               </span>
               {contingency && (
                 <span role="columnheader" className="text-right">
-                  MOD 1.6
+                  MOD @ <span className="whitespace-nowrap">1.6 ppO₂</span>
                 </span>
               )}
               <span
@@ -258,12 +263,15 @@ function MixRow({
   const ceiling = contingency ? mod(oxygen, 1.6, salt) : limit
   const over = depth != null && limit < depth
   const past = depth != null && ceiling < depth
+  // Named as the NDL table names them.
   const label =
     oxygen === airOxygen && !exact
       ? "Air"
-      : exact
-        ? `${(oxygen / 10).toFixed(1)}%`
-        : `${oxygen / 10}%`
+      : oxygen >= 1000
+        ? "Pure O₂"
+        : exact
+          ? `${(oxygen / 10).toFixed(1)}%`
+          : `${oxygen / 10}%`
   return (
     <div
       role="row"

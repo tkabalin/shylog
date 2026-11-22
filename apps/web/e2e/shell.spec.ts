@@ -517,7 +517,7 @@ test.describe("at desktop width", () => {
     page,
   }) => {
     for (const [path, title] of [
-      ["/you/best-mix", "Best mix"],
+      ["/you/best-mix", "Best nitrox mix"],
       ["/you/ndl", "NDL table"],
     ]) {
       await page.goto(path)
