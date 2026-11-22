@@ -10,7 +10,13 @@ import { useLog } from "@/data/log"
 import { Haptic } from "@/lib/haptic"
 import { crossingDelay, glideDuration, useGlide } from "@/lib/glide"
 import { ndlText, useNdlModel, warmNdl } from "@/tools/ndl-model"
-import { ModelPicker, Stepper, ToolHeading } from "@/tools/parts"
+import {
+  Controls,
+  ModelPicker,
+  Stepper,
+  stuckHeader,
+  ToolHeading,
+} from "@/tools/parts"
 import { PageBar } from "@/you/bar"
 
 export const Route = createFileRoute("/you/ndl")({
@@ -70,9 +76,10 @@ function NdlPage() {
   const model = useNdlModel()
   const [percent, setPercent] = useState(32)
   const [typed, setTyped] = useState<string | null>(null)
-  const scroller = useRef<HTMLDivElement>(null)
+  const list = useRef<HTMLDivElement>(null)
+  const header = useRef<HTMLDivElement>(null)
   const oxygen = oxygenOf(percent)
-  const glide = useGlide(scroller, "mark-limit", `${oxygen} ${limit}`)
+  const glide = useGlide(list, header, "mark-limit", `${oxygen} ${limit}`)
 
   const atLimit = mod(oxygen, limit, salt)
   const atCeiling = mod(oxygen, Math.max(limit, 1.6), salt)
@@ -104,11 +111,9 @@ function NdlPage() {
   const change = (next: number, typing = false) => {
     const mix = oxygenOf(next)
     const line = Math.max(3, Math.floor(mod(mix, limit, salt)) + 1)
-    const far =
-      Math.abs(line - lines.over) * rowHeight >
-      (scroller.current?.clientHeight ?? Infinity)
+    const far = Math.abs(line - lines.over) * rowHeight > glide.height()
     const glides = mix !== oxygen && !typing && !far
-    if (glides) glide()
+    if (glides) glide.capture()
     setFrom(glides ? lines : null)
     setPercent(next)
   }
@@ -164,10 +169,10 @@ function NdlPage() {
   ].filter((mark) => mark.index >= 0)
 
   return (
-    <div className="flex h-full flex-col">
+    <div>
       <PageBar back={back} title="NDL table" />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 pt-2 md:mx-auto md:w-full md:max-w-xl desk:pb-4">
-        <section aria-labelledby="ndl-mix">
+      <div className="px-4 pb-4 md:mx-auto md:w-full md:max-w-xl">
+        <Controls labelledBy="ndl-mix">
           <ToolHeading id="ndl-mix">
             Mix{" "}
             <span className="font-medium text-muted-foreground/60">
@@ -223,23 +228,26 @@ function NdlPage() {
               ))}
             </ToggleGroup>
           </Stepper>
-        </section>
+        </Controls>
 
         <ModelPicker className="-mt-1" />
 
-        <section
-          aria-labelledby="ndl-depths"
-          className="flex min-h-0 flex-1 flex-col"
-        >
+        <section aria-labelledby="ndl-depths" className="mt-4">
           <ToolHeading id="ndl-depths">By depth</ToolHeading>
+          {/* Clipped, not hidden, so the header can stick as the page
+              scrolls. */}
           <Card
             role="table"
             aria-labelledby="ndl-depths"
-            className="min-h-0 flex-1 gap-0 rounded-b-none py-0 desk:rounded-b-xl"
+            className="gap-0 overflow-clip py-0"
           >
             <div
+              ref={header}
               role="row"
-              className="grid h-9 shrink-0 grid-cols-[minmax(0,1.3fr)_repeat(2,minmax(0,1fr))] items-center gap-x-2 border-b px-4 text-xs font-semibold text-muted-foreground"
+              className={cn(
+                stuckHeader,
+                "grid h-9 grid-cols-[minmax(0,1.3fr)_repeat(2,minmax(0,1fr))] items-center gap-x-2 border-b px-4 text-xs font-semibold text-muted-foreground"
+              )}
             >
               <span role="columnheader">Depth</span>
               <span role="columnheader" className="text-right">
@@ -249,11 +257,7 @@ function NdlPage() {
                 ppO₂
               </span>
             </div>
-            <div
-              ref={scroller}
-              role="rowgroup"
-              className="relative min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
-            >
+            <div ref={list} role="rowgroup" className="relative">
               {depths.map((depth) => {
                 const over = depth > atLimit
                 const past = depth > atCeiling

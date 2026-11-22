@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { useLayoutEffect, useRef, type ReactNode } from "react"
 import { IconMinus, IconPlus } from "@tabler/icons-react"
 import { cn } from "cn"
 
@@ -31,6 +31,50 @@ export function ToolHeading({
     </h2>
   )
 }
+
+// A tool's figure and stepper, kept in view under the bar while the table
+// scrolls with the page, so a step's glide can be watched and stepped
+// again. Its height goes to the page, for the table's header to stick below.
+export function Controls({
+  labelledBy,
+  children,
+}: {
+  labelledBy: string
+  children: ReactNode
+}) {
+  const ref = useRef<HTMLElement>(null)
+  useLayoutEffect(() => {
+    const section = ref.current!
+    const page = section.parentElement!
+    // Rounded down, as a header stuck half a pixel lower lets rows show
+    // through above it.
+    const measure = () =>
+      page.style.setProperty(
+        "--controls",
+        `${Math.floor(section.getBoundingClientRect().height)}px`
+      )
+    // At once too, as the table centres itself before the observer reports.
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(section)
+    return () => observer.disconnect()
+  }, [])
+  return (
+    <section
+      ref={ref}
+      aria-labelledby={labelledBy}
+      // Not pinned on a screen too short to leave the table room, such as
+      // a phone on its side.
+      className="sticky top-[calc(3.25rem+env(safe-area-inset-top))] z-20 -mx-4 bg-background px-4 pt-2 pb-4 [@media(max-height:30rem)]:static"
+    >
+      {children}
+    </section>
+  )
+}
+
+// A tool's table's header row, stuck below the controls.
+export const stuckHeader =
+  "sticky top-[calc(3.25rem+env(safe-area-inset-top)+var(--controls,0px))] z-20 bg-card [@media(max-height:30rem)]:top-[calc(3.25rem+env(safe-area-inset-top))]"
 
 const stepButton =
   "relative inline-flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-full bg-muted text-foreground transition-[scale,opacity] duration-150 ease-out select-none hover:opacity-80 active:scale-96 active:opacity-70 active:duration-0 motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-40 desk:size-10"

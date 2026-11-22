@@ -1,14 +1,12 @@
 import { useLayoutEffect, useRef, type RefObject } from "react"
+import { useRouter } from "@tanstack/react-router"
 
 import { curve } from "@/components/fold"
 import { reduced } from "@/lib/motion"
 
-// A tool's table rearranging itself under a stepper: each row marked
-// `data-glide="<key>"` slides from where it was on screen to its new place
-// (FLIP, on transform only), after the list has been scrolled at once to
-// centre the row that matters. So that row stands still and the scale moves
-// past it. Taps can come faster than the slide: where a row is mid-slide is
-// read as where it was, so the next slide carries on from there.
+// FLIP for a tool's table: the page scrolls at once to keep the key row
+// still, and each `data-glide` row slides from where it was, so the scale
+// moves past it. A row mid-slide counts from where it is, so taps can chain.
 export const glideDuration = 260
 const fadeDuration = 200
 
@@ -32,8 +30,42 @@ export function crossingDelay(share: number) {
   return Math.round(bezier((low + high) / 2, 0.23, 0.32) * glideDuration)
 }
 
-const rowsIn = (scroller: HTMLElement) =>
-  scroller.querySelectorAll<HTMLElement>("[data-glide]")
+const rowsIn = (list: HTMLElement) =>
+  list.querySelectorAll<HTMLElement>("[data-glide]")
+
+function scrollerOf(list: HTMLElement) {
+  for (let node = list.parentElement; node; node = node.parentElement) {
+    const { overflowY } = getComputedStyle(node)
+    if (overflowY === "auto" || overflowY === "scroll") return node
+  }
+  return document.documentElement
+}
+
+// Where the list can be seen: below the controls and the table's header,
+// which stick at the top, and above the tab bar the page pads for. `top`
+// is where the header's bottom sits once it has stuck.
+function view(list: HTMLElement, header: HTMLElement | null) {
+  const scroller = scrollerOf(list)
+  const box = scroller.getBoundingClientRect()
+  const style = getComputedStyle(scroller)
+  const seen = window.visualViewport
+  const stuck = header
+    ? box.top +
+      Number.parseFloat(getComputedStyle(header).top) +
+      header.offsetHeight
+    : box.top
+  return {
+    scroller,
+    top: Number.isNaN(stuck) ? box.top : stuck,
+    // Where the header is now, stuck or not yet.
+    shown: header?.getBoundingClientRect().bottom ?? box.top,
+    // Above the keyboard too, which covers the page without shrinking it.
+    bottom: Math.min(
+      box.bottom - Number.parseFloat(style.paddingBottom || "0"),
+      seen ? seen.offsetTop + seen.height : Infinity
+    ),
+  }
+}
 
 // Started on the tap's own frame: a new animation otherwise waits a frame
 // or two for its start time, holding still while the colours already move.
@@ -46,7 +78,10 @@ function play(row: HTMLElement, keyframes: Keyframe[], duration: number) {
 }
 
 export function useGlide(
-  scroller: RefObject<HTMLElement | null>,
+  // Around the rows.
+  rows: RefObject<HTMLElement | null>,
+  // The table's header, stuck over the rows as the page scrolls.
+  header: RefObject<HTMLElement | null>,
   // The row to keep in the middle of the list, by its key.
   centre: string | undefined,
   // Changes whenever the list is rearranged.
@@ -54,13 +89,25 @@ export function useGlide(
 ) {
   const before = useRef<Map<string, number> | null>(null)
   const first = useRef(true)
+  const router = useRouter()
+  const recentre = useRef<() => void>(() => {})
+
+  // Again once the router has scrolled the new screen to its top, which it
+  // does after the opening layout has run.
+  useLayoutEffect(() => {
+    const stop = router.subscribe("onRendered", () => {
+      stop()
+      recentre.current()
+    })
+    return stop
+  }, [router])
 
   useLayoutEffect(() => {
-    const list = scroller.current
+    const list = rows.current
     if (!list) return
     const was = before.current
     before.current = null
-    const rows = [...rowsIn(list)]
+    const shown = [...rowsIn(list)]
     // Ended at once, so the places read below are the new layout's own.
     // Only the rows' own slides: the cells' colour switches keep running.
     for (const animation of list.getAnimations({ subtree: true }))
@@ -73,22 +120,25 @@ export function useGlide(
     const target = centre
       ? list.querySelector<HTMLElement>(`[data-glide="${centre}"]`)
       : null
-    if (target) {
-      const box = list.getBoundingClientRect()
+    const centring = () => {
+      if (!target) return
+      const { scroller, top, bottom } = view(list, header.current)
       const row = target.getBoundingClientRect()
-      list.scrollBy({
-        top: row.top - box.top - (list.clientHeight - row.height) / 2,
+      scroller.scrollBy({
+        top: row.top - top - (bottom - top - row.height) / 2,
         behavior: "instant",
       })
     }
+    centring()
+    recentre.current = centring
     const opened = first.current
     first.current = false
     if (opened || !was || reduced()) return
     // Every place read before any row animates, so the browser lays the
     // list out once rather than once a row. In the order they show, which
     // CSS `order` can make different from the document's.
-    const box = list.getBoundingClientRect()
-    const places = rows
+    const box = view(list, header.current)
+    const places = shown
       .map((row) => {
         const { top, height } = row.getBoundingClientRect()
         const key = row.dataset.glide!
@@ -106,7 +156,7 @@ export function useGlide(
       // see them move and each slide costs a layer.
       const low = Math.min(now + offset, now)
       const high = Math.max(now + offset, now) + height
-      if (high <= box.top || low >= box.bottom) continue
+      if (high <= box.shown || low >= box.bottom) continue
       if (from === undefined) {
         // Out from behind the row named in `data-glide-from`, or from just
         // smaller where it lands.
@@ -132,13 +182,22 @@ export function useGlide(
     // Only a new arrangement moves; the centre row alone doesn't scroll.
   }, [version]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Called just before the change that rearranges the list.
-  return () => {
-    const list = scroller.current
-    if (!list) return
-    const places = new Map<string, number>()
-    for (const row of rowsIn(list))
-      places.set(row.dataset.glide!, row.getBoundingClientRect().top)
-    before.current = places
+  return {
+    // Called just before the change that rearranges the list.
+    capture() {
+      const list = rows.current
+      if (!list) return
+      const places = new Map<string, number>()
+      for (const row of rowsIn(list))
+        places.set(row.dataset.glide!, row.getBoundingClientRect().top)
+      before.current = places
+    },
+    // How much of the list shows at once, to tell a jump too far to follow.
+    height() {
+      const list = rows.current
+      if (!list) return Infinity
+      const { top, bottom } = view(list, header.current)
+      return bottom - top
+    },
   }
 }

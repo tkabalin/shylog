@@ -7,7 +7,13 @@ import { Card } from "@/components/ui/card"
 import { useLog } from "@/data/log"
 import { crossingDelay, glideDuration, useGlide } from "@/lib/glide"
 import { ndlText, useNdlModel, warmNdl } from "@/tools/ndl-model"
-import { ModelPicker, Stepper, ToolHeading } from "@/tools/parts"
+import {
+  Controls,
+  ModelPicker,
+  Stepper,
+  stuckHeader,
+  ToolHeading,
+} from "@/tools/parts"
 import { PageBar } from "@/you/bar"
 
 export const Route = createFileRoute("/you/best-mix")({
@@ -43,9 +49,11 @@ function EanxPage() {
   const [depth, setDepth] = useState<number | null>(null)
   // What's being typed, until the field is left.
   const [typed, setTyped] = useState<string | null>(null)
-  const scroller = useRef<HTMLDivElement>(null)
+  const list = useRef<HTMLDivElement>(null)
+  const header = useRef<HTMLDivElement>(null)
   const glide = useGlide(
-    scroller,
+    list,
+    header,
     depth == null ? "310" : "exact",
     `${depth} ${maxPo2}`
   )
@@ -85,11 +93,9 @@ function EanxPage() {
   const change = (next: number | null, typing = false) => {
     if (next === depth) return
     const nextExact = next == null ? null : bestMix(next * 1000, maxPo2, salt)
-    const far =
-      between(exact, nextExact).length * rowHeight >
-      (scroller.current?.clientHeight ?? Infinity)
+    const far = between(exact, nextExact).length * rowHeight > glide.height()
     const glides = !typing && !far
-    if (glides) glide()
+    if (glides) glide.capture()
     setFrom(glides ? exact : null)
     setDepth(next)
   }
@@ -124,10 +130,10 @@ function EanxPage() {
   const sorted = rows.map((row) => row.oxygen).sort((a, b) => a - b)
 
   return (
-    <div className="flex h-full flex-col">
+    <div>
       <PageBar back={back} title="Best nitrox mix" />
-      <div className="flex min-h-0 flex-1 flex-col gap-4 px-4 pt-2 md:mx-auto md:w-full md:max-w-xl desk:pb-4">
-        <section aria-labelledby="best-mix-depth">
+      <div className="px-4 pb-4 md:mx-auto md:w-full md:max-w-xl">
+        <Controls labelledBy="best-mix-depth">
           <ToolHeading id="best-mix-depth">Target depth</ToolHeading>
           <Stepper
             label="Target depth in metres"
@@ -154,24 +160,25 @@ function EanxPage() {
             atLeast={depth === 1}
             atMost={depth === 60}
           />
-        </section>
+        </Controls>
 
         <ModelPicker />
 
-        <section
-          aria-labelledby="best-mix-mixes"
-          className="flex min-h-0 flex-1 flex-col"
-        >
+        <section aria-labelledby="best-mix-mixes" className="mt-4">
           <ToolHeading id="best-mix-mixes">Mixes</ToolHeading>
+          {/* Clipped, not hidden, so the header can stick as the page
+              scrolls. */}
           <Card
             role="table"
             aria-labelledby="best-mix-mixes"
-            className="min-h-0 flex-1 gap-0 rounded-b-none py-0 desk:rounded-b-xl"
+            className="gap-0 overflow-clip py-0"
           >
             <div
+              ref={header}
               role="row"
               className={cn(
-                "grid min-h-9 shrink-0 items-center gap-x-2 border-b px-4 py-1.5 text-xs leading-tight font-semibold text-muted-foreground",
+                stuckHeader,
+                "grid min-h-9 items-center gap-x-2 border-b px-4 py-1.5 text-xs leading-tight font-semibold text-muted-foreground",
                 contingency
                   ? "grid-cols-[minmax(0,1.15fr)_repeat(3,minmax(0,1fr))]"
                   : "grid-cols-[minmax(0,1.15fr)_repeat(2,minmax(0,1fr))]"
@@ -201,11 +208,7 @@ function EanxPage() {
                 NDL
               </span>
             </div>
-            <div
-              ref={scroller}
-              role="rowgroup"
-              className="relative flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain"
-            >
+            <div ref={list} role="rowgroup" className="flex flex-col">
               {rows.map((row) => (
                 <MixRow
                   key={row.key}
