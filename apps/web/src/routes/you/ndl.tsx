@@ -117,8 +117,8 @@ function NdlPage() {
     setFrom(glides ? lines : null)
     setPercent(next)
   }
-  // When the row at `depth` changes zone as `line` passes its middle, or 0
-  // for a row that line leaves as it was.
+  // When the row at `depth` changes its figures' look as `line` passes its
+  // middle, or 0 for a row that line leaves as it was.
   const crossing = (line: "over" | "past", depth: number) => {
     if (!from) return 0
     const was = from[line]
@@ -167,6 +167,19 @@ function NdlPage() {
         ]
       : []),
   ].filter((mark) => mark.index >= 0)
+  // Always both, so a band glides in from the foot rather than popping in.
+  const zones = [
+    {
+      key: "zone-limit",
+      index: firstOver < 0 ? depths.length : firstOver,
+      past: limit >= 1.6,
+    },
+    {
+      key: "zone-16",
+      index: limit < 1.6 && firstPast >= 0 ? firstPast : depths.length,
+      past: true,
+    },
+  ]
 
   return (
     <div>
@@ -235,7 +248,7 @@ function NdlPage() {
         <section aria-labelledby="ndl-depths" className="mt-4">
           <ToolHeading id="ndl-depths">By depth</ToolHeading>
           {/* Clipped, not hidden, so the header can stick as the page
-              scrolls. */}
+              scrolls, and the zones end with the table. */}
           <Card
             role="table"
             aria-labelledby="ndl-depths"
@@ -258,47 +271,47 @@ function NdlPage() {
               </span>
             </div>
             <div ref={list} role="rowgroup" className="relative">
+              {/* A band from each line down, gliding with it: orange past
+                  the setting, hatched red past 1.6 bar. One with no line
+                  waits below, and both run on past the clipped foot. */}
+              {zones.map((zone) => (
+                <span
+                  key={zone.key}
+                  data-glide={zone.key}
+                  aria-hidden
+                  style={{
+                    top: zone.index * rowHeight,
+                    height: `calc(${(depths.length - zone.index) * rowHeight}px + 100dvh)`,
+                  }}
+                  className={cn(
+                    "pointer-events-none absolute inset-x-0",
+                    zone.past
+                      ? "bg-card bg-[repeating-linear-gradient(135deg,transparent_0_6px,color-mix(in_oklab,var(--destructive)_8%,transparent)_6px_12px)] shadow-[inset_3px_0_0_var(--destructive)]"
+                      : "bg-[color-mix(in_oklab,var(--warn)_7%,transparent)] shadow-[inset_3px_0_0_var(--warn)]"
+                  )}
+                />
+              ))}
               {depths.map((depth) => {
                 const over = depth > atLimit
                 const past = depth > atCeiling
-                const overAt = crossing("over", depth)
-                const pastAt = crossing("past", depth)
-                // The text takes the look of whichever line passes last.
-                const textAt = Math.max(overAt, pastAt)
+                // The look of whichever line passes last.
+                const textAt = Math.max(
+                  crossing("over", depth),
+                  crossing("past", depth)
+                )
                 return (
                   <div
                     key={depth}
                     role="row"
                     data-glide={`d${depth}`}
-                    className="relative grid h-11.5 grid-cols-[minmax(0,1.3fr)_repeat(2,minmax(0,1fr))] items-center gap-x-2 border-t px-4 text-[15px] tabular-nums first:border-t-0"
+                    className="relative grid h-11.5 grid-cols-[minmax(0,1.3fr)_repeat(2,minmax(0,1fr))] items-center gap-x-2 border-t px-4 text-[15px] tabular-nums first-of-type:border-t-0"
                   >
-                    {/* The zones, each switched as its line glides over
-                        the row: orange past the setting, then hatched red
-                        past 1.6 bar over it. */}
-                    <span
-                      aria-hidden
-                      style={{ transitionDelay: `${overAt}ms` }}
-                      className={cn(
-                        "pointer-events-none absolute inset-0 bg-[color-mix(in_oklab,var(--warn)_7%,transparent)] shadow-[inset_3px_0_0_var(--warn)] transition-opacity duration-0",
-                        !over && "opacity-0"
-                      )}
-                    />
-                    <span
-                      aria-hidden
-                      style={{ transitionDelay: `${pastAt}ms` }}
-                      className={cn(
-                        "pointer-events-none absolute inset-0 bg-card bg-[repeating-linear-gradient(135deg,transparent_0_6px,color-mix(in_oklab,var(--destructive)_8%,transparent)_6px_12px)] shadow-[inset_3px_0_0_var(--destructive)] transition-opacity duration-0",
-                        !past && "opacity-0"
-                      )}
-                    />
-                    <span role="cell" className="relative">
-                      {depth} m
-                    </span>
+                    <span role="cell">{depth} m</span>
                     <span
                       role="cell"
                       style={{ transitionDelay: `${textAt}ms` }}
                       className={cn(
-                        "relative text-right font-semibold transition-colors duration-0",
+                        "text-right font-semibold transition-colors duration-0",
                         past
                           ? "text-muted-foreground/60"
                           : over && "text-muted-foreground"
@@ -310,7 +323,7 @@ function NdlPage() {
                       role="cell"
                       style={{ transitionDelay: `${textAt}ms` }}
                       className={cn(
-                        "relative text-right transition-[color,font-weight] duration-0",
+                        "text-right transition-[color,font-weight] duration-0",
                         past
                           ? "font-semibold text-destructive"
                           : over
