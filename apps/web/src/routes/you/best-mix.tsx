@@ -118,9 +118,6 @@ function EanxPage() {
   // A second MOD at 1.6 bar, the usual contingency limit, unless the
   // setting is already there.
   const contingency = maxPo2 < 1.6
-  // In a fixed order in the document, the exact mix last, and placed by
-  // CSS order: React moving a row's node to sort it would cancel the
-  // delayed colour switch on the row it moved.
   const rows: { key: string; oxygen: number; exact: boolean }[] = mixes
     // The exact mix takes the place of a whole one it equals.
     .filter((oxygen) => oxygen !== exact)
@@ -128,7 +125,7 @@ function EanxPage() {
   // Below air there's nothing to breathe at that depth.
   if (exact != null && exact >= airOxygen)
     rows.push({ key: "exact", oxygen: exact, exact: true })
-  const sorted = rows.map((row) => row.oxygen).sort((a, b) => a - b)
+  rows.sort((a, b) => a.oxygen - b.oxygen)
 
   return (
     <div>
@@ -214,7 +211,6 @@ function EanxPage() {
                 <MixRow
                   key={row.key}
                   glideKey={row.key}
-                  place={sorted.indexOf(row.oxygen)}
                   oxygen={row.oxygen}
                   exact={row.exact}
                   depth={depth}
@@ -234,7 +230,6 @@ function EanxPage() {
 
 function MixRow({
   glideKey,
-  place,
   oxygen,
   exact,
   depth,
@@ -244,8 +239,6 @@ function MixRow({
   crossing,
 }: {
   glideKey: string
-  // Its place in the list, top first.
-  place: number
   oxygen: number
   exact: boolean
   depth: number | null
@@ -274,10 +267,8 @@ function MixRow({
       data-glide={glideKey}
       // A whole mix the exact one stood in for comes back from behind it.
       data-glide-from={exact ? undefined : "exact"}
-      style={{ order: place }}
       className={cn(
-        "relative grid items-center gap-x-2 border-t px-4 text-[15px] tabular-nums",
-        place === 0 && "border-t-0",
+        "relative grid items-center gap-x-2 border-t px-4 text-[15px] tabular-nums first:border-t-0",
         contingency
           ? "grid-cols-[minmax(0,1.15fr)_repeat(3,minmax(0,1fr))]"
           : "grid-cols-[minmax(0,1.15fr)_repeat(2,minmax(0,1fr))]",
@@ -292,11 +283,9 @@ function MixRow({
       </span>
       <span
         role="cell"
-        style={{ transitionDelay: `${crossing}ms` }}
-        className={cn(
-          "text-right transition-colors duration-0",
-          over && "text-destructive"
-        )}
+        data-switch={`${glideKey}-mod`}
+        data-switch-at={crossing}
+        className={cn("text-right", over && "text-destructive")}
       >
         {metres(limit)}
       </span>
@@ -310,9 +299,10 @@ function MixRow({
       )}
       <span
         role="cell"
-        style={{ transitionDelay: `${crossing}ms` }}
+        data-switch={`${glideKey}-ndl`}
+        data-switch-at={crossing}
         className={cn(
-          "text-right font-semibold transition-colors duration-0",
+          "text-right font-semibold",
           past ? "text-muted-foreground/60" : over && "text-muted-foreground"
         )}
       >

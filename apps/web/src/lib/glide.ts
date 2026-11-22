@@ -16,18 +16,23 @@ const fadeDuration = 200
 export function crossingDelay(share: number) {
   if (reduced() || !(share > 0)) return 0
   if (share >= 1) return glideDuration
-  // --ease-out's control points, cubic-bezier(0.23, 1, 0.32, 1): x is
-  // time, y is distance.
+  // --ease-out's control points, read from the token the slide plays on:
+  // x is time, y is distance.
+  const points = curve("--ease-out")
+    .match(/-?[\d.]+/g)
+    ?.map(Number)
+  if (points?.length !== 4) return Math.round(share * glideDuration)
+  const [x1, y1, x2, y2] = points as [number, number, number, number]
   const bezier = (t: number, a: number, b: number) =>
     3 * (1 - t) ** 2 * t * a + 3 * (1 - t) * t ** 2 * b + t ** 3
   let low = 0
   let high = 1
   for (let i = 0; i < 24; i++) {
     const t = (low + high) / 2
-    if (bezier(t, 1, 1) < share) low = t
+    if (bezier(t, y1, y2) < share) low = t
     else high = t
   }
-  return Math.round(bezier((low + high) / 2, 0.23, 0.32) * glideDuration)
+  return Math.round(bezier((low + high) / 2, x1, x2) * glideDuration)
 }
 
 const rowsIn = (list: HTMLElement) =>
@@ -67,15 +72,24 @@ function view(list: HTMLElement, header: HTMLElement | null) {
   }
 }
 
-// Started on the tap's own frame: a new animation otherwise waits a frame
-// or two for its start time, holding still while the colours already move.
-function play(row: HTMLElement, keyframes: Keyframe[], duration: number) {
-  const animation = row.animate(keyframes, {
-    duration,
-    easing: curve("--ease-out"),
-  })
-  animation.startTime = document.timeline.currentTime
+// When a tap's slides and colour holds start: on its own frame, so a slide
+// moves on the first one, but no more than a frame back, or a slow render
+// skips the front of the glide. Clocks a second or more apart aren't the
+// same clock (DevTools slowing animations), so the frame's is kept then.
+function startOf() {
+  const frame = document.timeline.currentTime as number
+  const now = performance.now()
+  return now - frame < 1000 ? Math.max(frame, now - 1000 / 60) : frame
 }
+
+// A cell marked `data-switch="<key>"` that changes its look as a row or line
+// glides past it, `data-switch-at` ms in: until then it keeps the look it
+// had, held by an animation on the slides' own clock. With
+// `data-switch-blank`, its new text stays hidden until then too.
+const switchesIn = (list: HTMLElement) =>
+  list.querySelectorAll<HTMLElement>("[data-switch]")
+
+type Look = { color: string; fontWeight: string }
 
 export function useGlide(
   // Around the rows.
@@ -87,10 +101,16 @@ export function useGlide(
   // Changes whenever the list is rearranged.
   version: string
 ) {
-  const before = useRef<Map<string, number> | null>(null)
+  const before = useRef<{
+    places: Map<string, number>
+    looks: Map<string, Look>
+  } | null>(null)
   const first = useRef(true)
   const router = useRouter()
   const recentre = useRef<() => void>(() => {})
+  // The slides and holds this hook started, so a tap ends them without
+  // looking through every animation on the page.
+  const playing = useRef(new Set<Animation>())
 
   // Again once the router has scrolled the new screen to its top, which it
   // does after the opening layout has run.
@@ -108,15 +128,22 @@ export function useGlide(
     const was = before.current
     before.current = null
     const shown = [...rowsIn(list)]
-    // Ended at once, so the places read below are the new layout's own.
-    // Only the rows' own slides: the cells' colour switches keep running.
-    for (const animation of list.getAnimations({ subtree: true }))
-      if (
-        animation.effect instanceof KeyframeEffect &&
-        animation.effect.target instanceof HTMLElement &&
-        animation.effect.target.dataset.glide !== undefined
-      )
-        animation.cancel()
+    // Ended at once, so the places read below are the new layout's own, as
+    // are the looks the holds start from.
+    for (const animation of playing.current) animation.cancel()
+    playing.current.clear()
+    const play = (
+      element: HTMLElement,
+      keyframes: Keyframe[],
+      timing: KeyframeAnimationOptions
+    ) => {
+      const animation = element.animate(keyframes, {
+        ...timing,
+        fill: "backwards",
+      })
+      playing.current.add(animation)
+      animation.onfinish = () => playing.current.delete(animation)
+    }
     const target = centre
       ? list.querySelector<HTMLElement>(`[data-glide="${centre}"]`)
       : null
@@ -136,13 +163,25 @@ export function useGlide(
     if (opened || !was || reduced()) return
     // Every place read before any row animates, so the browser lays the
     // list out once rather than once a row. In the order they show, which
-    // CSS `order` can make different from the document's.
+    // for the NDL table's lines and zones isn't the document's.
     const box = view(list, header.current)
+    // The key row came from further than the list shows, the page having
+    // been scrolled away from it: it lands at once, as a far jump does,
+    // rather than the whole table sweeping across the screen.
+    const anchor = centre === undefined ? undefined : was.places.get(centre)
+    if (
+      target &&
+      anchor !== undefined &&
+      Math.abs(anchor - target.getBoundingClientRect().top) >
+        box.bottom - box.top
+    )
+      return
     const places = shown
       .map((row) => {
         const { top, height } = row.getBoundingClientRect()
         const key = row.dataset.glide!
-        const from = was.get(key) ?? was.get(row.dataset.glideFrom ?? "")
+        const from =
+          was.places.get(key) ?? was.places.get(row.dataset.glideFrom ?? "")
         return { row, now: top, height, from }
       })
       .sort((a, b) => a.now - b.now)
@@ -166,7 +205,7 @@ export function useGlide(
             { opacity: 0, transform: `translateY(${offset}px) scale(0.97)` },
             { opacity: 1, transform: "none" },
           ],
-          fadeDuration
+          { duration: fadeDuration, easing: curve("--ease-out") }
         )
       } else if (Math.abs(offset) >= 0.5) {
         play(
@@ -175,10 +214,22 @@ export function useGlide(
             { transform: `translateY(${offset}px)` },
             { transform: "translateY(0)" },
           ],
-          glideDuration
+          { duration: glideDuration, easing: curve("--ease-out") }
         )
       }
     }
+    for (const cell of switchesIn(list)) {
+      const at = Number(cell.dataset.switchAt)
+      const look = was.looks.get(cell.dataset.switch!)
+      if (!(at > 0) || !look) continue
+      const held =
+        cell.dataset.switchBlank === undefined ? look : { ...look, opacity: 0 }
+      play(cell, [held, held], { duration: at })
+    }
+    // Once all of them are made, after the reads above, so that work doesn't
+    // eat into the glide either.
+    const start = startOf()
+    for (const animation of playing.current) animation.startTime = start
     // Only a new arrangement moves; the centre row alone doesn't scroll.
   }, [version]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -190,7 +241,13 @@ export function useGlide(
       const places = new Map<string, number>()
       for (const row of rowsIn(list))
         places.set(row.dataset.glide!, row.getBoundingClientRect().top)
-      before.current = places
+      // As they show, a hold from the last tap included.
+      const looks = new Map<string, Look>()
+      for (const cell of switchesIn(list)) {
+        const { color, fontWeight } = getComputedStyle(cell)
+        looks.set(cell.dataset.switch!, { color, fontWeight })
+      }
+      before.current = { places, looks }
     },
     // How much of the list shows at once, to tell a jump too far to follow.
     height() {

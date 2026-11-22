@@ -299,11 +299,10 @@ function NdlPage() {
               {depths.map((depth) => {
                 const over = depth > atLimit
                 const past = depth > atCeiling
-                // The look of whichever line passes last.
-                const textAt = Math.max(
-                  crossing("over", depth),
-                  crossing("past", depth)
-                )
+                // The look of whichever line passes last. The NDL turns to
+                // a dash or back only as the 1.6 bar line reaches the row.
+                const pastAt = crossing("past", depth)
+                const textAt = Math.max(crossing("over", depth), pastAt)
                 return (
                   <div
                     key={depth}
@@ -314,9 +313,11 @@ function NdlPage() {
                     <span role="cell">{depth} m</span>
                     <span
                       role="cell"
-                      style={{ transitionDelay: `${textAt}ms` }}
+                      data-switch={`d${depth}-ndl`}
+                      data-switch-at={textAt}
+                      data-switch-blank={pastAt > 0 || undefined}
                       className={cn(
-                        "text-right font-semibold transition-colors duration-0",
+                        "text-right font-semibold",
                         past
                           ? "text-muted-foreground/60"
                           : over && "text-muted-foreground"
@@ -326,9 +327,10 @@ function NdlPage() {
                     </span>
                     <span
                       role="cell"
-                      style={{ transitionDelay: `${textAt}ms` }}
+                      data-switch={`d${depth}-po2`}
+                      data-switch-at={textAt}
                       className={cn(
-                        "text-right transition-[color,font-weight] duration-0",
+                        "text-right",
                         past
                           ? "font-semibold text-destructive"
                           : over
