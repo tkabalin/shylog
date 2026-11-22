@@ -55,9 +55,32 @@ export function Controls({
       )
     // At once too, as the table centres itself before the observer reports.
     measure()
-    const observer = new ResizeObserver(measure)
+    // Whether the table's header has stuck below, for the cap.
+    const table = page.querySelector<HTMLElement>("[role=table]")
+    const header = table?.querySelector<HTMLElement>("[role=row]")
+    const scroller = section.closest<HTMLElement>("#main")
+    const stick = () => {
+      if (!table || !header) return
+      const top = header.getBoundingClientRect().top
+      const stuck =
+        table.getBoundingClientRect().top < top - 0.5 &&
+        Math.abs(top - section.getBoundingClientRect().bottom) < 2
+      section.toggleAttribute("data-stuck", stuck)
+    }
+    // A resize moves the header without a scroll: the controls unpinned
+    // on a turned phone, or a shorter table pulling the page up.
+    const observer = new ResizeObserver(() => {
+      measure()
+      stick()
+    })
     observer.observe(section)
-    return () => observer.disconnect()
+    if (table) observer.observe(table)
+    stick()
+    scroller?.addEventListener("scroll", stick, { passive: true })
+    return () => {
+      observer.disconnect()
+      scroller?.removeEventListener("scroll", stick)
+    }
   }, [])
   return (
     <section
@@ -65,18 +88,25 @@ export function Controls({
       aria-labelledby={labelledBy}
       // Not pinned on a screen too short to leave the table room, such as
       // a phone on its side.
-      className="sticky top-[calc(3.25rem+env(safe-area-inset-top))] z-20 -mx-4 bg-background px-4 pt-2 pb-4 [@media(max-height:30rem)]:static"
+      className="group/controls sticky top-[calc(3.25rem+env(safe-area-inset-top))] z-20 -mx-4 bg-background px-4 pt-2 pb-4 [@media(max-height:30rem)]:static"
     >
       {children}
+      {/* The card's rounded top, drawn over the stuck header: the card
+          clips what's inside it, and its edge is drawn outside it, so
+          neither can curve where the card's top has scrolled away. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-x-[15px] top-[calc(var(--controls,0px)-1px)] hidden h-[13px] [--edge:color-mix(in_oklab,var(--foreground)_10%,var(--background))] [background:radial-gradient(circle_at_13px_13px,transparent_11.5px,var(--edge)_12px,var(--edge)_12.5px,var(--background)_13px)_left_top/13px_13px_no-repeat,radial-gradient(circle_at_0_13px,transparent_11.5px,var(--edge)_12px,var(--edge)_12.5px,var(--background)_13px)_right_top/13px_13px_no-repeat,linear-gradient(var(--edge),var(--edge))_13px_0/calc(100%-26px)_1px_no-repeat] group-data-stuck/controls:block"
+      />
     </section>
   )
 }
 
-// A tool's table's header row, stuck below the controls. Its line on top
-// stands in for the card's edge once that has scrolled away. At the card's
-// top the card clips it, and the card's own edge shows.
+// A tool's table's header row, stuck below the controls, which draw the
+// card's rounded top over it. Its own line on top shows where the controls
+// aren't pinned; at the card's top the card clips it.
 export const stuckHeader =
-  "sticky top-[calc(3.25rem+env(safe-area-inset-top)+var(--controls,0px))] z-20 bg-card shadow-[0_-1px_0_color-mix(in_oklab,var(--foreground)_10%,transparent)] [@media(max-height:30rem)]:top-[calc(3.25rem+env(safe-area-inset-top))]"
+  "sticky top-[calc(3.25rem+env(safe-area-inset-top)+var(--controls,0px))] z-[15] bg-card shadow-[0_-1px_0_color-mix(in_oklab,var(--foreground)_10%,transparent)] [@media(max-height:30rem)]:top-[calc(3.25rem+env(safe-area-inset-top))]"
 
 const stepButton =
   "relative inline-flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-full bg-muted text-foreground transition-[scale,opacity] duration-150 ease-out select-none hover:opacity-80 active:scale-96 active:opacity-70 active:duration-0 motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-40 desk:size-10"
