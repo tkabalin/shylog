@@ -72,9 +72,11 @@ export function Controls({
   )
 }
 
-// A tool's table's header row, stuck below the controls.
+// A tool's table's header row, stuck below the controls. Its line on top
+// stands in for the card's edge once that has scrolled away. At the card's
+// top the card clips it, and the card's own edge shows.
 export const stuckHeader =
-  "sticky top-[calc(3.25rem+env(safe-area-inset-top)+var(--controls,0px))] z-20 bg-card [@media(max-height:30rem)]:top-[calc(3.25rem+env(safe-area-inset-top))]"
+  "sticky top-[calc(3.25rem+env(safe-area-inset-top)+var(--controls,0px))] z-20 bg-card shadow-[0_-1px_0_color-mix(in_oklab,var(--foreground)_10%,transparent)] [@media(max-height:30rem)]:top-[calc(3.25rem+env(safe-area-inset-top))]"
 
 const stepButton =
   "relative inline-flex size-12 shrink-0 cursor-pointer items-center justify-center rounded-full bg-muted text-foreground transition-[scale,opacity] duration-150 ease-out select-none hover:opacity-80 active:scale-96 active:opacity-70 active:duration-0 motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-40 desk:size-10"
@@ -177,10 +179,10 @@ export function Stepper({
 }
 
 // The NDL model both tools share, picked on either.
-export function ModelPicker({ className }: { className?: string }) {
+export function ModelPicker() {
   const model = useNdlModel()
   return (
-    <section aria-labelledby="ndl-model" className={cn(className)}>
+    <section aria-labelledby="ndl-model">
       <ToolHeading id="ndl-model">
         <span className="flex items-center gap-1.5">
           NDL model
