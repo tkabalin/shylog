@@ -243,7 +243,7 @@ function NdlPage() {
           </Stepper>
         </Controls>
 
-        <ModelPicker className="-mt-1" />
+        <ModelPicker />
 
         <section aria-labelledby="ndl-depths" className="mt-4">
           <ToolHeading id="ndl-depths">By depth</ToolHeading>
