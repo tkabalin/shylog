@@ -286,13 +286,8 @@ function MixRow({
           : "min-h-11.5 bg-card"
       )}
     >
-      <span role="cell" className="flex flex-col">
-        <span className={cn(exact && "text-primary")}>{label}</span>
-        {exact && (
-          <span className="text-xs leading-tight font-medium text-primary">
-            Exact for {depth} m
-          </span>
-        )}
+      <span role="cell" className={cn(exact && "text-primary")}>
+        {label}
       </span>
       <span
         role="cell"
