@@ -66,16 +66,11 @@ export function ndlText(model: NdlModel, oxygen: number, depth: number) {
   return text
 }
 
-// What each model is, for the info beside the picker.
-const buhlmann = (high: number) => ({
-  title: `Bühlmann GF 30/${high}`,
-  body: `ZHL-16C with gradient factors 30/${high}, as Subsurface plans a first dive of the day: down at 18 m/min, then straight up at 9 m/min. The NDL counts from leaving the surface.`,
-})
-export const modelInfo: Record<NdlModel, { title: string; body: string }> = {
-  navy: {
-    title: "US Navy air table",
-    body: "The no-decompression limits of the US Navy Diving Manual, Rev 7, read at the next deeper row. Nitrox is read at its equivalent air depth.",
-  },
+// What each model is, a line each in the picker's sheet.
+const buhlmann = (high: number) =>
+  `Bühlmann ZHL-16C, gradient factors 30/${high}`
+export const modelDetail: Record<NdlModel, string> = {
+  navy: "US Navy Diving Manual, Rev 7, air table",
   gf100: buhlmann(100),
   gf85: buhlmann(85),
   gf70: buhlmann(70),

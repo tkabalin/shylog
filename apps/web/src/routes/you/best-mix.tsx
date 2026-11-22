@@ -9,7 +9,7 @@ import { crossingDelay, glideDuration, useGlide } from "@/lib/glide"
 import { ndlText, useNdlModel, warmNdl } from "@/tools/ndl-model"
 import {
   Controls,
-  ModelPicker,
+  NdlHeading,
   Stepper,
   stuckHeader,
   ToolHeading,
@@ -160,8 +160,6 @@ function EanxPage() {
           />
         </Controls>
 
-        <ModelPicker />
-
         <section aria-labelledby="best-mix-mixes" className="mt-4">
           <ToolHeading id="best-mix-mixes">Mixes</ToolHeading>
           {/* Clipped, not hidden, so the header can stick as the page
@@ -196,15 +194,12 @@ function EanxPage() {
                   MOD @ <span className="whitespace-nowrap">1.6 ppO₂</span>
                 </span>
               )}
-              <span
-                role="columnheader"
+              <NdlHeading
                 className={cn(
-                  "text-right transition-colors duration-200 ease-out",
+                  "transition-colors duration-200 ease-out",
                   depth == null && "text-muted-foreground/60"
                 )}
-              >
-                NDL
-              </span>
+              />
             </div>
             <div ref={list} role="rowgroup" className="flex flex-col">
               {rows.map((row) => (
