@@ -6,6 +6,7 @@ import {
   IconCertificate,
   IconFlask,
   IconServer,
+  IconTable,
   IconUser,
   IconVersions,
 } from "@tabler/icons-react"
@@ -67,6 +68,7 @@ const none = "—"
 const tools = [
   { to: "/you/packing", icon: IconBackpack, label: "Packing list" },
   { to: "/you/best-mix", icon: IconFlask, label: "Best mix" },
+  { to: "/you/ndl", icon: IconTable, label: "NDL table" },
 ] as const
 
 const deletedCount = (log: LogView) =>

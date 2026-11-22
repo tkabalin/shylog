@@ -516,7 +516,10 @@ test.describe("at desktop width", () => {
   test("shows You's tools in the centred column under a breadcrumb", async ({
     page,
   }) => {
-    for (const [path, title] of [["/you/best-mix", "Best mix"]]) {
+    for (const [path, title] of [
+      ["/you/best-mix", "Best mix"],
+      ["/you/ndl", "NDL table"],
+    ]) {
       await page.goto(path)
       const crumbs = page.getByRole("navigation", { name: "breadcrumb" })
       await expect(crumbs.getByRole("link", { name: "You" })).toBeVisible()
