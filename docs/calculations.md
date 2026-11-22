@@ -60,7 +60,7 @@ Visits to the band join into stretches: drifting out for up to two minutes pause
 
 ## No-stop time and best mix
 
-Two tools on You help plan a dive rather than read one back: Best mix lists the nitrox mixes with their MODs and the no-stop time (NDL) at a target depth, and NDL table lists one mix's NDL and PO₂ at every depth down to just past its MOD.
+Two tools on You help plan a dive rather than read one back: Best nitrox mix lists the nitrox mixes with their MODs and the no-stop time (NDL) at a target depth, and NDL table lists one mix's NDL and PO₂ at every depth down to just past its MOD.
 
 **Bühlmann, as Subsurface plans a recreational dive.** Subsurface's planner has a Recreational mode that answers exactly this question: how long can I stay at this depth and still swim straight up? It descends at 18 m/min, then adds a minute at the bottom for as long as a direct ascent at 9 m/min, tested every 2 seconds, keeps every tissue under its Bühlmann ZHL-16C limit. Shylog runs the same steps with the same constants, including Subsurface's own choice of starting the tissues at 78.1 % nitrogen. The diver picks a gradient factor of 70, 85 or 100, which is GF high; GF low stays at Subsurface's 30, since on a no-stop dive it only touches the ascent and moves the answer by a minute at most. The time counts from leaving the surface, as bottom time does in the US Navy manual. As a guide, 32 % nitrox at 30 m gives 16, 23 and 31 minutes at GF 70, 85 and 100.
 
