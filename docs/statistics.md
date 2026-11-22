@@ -26,9 +26,11 @@ The screen opens on all time, with the dive count and hours at the top. Beside t
 
 ## SAC rate over time
 
-Air consumption is the figure a diver most wants to see improve, so it leads the screen. Each rated dive is a point, with a rolling average of the last five dives drawn through them, and the card's title says how far that average has moved since the first full window ("1.5 L/min since Dec 2025, now 12.2").
+Air consumption is the figure a diver most wants to see improve, so it leads the screen. Each rated dive is a point, with a rolling average of the last five dives drawn through them, and the card's title says how far that average has moved since the first full window ("1.5 L/min since Dec 2025, now 12.2 L/min").
 
 **Dive number by default, dates on request.** A switch beside the chart's key chooses between dives spaced evenly along their numbers and dives placed on a time axis. The chart opens on dive number: on a time axis, a gap of a few years between diving seasons squeezed a whole season into one corner of the chart.
+
+**A tap reads a dive out.** As on the dive profile, a tap or a sideways drag picks the dive nearest the finger, and the caption under the headline figure gives its rate and the five-dive average there; it rests on the latest dive. The scrub is drawn over the chart rather than through it, so a long log doesn't redraw as the finger moves. The distribution's histogram does the same for its bars, giving the picked one's range beside its heading.
 
 **Outliers are pinned, not plotted.** One dive with a leaking regulator can read twice the usual rate, and on a linear axis it would squash every other dive into a band at the bottom. A rate more than three interquartile ranges above the upper quartile (Tukey's "far out"), and more than twice the median, is drawn as a caret on the top edge with its value. The second test exists because a handful of near-identical rates has no spread to measure from.
 

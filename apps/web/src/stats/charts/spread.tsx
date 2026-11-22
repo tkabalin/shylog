@@ -1,3 +1,6 @@
+import { useState } from "react"
+
+import { useScrub } from "@/chart/scrub"
 import { boxPlot, rateScale, roundTicks } from "@/stats/trend"
 
 import { dives, rate, SrTable, tint } from "./parts"
@@ -90,9 +93,42 @@ export function Spread({
   const x = (v: number) => `${((v - low) / (high - low)) * 100}%`
   const y = (count: number) => `${(1 - count / top) * 100}%`
 
+  // The bar a tap or scrub picked, nearest the finger, for its range by
+  // the heading; until then the tallest.
+  const sorted = [...bins.keys()].sort((a, b) => a - b)
+  const tallest = sorted.reduce((a, b) => (bins.get(b)! > bins.get(a)! ? b : a))
+  const [chosen, setChosen] = useState<number | null>(null)
+  const shown = chosen != null && bins.has(chosen) ? chosen : tallest
+  // Made afresh each render, which a pick causes anyway: a gesture's state
+  // lives in the hook, so a scrub carries on across them.
+  const handlers = useScrub((event) => {
+    const plot = event.currentTarget.getBoundingClientRect()
+    const v = low + ((event.clientX - plot.left) / plot.width) * (high - low)
+    setChosen(
+      sorted.reduce((a, b) =>
+        Math.abs(b + 0.5 - v) < Math.abs(a + 0.5 - v) ? b : a
+      )
+    )
+  })
+
   return (
     <div className="flex flex-col gap-2.5">
-      <div aria-hidden className="flex select-none">
+      {/* The picked bar's range beside the heading rather than on a row
+          of its own. */}
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="text-[13px] font-medium">Spread</h3>
+        <span
+          aria-hidden
+          data-slot="readout"
+          className="text-[13px] whitespace-nowrap text-muted-foreground tabular-nums"
+        >
+          {binLabel(shown)} L/min
+        </span>
+      </div>
+      <div
+        aria-hidden
+        className="flex select-none [-webkit-touch-callout:none]"
+      >
         <div className="relative w-5 shrink-0" style={{ height }}>
           {counts.map((count) => (
             <span
@@ -104,7 +140,10 @@ export function Spread({
             </span>
           ))}
         </div>
-        <div className="relative flex-1">
+        <div
+          {...handlers}
+          className="relative flex-1 cursor-crosshair touch-pan-y"
+        >
           <svg
             viewBox={`${low} 0 ${high - low} ${top}`}
             preserveAspectRatio="none"
@@ -136,7 +175,7 @@ export function Spread({
                 y={top - count}
                 width={0.84}
                 height={count}
-                fill={tint(42)}
+                fill={bin === shown ? tint(100) : tint(42)}
               />
             ))}
             <line

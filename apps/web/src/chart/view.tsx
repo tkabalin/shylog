@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type PointerEvent } from "react"
+import { useCallback, useState, type PointerEvent } from "react"
 import { speedBand, speedBands } from "@shylog/core"
 import {
   IconAlertTriangle,
@@ -32,6 +32,7 @@ import {
   type ProfileModel,
 } from "./model"
 import { LineMenu } from "./line-menu"
+import { useScrub } from "./scrub"
 import { TemperatureLane } from "./temperature-lane"
 
 // The pieces the Profile card and the full-screen chart share: the
@@ -48,12 +49,10 @@ export function useCrosshair(
   { free = false, turned = false } = {}
 ) {
   const [cursor] = useState(newCursor)
-  const start = useRef<{ x: number; y: number } | null>(null)
-  const scrubbing = useRef(false)
   // The same handlers while the chart stands, so nothing but the readouts
   // renders again as the crosshair moves.
-  const handlers = useMemo(() => {
-    const scrub = (event: PointerEvent<HTMLDivElement>) => {
+  const scrub = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
       if (!model) return
       // Measured within the plot, past the depth labels' gutter.
       const box = event.currentTarget.getBoundingClientRect()
@@ -62,36 +61,10 @@ export function useCrosshair(
         : (event.clientX - box.left - model.left) / (box.width - model.left)
       const seconds = Math.min(Math.max(part, 0), 1) * model.time.max
       cursor.set(pointAt(model.points, seconds))
-    }
-    return {
-      onPointerDown(event: PointerEvent<HTMLDivElement>) {
-        if (free || event.pointerType === "mouse") scrub(event)
-        else start.current = { x: event.clientX, y: event.clientY }
-      },
-      onPointerMove(event: PointerEvent<HTMLDivElement>) {
-        const from = start.current
-        // A few pixels of slop first, so a swipe's first sideways jitter
-        // doesn't scrub before the page takes the scroll; once sideways, it
-        // keeps scrubbing however the finger drifts.
-        const sideways = from ? Math.abs(event.clientX - from.x) : 0
-        if (from && sideways > 6 && sideways > Math.abs(event.clientY - from.y))
-          scrubbing.current = true
-        // A touch moves only while down, so full screen any move scrubs.
-        if (event.pointerType === "mouse" || scrubbing.current || free)
-          scrub(event)
-      },
-      onPointerUp(event: PointerEvent<HTMLDivElement>) {
-        if (!free && event.pointerType !== "mouse" && start.current)
-          scrub(event)
-        start.current = null
-        scrubbing.current = false
-      },
-      onPointerCancel() {
-        start.current = null
-        scrubbing.current = false
-      },
-    }
-  }, [model, free, turned, cursor])
+    },
+    [model, turned, cursor]
+  )
+  const handlers = useScrub(scrub, free)
   return { cursor, handlers }
 }
 
