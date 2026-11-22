@@ -1,6 +1,6 @@
 # Calculations
 
-How Shylog works out the figures a diver reads off a dive: SAC rate, MOD and maximum PO₂, CNS and OTU, average depth, surface interval, vertical rate and the safety stop, and how the profile chart is built from the same rules. The units these work in are in [data-model.md](data-model.md), the dive computer data they start from is in [import.md](import.md), and the figures they feed on the Statistics screen are in [statistics.md](statistics.md). The formulas and every rounding step are in the full spec, [planning/SPEC.md](planning/SPEC.md), under Calculations and Profile chart.
+How Shylog works out the figures a diver reads off a dive: SAC rate, MOD and maximum PO₂, CNS and OTU, average depth, surface interval, vertical rate and the safety stop, how the profile chart is built from the same rules, and the no-stop times and best mix that You's dive planning tools show. The units these work in are in [data-model.md](data-model.md), the dive computer data they start from is in [import.md](import.md), and the figures they feed on the Statistics screen are in [statistics.md](statistics.md). The formulas and every rounding step are in the full spec, [planning/SPEC.md](planning/SPEC.md), under Calculations and Profile chart.
 
 All of it lives in `packages/core/src/calc/`, so the phone and the server run the same code: the phone works out SAC and MOD as a dive is typed, and the server works out CNS, OTU, average depth, surface intervals and the safety stop when a dive's samples are written, and stores them on the dive.
 
@@ -10,17 +10,19 @@ All of it lives in `packages/core/src/calc/`, so the phone and the server run th
 
 That means working in whole millimetres and whole millibar, as Subsurface does. Depth becomes pressure through `calculate_depth_to_mbarf`: the surface pressure plus depth times water density, where salt water is 10,300 grams per 10 litres and fresh 10,000. Surface pressure comes from the dive computer's export when it has one, so altitude dives work, and otherwise is 1,013 mbar. Anything shallower than 0.75 m counts as the surface. Ambient pressures and PO₂ values are rounded to the mbar at the same points Subsurface rounds them, because a figure that is right to four decimals but rounds differently would still show a different number on screen.
 
-| Figure                      | Subsurface's function                         | Worked out by        |
-| --------------------------- | --------------------------------------------- | -------------------- |
-| SAC rate                    | `calculate_sac` (`core/divelist.cpp`)         | Phone, as you type   |
-| MOD                         | `gas_mod` (`core/dive.cpp`)                   | Phone                |
-| Max PO₂                     | `calculate_depth_to_mbarf`                    | Phone                |
-| CNS, with carry-over        | `calculate_cns_dive`, `calculate_cns`         | Server, from samples |
-| OTU                         | `calculate_otu`                               | Server, from samples |
-| Time under water, avg depth | `fixup_dc_duration` (`core/divecomputer.cpp`) | Server, from samples |
-| Surface interval            | `get_surface_interval`                        | Server               |
-| Vertical rate               | `analyze_plot_info` (`core/profile.cpp`)      | Phone, on the chart  |
-| Safety stop                 | None: Shylog's own rule                       | Server, from samples |
+| Figure                      | Subsurface's function                            | Worked out by        |
+| --------------------------- | ------------------------------------------------ | -------------------- |
+| SAC rate                    | `calculate_sac` (`core/divelist.cpp`)            | Phone, as you type   |
+| MOD                         | `gas_mod` (`core/dive.cpp`)                      | Phone                |
+| Max PO₂                     | `calculate_depth_to_mbarf`                       | Phone                |
+| CNS, with carry-over        | `calculate_cns_dive`, `calculate_cns`            | Server, from samples |
+| OTU                         | `calculate_otu`                                  | Server, from samples |
+| Time under water, avg depth | `fixup_dc_duration` (`core/divecomputer.cpp`)    | Server, from samples |
+| Surface interval            | `get_surface_interval`                           | Server               |
+| Vertical rate               | `analyze_plot_info` (`core/profile.cpp`)         | Phone, on the chart  |
+| Safety stop                 | None: Shylog's own rule                          | Server, from samples |
+| No-stop time (Bühlmann)     | `plan` in Recreational mode (`core/planner.cpp`) | Phone, in the tools  |
+| Best mix for a depth        | `best_o2` (`core/dive.cpp`)                      | Phone, in the tools  |
 
 ## SAC rate
 
@@ -56,6 +58,16 @@ A dive gets a stop only if it went deeper than 10 m, and only its final ascent c
 
 Visits to the band join into stretches: drifting out for up to two minutes pauses a stretch, and a longer drift ends it. The stop is the last stretch that held 170 s in the band (three minutes, less 10 s lost to interpolation at 20 s sampling), or failing that the longest. Under a minute is no stop, and a minute to just under three is a short one.
 
+## No-stop time and best mix
+
+Two tools on You help plan a dive rather than read one back: Best mix lists the nitrox mixes with their MODs and the no-stop time (NDL) at a target depth, and NDL table lists one mix's NDL and PO₂ at every depth down to just past its MOD.
+
+**Bühlmann, as Subsurface plans a recreational dive.** Subsurface's planner has a Recreational mode that answers exactly this question: how long can I stay at this depth and still swim straight up? It descends at 18 m/min, then adds a minute at the bottom for as long as a direct ascent at 9 m/min, tested every 2 seconds, keeps every tissue under its Bühlmann ZHL-16C limit. Shylog runs the same steps with the same constants, including Subsurface's own choice of starting the tissues at 78.1 % nitrogen. The diver picks a gradient factor of 70, 85 or 100, which is GF high; GF low stays at Subsurface's 30, since on a no-stop dive it only touches the ascent and moves the answer by a minute at most. The time counts from leaving the surface, as bottom time does in the US Navy manual. As a guide, 32 % nitrox at 30 m gives 16, 23 and 31 minutes at GF 70, 85 and 100.
+
+**The US Navy table as a fourth option.** Subsurface has no table model, but a diver trained on tables may want one, so the US Navy Diving Manual's Table 9-7 is offered beside Bühlmann: read at the exact or next deeper row, with nitrox at its equivalent air depth, as the manual's Chapter 10 does.
+
+**The best mix to a tenth.** Subsurface's `best_o2` divides the PO₂ limit by the ambient pressure and rounds down to a whole per cent. Best mix keeps the tenth, so 35 m at 1.4 bar gives 30.7 %, whose MOD is the depth itself; it still rounds down, so the MOD never comes out shallower than the depth.
+
 ## Departures from Subsurface
 
 Each of these is a deliberate choice. Where one touches a figure the differential test below compares, the test applies it to Subsurface's answer first, so a departure can't hide a real mismatch. The one exception is an end pressure of 0 bar, which the test never generates, since Subsurface has no way to tell it from a missing reading.
@@ -69,12 +81,14 @@ Each of these is a deliberate choice. Where one touches a figure the differentia
 | End pressure of 0 bar     | Read as no reading                 | A real reading                    | Shylog has a separate "not logged", so an empty cylinder can be recorded          |
 | CNS ceiling               | Integer overflows                  | Capped at 999 %                   | Only wrong data gets near it, such as 100 % oxygen typed on a deep dive           |
 | SAC on nitrox             | Uses whatever mix is set           | Waits for the oxygen fraction     | Compressibility depends on the mix, so an air figure would be slightly off        |
+| Best mix                  | Whole per cent                     | 0.1 %                             | The tool shows the exact mix beside the whole ones                                |
+| No-stop time past 6 hours | The planner's last minute          | 6 h+                              | A limit that long is no limit for a recreational dive                             |
 
 ## Proving it: the differential test
 
 Unit tests against hand-worked values show a calculation works on the cases someone thought of. "Follows Subsurface exactly" is a stronger claim, and it needs checking on every input, not just a fixture's. So `packages/core/test/reference/` holds Subsurface's own functions, copied from a pinned commit into a single C++ file with each function's statements and order intact, and only the data structures flattened to the one gas and one dive computer Shylog has.
 
-The test compiles that file once, keeps it running, and talks to it over a pipe: one line in, one line out. Subsurface's code is GPL-2.0, so it stays a separate test program that is never linked into Shylog. [fast-check](https://fast-check.dev/) then generates random dives, profiles and logs, and every rounded figure from the TypeScript must equal the C++ answer exactly: gas volume, SAC rate, MOD, CNS with carry-over, OTU, time under water, average depth, dive end, surface interval, the import's likely-same match, and the profile chart's points, speeds, speed bands, axis ticks and labelled depths.
+The test compiles that file once, keeps it running, and talks to it over a pipe: one line in, one line out. Subsurface's code is GPL-2.0, so it stays a separate test program that is never linked into Shylog. [fast-check](https://fast-check.dev/) then generates random dives, profiles and logs, and every rounded figure from the TypeScript must equal the C++ answer exactly: gas volume, SAC rate, MOD, CNS with carry-over, OTU, time under water, average depth, dive end, surface interval, the import's likely-same match, the profile chart's points, speeds, speed bands, axis ticks and labelled depths, the planner's no-stop time and the best mix.
 
 **The generators aim at the edges.** Random depths alone would almost never land on 0.75 m, so depths are weighted towards the surface threshold, and a coarse grid hits the chart's 2 m label rules exactly. Gaps between dives fall a second either side of the 12-hour CNS window and the 48-hour cap. Sample steps mix the dive computer's 10 and 20 s with short steps that trigger the chart's speed lookback and long gaps that trigger interpolation.
 

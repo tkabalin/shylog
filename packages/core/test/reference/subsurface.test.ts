@@ -8,6 +8,7 @@ import { gasVolume } from "../../src/calc/gas.ts"
 import { depthLabels, pointsInView } from "../../src/calc/labels.ts"
 import { likelySame } from "../../src/calc/likely-same.ts"
 import { mod } from "../../src/calc/mod.ts"
+import { bestMix, noStopTime } from "../../src/calc/ndl.ts"
 import type { Water } from "../../src/calc/pressure.ts"
 import { maxCns, previousDiveFigures } from "../../src/calc/previous-dives.ts"
 import { lrint } from "../../src/calc/round.ts"
@@ -298,6 +299,60 @@ describe("Subsurface's code on random inputs", () => {
       async ({ water, oxygen, limit }) => {
         const [expected] = await ask("mod", ...waterWords(water), oxygen, limit)
         expect(lrint(mod(oxygen, limit / 1000, water) * 1000)).toBe(expected)
+      }
+    ))
+
+  // The planner's Recreational mode from the surface. Shylog stops at the
+  // planner's 6 hours too, but says so rather than showing 5 h 59 min. Its
+  // 1,000 runs take about 10 s, and twice that under CI's coverage.
+  it(
+    "gives the same no-stop time (the planner's Recreational mode)",
+    {
+      timeout: 60_000,
+    },
+    () =>
+      check(
+        fc.record({
+          water,
+          oxygen,
+          depth: fc.oneof(
+            { weight: 4, arbitrary: fc.integer({ min: 1000, max: 60_000 }) },
+            // Where a limit nears the 6 hours, and below a descent's first step.
+            { weight: 1, arbitrary: fc.integer({ min: 5000, max: 12_000 }) },
+            { weight: 1, arbitrary: fc.integer({ min: 0, max: 400 }) }
+          ),
+          low: fc.integer({ min: 10, max: 100 }),
+          high: fc.integer({ min: 10, max: 100 }),
+        }),
+        async ({ water, oxygen, depth, low, high }) => {
+          const [expected] = await ask(
+            "ndl",
+            ...waterWords(water),
+            oxygen,
+            depth,
+            low,
+            high
+          )
+          const time = noStopTime(oxygen, depth, { low, high }, water)
+          if (time === null)
+            expect(expected! + 60).toBeGreaterThanOrEqual(6 * 3600)
+          else expect(time).toBe(expected === -1 ? 0 : expected)
+        }
+      )
+  )
+
+  // best_o2 rounds down to a whole per cent, Shylog to a tenth.
+  it("gives the same best mix, to the whole per cent (best_o2)", () =>
+    check(
+      fc.record({
+        water,
+        depth: fc.integer({ min: 0, max: 100_000 }),
+        limit: fc.integer({ min: 100, max: 2000 }),
+      }),
+      async ({ water, depth, limit }) => {
+        const [expected] = await ask("best", ...waterWords(water), depth, limit)
+        const mix = bestMix(depth, limit / 1000, water)
+        expect(Math.min(Math.trunc(mix / 10) * 10, 1000)).toBe(expected)
       }
     ))
 
