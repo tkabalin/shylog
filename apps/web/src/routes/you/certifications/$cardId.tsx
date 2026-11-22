@@ -2,7 +2,9 @@ import { createContext, use, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { IconPencil, IconX } from "@tabler/icons-react"
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router"
+import { cn } from "cn"
 
+import { useSize } from "@/chart/size"
 import { ImagePages, type PageImageProps } from "@/components/image-pages"
 import { PageControl } from "@/components/page-control"
 import type { Card } from "@/data/db"
@@ -56,6 +58,18 @@ function Viewer({ card }: { card: Card }) {
   // A page removed in Edit can leave the one shown past the end.
   const shown = Math.min(page, card.images.length - 1)
   const many = card.images.length > 1
+
+  // The bars make way while the card is zoomed in, and come back with it at
+  // rest, as a dive site's image viewer's do. A card at rest keeps clear of
+  // both by the taller's height each side, so it sits in the middle.
+  const [zoomed, setZoomed] = useState(false)
+  const top = useRef<HTMLDivElement>(null)
+  const bottom = useRef<HTMLDivElement>(null)
+  const insetY = Math.max(useSize(top).height, useSize(bottom).height) + 16
+  const bars = cn(
+    "transition-opacity duration-150 ease-out",
+    zoomed && "pointer-events-none opacity-0"
+  )
 
   useFullScreen()
   // A swipe from the very left edge turns the page, as anywhere else on
@@ -131,16 +145,35 @@ function Viewer({ card }: { card: Card }) {
       aria-modal
       aria-labelledby="card-name"
       data-slot="card-viewer"
-      className="dark fixed inset-0 z-50 flex flex-col bg-neutral-950 pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] text-neutral-50"
+      className="dark fixed inset-0 z-50 bg-neutral-950 text-neutral-50"
     >
-      {/* iOS colours the status bar from a fixed box at the top, but keeps
-          its old colour under one that fills the screen, as this one does.
-          This short one under the status bar turns it dark. */}
+      {/* The pages run the whole screen, so a zoomed card fills it once the
+          bars have gone. */}
+      <div className="absolute inset-0 flex flex-col pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
+        <ShownCard value={card}>
+          <ImagePages
+            count={card.images.length}
+            page={shown}
+            onPage={setPage}
+            // An eCard's small print readable on a phone.
+            maxScale={4}
+            keyOf={(i) => `${i} ${card.images[i]}`}
+            image={Screenshot}
+            insetY={insetY}
+            onZoom={setZoomed}
+          />
+        </ShownCard>
+      </div>
+      {/* Fixed rather than absolute, which sits the same, so iOS colours the
+          status bar from this bar. Under a box that fills the screen, as the
+          viewer does, it keeps the status bar's old colour. */}
       <div
-        aria-hidden
-        className="pointer-events-none fixed inset-x-0 top-0 h-[max(0.75rem,env(safe-area-inset-top))] bg-neutral-950"
-      />
-      <div className="grid shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 px-4 pt-4">
+        ref={top}
+        className={cn(
+          "fixed inset-x-0 top-0 grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2 bg-neutral-950 pt-[calc(env(safe-area-inset-top)+1rem)] pr-[calc(env(safe-area-inset-right)+1rem)] pl-[calc(env(safe-area-inset-left)+1rem)]",
+          bars
+        )}
+      >
         <Link
           to="/you/certifications"
           replace
@@ -182,28 +215,25 @@ function Viewer({ card }: { card: Card }) {
           onDeleted={() => closeLink.current?.click()}
         />
       )}
-      <ShownCard value={card}>
-        <ImagePages
-          count={card.images.length}
-          page={shown}
-          onPage={setPage}
-          // An eCard's small print readable on a phone.
-          maxScale={4}
-          keyOf={(i) => `${i} ${card.images[i]}`}
-          image={Screenshot}
-        />
-      </ShownCard>
-      {many && (
-        <PageControl
-          count={card.images.length}
-          shown={shown}
-          onPage={setPage}
-          label="Screenshots"
-          itemLabel={(i) => `Screenshot ${i + 1}`}
-        />
-      )}
-      {/* Room under the pages and dots, off the window's bottom edge. */}
-      <div aria-hidden className="h-6 shrink-0" />
+      <div
+        ref={bottom}
+        className={cn(
+          "absolute inset-x-0 bottom-0 bg-neutral-950 pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)]",
+          bars
+        )}
+      >
+        {many && (
+          <PageControl
+            count={card.images.length}
+            shown={shown}
+            onPage={setPage}
+            label="Screenshots"
+            itemLabel={(i) => `Screenshot ${i + 1}`}
+          />
+        )}
+        {/* Room under the dots, off the window's bottom edge. */}
+        <div aria-hidden className="h-6" />
+      </div>
     </div>,
     document.body
   )
