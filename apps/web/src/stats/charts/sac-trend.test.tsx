@@ -1,9 +1,11 @@
+import { act } from "react"
 import { expect, test, vi } from "vitest"
 
+import { cursor } from "@/chart/crosshair"
 import { render, testDive } from "@/dive/form/testing"
 import { sacTrend } from "@/stats/trend"
 
-import { SacTrend } from "./sac-trend"
+import { SacReadout, SacTrend } from "./sac-trend"
 
 // jsdom lays nothing out, so the chart gets a phone's size.
 vi.mock("@/chart/size", () => ({
@@ -30,7 +32,12 @@ test("draws a dot per dive and a caret with its rate for one off the top", () =>
   // 60 L/min is past the fence, so it sits on the top edge.
   const rates = [14, 15, 13, 16, 14, 15, 60, 14]
   const { container, unmount } = render(
-    <SacTrend trend={trend(rates)} year={undefined} byNumber />
+    <SacTrend
+      trend={trend(rates)}
+      year={undefined}
+      byNumber
+      cursor={cursor()}
+    />
   )
   const circles = [...svg(container).querySelectorAll("circle")]
   expect(circles).toHaveLength(7)
@@ -56,7 +63,12 @@ test("draws a dot per dive and a caret with its rate for one off the top", () =>
 
 test("draws a lone dive's dot and the rate axis, with no line", () => {
   const { container, unmount } = render(
-    <SacTrend trend={trend([14])} year="2026" byNumber={false} />
+    <SacTrend
+      trend={trend([14])}
+      year="2026"
+      byNumber={false}
+      cursor={cursor()}
+    />
   )
   expect(svg(container).querySelectorAll("circle")).toHaveLength(1)
   expect(
@@ -65,3 +77,33 @@ test("draws a lone dive's dot and the rate axis, with no line", () => {
   expect(svg(container).querySelector(average)).toBeNull()
   unmount()
 })
+
+test("reads out the latest dive's rate, then the one a tap picks", () => {
+  const rates = trend([14, 18, 13])
+  const picked = cursor()
+  const { container, unmount } = render(
+    <>
+      <SacReadout trend={rates} cursor={picked} />
+      <SacTrend trend={rates} year={undefined} byNumber cursor={picked} />
+    </>
+  )
+  const readout = container.querySelector("[data-slot=readout]")!
+  expect(readout.textContent).toBe("13.0 L/min · avg 15.0")
+  // A tap at the second dot, in the overlay's own coordinates (jsdom puts
+  // it at the page's corner).
+  const second = svg(container).querySelectorAll("circle")[1]!
+  const at = { clientX: Number(second.getAttribute("cx")), clientY: 50 }
+  tap(container.querySelector(".cursor-crosshair")!, at)
+  expect(readout.textContent).toBe("18.0 L/min · avg 16.0")
+  unmount()
+})
+
+// A finger's tap: down and up where it landed.
+function tap(element: Element, at: { clientX: number; clientY: number }) {
+  for (const type of ["pointerdown", "pointerup"])
+    act(() =>
+      element.dispatchEvent(
+        new PointerEvent(type, { bubbles: true, pointerType: "touch", ...at })
+      )
+    )
+}

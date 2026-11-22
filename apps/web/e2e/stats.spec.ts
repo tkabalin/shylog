@@ -201,6 +201,44 @@ test("the bars and strips have table alternatives", async ({ page }) => {
   ).toHaveCount(9)
 })
 
+test("a tap on the SAC charts reads out the dive or bar under it", async ({
+  page,
+  request,
+}) => {
+  // The fixture logs no pressures, so every dive is given some, breathing
+  // a different amount each.
+  await serveLog(page, request, (log) => ({
+    ...log,
+    version: "with-sac",
+    dives: log.dives.map((dive, i) => ({
+      ...dive,
+      cylinderVolume: 12000,
+      startPressure: 200,
+      endPressure: 50 + ((i * 37) % 70),
+    })),
+  }))
+  await page.goto("/stats")
+  const card = page.getByRole("region", { name: "Air consumption" })
+  const readout = card.locator("[data-slot=readout]")
+  // At rest on the latest dive.
+  await expect(readout.first()).toHaveText(/^\d+\.\d L\/min · avg \d+\.\d$/)
+  const latest = await readout.first().textContent()
+  // A tap near the chart's left edge picks an early dive.
+  const overlays = card.locator(".cursor-crosshair")
+  await overlays.first().click({ position: { x: 40, y: 80 } })
+  await expect(readout.first()).not.toHaveText(latest!)
+  await expect(readout.first()).toContainText(/L\/min · avg \d+\.\d$/)
+
+  // The range of the distribution's bar under the tap, by its heading.
+  await card.getByRole("button", { name: "Distribution" }).click()
+  const bars = readout.nth(1)
+  await expect(bars).toHaveText(/^\d+(\+| to \d+) L\/min$/)
+  const before = await bars.textContent()
+  // Scrolled to first, as it opens below a phone's fold.
+  await overlays.nth(1).click({ position: { x: 4, y: 50 } })
+  await expect(bars).not.toHaveText(before!)
+})
+
 // Its placeholders stay blank until a wait passes 150 ms, so a skeleton
 // shown in the screen's first 100 ms is a flash, however slow the frames
 // are. Run in the page, from before its scripts or from when it's called.

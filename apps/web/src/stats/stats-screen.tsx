@@ -20,6 +20,7 @@ import {
 import { Link } from "@tanstack/react-router"
 import { cn } from "cn"
 
+import { cursor as newCursor } from "@/chart/crosshair"
 import { useAfter } from "@/chart/load"
 import { NoLog } from "@/components/no-log"
 import { countText } from "@/components/pickers/match"
@@ -62,7 +63,7 @@ import {
   yearLabels,
 } from "./charts/parts"
 import { Ranked } from "./charts/ranked"
-import { SacTrend } from "./charts/sac-trend"
+import { SacReadout, SacTrend } from "./charts/sac-trend"
 import { Spread } from "./charts/spread"
 import type { Segment } from "./charts/strip"
 import {
@@ -382,6 +383,8 @@ function AirConsumption({
   const chartAxis = useFrameLater(axis)
   // Back restores it open at once; a tap eases it open.
   const [still, setStill] = useState(true)
+  // The dive the chart's tap or scrub picked, read out by the caption.
+  const [cursor] = useState(newCursor)
   const { average, trend } = stats.sac
   if (average == null || !trend.length) return null
   const change = trendChange(trend)
@@ -394,12 +397,15 @@ function AirConsumption({
       <Card className="gap-3.5 px-4 pt-4 pb-0">
         <dl className="flex flex-col-reverse gap-px">
           {/* Short, so it stays one line on a narrow phone. */}
-          <dt className="text-xs text-muted-foreground">
-            {moved
-              ? "Change in 5-dive average"
-              : window === 1
-                ? "SAC rate, latest dive"
-                : `${window}-dive average SAC rate`}
+          <dt className="flex items-baseline justify-between gap-3 text-xs text-muted-foreground">
+            <span>
+              {moved
+                ? "Change in 5-dive average"
+                : window === 1
+                  ? "SAC rate, latest dive"
+                  : `${window}-dive average SAC rate`}
+            </span>
+            <SacReadout trend={trend} cursor={cursor} />
           </dt>
           <dd className="flex flex-wrap items-baseline gap-x-1 tabular-nums">
             {moved && (
@@ -441,7 +447,7 @@ function AirConsumption({
             </span>
             {moved && (
               <span className="ml-auto shrink-0 text-sm font-medium whitespace-nowrap text-muted-foreground">
-                now {rate(latest)}
+                now {rate(latest)} L/min
               </span>
             )}
           </dd>
@@ -453,6 +459,7 @@ function AirConsumption({
             trend={trend}
             year={year}
             byNumber={chartAxis === "number"}
+            cursor={cursor}
           />
         ) : (
           <Late className="h-42 w-full">
@@ -583,7 +590,6 @@ function Distribution({ stats, log }: { stats: Statistics; log: LogView }) {
           only differ in float noise. */}
       {deviation != null && trend.length >= 5 && rate(deviation) !== "0.0" && (
         <div className="flex flex-col gap-2.5 border-t px-4 pt-3.5 pb-4">
-          <h3 className="text-[13px] font-medium">Spread</h3>
           <Spread
             rates={trend.map((point) => point.sac)}
             mean={mean!}

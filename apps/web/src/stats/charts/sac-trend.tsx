@@ -1,4 +1,12 @@
-import { memo, useRef } from "react"
+import {
+  memo,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type PointerEvent,
+} from "react"
 import {
   CartesianGrid,
   ComposedChart,
@@ -13,6 +21,8 @@ import {
   type YAxisTickContentProps,
 } from "recharts"
 
+import { type Cursor } from "@/chart/crosshair"
+import { useScrub } from "@/chart/scrub"
 import { useSize } from "@/chart/size"
 import { ChartContainer, type ChartConfig } from "@/components/ui/chart"
 import type { Dive } from "@/data/db"
@@ -49,12 +59,15 @@ export const SacTrend = memo(function SacTrend({
   trend,
   year,
   byNumber,
+  cursor,
 }: {
   trend: Statistics["sac"]["trend"]
   year: string | undefined
   // Along the dive numbers rather than the calendar, so a busy week and a
   // quiet year take the same room per dive.
   byNumber: boolean
+  // The dive picked by a tap or scrub, which the screen's readout shows.
+  cursor: Cursor
 }) {
   const box = useRef<HTMLDivElement>(null)
   const { width, height } = useSize(box)
@@ -84,12 +97,33 @@ export const SacTrend = memo(function SacTrend({
   const tickLabel = (value: number) =>
     axis.ticks.find((tick) => tick.value === value)?.label ?? ""
 
+  // Outside React, so only the readout and marker follow a scrub, not the
+  // chart. Null rests it on the latest dive; a new year or axis starts it
+  // there again.
+  useLayoutEffect(() => cursor.set(null), [cursor, trend, byNumber])
+  // Where the dots were drawn, from the chart's own scales.
+  const [placed] = useState(newPlaced)
+  const pick = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      const x = event.clientX - event.currentTarget.getBoundingClientRect().left
+      const points = placed.points()
+      let nearest = 0
+      points.forEach((point, i) => {
+        if (Math.abs(point.x - x) <= Math.abs(points[nearest]!.x - x))
+          nearest = i
+      })
+      if (points.length) cursor.set(nearest)
+    },
+    [cursor, placed]
+  )
+  const handlers = useScrub(pick)
+
   return (
     <div
       ref={box}
       aria-hidden
       // A long press neither selects the labels nor opens a menu.
-      className="h-42 w-full select-none [-webkit-touch-callout:none]"
+      className="relative h-42 w-full select-none [-webkit-touch-callout:none]"
     >
       {/* Drawn once at the measured width, in the first frame: a
             responsive container drew it at a guessed size, then again. */}
@@ -162,7 +196,7 @@ export const SacTrend = memo(function SacTrend({
             />
             {/* Over the line and axes, where a Scatter draws. */}
             <ZIndexLayer zIndex={DefaultZIndexes.scatter}>
-              <Dots data={data} width={width} />
+              <Dots data={data} width={width} placed={placed} />
             </ZIndexLayer>
             <Line
               dataKey="average"
@@ -182,6 +216,12 @@ export const SacTrend = memo(function SacTrend({
           </ComposedChart>
         </ChartContainer>
       )}
+      <div
+        {...handlers}
+        className="absolute inset-0 cursor-crosshair touch-pan-y"
+      >
+        <Marker cursor={cursor} placed={placed} last={trend.length - 1} />
+      </div>
     </div>
   )
 })
@@ -192,18 +232,22 @@ export const SacTrend = memo(function SacTrend({
 function Dots({
   data,
   width,
+  placed,
 }: {
   data: { x: number; sac: number; clamped: boolean; rate: number }[]
   width: number
+  placed: Placed
 }) {
   const x = useXAxisScale()
   const y = useYAxisScale()
+  const points =
+    x && y ? data.map((point) => ({ x: x(point.x)!, y: y(point.sac)! })) : []
+  useLayoutEffect(() => placed.set(points))
   if (!x || !y) return null
   return (
     <g>
       {data.map((point, i) => {
-        const cx = x(point.x)!
-        const cy = y(point.sac)!
+        const { x: cx, y: cy } = points[i]!
         return point.clamped ? (
           // Its rate beside it, on the side with room.
           <g key={i}>
@@ -239,5 +283,96 @@ function Dots({
         )
       })}
     </g>
+  )
+}
+
+// The dots' places, which the marker reads, and its call to move again
+// once they change.
+type Point = { x: number; y: number }
+type Placed = ReturnType<typeof newPlaced>
+function newPlaced() {
+  let points: Point[] = []
+  let moved = () => {}
+  return {
+    points: () => points,
+    set(next: Point[]) {
+      points = next
+      moved()
+    },
+    watch(move: () => void) {
+      moved = move
+      return () => void (moved = () => {})
+    },
+  }
+}
+
+const picked = (cursor: Cursor, last: number) =>
+  Math.min(cursor.get() ?? last, last)
+
+// A ring on the picked dive's dot and a hairline down to the axis, moved by
+// `transform` straight from the cursor, so a scrub renders nothing.
+function Marker({
+  cursor,
+  placed,
+  last,
+}: {
+  cursor: Cursor
+  placed: Placed
+  last: number
+}) {
+  const line = useRef<HTMLDivElement>(null)
+  const dot = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const place = () => {
+      const point = placed.points()[picked(cursor, last)]
+      for (const element of [line.current, dot.current])
+        element?.classList.toggle("invisible", !point)
+      if (!point) return
+      line.current!.style.transform = `translateX(${point.x}px)`
+      dot.current!.style.transform = `translate(${point.x}px, ${point.y}px)`
+    }
+    const unwatch = placed.watch(place)
+    const stop = cursor.add(place)
+    return () => {
+      stop()
+      unwatch()
+    }
+  }, [cursor, placed, last])
+  return (
+    <>
+      {/* From the plot's top to the axis, Recharts' 30 px under it. */}
+      <div
+        ref={line}
+        className="invisible absolute top-2 bottom-7.5 left-0 w-px bg-foreground/25"
+      />
+      <div
+        ref={dot}
+        className="invisible absolute top-0 left-0 -mt-1.25 -ml-1.25 size-2.5 rounded-full bg-foreground ring-2 ring-card"
+      />
+    </>
+  )
+}
+
+// The picked dive's rate and the five-dive average there, small, beside
+// the card's caption so it takes no height of its own.
+export function SacReadout({
+  trend,
+  cursor,
+}: {
+  trend: Statistics["sac"]["trend"]
+  cursor: Cursor
+}) {
+  const last = trend.length - 1
+  const index = useSyncExternalStore(cursor.add, () => picked(cursor, last))
+  const point = trend[index]!
+  return (
+    <span
+      aria-hidden
+      data-slot="readout"
+      className="whitespace-nowrap tabular-nums"
+    >
+      <span className="font-semibold text-foreground">{rate(point.sac)}</span>{" "}
+      L/min · avg {rate(point.average)}
+    </span>
   )
 }
