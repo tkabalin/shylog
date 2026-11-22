@@ -11,9 +11,10 @@ test("Best nitrox mix finds the exact mix for a depth, and Back returns to You",
   await page.goto("/you")
   await page.getByRole("link", { name: /Best nitrox mix/ }).click()
   await expect(page).toHaveURL("/you/best-mix")
-  await expect(
-    page.getByText("Enter a target depth to see each mix’s NDL")
-  ).toBeVisible()
+  // The info beside the picker names the model picked.
+  await page.getByRole("button", { name: "About the NDL model" }).click()
+  await expect(page.getByText("Bühlmann GF 30/85")).toBeVisible()
+  await page.keyboard.press("Escape")
 
   const depth = page.getByRole("textbox", { name: "Target depth in metres" })
   await depth.fill("35")

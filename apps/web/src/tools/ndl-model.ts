@@ -66,10 +66,20 @@ export function ndlText(model: NdlModel, oxygen: number, depth: number) {
   return text
 }
 
-export const modelNote = (model: NdlModel) =>
-  model === "navy"
-    ? "NDLs from the US Navy air table, at the equivalent air depth."
-    : `NDLs from Bühlmann ZHL-16C at GF 30/${gfHigh[model]}, as Subsurface plans a first dive of the day, descending at 18 m/min.`
+// What each model is, for the info beside the picker.
+const buhlmann = (high: number) => ({
+  title: `Bühlmann GF 30/${high}`,
+  body: `ZHL-16C with gradient factors 30/${high}, as Subsurface plans a first dive of the day: down at 18 m/min, then straight up at 9 m/min. The NDL counts from leaving the surface.`,
+})
+export const modelInfo: Record<NdlModel, { title: string; body: string }> = {
+  navy: {
+    title: "US Navy air table",
+    body: "The no-decompression limits of the US Navy Diving Manual, Rev 7, read at the next deeper row. Nitrox is read at its equivalent air depth.",
+  },
+  gf100: buhlmann(100),
+  gf85: buhlmann(85),
+  gf70: buhlmann(70),
+}
 
 // Caches the NDLs the next tap will likely want, so its glide starts at once
 // (a cold table took 55–75 ms on a laptop). One figure a task from 300 ms,
