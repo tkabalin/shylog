@@ -43,6 +43,36 @@ test("Best nitrox mix finds the exact mix for a depth, and Back returns to You",
   ).toBeVisible()
 })
 
+test("NDL table leaves the rows still as the mix changes, and trims its foot only out of view", async ({
+  page,
+}) => {
+  await page.goto("/you/ndl")
+  await expect(page.getByText("33.2 m", { exact: true })).toBeVisible()
+  const top = async (name: RegExp) => (await row(page, name).boundingBox())!.y
+  // A depth being watched stays where it is while the line moves past it.
+  const watched = await top(/^30 m/)
+  await page.getByRole("button", { name: "EAN36" }).click()
+  await expect(page.getByText("28.4 m", { exact: true })).toBeVisible()
+  expect(await top(/^30 m/)).toBe(watched)
+
+  // At Air's foot, a richer mix keeps the rows on screen.
+  await page.getByRole("button", { name: "Air", exact: true }).click()
+  const main = page.locator("#main")
+  await main.evaluate((m) => m.scrollTo(0, m.scrollHeight))
+  await expect(row(page, /^60 m/)).toBeInViewport()
+  const foot = await top(/^55 m/)
+  await page.getByRole("button", { name: "EAN40" }).click()
+  await expect(page.getByText("Mix · EAN40")).toBeVisible()
+  expect(await top(/^55 m/)).toBe(foot)
+  await expect(row(page, /^60 m/)).toContainText("—")
+
+  // Once they've left the screen they go, and the table ends at EAN40's own
+  // foot, 3 m past its 1.6 bar MOD.
+  await main.evaluate((m) => m.scrollTo(0, 0))
+  await expect(row(page, /^60 m/)).toHaveCount(0)
+  await expect(page.getByRole("row").last()).toHaveAccessibleName(/^32 m/)
+})
+
 test("NDL table moves the MOD line with the mix, and Back returns to You", async ({
   page,
 }) => {

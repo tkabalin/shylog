@@ -4,9 +4,9 @@ import { useRouter } from "@tanstack/react-router"
 import { curve } from "@/components/fold"
 import { reduced } from "@/lib/motion"
 
-// FLIP for a tool's table: the page scrolls at once to keep the key row
-// still, and each `data-glide` row slides from where it was, so the scale
-// moves past it. A row mid-slide counts from where it is, so taps can chain.
+// FLIP for a tool's table: each `data-glide` row slides from where it was.
+// Following, the page scrolls at once to keep the key row still, so the
+// scale moves past it. A row mid-slide counts from where it is, so taps chain.
 export const glideDuration = 260
 const fadeDuration = 200
 
@@ -99,7 +99,10 @@ export function useGlide(
   // The row to keep in the middle of the list, by its key.
   centre: string | undefined,
   // Changes whenever the list is rearranged.
-  version: string
+  version: string,
+  // Off to centre the key row only on opening, leaving the rows where they
+  // are after, for a table read row by row as its lines move.
+  { follow = true }: { follow?: boolean } = {}
 ) {
   const before = useRef<{
     places: Map<string, number>
@@ -156,10 +159,10 @@ export function useGlide(
         behavior: "instant",
       })
     }
-    centring()
     recentre.current = centring
     const opened = first.current
     first.current = false
+    if (opened || follow) centring()
     if (opened || !was || reduced()) return
     // Every place read before any row animates, so the browser lays the
     // list out once rather than once a row. In the order they show, which

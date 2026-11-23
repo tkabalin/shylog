@@ -84,11 +84,20 @@ function NdlPage() {
   const list = useRef<HTMLDivElement>(null)
   const header = useRef<HTMLDivElement>(null)
   const oxygen = oxygenOf(percent)
-  const glide = useGlide(list, header, "mark-limit", `${oxygen} ${limit}`)
+  // Centred on the line only on opening: after that the rows stay put, so
+  // a diver watching one depth sees its NDL change rather than the row move.
+  const glide = useGlide(list, header, "mark-limit", `${oxygen} ${limit}`, {
+    follow: false,
+  })
+  // The deepest row a shorter mix still shows, as it was on screen when the
+  // mix changed: dropping it there would pull the page up as the scroll
+  // clamps. Lowered as rows leave below, and dropped once the mix's own foot.
+  const [floor, setFloor] = useState<number | null>(null)
 
   const atLimit = mod(oxygen, limit, salt)
   const atCeiling = mod(oxygen, Math.max(limit, 1.6), salt)
-  const deepest = Math.min(60, Math.floor(atCeiling) + 3)
+  const foot = Math.min(60, Math.floor(atCeiling) + 3)
+  const deepest = Math.max(foot, floor ?? 0)
   const depths = Array.from(
     { length: Math.max(deepest - 2, 1) },
     (_, i) => i + 3
@@ -110,6 +119,40 @@ function NdlPage() {
     const timer = setTimeout(() => setFrom(null), glideDuration + 40)
     return () => clearTimeout(timer)
   }, [from, oxygen])
+  // The deepest row up to the scroller's foot, under the tab bar and the
+  // keyboard too, as the page's height counts them.
+  const lowestShown = () => {
+    const rows = list.current
+    const scroller = rows?.closest<HTMLElement>("#main")
+    if (!rows || !scroller) return deepest
+    const bottom = Math.min(
+      scroller.getBoundingClientRect().bottom,
+      window.innerHeight
+    )
+    const seen = (bottom - rows.getBoundingClientRect().top) / rowHeight
+    return Math.min(deepest, Math.max(3, Math.floor(seen) + 3))
+  }
+  useEffect(() => {
+    // One at or above the foot keeps nothing, so waits for the next change.
+    if (floor == null || floor <= foot) return
+    const scroller = list.current?.closest<HTMLElement>("#main")
+    let frame = 0
+    const trim = () => {
+      frame = 0
+      const lowest = lowestShown()
+      if (lowest <= foot) setFloor(null)
+      else if (lowest < floor) setFloor(lowest)
+    }
+    const onScroll = () => {
+      frame ||= requestAnimationFrame(trim)
+    }
+    scroller?.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      scroller?.removeEventListener("scroll", onScroll)
+      cancelAnimationFrame(frame)
+    }
+  }, [floor, foot]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Steps and the chips glide; typing lands at once, as each key would
   // start a glide to a mix that's only half typed, and so does a jump of
   // the line past a whole list of rows, which no eye could follow.
@@ -119,6 +162,7 @@ function NdlPage() {
     const far = Math.abs(line - lines.over) * rowHeight > glide.height()
     const glides = mix !== oxygen && !typing && !far
     if (glides) glide.capture()
+    setFloor(lowestShown())
     setFrom(glides ? lines : null)
     setPercent(next)
   }
