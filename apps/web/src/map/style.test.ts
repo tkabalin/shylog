@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest"
 import { pageById, siteById, sites } from "./sites"
 import { areaData, mapStyle, oklch, pickedData, placesZoom } from "./style"
 
-const tiles = "pmtiles:///assets/basemap-test.pmtiles"
+const tiles = { url: "pmtiles:///assets/basemap-test.pmtiles" }
 
 describe("oklch", () => {
   it("converts the app's colours to sRGB", () => {

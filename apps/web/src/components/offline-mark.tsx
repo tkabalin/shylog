@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { IconServerOff, IconWifiOff } from "@tabler/icons-react"
 import { cn } from "cn"
 
-import { useOnline } from "@/data/sync-status"
+import { useOnline } from "@/lib/online"
 
 // A screen's sign that what needs the server is disabled for now, in its
 // bar: wifi-off offline, server-off when the server can't be reached. The

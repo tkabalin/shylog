@@ -4,9 +4,6 @@ import { keepTrying } from "./keep-trying"
 // The basemap extract, named by its contents like the app's other assets,
 // so a new extract is a new file and a phone never mixes the two.
 export const extractUrl = url
-// The Protomaps build it was cut from, which Sources names; set by hand
-// when scripts/map/basemap.ts writes a new one.
-export const extractBuilt = "2026-11-16"
 
 // The service worker keeps the whole extract in this cache and cuts the
 // map's range requests from it (vite.config.ts names it too), so the map

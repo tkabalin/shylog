@@ -3,6 +3,7 @@ import type {
   GeoJSONSourceSpecification,
   StyleSpecification,
   SymbolLayerSpecification,
+  VectorSourceSpecification,
 } from "maplibre-gl"
 
 import { sea } from "./sea"
@@ -10,6 +11,10 @@ import { areas, isPage, sites, type Area, type Page, type Site } from "./sites"
 import zones from "./zones.json"
 
 export type MapTheme = "light" | "dark"
+
+// Where the basemap's tiles come from: the app's extract through pmtiles,
+// or the public site's tile files (map/tiles.ts, divesites/tiles.ts).
+export type BasemapSource = Omit<VectorSourceSpecification, "type">
 
 // MapLibre can't parse oklch, so the app's colours are converted here
 // rather than copied as hex.
@@ -347,7 +352,7 @@ const sitesAttribution =
 // that help find a dive site, with the marine protected areas over it.
 export function mapStyle(
   theme: MapTheme,
-  tiles: string,
+  basemap: BasemapSource,
   {
     picked,
     shown = sites,
@@ -400,11 +405,11 @@ export function mapStyle(
     // A theme change swaps the colours at once, as the rest of the app does.
     transition: { duration: 0, delay: 0 },
     sources: {
-      osm: { type: "vector", url: tiles, attribution },
+      osm: { type: "vector", ...basemap, attribution },
       // The land again from the extract's zoom 9 tiles, a few of which
       // cover the whole coast, so they are in hand wherever the map moves
       // and stand in for the land while a closer tile is still loading.
-      overview: { type: "vector", url: tiles, maxzoom: 9, attribution },
+      overview: { type: "vector", ...basemap, maxzoom: 9, attribution },
       fills: { type: "geojson", data: zones.fills as GeoJSONData },
       edges: { type: "geojson", data: zones.edges as GeoJSONData },
       coast: {

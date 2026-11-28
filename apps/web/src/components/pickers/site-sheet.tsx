@@ -36,10 +36,11 @@ import { cn } from "cn"
 
 import { Drawer } from "@/components/ui/drawer"
 import { Segmented } from "@/dive/form/rows"
-import { useConnected, useOnline } from "@/data/sync-status"
+import { useConnected } from "@/data/sync-status"
 import { useDesk } from "@/hooks/use-desk"
 import type { NewEntity } from "@/dive/form/values"
 import { isReturn } from "@/lib/keys"
+import { useOnline } from "@/lib/online"
 import { exploreOn } from "@/map/enabled"
 import type { Area, Page as MapPage } from "@/map/sites"
 

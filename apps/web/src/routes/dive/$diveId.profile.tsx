@@ -10,7 +10,7 @@ import {
 
 import { useAfter, useChartLoads } from "@/chart/load"
 import { useSize } from "@/chart/size"
-import { plainClick } from "@/components/app-nav"
+import { plainClick } from "@/lib/history"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Dive } from "@/data/db"

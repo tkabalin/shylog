@@ -2,7 +2,6 @@ import "maplibre-gl/dist/maplibre-gl.css"
 import "./map.css"
 
 import {
-  addProtocol,
   GeoJSONSource,
   Map as MapLibre,
   prewarm,
@@ -16,7 +15,6 @@ import {
   type StyleSpecification,
 } from "maplibre-gl"
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url"
-import { Protocol } from "pmtiles"
 import {
   createContext,
   useCallback,
@@ -39,7 +37,6 @@ import { useDesk } from "@/hooks/use-desk"
 import { reduced } from "@/lib/motion"
 
 import { aerialAt } from "./aerial"
-import { extractUrl } from "./extract"
 import { exploreHome } from "./home"
 import { keyRefused } from "./imagery"
 import { cardWidth } from "./card-width"
@@ -72,17 +69,13 @@ import {
   pinLayers,
   type MapTheme,
 } from "./style"
+import { basemap, forgetFailure } from "./tiles"
 
 // MapLibre looks for its worker beside its own file, which bundling moves,
 // so Vite builds the worker and hands over its URL. Started now and kept,
 // so leaving the tab and coming back doesn't start them again.
 setWorkerUrl(workerUrl)
 prewarm()
-
-// The extract is one file the map reads by range requests, a tile at a time.
-const tiles = `pmtiles://${extractUrl}`
-const protocol = new Protocol()
-addProtocol("pmtiles", protocol.tile)
 
 // Where the map was left, so coming back to the tab finds it there.
 let camera: { center: LngLatLike; zoom: number } | undefined
@@ -145,7 +138,7 @@ const built = { shown: sites as readonly Site[], zones: true }
 function styleNow(theme: MapTheme, picked?: Site | Page) {
   built.shown = shownSites
   built.zones = zonesOn
-  return mapStyle(theme, tiles, {
+  return mapStyle(theme, basemap, {
     picked,
     shown: shownSites,
     showZones: zonesOn,
@@ -529,14 +522,13 @@ function create(
     element.parentElement?.setAttribute("aria-busy", "false")
   })
   // Hidden until the land has drawn: the zones close across it, so
-  // without it they show shapes ashore. With no signal the extract can't
-  // load, and pmtiles would keep that failure, so it is dropped to be
-  // read again next time.
+  // without it they show shapes ashore. With no signal the basemap can't
+  // load, and that failure is forgotten so it is read again next time.
   let settled = false
   const fail = () => {
     if (settled) return
     settled = true
-    protocol.tiles.delete(extractUrl)
+    forgetFailure()
     kept?.report("failed")
   }
   created.on("error", (event) => {
