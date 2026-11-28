@@ -55,6 +55,11 @@ test.describe("the public dive site map @divesites", () => {
       await card.getByRole("link", { name: "Dive sites" }).click()
       await expect(page).toHaveURL("/")
       await expect(card).toHaveCount(0)
+      // The list's card, folded until opened.
+      const list = page.getByRole("region", { name: "Dive sites" })
+      await expect(
+        list.getByRole("button", { name: "Show the list" })
+      ).toHaveAttribute("aria-expanded", "false")
     })
   })
 

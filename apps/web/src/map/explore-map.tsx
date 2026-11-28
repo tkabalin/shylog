@@ -794,8 +794,9 @@ function Card({
 }
 
 // The list card runs the window's height, folding to its heading, search
-// and filters with its chevron; moving the map never folds it.
-let folded = false
+// and filters with its chevron; moving the map never folds it. It opens
+// folded, so the map comes first, and keeps how it was left after that.
+let folded = true
 function ListCard({
   total,
   of,
