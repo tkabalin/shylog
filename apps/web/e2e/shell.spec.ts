@@ -276,14 +276,14 @@ test.describe("at phone width", () => {
     await expect(credit).toHaveClass(/maplibregl-compact\b/)
     // There once the extract's header is read, and still folded. Not by
     // role, which can't find a hidden link at all.
-    const protomaps = credit.locator('a[href="https://protomaps.com"]')
-    await expect(protomaps).toBeAttached()
-    await expect(protomaps).toBeHidden()
+    const osm = credit.locator('a[href="https://openstreetmap.org/copyright"]')
+    await expect(osm).toBeAttached()
+    await expect(osm).toBeHidden()
     // A 24px button that a finger a little off its edge still opens.
     const button = (await page.getByLabel("Toggle attribution").boundingBox())!
     expect(button.width).toBe(24)
     await page.mouse.click(button.x - 8, button.y + button.height / 2)
-    await expect(protomaps).toBeVisible()
+    await expect(osm).toBeVisible()
   })
 
   test("says the map isn't downloaded when it can't load, and tries again", async ({
