@@ -64,8 +64,13 @@ test("keeps a scrolled dive where it is when its profile draws", async ({
     }
   )
   await page.goto(`/dive/${await diveId(request, 63)}`)
+  // Geist arriving after the scroll resizes text above it by a fraction of
+  // a pixel, and Chromium's scroll anchoring rounds that to a pixel's move.
+  const otu = page.getByRole("button", { name: "About OTU" })
+  await expect(otu).toBeAttached()
+  await page.evaluate(() => document.fonts.ready)
   // Mid-page: scrolled to its very end, WebKit put it back.
-  await page.getByRole("button", { name: "About OTU" }).scrollIntoViewIfNeeded()
+  await otu.scrollIntoViewIfNeeded()
   const main = page.locator("#main")
   const scrolled = await main.evaluate((el) => el.scrollTop)
   release()
