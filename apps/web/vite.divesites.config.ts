@@ -4,7 +4,12 @@ import react from "@vitejs/plugin-react"
 import { defineConfig, type Plugin } from "vite"
 
 import { arcgisKey } from "./scripts/arcgis-key.ts"
-import { basemapTiles, buildStamp, hostFiles } from "./scripts/divesites.ts"
+import {
+  basemapTiles,
+  buildStamp,
+  hostFiles,
+  siteIndex,
+} from "./scripts/divesites.ts"
 
 // Cape Town Dive Sites, the public dive site map: the app's Explore alone,
 // built from divesites.html into dist-divesites for Cloudflare.
@@ -82,6 +87,7 @@ export default defineConfig({
     arcgisKey(),
     basemapTiles(resolve(src, "map/basemap.pmtiles")),
     hostFiles(resolve(src, "divesites/share.png")),
+    siteIndex(resolve(src, "map/sites.geojson")),
     buildStamp(resolve(import.meta.dirname, "wrangler.jsonc")),
     page,
   ],

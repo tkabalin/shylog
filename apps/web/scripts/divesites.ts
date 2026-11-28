@@ -4,6 +4,8 @@ import { join, relative, resolve, sep } from "node:path"
 import { FileSource, PMTiles } from "pmtiles"
 import type { Plugin } from "vite"
 
+import { areas } from "../src/map/areas.ts"
+
 // The public site's build steps (vite.divesites.config.ts).
 
 const virtualId = "virtual:basemap-tiles"
@@ -114,6 +116,50 @@ export function hostFiles(share: string): Plugin {
         fileName: "og.png",
         source: await readFile(share),
       })
+    },
+  }
+}
+
+const escape = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;")
+
+// Every site's name as a link, by area as the list has them, kept in the page
+// out of sight: the map draws its names, so search engines would see none.
+// Outside #root, so React leaves it there; screen readers reach it last.
+export function siteIndex(geojson: string): Plugin {
+  return {
+    name: "site-index",
+    async transformIndexHtml() {
+      const { features } = JSON.parse(await readFile(geojson, "utf8")) as {
+        features: { properties: { id: string; name: string; area: string } }[]
+      }
+      const groups = Object.entries(areas).map(([area, title]) => {
+        const links = features
+          .map(({ properties }) => properties)
+          .filter((site) => site.area === area)
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map(
+            ({ id, name }) =>
+              `<li><a href="/?site=${encodeURIComponent(id)}">${escape(name)}</a></li>`
+          )
+        return links.length
+          ? `<h2>${escape(title)}</h2><ul>${links.join("")}</ul>`
+          : ""
+      })
+      return [
+        {
+          tag: "nav",
+          attrs: {
+            "aria-label": "Every dive site",
+            // Inline, as sr-only does it, so it's hidden before CSS loads;
+            // at the top, as below the map it made the page a pixel taller.
+            style:
+              "position:absolute;top:0;left:0;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap",
+          },
+          children: groups.join(""),
+          injectTo: "body",
+        },
+      ]
     },
   }
 }

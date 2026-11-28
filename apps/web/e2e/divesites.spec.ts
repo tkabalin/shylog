@@ -102,6 +102,20 @@ test.describe("the public dive site map @divesites", () => {
     })
   })
 
+  test("keeps every site's name in the page as a link", async ({ page }) => {
+    await page.goto("/")
+    await drawn(page)
+    const index = page.getByRole("navigation", { name: "Every dive site" })
+    await expect(index.getByRole("link")).toHaveCount(sites.length)
+    // A site on a shared page, whose id holds a slash, opens from its link.
+    const shared = sites.find(({ id }) => id.includes("/"))!
+    const link = index.getByRole("link", { name: shared.name, exact: true })
+    await page.goto((await link.getAttribute("href"))!)
+    await expect(
+      page.getByRole("dialog").getByRole("heading", { name: shared.name })
+    ).toBeVisible()
+  })
+
   test("names its maker in the credit and Sources", async ({ page }) => {
     await page.goto("/")
     await drawn(page)
