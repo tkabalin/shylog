@@ -74,8 +74,16 @@ export function ExplorePage() {
     window.addEventListener("online", retry)
     return () => window.removeEventListener("online", retry)
   }, [state, retry])
+  // Safari's top address bar already sits over the status bar, so there the
+  // public site's map meets it, as a 12px margin showed as a white bar.
   return (
-    <div className="relative flex h-full flex-col pt-[max(0.75rem,env(safe-area-inset-top))] desk:pt-0">
+    <div
+      className={
+        publicSite
+          ? "relative flex h-full flex-col pt-[env(safe-area-inset-top)] desk:pt-0"
+          : "relative flex h-full flex-col pt-[max(0.75rem,env(safe-area-inset-top))] desk:pt-0"
+      }
+    >
       <h1 className="sr-only">
         {publicSite ? "Cape Town Dive Sites" : "Explore"}
       </h1>

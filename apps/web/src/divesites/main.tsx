@@ -26,10 +26,11 @@ function Shell() {
         <Outlet />
       </main>
       {/* Opaque over the status bar, as in the app, so iOS never draws
-          its top edge blur; a desktop has none, so the map runs to the top. */}
+          its top edge blur. No 12px minimum: under Safari's top address
+          bar there's no status bar, and it showed as a white bar. */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-x-0 top-0 z-20 h-[max(0.75rem,env(safe-area-inset-top))] bg-background desk:hidden"
+        className="pointer-events-none fixed inset-x-0 top-0 z-20 h-[env(safe-area-inset-top)] bg-background desk:hidden"
       />
       <Toaster />
     </>
