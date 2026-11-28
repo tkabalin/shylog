@@ -80,6 +80,7 @@ import { ImageViewer } from "./image-viewer"
 import { SiteCard, SiteSheet } from "./site-sheet"
 import { SiteList } from "./site-list"
 import { isPage, mapLink, sites, type Page, type Site } from "./sites"
+import { Welcome } from "./welcome"
 import { ZoneRulesList } from "./zone-rules-list"
 import type { Mpa } from "./zone-rules"
 
@@ -105,6 +106,11 @@ export default function Explore({
   const search = useSearch({ from: "/explore" })
   const navigate = useNavigate({ from: "/explore" })
   const desk = useDesk()
+  // Opened at the plain address, not a link to a site, a filter or the list,
+  // which the public site's welcome mustn't stand in front of.
+  const [plain] = useState(() =>
+    Object.values(search).every((value) => value === undefined)
+  )
   const goBack = useBack()
   const { types, depth, access, wind, swell, season, skills, good } = search
   const filters = useMemo(
@@ -395,6 +401,8 @@ export default function Explore({
           onShow={showImage}
         />
       )}
+      {/* A phone has no heading over the map to name the public site. */}
+      {publicSite && !desk && plain && <Welcome total={sites.length} />}
       {!desk && view === "list" && (
         <Screen title={listTitle}>
           <div className="shrink-0 px-4 pt-1">
