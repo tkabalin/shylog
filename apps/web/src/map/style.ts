@@ -346,7 +346,7 @@ const zoneLabel = {
 const attribution =
   '<a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a> © <a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
 const sitesAttribution =
-  'Sites: <a href="https://en.wikivoyage.org/wiki/Diving_the_Cape_Peninsula_and_False_Bay/Dive_sites" target="_blank" rel="noopener">Wikivoyage</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA</a>'
+  'Sites: <a href="https://en.wikivoyage.org/wiki/Diving_the_Cape_Peninsula_and_False_Bay/Dive_sites" target="_blank" rel="noopener">Wikivoyage</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC&nbsp;BY&#8209;SA</a>'
 
 // A quiet basemap from Protomaps' OpenStreetMap layers, kept to the few
 // that help find a dive site, with the marine protected areas over it.

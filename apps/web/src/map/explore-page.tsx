@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/empty"
 import { searchText as text } from "@/log/filters"
 
+import { publicSite } from "./host"
 import { LazyExplore, preloadMap } from "./lazy"
 import { mpas, type ExploreSearch } from "./search"
 import { sea } from "./sea"
@@ -75,18 +76,28 @@ export function ExplorePage() {
   }, [state, retry])
   return (
     <div className="relative flex h-full flex-col pt-[max(0.75rem,env(safe-area-inset-top))] desk:pt-0">
-      <h1 className="sr-only">Explore</h1>
+      <h1 className="sr-only">
+        {publicSite ? "Cape Town Dive Sites" : "Explore"}
+      </h1>
       {state === "failed" ? (
         <Empty className="flex-1">
           <EmptyHeader>
             <EmptyMedia variant="accent">
               <IconMapOff />
             </EmptyMedia>
-            <EmptyTitle>The map isn't downloaded yet</EmptyTitle>
-            <EmptyDescription>
-              It downloads once this device can reach Shylog, and works with no
-              signal from then on.
-            </EmptyDescription>
+            {/* The public site keeps nothing on the device, so there it's
+                only a load that failed. */}
+            {publicSite ? (
+              <EmptyTitle>The map didn't load</EmptyTitle>
+            ) : (
+              <>
+                <EmptyTitle>The map isn't downloaded yet</EmptyTitle>
+                <EmptyDescription>
+                  It downloads once this device can reach Shylog, and works with
+                  no signal from then on.
+                </EmptyDescription>
+              </>
+            )}
           </EmptyHeader>
           <EmptyContent>
             <Button variant="link" size="lg" onClick={retry}>

@@ -38,6 +38,7 @@ import { reduced } from "@/lib/motion"
 
 import { aerialAt } from "./aerial"
 import { exploreHome } from "./home"
+import { publicSite } from "./host"
 import { keyRefused } from "./imagery"
 import { cardWidth } from "./card-width"
 import {
@@ -419,8 +420,12 @@ function create(
     credit.classList.remove("maplibregl-compact-show")
     created.off("styledata", fold).off("sourcedata", fold)
   }
-  created.on("styledata", fold)
-  created.on("sourcedata", fold)
+  // The public site leaves it open until a drag, as OpenStreetMap asks a
+  // public map to show its credit.
+  if (!publicSite) {
+    created.on("styledata", fold)
+    created.on("sourcedata", fold)
+  }
   // The no-diving hatch is drawn here, as a style can only name images.
   // Both themes' go in as the style loads: one added when a tile first
   // asks for it reached only some tiles.

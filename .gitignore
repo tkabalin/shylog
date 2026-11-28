@@ -5,10 +5,11 @@
 node_modules/
 .pnpm-store/
 
-# Build output (Vite, tsup, vite-plugin-pwa dev service worker), and the
-# Claude Desktop extensions packed per instance
+# Build output (Vite, tsup, vite-plugin-pwa dev service worker, the public
+# dive site map), and the Claude Desktop extensions packed per instance
 dist/
 dist-ssr/
+dist-divesites/
 dev-dist/
 *.tsbuildinfo
 *.mcpb

@@ -9,6 +9,7 @@ export default defineConfig([
   globalIgnores([
     ".claude",
     "**/dist",
+    "**/dist-divesites",
     "planning",
     "playwright-report",
     "test-results",

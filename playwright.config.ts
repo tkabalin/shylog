@@ -26,16 +26,18 @@ const stacks = [stack(0), ...browsers.map((_, i) => stack(i + 1))]
 // share it.
 const built = apiPort + stacks.length
 const builtOrigin = `http://127.0.0.1:${built}`
-// Its build costs every run a few seconds, so a run naming spec files that
-// have no @built test (a single spec, CI's repeats) goes without it.
+// The public dive site map as built, with no API: tests tagged @divesites.
+// On the web ports after the stacks', so a worktree stepping by 4 misses it.
+const divesites = webPort + stacks.length
+// A build costs every run a few seconds, so a run naming spec files that
+// have no test of its tag (a single spec, CI's repeats) goes without it.
 const named = process.argv.filter((arg) => /\.spec\.ts(:\d+)*$/.test(arg))
-const needsBuilt =
+const needs = (tag: string) =>
   !named.length ||
   named
     .map((arg) => arg.replace(/(:\d+)+$/, ""))
     .some(
-      (file) =>
-        !existsSync(file) || readFileSync(file, "utf8").includes("@built")
+      (file) => !existsSync(file) || readFileSync(file, "utf8").includes(tag)
     )
 
 export default defineConfig({
@@ -56,7 +58,7 @@ export default defineConfig({
   projects: [
     ...browsers.map((browser) => ({
       ...browser,
-      grepInvert: /@writes|@built/,
+      grepInvert: /@writes|@built|@divesites/,
     })),
     ...browsers.map((browser, i) => ({
       ...browser,
@@ -70,6 +72,12 @@ export default defineConfig({
       name: `${browser.name} built`,
       grep: /@built/,
       use: { ...browser.use, baseURL: builtOrigin },
+    })),
+    ...browsers.map((browser) => ({
+      ...browser,
+      name: `${browser.name} divesites`,
+      grep: /@divesites/,
+      use: { ...browser.use, baseURL: origin(divesites) },
     })),
   ],
   // The touch-size sample route only exists in Vite's dev server.
@@ -102,7 +110,7 @@ export default defineConfig({
       },
     ])
     .concat(
-      needsBuilt
+      needs("@built")
         ? {
             command: "apps/web/e2e/api-server.sh",
             url: `${builtOrigin}/api/version`,
@@ -112,6 +120,22 @@ export default defineConfig({
               E2E_BUILD: "1",
               // Checked as the offline page's title, which only the server writes.
               SHYLOG_APP_NAME: "Shylog e2e",
+              // As for the dev servers: no key from the developer's shell.
+              SHYLOG_ARCGIS_KEY: "",
+            } as Env,
+            reuseExistingServer: false,
+            gracefulShutdown: { signal: "SIGTERM" as const, timeout: 5000 },
+          }
+        : []
+    )
+    .concat(
+      needs("@divesites")
+        ? {
+            command: "apps/web/e2e/divesites-server.sh",
+            url: origin(divesites),
+            env: {
+              E2E_DIVESITES_PORT: String(divesites),
+              VITE_CACHE_DIR: `node_modules/.vite-e2e-${divesites}`,
               // As for the dev servers: no key from the developer's shell.
               SHYLOG_ARCGIS_KEY: "",
             } as Env,

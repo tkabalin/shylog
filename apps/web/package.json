@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:divesites": "vite build -c vite.divesites.config.ts",
     "preview": "vite preview",
+    "preview:divesites": "vite preview -c vite.divesites.config.ts",
     "icons": "node scripts/apple-touch-icon.ts",
     "map:aerial": "node scripts/map/aerial.ts",
     "map:basemap": "node scripts/map/basemap.ts",

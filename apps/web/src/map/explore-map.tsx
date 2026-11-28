@@ -67,6 +67,7 @@ import {
   type SiteFilters,
 } from "./filters"
 import { exploreRoot } from "./home"
+import { publicSite } from "./host"
 import {
   DeskMapOptions,
   floating,
@@ -729,10 +730,15 @@ function Screen({
   )
 }
 
+// Its end clear of the home indicator on the public site, where the screen
+// runs to the foot with no tab bar under it.
 const Scroller = ({ children }: { children: React.ReactNode }) => (
   <div
     data-scroll-top
-    className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-2"
+    className={cn(
+      "min-h-0 flex-1 overflow-y-auto overscroll-contain",
+      publicSite ? "pb-[calc(0.5rem+env(safe-area-inset-bottom))]" : "pb-2"
+    )}
   >
     {children}
   </div>
