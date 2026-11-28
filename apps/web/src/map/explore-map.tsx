@@ -782,11 +782,11 @@ function Card({
   }, [onCover, site])
   const { width, edge } = useCardWidth()
   return (
-    // At most 60% of the map, so some of it shows beside the card.
+    // At most 70% of the map, so some of it shows beside the card.
     <div
       style={{ top: listCard.inset, left: listCard.inset, width }}
       className={cn(
-        "absolute z-10 flex max-h-[calc(100%-1.5rem)] max-w-[min(calc(100%-1.5rem),60%)]",
+        "absolute z-10 flex max-h-[calc(100%-1.5rem)] max-w-[min(calc(100%-1.5rem),70%)]",
         className
       )}
     >

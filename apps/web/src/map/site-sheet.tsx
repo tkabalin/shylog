@@ -362,10 +362,10 @@ export function SiteCard({
     return () => window.removeEventListener("keydown", onKey)
   }, [])
   return (
-    // At most 60% of the map, so some of it shows beside the card.
+    // At most 70% of the map, so some of it shows beside the card.
     <div
       className={cn(
-        "absolute top-3 left-3 z-10 flex max-h-[calc(100%-1.5rem)] max-w-[min(calc(100%-1.5rem),60%)]",
+        "absolute top-3 left-3 z-10 flex max-h-[calc(100%-1.5rem)] max-w-[min(calc(100%-1.5rem),70%)]",
         "transition-[opacity,translate] duration-200 ease-out starting:-translate-x-2 starting:opacity-0 motion-reduce:starting:translate-x-0",
         more && "h-[calc(100%-1.5rem)]"
       )}
