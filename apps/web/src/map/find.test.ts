@@ -96,6 +96,8 @@ describe("zoneNote", () => {
       warn: true,
     })
     expect(zoneNote(site("bordjiesrif"))).toEqual({ text: "Shore dives only" })
+    // A boat site there says what the zone rules out.
+    expect(zoneNote(site("albatross-rock"))).toEqual({ text: "No boat dives" })
     expect(zoneNote(site("blomvlei"))).toEqual({ text: "Dive business only" })
     // In Boulders' no-take zone, where diving is free.
     expect(zoneNote(site("a-frame"))).toBeUndefined()
