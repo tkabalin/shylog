@@ -116,6 +116,26 @@ test.describe("the public dive site map @divesites", () => {
     ).toBeVisible()
   })
 
+  test("gives search engines its sitemap and name", async ({
+    page,
+    request,
+  }) => {
+    const robots = await (await request.get("/robots.txt")).text()
+    expect(robots).toContain(
+      "Sitemap: https://divesites.thomaskabalin.com/sitemap.xml"
+    )
+    const sitemap = await (await request.get("/sitemap.xml")).text()
+    expect(sitemap).toContain("<loc>https://divesites.thomaskabalin.com/</loc>")
+    await page.goto("/")
+    const data = await page
+      .locator('script[type="application/ld+json"]')
+      .textContent()
+    expect(JSON.parse(data!)).toMatchObject({
+      "@type": "WebSite",
+      name: "Cape Town Dive Sites",
+    })
+  })
+
   test("names its maker in the credit and Sources", async ({ page }) => {
     await page.goto("/")
     await drawn(page)

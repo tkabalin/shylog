@@ -256,7 +256,7 @@ Then run `docker compose --env-file instances/<instance>.env up -d`. Installed a
 
 Explore also runs as a public website, [Cape Town Dive Sites](https://divesites.thomaskabalin.com): static files on Cloudflare's free plan (no card), which CI deploys from `main` whenever they change.
 
-The site's address is in `apps/web/wrangler.jsonc`, `divesites.html` and the `divesites` job in `.github/workflows/ci.yml`. To see the site as it's built, run `pnpm --filter @shylog/web build:divesites`, which writes the key from `.env` into the page, then `pnpm --filter @shylog/web preview:divesites`, which serves it on `http://localhost:5173`, so stop the app's dev server first. There is no script to deploy it by hand, as that build would carry the instance's key rather than the site's.
+The site's address is in `apps/web/wrangler.jsonc`, `divesites.html`, `vite.divesites.config.ts` and the `divesites` job in `.github/workflows/ci.yml`. To see the site as it's built, run `pnpm --filter @shylog/web build:divesites`, which writes the key from `.env` into the page, then `pnpm --filter @shylog/web preview:divesites`, which serves it on `http://localhost:5173`, so stop the app's dev server first. There is no script to deploy it by hand, as that build would carry the instance's key rather than the site's.
 
 ### Updating
 
