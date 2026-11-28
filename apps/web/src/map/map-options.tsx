@@ -258,28 +258,42 @@ function Body({
             >
               Wikimedia Commons
             </a>
-            , each credited under it.
+            .
           </li>
           <li>
             <b className="font-medium text-foreground">MPA zones</b>: Government
             Gazettes. Read on{" "}
             <span className="whitespace-nowrap">{day(rulesRead)}</span>.
           </li>
-          {/* The public site is Shylog's map on its own; its code is the
-              app's, which the GPL asks it to offer. */}
+          {/* The public site is Shylog's map on its own: who made it, and
+              its code, which the GPL asks it to offer. */}
           {publicSite && (
-            <li>
-              <b className="font-medium text-foreground">App</b>: made with{" "}
-              <a
-                href="https://github.com/tkabalin/shylog"
-                target="_blank"
-                rel="noopener"
-                className={link}
-              >
-                Shylog
-              </a>
-              , an open-source dive log.
-            </li>
+            <>
+              <li>
+                <b className="font-medium text-foreground">By</b>:{" "}
+                <a
+                  href="https://thomaskabalin.com"
+                  target="_blank"
+                  rel="noopener"
+                  className={link}
+                >
+                  Thomas Kabalin
+                </a>
+                .
+              </li>
+              <li>
+                <b className="font-medium text-foreground">Code</b>: part of{" "}
+                <a
+                  href="https://github.com/tkabalin/shylog"
+                  target="_blank"
+                  rel="noopener"
+                  className={link}
+                >
+                  Shylog
+                </a>{" "}
+                on GitHub.
+              </li>
+            </>
           )}
         </ul>
       </div>
