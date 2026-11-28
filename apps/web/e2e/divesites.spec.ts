@@ -58,10 +58,13 @@ test.describe("the public dive site map @divesites", () => {
     })
   })
 
-  test("credits Shylog in Sources", async ({ page }) => {
+  test("credits its author and its code in Sources", async ({ page }) => {
     await page.goto("/")
     await drawn(page)
     await page.getByRole("button", { name: "Map options" }).click()
+    await expect(
+      page.getByRole("link", { name: "Thomas Kabalin" })
+    ).toHaveAttribute("href", "https://thomaskabalin.com")
     await expect(page.getByRole("link", { name: "Shylog" })).toHaveAttribute(
       "href",
       "https://github.com/tkabalin/shylog"
