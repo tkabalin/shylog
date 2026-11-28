@@ -19,6 +19,18 @@ test.describe("a first visit to the public dive site map @divesites", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0)
   })
 
+  test("welcomes a desktop's first visit in a dialog", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto("/")
+    const welcome = page.getByRole("dialog", { name: "Cape Town dive sites" })
+    await expect(welcome.getByText("Filter by depth")).toBeVisible()
+    await page.keyboard.press("Escape")
+    await expect(welcome).toHaveCount(0)
+    await page.reload()
+    await drawn(page)
+    await expect(page.getByRole("dialog")).toHaveCount(0)
+  })
+
   test("opens a link to a site with no welcome in front", async ({ page }) => {
     await page.goto(`/?site=${aFrame.id}`)
     await expect(

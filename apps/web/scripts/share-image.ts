@@ -1,5 +1,5 @@
 // Renders the picture a shared link to the public dive site map shows, from
-// the site itself in a desktop browser. Run `pnpm --filter @shylog/web
+// the site itself in a desktop browser: the welcome over the map. Run `pnpm --filter @shylog/web
 // share-image` after a change to how the map opens, and commit the result.
 import { fileURLToPath } from "node:url"
 
@@ -41,9 +41,11 @@ try {
     { timeout: 30_000 }
   )
   await page.waitForLoadState("networkidle")
-  // The card names the site; the map's buttons and credit are clutter here.
+  await page.getByRole("dialog", { name: "Cape Town dive sites" }).waitFor()
+  // The welcome names the site; the map's buttons and credit are clutter,
+  // and the list's card repeats its name beside it.
   await page.addStyleTag({
-    content: `.maplibregl-ctrl-attrib, [aria-label="Zoom"], [aria-label="Map options"] { display: none !important }`,
+    content: `.maplibregl-ctrl-attrib, [aria-label="Zoom"], [aria-label="Map options"], div:has(> section[aria-label="Cape Town dive sites"]) { display: none !important }`,
   })
   await page.waitForTimeout(500)
   const shot = await page.screenshot()
