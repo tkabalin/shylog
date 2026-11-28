@@ -8,7 +8,7 @@ import {
 import { IconChevronLeft } from "@tabler/icons-react"
 import { Link, useRouter, type LinkProps } from "@tanstack/react-router"
 
-import { plainClick } from "@/components/app-nav"
+import { plainClick } from "@/lib/history"
 import {
   Breadcrumb,
   BreadcrumbItem,

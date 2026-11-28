@@ -37,7 +37,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { useOnline } from "@/data/sync-status"
+import { useOnline } from "@/lib/online"
 import { useDesk } from "@/hooks/use-desk"
 import { depthScale } from "@/log/filters"
 import { PageBar, useBack } from "@/you/bar"

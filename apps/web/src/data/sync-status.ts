@@ -1,7 +1,6 @@
-import { useSyncExternalStore } from "react"
-
 import { countText, diveCount } from "@/components/pickers/match"
 import { ago as agoText } from "@/format/dates"
+import { useOnline } from "@/lib/online"
 
 import type { Dive } from "./db"
 import { useLog, type LogView, type Reach } from "./log"
@@ -76,18 +75,6 @@ export function syncStatus({
     sending: sending ? log?.dive.get(sending) : undefined,
   }
 }
-
-function subscribeOnline(listener: () => void) {
-  window.addEventListener("online", listener)
-  window.addEventListener("offline", listener)
-  return () => {
-    window.removeEventListener("online", listener)
-    window.removeEventListener("offline", listener)
-  }
-}
-
-export const useOnline = () =>
-  useSyncExternalStore(subscribeOnline, () => navigator.onLine)
 
 export function useSyncStatus() {
   const { log, reach, blocked } = useLog()

@@ -181,9 +181,10 @@ function SidebarProvider({
 }
 
 // The same for what is portalled out of the provider, which context still
-// reaches; outside one (a component test), the open sidebar's width.
+// reaches; with no provider there is no sidebar (the public dive site map),
+// so dialogs centre in the whole window.
 function useSidebarOffset() {
-  return React.useContext(SidebarContext)?.offset ?? SIDEBAR_WIDTH
+  return React.useContext(SidebarContext)?.offset ?? "0px"
 }
 
 function Sidebar({

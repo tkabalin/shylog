@@ -28,7 +28,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { useOnline } from "@/data/sync-status"
+import { useOnline } from "@/lib/online"
 
 import { useMapFrame } from "./basemap"
 import { useCardWidth } from "./card-edge"

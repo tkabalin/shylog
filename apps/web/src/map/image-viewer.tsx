@@ -19,7 +19,7 @@ import {
 import { useSize } from "@/chart/size"
 import { ImagePages, type PageImageProps } from "@/components/image-pages"
 import { PageControl } from "@/components/page-control"
-import { useOnline } from "@/data/sync-status"
+import { useOnline } from "@/lib/online"
 import { useFullScreen } from "@/hooks/use-full-screen"
 import { useEdgeSwipeBlock } from "@/lib/edge-swipe"
 

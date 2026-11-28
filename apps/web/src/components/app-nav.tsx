@@ -30,6 +30,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { plainClick } from "@/lib/history"
 import { reduced } from "@/lib/motion"
 import { exploreOn } from "@/map/enabled"
 import { exploreHome, exploreRoot } from "@/map/home"
@@ -45,34 +46,6 @@ const destinations = [
   // Once Settings: the diver's own things and the log's upkeep.
   { to: "/you", label: "You", icon: IconScubaMask },
 ] as const
-
-declare module "@tanstack/react-router" {
-  interface HistoryState {
-    // Set by a Log card, so the dive's page knows the Log is behind it.
-    fromLog?: true
-    // Set by a screen inside You on what it pushes, so Back can go back.
-    pushed?: true
-    // A deleted dive opened from Recently deleted, which is behind it.
-    fromDeleted?: true
-    // A dive opened from an entity's detail, whose name its Back link says.
-    parent?: string
-    // A record's dive, or a site, buddy or region, opened from Statistics,
-    // which is behind it (behind the entity, for one of its dives).
-    fromStats?: true
-  }
-}
-
-// A click a link handles itself: Ctrl, Cmd or Shift with a mouse opens the
-// link elsewhere, as it would anywhere else, rather than going back.
-export function plainClick(event: MouseEvent) {
-  return (
-    event.button === 0 &&
-    !event.metaKey &&
-    !event.ctrlKey &&
-    !event.shiftKey &&
-    !event.altKey
-  )
-}
 
 // Back in history when the Log came before, so it returns with its scroll
 // position and filters, as a pushed screen pops; otherwise a fresh Log.
