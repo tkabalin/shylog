@@ -17,7 +17,7 @@ export function useCardWidth() {
   const stored = useSyncExternalStore(cardWidth.subscribe, cardWidth.get)
   const [dragged, setDragged] = useState<number>()
   const width = dragged ?? stored
-  // The most a narrow window leaves it (60% of the map), so the handle
+  // The most a narrow window leaves it (70% of the map), so the handle
   // reports and steps from the width drawn, not the one stored.
   const [cap, setCap] = useState(widest)
   const drawn = Math.min(width, cap)
@@ -25,7 +25,7 @@ export function useCardWidth() {
     if (!container) return
     const report = () => {
       const map = container.clientWidth
-      setCap(Math.min(map - 24, map * 0.6))
+      setCap(Math.min(map - 24, map * 0.7))
     }
     report()
     const observer = new ResizeObserver(report)

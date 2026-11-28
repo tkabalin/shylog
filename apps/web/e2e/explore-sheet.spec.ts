@@ -495,7 +495,9 @@ test.describe("at desktop width", () => {
     const card = page.getByRole("region", { name: aFrame.name })
     const box = (await card.boundingBox())!
     expect(box.x).toBeCloseTo(map.x + 12, 0)
-    expect(box.width).toBe(360)
+    // Wide enough for the filters on one row, unless that's past 70% of
+    // the map beside the sidebar.
+    expect(box.width).toBeCloseTo(Math.min(560, map.width * 0.7), 0)
     // As tall as the summary, so the map shows below it.
     expect(box.y + box.height).toBeLessThan(map.y + map.height - 200)
     const understand = card.getByRole("heading", {
@@ -572,6 +574,10 @@ test.describe("at desktop width", () => {
     page,
   }) => {
     await page.goto("/explore?site=a-frame")
+    await drawn(page)
+    // From the narrowest, which the map's share never caps.
+    await page.evaluate(() => localStorage.setItem("explore-card-width", "360"))
+    await page.reload()
     await drawn(page)
     const card = page.getByRole("region", { name: aFrame.name })
     const edge = page.getByRole("separator", { name: "Resize" })
