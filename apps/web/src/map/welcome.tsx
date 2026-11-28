@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import {
   IconAdjustmentsHorizontal,
   IconBook,
@@ -34,10 +34,11 @@ const features = [
   { icon: IconWind, text: "Find sites sheltered from today's wind and swell" },
 ]
 
-// The public site's first visit on a phone, where nothing over the map
-// names it: what the site is and who made it, once.
+// The public site's first visit: what the site is and who made it, once.
+// A sheet on a phone, and from desk: up the drawer's centred dialog.
 export function Welcome({ total }: { total: number }) {
   const [open, setOpen] = useState(() => !welcomed.get())
+  const start = useRef<HTMLDivElement>(null)
   const close = () => {
     welcomed.set(true)
     setOpen(false)
@@ -48,7 +49,9 @@ export function Welcome({ total }: { total: number }) {
       open={open}
       onOpenChange={(next) => !next && close()}
     >
-      <DrawerContent>
+      {/* Focus on the dialog itself, which names it, as a page that opens
+          with it drew a focus ring round the byline's link or the button. */}
+      <DrawerContent ref={start} initialFocus={start}>
         <div className="flex flex-col items-center gap-1 px-6 pt-6 text-center">
           <img src="/favicon.svg" alt="" className="mb-3 size-14" />
           <DrawerTitle className="text-xl font-semibold tracking-tight">

@@ -401,8 +401,7 @@ export default function Explore({
           onShow={showImage}
         />
       )}
-      {/* A phone has no heading over the map to name the public site. */}
-      {publicSite && !desk && plain && <Welcome total={sites.length} />}
+      {publicSite && plain && <Welcome total={sites.length} />}
       {!desk && view === "list" && (
         <Screen title={listTitle}>
           <div className="shrink-0 px-4 pt-1">
