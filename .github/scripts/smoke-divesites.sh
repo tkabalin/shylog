@@ -17,10 +17,12 @@ address() {
   [[ $ns ]] && dig +short "@$ns" "$host" A | awk '/^[0-9.]+$/ && !n++'
 }
 # Retried, as this runs on every push to main, and a busy edge mustn't fail
-# one that changed nothing. curl retries only timeouts and 5xx, not a 404.
+# one that changed nothing. A 404 too, as an edge can serve the new build.txt
+# a moment before the rest of the deploy (seen on 13bf53b).
 get() {
   ip=$(address) && [[ $ip ]] || { echo "No address for $host" >&2; return 1; }
-  curl -fsS --retry 3 --max-time 20 --resolve "$host:443:$ip" "$@"
+  curl -fsS --retry 3 --retry-all-errors --max-time 20 \
+    --resolve "$host:443:$ip" "$@"
 }
 status() {
   ip=$(address) && [[ $ip ]] || { echo "No address for $host" >&2; return 1; }
