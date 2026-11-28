@@ -33,7 +33,9 @@ test.describe("the public dive site map @divesites", () => {
     await drawn(page)
     const boat = sites.filter(byBoat).length
     await page.getByRole("button", { name: `List of ${boat} sites` }).click()
-    await expect(page.getByRole("region", { name: "Dive sites" })).toBeVisible()
+    await expect(
+      page.getByRole("region", { name: "Cape Town dive sites" })
+    ).toBeVisible()
     await expect(page).toHaveURL("/?access=boat&view=list")
     // The list is a screen a level deeper, which Back closes.
     await page.goBack()
@@ -55,8 +57,11 @@ test.describe("the public dive site map @divesites", () => {
       await card.getByRole("link", { name: "Dive sites" }).click()
       await expect(page).toHaveURL("/")
       await expect(card).toHaveCount(0)
-      // The list's card, folded until opened.
-      const list = page.getByRole("region", { name: "Dive sites" })
+      // The list's card, folded until opened, says where the sites are.
+      const list = page.getByRole("region", { name: "Cape Town dive sites" })
+      await expect(
+        list.getByRole("heading", { name: "Cape Town dive sites" })
+      ).toBeVisible()
       await expect(
         list.getByRole("button", { name: "Show the list" })
       ).toHaveAttribute("aria-expanded", "false")
