@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "preview:divesites": "vite preview -c vite.divesites.config.ts",
     "icons": "node scripts/apple-touch-icon.ts",
+    "share-image": "node scripts/share-image.ts",
     "map:aerial": "node scripts/map/aerial.ts",
     "map:basemap": "node scripts/map/basemap.ts",
     "map:images": "node scripts/map/images.ts",

@@ -87,9 +87,10 @@ export function basemapTiles(extract: string): Plugin {
   }
 }
 
-// Files Cloudflare reads from the site's root: how long each may be
-// cached, and that search engines are welcome.
-export function hostFiles(): Plugin {
+// Files read from the site's root: how long each may be cached, that search
+// engines are welcome, and the picture a shared link shows (share-image.ts),
+// at an address of its own, as the page names it whole.
+export function hostFiles(share: string): Plugin {
   const headers = [
     // Named by their contents, so they never change at an address.
     "/assets/*",
@@ -101,12 +102,17 @@ export function hostFiles(): Plugin {
   return {
     name: "host-files",
     apply: "build",
-    generateBundle() {
+    async generateBundle() {
       this.emitFile({ type: "asset", fileName: "_headers", source: headers })
       this.emitFile({
         type: "asset",
         fileName: "robots.txt",
         source: "User-agent: *\nAllow: /\n",
+      })
+      this.emitFile({
+        type: "asset",
+        fileName: "og.png",
+        source: await readFile(share),
       })
     },
   }
