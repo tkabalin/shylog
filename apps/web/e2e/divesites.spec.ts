@@ -5,7 +5,37 @@ import { aFrame, byBoat, drawn, sites } from "./explore"
 // Cape Town Dive Sites, the public dive site map: Explore alone at the
 // address's root, built as it's deployed, with no server behind it.
 
+test.describe("a first visit to the public dive site map @divesites", () => {
+  test("welcomes a phone's first visit, once", async ({ page }) => {
+    await page.goto("/")
+    const welcome = page.getByRole("dialog", { name: "Cape Town dive sites" })
+    await expect(
+      welcome.getByRole("link", { name: "Thomas Kabalin" })
+    ).toHaveAttribute("href", "https://thomaskabalin.com")
+    await welcome.getByRole("button", { name: "Explore the map" }).click()
+    await expect(welcome).toHaveCount(0)
+    await page.reload()
+    await drawn(page)
+    await expect(page.getByRole("dialog")).toHaveCount(0)
+  })
+
+  test("opens a link to a site with no welcome in front", async ({ page }) => {
+    await page.goto(`/?site=${aFrame.id}`)
+    await expect(
+      page.getByRole("dialog").getByRole("heading", { name: aFrame.name })
+    ).toBeVisible()
+    await expect(
+      page.getByRole("dialog", { name: "Cape Town dive sites" })
+    ).toHaveCount(0)
+  })
+})
+
 test.describe("the public dive site map @divesites", () => {
+  // As a visitor who has seen the welcome.
+  test.beforeEach(({ page }) =>
+    page.addInitScript(() => localStorage.setItem("divesites-welcomed", "1"))
+  )
+
   test("draws the map with nothing of the app's server", async ({ page }) => {
     const asked: string[] = []
     page.on("request", (request) => asked.push(new URL(request.url()).pathname))
