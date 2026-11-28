@@ -81,7 +81,7 @@ export default defineConfig({
     tailwindcss(),
     arcgisKey(),
     basemapTiles(resolve(src, "map/basemap.pmtiles")),
-    hostFiles(),
+    hostFiles(resolve(src, "divesites/share.png")),
     buildStamp(resolve(import.meta.dirname, "wrangler.jsonc")),
     page,
   ],
