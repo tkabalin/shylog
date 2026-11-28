@@ -15,6 +15,8 @@ import {
 // built from divesites.html into dist-divesites for Cloudflare.
 
 const src = resolve(import.meta.dirname, "src")
+// Where Cloudflare serves the site (wrangler.jsonc), for its sitemap.
+const origin = "https://divesites.thomaskabalin.com"
 
 // The app's modules the public site replaces with its own: the map's host
 // and tiles, and the error reports, which have no server to go to.
@@ -86,7 +88,7 @@ export default defineConfig({
     tailwindcss(),
     arcgisKey(),
     basemapTiles(resolve(src, "map/basemap.pmtiles")),
-    hostFiles(resolve(src, "divesites/share.png")),
+    hostFiles(resolve(src, "divesites/share.png"), origin),
     siteIndex(resolve(src, "map/sites.geojson")),
     buildStamp(resolve(import.meta.dirname, "wrangler.jsonc")),
     page,

@@ -90,9 +90,9 @@ export function basemapTiles(extract: string): Plugin {
 }
 
 // Files read from the site's root: how long each may be cached, that search
-// engines are welcome, and the picture a shared link shows (share-image.ts),
-// at an address of its own, as the page names it whole.
-export function hostFiles(share: string): Plugin {
+// engines are welcome and where its sitemap is, and the picture a shared link
+// shows (share-image.ts), at an address of its own, as the page names it whole.
+export function hostFiles(share: string, origin: string): Plugin {
   const headers = [
     // Named by their contents, so they never change at an address.
     "/assets/*",
@@ -109,7 +109,20 @@ export function hostFiles(share: string): Plugin {
       this.emitFile({
         type: "asset",
         fileName: "robots.txt",
-        source: "User-agent: *\nAllow: /\n",
+        source: `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`,
+      })
+      // The one page, with no <lastmod>: a build date would change build.txt
+      // and redeploy the site on every push.
+      this.emitFile({
+        type: "asset",
+        fileName: "sitemap.xml",
+        source: [
+          `<?xml version="1.0" encoding="UTF-8"?>`,
+          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+          `  <url><loc>${origin}/</loc></url>`,
+          `</urlset>`,
+          "",
+        ].join("\n"),
       })
       this.emitFile({
         type: "asset",
