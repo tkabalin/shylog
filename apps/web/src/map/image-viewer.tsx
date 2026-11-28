@@ -37,10 +37,12 @@ function Picture({ i, style, ...props }: PageImageProps) {
   const image = images[i]
   const [loaded, setLoaded] = useState<string>()
   // Fitted to the stage from the size the credits give, so its box is laid
-  // out (and can be pinched) before the file decodes; a small one grows.
+  // out (and can be pinched) before the file decodes. A small one grows to
+  // at most two screen pixels a pixel, as further it only blurs.
   const fit = Math.min(
     Number(style.maxWidth) / image.width,
-    Number(style.maxHeight) / image.height
+    Number(style.maxHeight) / image.height,
+    maxGrowth / window.devicePixelRatio
   )
   return (
     <img
@@ -65,6 +67,9 @@ function Picture({ i, style, ...props }: PageImageProps) {
   )
 }
 
+// How far a small image grows to fill the stage, in screen pixels per pixel.
+const maxGrowth = 2
+
 // How far an image can be pinched in: until its own pixels are each about
 // two and a half of the screen's, so a 3840 px map reaches its smallest
 // depth labels (8×, the most) while a 1200 px one stops before it blurs
@@ -72,7 +77,8 @@ function Picture({ i, style, ...props }: PageImageProps) {
 function zoomFor(image: SiteImage, insetY: number) {
   const room = Math.min(
     window.innerWidth - 32,
-    ((window.innerHeight - insetY * 2) * image.width) / image.height
+    ((window.innerHeight - insetY * 2) * image.width) / image.height,
+    (image.width * maxGrowth) / window.devicePixelRatio
   )
   const sharp = image.width / (room * window.devicePixelRatio)
   return Math.min(8, Math.max(2, sharp * 2.5))
