@@ -37,6 +37,7 @@ import { useDesk } from "@/hooks/use-desk"
 import { reduced } from "@/lib/motion"
 
 import { aerialAt } from "./aerial"
+import { author } from "./author"
 import { exploreHome } from "./home"
 import { publicSite } from "./host"
 import { keyRefused } from "./imagery"
@@ -358,7 +359,14 @@ function create(
   const created = new MapLibre({
     container: element,
     style: styleNow(theme, picked),
-    attributionControl: { compact: true },
+    // The public site's credit leads with its maker, as MapLibre puts the
+    // shortest credit first.
+    attributionControl: {
+      compact: true,
+      customAttribution: publicSite
+        ? `By <a href="${author.url}" target="_blank" rel="noopener">${author.name}</a>`
+        : undefined,
+    },
     // Where it was left, or at a site in the address, or the coast.
     ...(camera ??
       (picked && {

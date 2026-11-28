@@ -20,6 +20,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { months } from "@/format/dates"
 import { localValue } from "@/lib/local-value"
 
+import { author } from "./author"
 import { extractBuilt } from "./extract-built"
 import { publicSite } from "./host"
 import { imageryThumb } from "./imagery"
@@ -272,12 +273,12 @@ function Body({
               <li>
                 <b className="font-medium text-foreground">By</b>:{" "}
                 <a
-                  href="https://thomaskabalin.com"
+                  href={author.url}
                   target="_blank"
                   rel="noopener"
                   className={link}
                 >
-                  Thomas Kabalin
+                  {author.name}
                 </a>
                 .
               </li>
