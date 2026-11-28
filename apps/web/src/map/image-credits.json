@@ -7,7 +7,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Cleeve%27s_Tunnel_map.png",
     "width": 1597,
     "height": 1910,
-    "sha1": "e6918ef7a2ec182a5b1142c3cfbe1d7789239a6e"
+    "sha1": "e6918ef7a2ec182a5b1142c3cfbe1d7789239a6e",
+    "quality": 60
   },
   "Blue Rock Quarry.png": {
     "key": "blue-rock-quarry",
@@ -17,7 +18,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Blue_Rock_Quarry.png",
     "width": 1200,
     "height": 901,
-    "sha1": "a5de821df8e1e5ff8127d687d35378073af4df68"
+    "sha1": "a5de821df8e1e5ff8127d687d35378073af4df68",
+    "quality": 90
   },
   "13th Apostle Map.png": {
     "key": "13th-apostle-map",
@@ -27,7 +29,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:13th_Apostle_Map.png",
     "width": 2691,
     "height": 1933,
-    "sha1": "3d1aca26f04d8f62b1dbf803f61bb3d47ec70594"
+    "sha1": "3d1aca26f04d8f62b1dbf803f61bb3d47ec70594",
+    "quality": 60
   },
   "A-Frame route.png": {
     "key": "a-frame-route",
@@ -37,7 +40,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:A-Frame_route.png",
     "width": 1224,
     "height": 939,
-    "sha1": "77718b79bb8e2cd75ce3d59a3107b08c42608a03"
+    "sha1": "77718b79bb8e2cd75ce3d59a3107b08c42608a03",
+    "quality": 90
   },
   "A-Frame site map.png": {
     "key": "a-frame-site-map",
@@ -47,7 +51,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:A-Frame_site_map.png",
     "width": 1221,
     "height": 938,
-    "sha1": "27de5797deb1b3c942170f9a00f4f3dcec2c03cd"
+    "sha1": "27de5797deb1b3c942170f9a00f4f3dcec2c03cd",
+    "quality": 90
   },
   "Atlantis Reef map.png": {
     "key": "atlantis-reef-map",
@@ -57,7 +62,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Atlantis_Reef_map.png",
     "width": 3840,
     "height": 2333,
-    "sha1": "3cabb9d4a82e6912c54b408a76bdeeb71e5a7f47"
+    "sha1": "3cabb9d4a82e6912c54b408a76bdeeb71e5a7f47",
+    "quality": 60
   },
   "Bakoven Rock Reef Map.png": {
     "key": "bakoven-rock-reef-map",
@@ -67,7 +73,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Bakoven_Rock_Reef_Map.png",
     "width": 3840,
     "height": 2668,
-    "sha1": "e390e992db40e8ea8ad7bed5cb03a314e9730a1c"
+    "sha1": "e390e992db40e8ea8ad7bed5cb03a314e9730a1c",
+    "quality": 60
   },
   "Castle Rocks Map.png": {
     "key": "castle-rocks-map",
@@ -77,7 +84,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Castle_Rocks_Map.png",
     "width": 3008,
     "height": 2854,
-    "sha1": "af7c8b795f768c26d6581a79ea42556b676fdbb4"
+    "sha1": "af7c8b795f768c26d6581a79ea42556b676fdbb4",
+    "quality": 60
   },
   "Castor Rock Reef map.png": {
     "key": "castor-rock-reef-map",
@@ -87,7 +95,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Castor_Rock_Reef_map.png",
     "width": 3840,
     "height": 2900,
-    "sha1": "2b71c29bf00bef793f6653746cfa7531e3384145"
+    "sha1": "2b71c29bf00bef793f6653746cfa7531e3384145",
+    "quality": 60
   },
   "Coral Gardens Oudekraal site map Detail.png": {
     "key": "coral-gardens-oudekraal-site-map-detail",
@@ -97,7 +106,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Coral_Gardens_Oudekraal_site_map_Detail.png",
     "width": 2557,
     "height": 1606,
-    "sha1": "21f5470d8e77d0392d0c8f927a780189fa3893ec"
+    "sha1": "21f5470d8e77d0392d0c8f927a780189fa3893ec",
+    "quality": 60
   },
   "Coral Gardens Oudekraal site map Large.png": {
     "key": "coral-gardens-oudekraal-site-map-large",
@@ -107,7 +117,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Coral_Gardens_Oudekraal_site_map_Large.png",
     "width": 2000,
     "height": 1256,
-    "sha1": "bd5d9e3be82439a413d3ccf0cc22c534ec88735c"
+    "sha1": "bd5d9e3be82439a413d3ccf0cc22c534ec88735c",
+    "quality": 60
   },
   "Dive sites of Caravan Reef.png": {
     "key": "dive-sites-of-caravan-reef",
@@ -117,7 +128,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dive_sites_of_Caravan_Reef.png",
     "width": 3722,
     "height": 3840,
-    "sha1": "78df926e7446d72371cbfd72e56c41b177a27d41"
+    "sha1": "78df926e7446d72371cbfd72e56c41b177a27d41",
+    "quality": 60
   },
   "Long Beach map.png": {
     "key": "long-beach-map",
@@ -127,7 +139,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Long_Beach_map.png",
     "width": 2101,
     "height": 3000,
-    "sha1": "edcf58fc63bcd443394f49955dde9c8624a87678"
+    "sha1": "edcf58fc63bcd443394f49955dde9c8624a87678",
+    "quality": 60
   },
   "Map of CT dive sites A-Frame and D-frame with grid.png": {
     "key": "map-of-ct-dive-sites-a-frame-and-d-frame-with-grid",
@@ -137,7 +150,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_CT_dive_sites_A-Frame_and_D-frame_with_grid.png",
     "width": 3540,
     "height": 2088,
-    "sha1": "98576e940218a8e03a6c18fe63b2beaad8ed13ab"
+    "sha1": "98576e940218a8e03a6c18fe63b2beaad8ed13ab",
+    "quality": 60
   },
   "Roman Rambler and Castor rocks map.png": {
     "key": "roman-rambler-and-castor-rocks-map",
@@ -147,7 +161,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Roman_Rambler_and_Castor_rocks_map.png",
     "width": 3840,
     "height": 3687,
-    "sha1": "213337fbf828bc59007890c9a0024cf03acefb49"
+    "sha1": "213337fbf828bc59007890c9a0024cf03acefb49",
+    "quality": 60
   },
   "Vulcan Rock and Di's Cracks map.png": {
     "key": "vulcan-rock-and-dis-cracks-map",
@@ -157,7 +172,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Vulcan_Rock_and_Di%27s_Cracks_map.png",
     "width": 3840,
     "height": 3097,
-    "sha1": "2b45e2449a1ba07ed984fb83887116cc7a17f011"
+    "sha1": "2b45e2449a1ba07ed984fb83887116cc7a17f011",
+    "quality": 60
   },
   "Map of the CT dive site Cow and Calf.png": {
     "key": "map-of-the-ct-dive-site-cow-and-calf",
@@ -167,7 +183,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_the_CT_dive_site_Cow_and_Calf.png",
     "width": 1208,
     "height": 873,
-    "sha1": "dd58daa2c486d30a88ceb50edbc47e9c4524fccf"
+    "sha1": "dd58daa2c486d30a88ceb50edbc47e9c4524fccf",
+    "quality": 90
   },
   "Ankers and Balcony Aerial.jpg": {
     "key": "ankers-and-balcony-aerial",
@@ -177,7 +194,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Ankers_and_Balcony_Aerial.jpg",
     "width": 865,
     "height": 626,
-    "sha1": "1d1ecb021538cbbf30e93fb04a234591fb342e12"
+    "sha1": "1d1ecb021538cbbf30e93fb04a234591fb342e12",
+    "quality": 90
   },
   "Bato and Brunswick.jpg": {
     "key": "bato-and-brunswick",
@@ -187,7 +205,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Bato_and_Brunswick.jpg",
     "width": 976,
     "height": 1345,
-    "sha1": "db65508d6296cfefebd691f90e7e0cce9848ead2"
+    "sha1": "db65508d6296cfefebd691f90e7e0cce9848ead2",
+    "quality": 90
   },
   "Blue Rock Quarry Aerial view before filling 994 016 06710 crop.jpg": {
     "key": "blue-rock-quarry-aerial-view-before-filling-994-016-06710-cr",
@@ -197,7 +216,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Blue_Rock_Quarry_Aerial_view_before_filling_994_016_06710_crop.jpg",
     "width": 1800,
     "height": 1245,
-    "sha1": "df645f625caa09c49639bbf52bd07f1b534d0deb"
+    "sha1": "df645f625caa09c49639bbf52bd07f1b534d0deb",
+    "quality": 60
   },
   "Castle Rocks 150dpi.jpg": {
     "key": "castle-rocks-150dpi",
@@ -207,7 +227,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Castle_Rocks_150dpi.jpg",
     "width": 1755,
     "height": 1275,
-    "sha1": "e82b2afa1f6826cb9eb951f56fcb9ed37a779961"
+    "sha1": "e82b2afa1f6826cb9eb951f56fcb9ed37a779961",
+    "quality": 60
   },
   "Clifton Rocks 150dpi.jpg": {
     "key": "clifton-rocks-150dpi",
@@ -217,7 +238,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Clifton_Rocks_150dpi.jpg",
     "width": 1755,
     "height": 1275,
-    "sha1": "06bcfddb68fc899c7e375259f6a419787185d29d"
+    "sha1": "06bcfddb68fc899c7e375259f6a419787185d29d",
+    "quality": 60
   },
   "Container Bay Aerial.jpg": {
     "key": "container-bay-aerial",
@@ -227,7 +249,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Container_Bay_Aerial.jpg",
     "width": 888,
     "height": 785,
-    "sha1": "a19bf3e364e633a1311ba68086a8faff9336c233"
+    "sha1": "a19bf3e364e633a1311ba68086a8faff9336c233",
+    "quality": 90
   },
   "Coral Gardens and Groot Pannekoek 150dpi.jpg": {
     "key": "coral-gardens-and-groot-pannekoek-150dpi",
@@ -237,7 +260,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Coral_Gardens_and_Groot_Pannekoek_150dpi.jpg",
     "width": 1677,
     "height": 1275,
-    "sha1": "36495e814aca7efa6b6c6d39a677c0ab0f32b2aa"
+    "sha1": "36495e814aca7efa6b6c6d39a677c0ab0f32b2aa",
+    "quality": 60
   },
   "Coral Gardens RE Aerial.jpg": {
     "key": "coral-gardens-re-aerial",
@@ -247,7 +271,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Coral_Gardens_RE_Aerial.jpg",
     "width": 700,
     "height": 538,
-    "sha1": "9b70427fa77fb2d179ded2373d14d335f88cd747"
+    "sha1": "9b70427fa77fb2d179ded2373d14d335f88cd747",
+    "quality": 90
   },
   "Cow and Calf Aerial.jpg": {
     "key": "cow-and-calf-aerial",
@@ -257,7 +282,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Cow_and_Calf_Aerial.jpg",
     "width": 612,
     "height": 461,
-    "sha1": "d0c29544f558bc62dfd34392de3bc9589aa56495"
+    "sha1": "d0c29544f558bc62dfd34392de3bc9589aa56495",
+    "quality": 90
   },
   "Dale Brook 300dpi crop.jpg": {
     "key": "dale-brook-300dpi-crop",
@@ -267,7 +293,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dale_Brook_300dpi_crop.jpg",
     "width": 1905,
     "height": 1475,
-    "sha1": "87c218a1b54569be8913dcd756937def07cf69bf"
+    "sha1": "87c218a1b54569be8913dcd756937def07cf69bf",
+    "quality": 60
   },
   "Phoenix shoal 150dpi.jpg": {
     "key": "phoenix-shoal-150dpi",
@@ -277,7 +304,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Phoenix_shoal_150dpi.jpg",
     "width": 1275,
     "height": 1755,
-    "sha1": "37d8077410dece8b123520c23ab9d268c8c4ca28"
+    "sha1": "37d8077410dece8b123520c23ab9d268c8c4ca28",
+    "quality": 60
   },
   "Bakoven NSRI 300dpi.jpg": {
     "key": "bakoven-nsri-300dpi",
@@ -287,7 +315,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Bakoven_NSRI_300dpi.jpg",
     "width": 2269,
     "height": 1773,
-    "sha1": "9341b4c709d03dd74bbb1fe1ba84c9b925f6f3ad"
+    "sha1": "9341b4c709d03dd74bbb1fe1ba84c9b925f6f3ad",
+    "quality": 60
   },
   "Bordjiesrif 300dpi.jpg": {
     "key": "bordjiesrif-300dpi",
@@ -297,7 +326,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Bordjiesrif_300dpi.jpg",
     "width": 2550,
     "height": 3510,
-    "sha1": "110b0e145e32dc2bc7ab193dfa310d952d4001fe"
+    "sha1": "110b0e145e32dc2bc7ab193dfa310d952d4001fe",
+    "quality": 60
   },
   "Blousteen Aerial.jpg": {
     "key": "blousteen-aerial",
@@ -307,7 +337,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Blousteen_Aerial.jpg",
     "width": 895,
     "height": 582,
-    "sha1": "9f6d929a001f253498c429b309e54ee1c7262992"
+    "sha1": "9f6d929a001f253498c429b309e54ee1c7262992",
+    "quality": 90
   },
   "Duiker Point Canyon map.png": {
     "key": "duiker-point-canyon-map",
@@ -317,7 +348,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Duiker_Point_Canyon_map.png",
     "width": 3840,
     "height": 3137,
-    "sha1": "9b480d8e2333ce2ebcf07a5be6f7fc4d35be51b5"
+    "sha1": "9b480d8e2333ce2ebcf07a5be6f7fc4d35be51b5",
+    "quality": 60
   },
   "Alpha Reef Map.png": {
     "key": "alpha-reef-map",
@@ -327,7 +359,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Alpha_Reef_Map.png",
     "width": 3840,
     "height": 2813,
-    "sha1": "d8be7f3affeb1b20e456fc729f292870544f954e"
+    "sha1": "d8be7f3affeb1b20e456fc729f292870544f954e",
+    "quality": 60
   },
   "PMB Pinnacles map.png": {
     "key": "pmb-pinnacles-map",
@@ -337,7 +370,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:PMB_Pinnacles_map.png",
     "width": 3840,
     "height": 2401,
-    "sha1": "941470a487fc18845150e2ee35023c7bf7ba08b8"
+    "sha1": "941470a487fc18845150e2ee35023c7bf7ba08b8",
+    "quality": 60
   },
   "Die Josie map.png": {
     "key": "die-josie-map",
@@ -347,7 +381,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Die_Josie_map.png",
     "width": 3840,
     "height": 2939,
-    "sha1": "19c078353e2f1a11eff0f733ce1e4e3189277a25"
+    "sha1": "19c078353e2f1a11eff0f733ce1e4e3189277a25",
+    "quality": 60
   },
   "Dive sites of Rocklands Point.png": {
     "key": "dive-sites-of-rocklands-point",
@@ -357,7 +392,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dive_sites_of_Rocklands_Point.png",
     "width": 3000,
     "height": 3097,
-    "sha1": "f1eaedda21176929fbb4c2ac0b56add4b52a8025"
+    "sha1": "f1eaedda21176929fbb4c2ac0b56add4b52a8025",
+    "quality": 60
   },
   "Anvil Rock Reef map.png": {
     "key": "anvil-rock-reef-map",
@@ -367,7 +403,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Anvil_Rock_Reef_map.png",
     "width": 3840,
     "height": 3621,
-    "sha1": "d82900ec21044e67791064aa33b8383fbeb157e6"
+    "sha1": "d82900ec21044e67791064aa33b8383fbeb157e6",
+    "quality": 60
   },
   "Coral Gardens offshore pinnacles map.png": {
     "key": "coral-gardens-offshore-pinnacles-map",
@@ -377,7 +414,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Coral_Gardens_offshore_pinnacles_map.png",
     "width": 3840,
     "height": 2280,
-    "sha1": "368bfc3ebad35f641a0d32e18bdcafa18c260fbf"
+    "sha1": "368bfc3ebad35f641a0d32e18bdcafa18c260fbf",
+    "quality": 60
   },
   "Coral Gardens Rooi-els dive site map.png": {
     "key": "coral-gardens-rooi-els-dive-site-map",
@@ -387,7 +425,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Coral_Gardens_Rooi-els_dive_site_map.png",
     "width": 3000,
     "height": 2000,
-    "sha1": "d9da70ffe6202d2f3b8bee84a6c75e8c7cad7731"
+    "sha1": "d9da70ffe6202d2f3b8bee84a6c75e8c7cad7731",
+    "quality": 60
   },
   "Dive sites of Batsata Reef.png": {
     "key": "dive-sites-of-batsata-reef",
@@ -397,7 +436,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dive_sites_of_Batsata_Reef.png",
     "width": 3314,
     "height": 3840,
-    "sha1": "22404d5ea79dbb1d65be1f8b329c12467e5c6885"
+    "sha1": "22404d5ea79dbb1d65be1f8b329c12467e5c6885",
+    "quality": 60
   },
   "Boardroom pinnacle map.png": {
     "key": "boardroom-pinnacle-map",
@@ -407,7 +447,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Boardroom_pinnacle_map.png",
     "width": 3840,
     "height": 3799,
-    "sha1": "7e710cba1b1339dee1d1638a1b94493a15504ec4"
+    "sha1": "7e710cba1b1339dee1d1638a1b94493a15504ec4",
+    "quality": 60
   },
   "Bantry Bay Pinnacles map.png": {
     "key": "bantry-bay-pinnacles-map",
@@ -417,7 +458,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Bantry_Bay_Pinnacles_map.png",
     "width": 3000,
     "height": 2673,
-    "sha1": "b9d7b5db0460d28af327fabed1934c74743a7915"
+    "sha1": "b9d7b5db0460d28af327fabed1934c74743a7915",
+    "quality": 60
   },
   "3D Wreckless Marine multi-beam sonar image of Billy's Reef, Off Whittle- Southern reefs, False Bay, South Africa.png": {
     "key": "3d-wreckless-marine-multi-beam-sonar-image-of-billys-reef-of",
@@ -427,7 +469,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:3D_Wreckless_Marine_multi-beam_sonar_image_of_Billy%27s_Reef,_Off_Whittle-_Southern_reefs,_False_Bay,_South_Africa.png",
     "width": 1341,
     "height": 793,
-    "sha1": "fcb4afe4b30ec21d95606b28c1fe5097815592e0"
+    "sha1": "fcb4afe4b30ec21d95606b28c1fe5097815592e0",
+    "quality": 90
   },
   "Blomvlei.png": {
     "key": "blomvlei",
@@ -437,7 +480,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Blomvlei.png",
     "width": 268,
     "height": 221,
-    "sha1": "cba616f9e9601b497bf06e9e8aa65d3f13db29b6"
+    "sha1": "cba616f9e9601b497bf06e9e8aa65d3f13db29b6",
+    "quality": 90
   },
   "Brunswick shipwreck.png": {
     "key": "brunswick-shipwreck",
@@ -447,7 +491,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Brunswick_shipwreck.png",
     "width": 409,
     "height": 466,
-    "sha1": "2631dee1a12c33e108906bb603937f8639f7225e"
+    "sha1": "2631dee1a12c33e108906bb603937f8639f7225e",
+    "quality": 90
   },
   "Whittle Rock and Surrounds.pdf": {
     "key": "whittle-rock-and-surrounds",
@@ -457,7 +502,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Whittle_Rock_and_Surrounds.pdf",
     "width": 3840,
     "height": 2715,
-    "sha1": "f57e7e4c2e535a464daaf883bb2370b101ead624"
+    "sha1": "f57e7e4c2e535a464daaf883bb2370b101ead624",
+    "quality": 60
   },
   "Billy's Reef.png": {
     "key": "billys-reef",
@@ -467,7 +513,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Billy%27s_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "c410f769c44c4f68744b8631f2c640060953588b"
+    "sha1": "c410f769c44c4f68744b8631f2c640060953588b",
+    "quality": 90
   },
   "Blue Flame Reef.png": {
     "key": "blue-flame-reef",
@@ -477,7 +524,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Blue_Flame_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "7b19dd7a34d253cca5f8fbeff1c069be072f6e46"
+    "sha1": "7b19dd7a34d253cca5f8fbeff1c069be072f6e46",
+    "quality": 90
   },
   "Bruce's Mark Reef.png": {
     "key": "bruces-mark-reef",
@@ -487,7 +535,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Bruce%27s_Mark_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "45db857e2b7954f3d6868b71be740a054b767f4b"
+    "sha1": "45db857e2b7954f3d6868b71be740a054b767f4b",
+    "quality": 90
   },
   "Deep South Ridge.png": {
     "key": "deep-south-ridge",
@@ -497,7 +546,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Deep_South_Ridge.png",
     "width": 1184,
     "height": 930,
-    "sha1": "d5e58930f2c10a0bca39ce87bf1df83e271de8d3"
+    "sha1": "d5e58930f2c10a0bca39ce87bf1df83e271de8d3",
+    "quality": 90
   },
   "Fan Reef Map.png": {
     "key": "fan-reef-map",
@@ -507,7 +557,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Fan_Reef_Map.png",
     "width": 3791,
     "height": 3839,
-    "sha1": "a00a42de6a3d907fc4b26ef01402ac5977f95c1d"
+    "sha1": "a00a42de6a3d907fc4b26ef01402ac5977f95c1d",
+    "quality": 60
   },
   "Highfields sonar scan.jpg": {
     "key": "highfields-sonar-scan",
@@ -517,7 +568,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Highfields_sonar_scan.jpg",
     "width": 713,
     "height": 569,
-    "sha1": "5cb71d7506efa5d04346182b05599b9b518fbaee"
+    "sha1": "5cb71d7506efa5d04346182b05599b9b518fbaee",
+    "quality": 90
   },
   "Huis te Kraaiestein sketch map.png": {
     "key": "huis-te-kraaiestein-sketch-map",
@@ -527,7 +579,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Huis_te_Kraaiestein_sketch_map.png",
     "width": 1200,
     "height": 857,
-    "sha1": "6abd6a73fc7c3117b411e7d01226b66c75464e96"
+    "sha1": "6abd6a73fc7c3117b411e7d01226b66c75464e96",
+    "quality": 90
   },
   "Map of the CT dive sites at Rocklands Point.png": {
     "key": "map-of-the-ct-dive-sites-at-rocklands-point",
@@ -537,7 +590,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_the_CT_dive_sites_at_Rocklands_Point.png",
     "width": 1200,
     "height": 1150,
-    "sha1": "f40d1d5f396fafd52d9fee21739efda4aa9bdacb"
+    "sha1": "f40d1d5f396fafd52d9fee21739efda4aa9bdacb",
+    "quality": 90
   },
   "Percys and Kruis2.png": {
     "key": "percys-and-kruis2",
@@ -547,7 +601,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Percys_and_Kruis2.png",
     "width": 3000,
     "height": 2265,
-    "sha1": "9d20ef1dcf7c49145feec5640b937a0a5752a5cf"
+    "sha1": "9d20ef1dcf7c49145feec5640b937a0a5752a5cf",
+    "quality": 60
   },
   "Dreadlocks Reef map.png": {
     "key": "dreadlocks-reef-map",
@@ -557,7 +612,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dreadlocks_Reef_map.png",
     "width": 1851,
     "height": 1321,
-    "sha1": "a6b433e991dfdb60688d4db980cc70d00d47f383"
+    "sha1": "a6b433e991dfdb60688d4db980cc70d00d47f383",
+    "quality": 60
   },
   "Finlay's Point dive sites.png": {
     "key": "finlays-point-dive-sites",
@@ -567,7 +623,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Finlay%27s_Point_dive_sites.png",
     "width": 3000,
     "height": 1693,
-    "sha1": "16ed8eda7f6ea1266c9f1b07725d504e97265133"
+    "sha1": "16ed8eda7f6ea1266c9f1b07725d504e97265133",
+    "quality": 60
   },
   "Friskies Pinnacle Map.png": {
     "key": "friskies-pinnacle-map",
@@ -577,7 +634,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Friskies_Pinnacle_Map.png",
     "width": 2899,
     "height": 2983,
-    "sha1": "6534be31cdccf462e8420d91b89b8705c54487dc"
+    "sha1": "6534be31cdccf462e8420d91b89b8705c54487dc",
+    "quality": 60
   },
   "Highfields wreck map.png": {
     "key": "highfields-wreck-map",
@@ -587,7 +645,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Highfields_wreck_map.png",
     "width": 3840,
     "height": 2774,
-    "sha1": "6a3711d507a053eb96589ad07642a589cfa625a2"
+    "sha1": "6a3711d507a053eb96589ad07642a589cfa625a2",
+    "quality": 60
   },
   "Justins Caves route.png": {
     "key": "justins-caves-route",
@@ -597,7 +656,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Justins_Caves_route.png",
     "width": 3014,
     "height": 2517,
-    "sha1": "a44ab7f09ed757d3f7c6d1131763b8d11c27eedc"
+    "sha1": "a44ab7f09ed757d3f7c6d1131763b8d11c27eedc",
+    "quality": 60
   },
   "Klein Tafelberg Reef map.png": {
     "key": "klein-tafelberg-reef-map",
@@ -607,7 +667,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Klein_Tafelberg_Reef_map.png",
     "width": 3840,
     "height": 3022,
-    "sha1": "d17b8e5e5cb69fc223f520e9b630123d849edea7"
+    "sha1": "d17b8e5e5cb69fc223f520e9b630123d849edea7",
+    "quality": 60
   },
   "Map of CT dive site Coral Gardens Oudekraal and Groot Pannekoek.png": {
     "key": "map-of-ct-dive-site-coral-gardens-oudekraal-and-groot-pannek",
@@ -617,7 +678,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_CT_dive_site_Coral_Gardens_Oudekraal_and_Groot_Pannekoek.png",
     "width": 2400,
     "height": 1742,
-    "sha1": "c15a1cddee2a2f75fa46ad31f301908086bd3c35"
+    "sha1": "c15a1cddee2a2f75fa46ad31f301908086bd3c35",
+    "quality": 60
   },
   "Middelmas and Hakka Reef map.png": {
     "key": "middelmas-and-hakka-reef-map",
@@ -627,7 +689,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Middelmas_and_Hakka_Reef_map.png",
     "width": 3840,
     "height": 2959,
-    "sha1": "ab5ad711342d40d989f6c0757c2e9508cb8cabd0"
+    "sha1": "ab5ad711342d40d989f6c0757c2e9508cb8cabd0",
+    "quality": 60
   },
   "Mont Blanc Reef map.png": {
     "key": "mont-blanc-reef-map",
@@ -637,7 +700,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Mont_Blanc_Reef_map.png",
     "width": 3000,
     "height": 2507,
-    "sha1": "6baa23366167c598f65a00f1e7b1fbb1e778a69d"
+    "sha1": "6baa23366167c598f65a00f1e7b1fbb1e778a69d",
+    "quality": 60
   },
   "North Oudekraal dive sites with routes.png": {
     "key": "north-oudekraal-dive-sites-with-routes",
@@ -647,7 +711,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:North_Oudekraal_dive_sites_with_routes.png",
     "width": 1200,
     "height": 1592,
-    "sha1": "8adaa74d6689e66cd87354a156217bb1e1669a15"
+    "sha1": "8adaa74d6689e66cd87354a156217bb1e1669a15",
+    "quality": 60
   },
   "Smits Wrecks and Good Hope Reef map.png": {
     "key": "smits-wrecks-and-good-hope-reef-map",
@@ -657,7 +722,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Smits_Wrecks_and_Good_Hope_Reef_map.png",
     "width": 2471,
     "height": 3168,
-    "sha1": "b7746f2cd526c0facba3027381cf112e68f7da28"
+    "sha1": "b7746f2cd526c0facba3027381cf112e68f7da28",
+    "quality": 60
   },
   "Star Walls Reef Complex map.png": {
     "key": "star-walls-reef-complex-map",
@@ -667,7 +733,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Star_Walls_Reef_Complex_map.png",
     "width": 3840,
     "height": 3475,
-    "sha1": "286ee7261897c0afb055bd16005329a68c24ad29"
+    "sha1": "286ee7261897c0afb055bd16005329a68c24ad29",
+    "quality": 60
   },
   "Antipolis and Klein Pannekoek.jpg": {
     "key": "antipolis-and-klein-pannekoek",
@@ -677,7 +744,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Antipolis_and_Klein_Pannekoek.jpg",
     "width": 1779,
     "height": 1337,
-    "sha1": "fdda793a37aa1a67ccb0d3864244004ac870ced2"
+    "sha1": "fdda793a37aa1a67ccb0d3864244004ac870ced2",
+    "quality": 60
   },
   "Finlays Point 150dpi.jpg": {
     "key": "finlays-point-150dpi",
@@ -687,7 +755,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Finlays_Point_150dpi.jpg",
     "width": 976,
     "height": 1210,
-    "sha1": "28d1d5a2202b938dd8c2b6ea32f21c3b89afacda"
+    "sha1": "28d1d5a2202b938dd8c2b6ea32f21c3b89afacda",
+    "quality": 90
   },
   "Froggy Pond and Fishermans Beach.jpg": {
     "key": "froggy-pond-and-fishermans-beach",
@@ -697,7 +766,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Froggy_Pond_and_Fishermans_Beach.jpg",
     "width": 1810,
     "height": 1724,
-    "sha1": "66e5db39888cd8d8a51023727dcc4402063eb3f0"
+    "sha1": "66e5db39888cd8d8a51023727dcc4402063eb3f0",
+    "quality": 60
   },
   "Kalk Bay Harbour 300dpi crop.jpg": {
     "key": "kalk-bay-harbour-300dpi-crop",
@@ -707,7 +777,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Kalk_Bay_Harbour_300dpi_crop.jpg",
     "width": 2550,
     "height": 3090,
-    "sha1": "365fc8b7c2b53d80c05730e931a3c45830aa6620"
+    "sha1": "365fc8b7c2b53d80c05730e931a3c45830aa6620",
+    "quality": 60
   },
   "Klein Pannekoek 150dpi.jpg": {
     "key": "klein-pannekoek-150dpi",
@@ -717,7 +788,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Klein_Pannekoek_150dpi.jpg",
     "width": 1755,
     "height": 1275,
-    "sha1": "657e5d8899cfd2bb91dfbf227210094418154fc8"
+    "sha1": "657e5d8899cfd2bb91dfbf227210094418154fc8",
+    "quality": 60
   },
   "Ledges Aerial.jpg": {
     "key": "ledges-aerial",
@@ -727,7 +799,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Ledges_Aerial.jpg",
     "width": 916,
     "height": 743,
-    "sha1": "9301ee2c5877dff95c03058af1444089df798a2b"
+    "sha1": "9301ee2c5877dff95c03058af1444089df798a2b",
+    "quality": 90
   },
   "Oakburn Boss400 and Die Perd 300dp1.jpg": {
     "key": "oakburn-boss400-and-die-perd-300dp1",
@@ -737,7 +810,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Oakburn_Boss400_and_Die_Perd_300dp1.jpg",
     "width": 2220,
     "height": 2309,
-    "sha1": "495fd23868c614c3c6a93b5140b926b3f7a3625d"
+    "sha1": "495fd23868c614c3c6a93b5140b926b3f7a3625d",
+    "quality": 60
   },
   "Oudekraal Justins and Geldkis 150dpi.jpg": {
     "key": "oudekraal-justins-and-geldkis-150dpi",
@@ -747,7 +821,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Oudekraal_Justins_and_Geldkis_150dpi.jpg",
     "width": 1755,
     "height": 1275,
-    "sha1": "aa1953aaa684eb3df3911f9ba588727a269a3a0f"
+    "sha1": "aa1953aaa684eb3df3911f9ba588727a269a3a0f",
+    "quality": 60
   },
   "Percys Aerial.jpg": {
     "key": "percys-aerial",
@@ -757,7 +832,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Percys_Aerial.jpg",
     "width": 851,
     "height": 788,
-    "sha1": "d3b1eb5b6e99ce80010a137bc4c0fd421f6ce74f"
+    "sha1": "d3b1eb5b6e99ce80010a137bc4c0fd421f6ce74f",
+    "quality": 90
   },
   "Quarry 300dpi.jpg": {
     "key": "quarry-300dpi",
@@ -767,7 +843,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Quarry_300dpi.jpg",
     "width": 3510,
     "height": 2550,
-    "sha1": "01fe5de51e82a978705bc84535b560e69d86a39f"
+    "sha1": "01fe5de51e82a978705bc84535b560e69d86a39f",
+    "quality": 60
   },
   "Resize of Aerial view of CT dive sites at Rocklands Point - Spaniard rock aerial 2.jpg": {
     "key": "resize-of-aerial-view-of-ct-dive-sites-at-rocklands-point-sp",
@@ -777,7 +854,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Resize_of_Aerial_view_of_CT_dive_sites_at_Rocklands_Point_-_Spaniard_rock_aerial_2.jpg",
     "width": 2340,
     "height": 1700,
-    "sha1": "cad4d92f884759c5840374a2812e4fcdf6cc038d"
+    "sha1": "cad4d92f884759c5840374a2812e4fcdf6cc038d",
+    "quality": 60
   },
   "Duiker Island map.png": {
     "key": "duiker-island-map",
@@ -787,7 +865,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Duiker_Island_map.png",
     "width": 3000,
     "height": 2157,
-    "sha1": "1585321c20ba648667cafda7be47773033265611"
+    "sha1": "1585321c20ba648667cafda7be47773033265611",
+    "quality": 60
   },
   "Glencairn Fan Garden site map.png": {
     "key": "glencairn-fan-garden-site-map",
@@ -797,7 +876,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Glencairn_Fan_Garden_site_map.png",
     "width": 3682,
     "height": 1967,
-    "sha1": "a408df157d7ec46bdd9b6253b5bab88af413ff96"
+    "sha1": "a408df157d7ec46bdd9b6253b5bab88af413ff96",
+    "quality": 60
   },
   "Insanity Reef map.png": {
     "key": "insanity-reef-map",
@@ -807,7 +887,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Insanity_Reef_map.png",
     "width": 442,
     "height": 394,
-    "sha1": "2387cf2352c1d55e36df45796e310003a4496f32"
+    "sha1": "2387cf2352c1d55e36df45796e310003a4496f32",
+    "quality": 90
   },
   "Kanobi's Reef detail map.png": {
     "key": "kanobis-reef-detail-map",
@@ -817,7 +898,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Kanobi%27s_Reef_detail_map.png",
     "width": 3269,
     "height": 2477,
-    "sha1": "c5601455d0b4aec76e3d6791af48a95ae8fdb8b8"
+    "sha1": "c5601455d0b4aec76e3d6791af48a95ae8fdb8b8",
+    "quality": 60
   },
   "Dome Rock Reef map.png": {
     "key": "dome-rock-reef-map",
@@ -827,7 +909,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dome_Rock_Reef_map.png",
     "width": 2999,
     "height": 2293,
-    "sha1": "ed583c8be1b6cfca2647d4fadb11cfd2cee5d13e"
+    "sha1": "ed583c8be1b6cfca2647d4fadb11cfd2cee5d13e",
+    "quality": 60
   },
   "Die Perd map.png": {
     "key": "die-perd-map",
@@ -837,7 +920,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Die_Perd_map.png",
     "width": 3840,
     "height": 3717,
-    "sha1": "02cec562047872f3d9f91a4c5a725d77b70200f4"
+    "sha1": "02cec562047872f3d9f91a4c5a725d77b70200f4",
+    "quality": 60
   },
   "MFV Harvest Capella wreck map.png": {
     "key": "mfv-harvest-capella-wreck-map",
@@ -847,7 +931,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:MFV_Harvest_Capella_wreck_map.png",
     "width": 3840,
     "height": 2532,
-    "sha1": "b5aae7eb8b62c01f9748981200dc0d151da097aa"
+    "sha1": "b5aae7eb8b62c01f9748981200dc0d151da097aa",
+    "quality": 60
   },
   "Fish Hoek Reef.png": {
     "key": "fish-hoek-reef",
@@ -857,7 +942,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Fish_Hoek_Reef.png",
     "width": 3840,
     "height": 2982,
-    "sha1": "2c73ed7103f65525e61523a000bc37c22ffc344d"
+    "sha1": "2c73ed7103f65525e61523a000bc37c22ffc344d",
+    "quality": 60
   },
   "Pie Rock, Outer Castle and Giant's Castle reefs map.png": {
     "key": "pie-rock-outer-castle-and-giants-castle-reefs-map",
@@ -867,7 +953,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Pie_Rock,_Outer_Castle_and_Giant%27s_Castle_reefs_map.png",
     "width": 3840,
     "height": 2343,
-    "sha1": "5cd3c4d74a0ad70af45151ced8c9cbd1dad0631f"
+    "sha1": "5cd3c4d74a0ad70af45151ced8c9cbd1dad0631f",
+    "quality": 60
   },
   "Giant's Castle map.png": {
     "key": "giants-castle-map",
@@ -877,7 +964,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Giant%27s_Castle_map.png",
     "width": 3840,
     "height": 2916,
-    "sha1": "bb6b3356834f0d4e429f2a15fb5f7b307590a684"
+    "sha1": "bb6b3356834f0d4e429f2a15fb5f7b307590a684",
+    "quality": 60
   },
   "Blue Flash Reefs map.png": {
     "key": "blue-flash-reefs-map",
@@ -887,7 +975,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Blue_Flash_Reefs_map.png",
     "width": 3840,
     "height": 3029,
-    "sha1": "187ec62d15ef58ce79f73a001839848feaabd12a"
+    "sha1": "187ec62d15ef58ce79f73a001839848feaabd12a",
+    "quality": 60
   },
   "Graeme's spot and the Jambles, Carnaby Street and Finlay's Pinnacle map.png": {
     "key": "graemes-spot-and-the-jambles-carnaby-street-and-finlays-pinn",
@@ -897,7 +986,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Graeme%27s_spot_and_the_Jambles,_Carnaby_Street_and_Finlay%27s_Pinnacle_map.png",
     "width": 3840,
     "height": 2718,
-    "sha1": "00c10b4d40e4a3ae24bcd159aff0753252b40a94"
+    "sha1": "00c10b4d40e4a3ae24bcd159aff0753252b40a94",
+    "quality": 60
   },
   "Humpback Ridge map.png": {
     "key": "humpback-ridge-map",
@@ -907,7 +997,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Humpback_Ridge_map.png",
     "width": 3145,
     "height": 2801,
-    "sha1": "8aeb42dc651d832f57aa54feb683337399224f65"
+    "sha1": "8aeb42dc651d832f57aa54feb683337399224f65",
+    "quality": 60
   },
   "Glencairn Barge wreck.png": {
     "key": "glencairn-barge-wreck",
@@ -917,7 +1008,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Glencairn_Barge_wreck.png",
     "width": 1845,
     "height": 2237,
-    "sha1": "2f8694ebc2465ffd30bba08fb3e4fa6bee34fe25"
+    "sha1": "2f8694ebc2465ffd30bba08fb3e4fa6bee34fe25",
+    "quality": 60
   },
   "Duiker Island and The Sentinel Mountain Peak, Hout Bay, Cape Town, South Africa.jpg": {
     "key": "duiker-island-and-the-sentinel-mountain-peak-hout-bay-cape-t",
@@ -927,7 +1019,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Duiker_Island_and_The_Sentinel_Mountain_Peak,_Hout_Bay,_Cape_Town,_South_Africa.jpg",
     "width": 2560,
     "height": 3840,
-    "sha1": "3380a96cadcc06b64e00714c05a3f6fdaa1120e7"
+    "sha1": "3380a96cadcc06b64e00714c05a3f6fdaa1120e7",
+    "quality": 60
   },
   "Map of Kalk Bay Reef and Harbour Wall.png": {
     "key": "map-of-kalk-bay-reef-and-harbour-wall",
@@ -937,7 +1030,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_Kalk_Bay_Reef_and_Harbour_Wall.png",
     "width": 3840,
     "height": 3315,
-    "sha1": "1e80b97e25589057ef3eff079f4ba7687dcc5617"
+    "sha1": "1e80b97e25589057ef3eff079f4ba7687dcc5617",
+    "quality": 60
   },
   "HNMS Bato.png": {
     "key": "hnms-bato",
@@ -947,7 +1041,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:HNMS_Bato.png",
     "width": 384,
     "height": 651,
-    "sha1": "4e581d811fd29c8b810fd75a4b96aef34b92da2a"
+    "sha1": "4e581d811fd29c8b810fd75a4b96aef34b92da2a",
+    "quality": 90
   },
   "The Highfields.png": {
     "key": "the-highfields",
@@ -957,7 +1052,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:The_Highfields.png",
     "width": 305,
     "height": 138,
-    "sha1": "94377f291a067274ef9e6978f2a084e2761f3db4"
+    "sha1": "94377f291a067274ef9e6978f2a084e2761f3db4",
+    "quality": 90
   },
   "King Emperor.png": {
     "key": "king-emperor",
@@ -967,7 +1063,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:King_Emperor.png",
     "width": 293,
     "height": 170,
-    "sha1": "a8cbc2da82adb1a672e17f6bda953bc9ba121795"
+    "sha1": "a8cbc2da82adb1a672e17f6bda953bc9ba121795",
+    "quality": 90
   },
   "GB Reef.png": {
     "key": "gb-reef",
@@ -977,7 +1074,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:GB_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "99ba2011233358eb4db860a7b5e552239b2fd3b2"
+    "sha1": "99ba2011233358eb4db860a7b5e552239b2fd3b2",
+    "quality": 90
   },
   "Josh's Reef.png": {
     "key": "joshs-reef",
@@ -987,7 +1085,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Josh%27s_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "0824a9ded6cff6b48c9d19cf92625200e4203642"
+    "sha1": "0824a9ded6cff6b48c9d19cf92625200e4203642",
+    "quality": 90
   },
   "South GB.png": {
     "key": "south-gb",
@@ -997,7 +1096,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:South_GB.png",
     "width": 1184,
     "height": 930,
-    "sha1": "8984e35f6070326d01439faaffd690480dbd90db"
+    "sha1": "8984e35f6070326d01439faaffd690480dbd90db",
+    "quality": 90
   },
   "MV Daeyang Family wreck map.png": {
     "key": "mv-daeyang-family-wreck-map",
@@ -1007,7 +1107,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:MV_Daeyang_Family_wreck_map.png",
     "width": 3750,
     "height": 1751,
-    "sha1": "bc76c57c2cf9701dbe95357197a74b0663423d0b"
+    "sha1": "bc76c57c2cf9701dbe95357197a74b0663423d0b",
+    "quality": 60
   },
   "Ark Rock and wrecks.png": {
     "key": "ark-rock-and-wrecks",
@@ -1017,7 +1118,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Ark_Rock_and_wrecks.png",
     "width": 2051,
     "height": 3840,
-    "sha1": "23e298554d97e9b934abf7f712084c1c5f971c6a"
+    "sha1": "23e298554d97e9b934abf7f712084c1c5f971c6a",
+    "quality": 60
   },
   "Katsu Maru sketch.png": {
     "key": "katsu-maru-sketch",
@@ -1027,7 +1129,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Katsu_Maru_sketch.png",
     "width": 2314,
     "height": 1153,
-    "sha1": "2891af812acbf0de56932ddd2b359496b4cb02e0"
+    "sha1": "2891af812acbf0de56932ddd2b359496b4cb02e0",
+    "quality": 60
   },
   "Mushroom pinnacle sketch.png": {
     "key": "mushroom-pinnacle-sketch",
@@ -1037,7 +1140,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Mushroom_pinnacle_sketch.png",
     "width": 1200,
     "height": 1545,
-    "sha1": "587d05ab1107c71757c6612f85c222e53d5b2cdb"
+    "sha1": "587d05ab1107c71757c6612f85c222e53d5b2cdb",
+    "quality": 60
   },
   "MV Aster general arrangement.png": {
     "key": "mv-aster-general-arrangement",
@@ -1047,7 +1151,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:MV_Aster_general_arrangement.png",
     "width": 1696,
     "height": 3000,
-    "sha1": "e79c56e8db08d50cd01b1c8ed2fe4bc94c4fd1f6"
+    "sha1": "e79c56e8db08d50cd01b1c8ed2fe4bc94c4fd1f6",
+    "quality": 60
   },
   "MV Orotava general arrangement plan.png": {
     "key": "mv-orotava-general-arrangement-plan",
@@ -1057,7 +1162,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:MV_Orotava_general_arrangement_plan.png",
     "width": 3563,
     "height": 1700,
-    "sha1": "b377630d6686acdf6b27c427eeb7802063261717"
+    "sha1": "b377630d6686acdf6b27c427eeb7802063261717",
+    "quality": 60
   },
   "Aster and Katsu Maru.png": {
     "key": "aster-and-katsu-maru",
@@ -1067,7 +1173,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Aster_and_Katsu_Maru.png",
     "width": 2500,
     "height": 2237,
-    "sha1": "fc755b69127dd9cd7c0f479382dde19bdc97509b"
+    "sha1": "fc755b69127dd9cd7c0f479382dde19bdc97509b",
+    "quality": 60
   },
   "Ker Yar Vor site map.png": {
     "key": "ker-yar-vor-site-map",
@@ -1077,7 +1184,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Ker_Yar_Vor_site_map.png",
     "width": 3840,
     "height": 3292,
-    "sha1": "005c2618141e361dc83fbeaa4aca4f3cd16e6873"
+    "sha1": "005c2618141e361dc83fbeaa4aca4f3cd16e6873",
+    "quality": 60
   },
   "Livingstone reef.png": {
     "key": "livingstone-reef",
@@ -1087,7 +1195,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Livingstone_reef.png",
     "width": 3840,
     "height": 2339,
-    "sha1": "88585bc2eb202947634a25a7140847972ada76f0"
+    "sha1": "88585bc2eb202947634a25a7140847972ada76f0",
+    "quality": 60
   },
   "Long Beach Orienteering route map.png": {
     "key": "long-beach-orienteering-route-map",
@@ -1097,7 +1206,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Long_Beach_Orienteering_route_map.png",
     "width": 2460,
     "height": 2943,
-    "sha1": "075d1f99f6a6aca254820ca2011d6aa7b7b32cac"
+    "sha1": "075d1f99f6a6aca254820ca2011d6aa7b7b32cac",
+    "quality": 60
   },
   "Maidstone Reef and Rock.png": {
     "key": "maidstone-reef-and-rock",
@@ -1107,7 +1217,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Maidstone_Reef_and_Rock.png",
     "width": 3840,
     "height": 2254,
-    "sha1": "c45f047e01464a5295d5f4e57f23fd7a7cd1f9a6"
+    "sha1": "c45f047e01464a5295d5f4e57f23fd7a7cd1f9a6",
+    "quality": 60
   },
   "MV Princess Elizabeth general arrangement plan.png": {
     "key": "mv-princess-elizabeth-general-arrangement-plan",
@@ -1117,7 +1228,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:MV_Princess_Elizabeth_general_arrangement_plan.png",
     "width": 3000,
     "height": 1699,
-    "sha1": "30152a0f8e305c6fc73d91e7baa46e220455e0aa"
+    "sha1": "30152a0f8e305c6fc73d91e7baa46e220455e0aa",
+    "quality": 60
   },
   "MV Romelia and Sunset Rocks.png": {
     "key": "mv-romelia-and-sunset-rocks",
@@ -1127,7 +1239,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:MV_Romelia_and_Sunset_Rocks.png",
     "width": 2265,
     "height": 1662,
-    "sha1": "21f76323e1da488b92e4ef4e9383adec3f811881"
+    "sha1": "21f76323e1da488b92e4ef4e9383adec3f811881",
+    "quality": 60
   },
   "MV Treasure wreck map.png": {
     "key": "mv-treasure-wreck-map",
@@ -1137,7 +1250,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:MV_Treasure_wreck_map.png",
     "width": 1591,
     "height": 3839,
-    "sha1": "31f68b1466517b1bce33a1604496b5b37da5d3a1"
+    "sha1": "31f68b1466517b1bce33a1604496b5b37da5d3a1",
+    "quality": 60
   },
   "North Lion's Paw map.png": {
     "key": "north-lions-paw-map",
@@ -1147,7 +1261,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:North_Lion%27s_Paw_map.png",
     "width": 3840,
     "height": 2598,
-    "sha1": "3270017618db5f69f7607b0ec1c0913d756d92b9"
+    "sha1": "3270017618db5f69f7607b0ec1c0913d756d92b9",
+    "quality": 60
   },
   "Outer Photographers and Torch Reefs Map.png": {
     "key": "outer-photographers-and-torch-reefs-map",
@@ -1157,7 +1272,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Outer_Photographers_and_Torch_Reefs_Map.png",
     "width": 3840,
     "height": 3746,
-    "sha1": "1f29e60dde4ef6ea398c580ace60b3b89c205484"
+    "sha1": "1f29e60dde4ef6ea398c580ace60b3b89c205484",
+    "quality": 60
   },
   "Partridge Point reef map.png": {
     "key": "partridge-point-reef-map",
@@ -1167,7 +1283,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Partridge_Point_reef_map.png",
     "width": 3840,
     "height": 3256,
-    "sha1": "23dec6cc90404a4f03f6c0e365f693abe6e79c13"
+    "sha1": "23dec6cc90404a4f03f6c0e365f693abe6e79c13",
+    "quality": 60
   },
   "Rockeater General Arrangement.png": {
     "key": "rockeater-general-arrangement",
@@ -1177,7 +1294,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Rockeater_General_Arrangement.png",
     "width": 2500,
     "height": 1081,
-    "sha1": "bae098bb6ba2615652a596f0a09f83dfe10d36f7"
+    "sha1": "bae098bb6ba2615652a596f0a09f83dfe10d36f7",
+    "quality": 60
   },
   "Boilers heading 300.jpg": {
     "key": "boilers-heading-300",
@@ -1187,7 +1305,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Boilers_heading_300.jpg",
     "width": 1341,
     "height": 707,
-    "sha1": "81cd0b754bc6a3d22e7a2bfdea58d2d949e4db65"
+    "sha1": "81cd0b754bc6a3d22e7a2bfdea58d2d949e4db65",
+    "quality": 90
   },
   "Lorry Bay Aerial.jpg": {
     "key": "lorry-bay-aerial",
@@ -1197,7 +1316,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Lorry_Bay_Aerial.jpg",
     "width": 491,
     "height": 579,
-    "sha1": "a362a378779793f6f4175fb48eec411538b9bfa0"
+    "sha1": "a362a378779793f6f4175fb48eec411538b9bfa0",
+    "quality": 90
   },
   "Noah's Ark 150dpi.jpg": {
     "key": "noahs-ark-150dpi",
@@ -1207,7 +1327,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Noah%27s_Ark_150dpi.jpg",
     "width": 1275,
     "height": 1755,
-    "sha1": "e942b95083fda08ab4caffcfd079deb2a40b1ba1"
+    "sha1": "e942b95083fda08ab4caffcfd079deb2a40b1ba1",
+    "quality": 60
   },
   "Partridge point 150dpi.jpg": {
     "key": "partridge-point-150dpi",
@@ -1217,7 +1338,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Partridge_point_150dpi.jpg",
     "width": 1755,
     "height": 1275,
-    "sha1": "4db4973fcc11b89989a25679aab5ae5c4393d37e"
+    "sha1": "4db4973fcc11b89989a25679aab5ae5c4393d37e",
+    "quality": 60
   },
   "Wreck east of Ark Rk.jpg": {
     "key": "wreck-east-of-ark-rk",
@@ -1227,7 +1349,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Wreck_east_of_Ark_Rk.jpg",
     "width": 405,
     "height": 419,
-    "sha1": "8cac212a30dc2982298c4ea34003596cf2f933e2"
+    "sha1": "8cac212a30dc2982298c4ea34003596cf2f933e2",
+    "quality": 90
   },
   "Long Beach 2001.jpg": {
     "key": "long-beach-2001",
@@ -1237,7 +1360,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Long_Beach_2001.jpg",
     "width": 1462,
     "height": 1512,
-    "sha1": "5dfd61278330008331700ec70d0bd4884a25232d"
+    "sha1": "5dfd61278330008331700ec70d0bd4884a25232d",
+    "quality": 60
   },
   "Omega Reef Map.png": {
     "key": "omega-reef-map",
@@ -1247,7 +1371,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Omega_Reef_Map.png",
     "width": 3840,
     "height": 2394,
-    "sha1": "1b76744fb59858882f8c262a80291b8ffe3e04c2"
+    "sha1": "1b76744fb59858882f8c262a80291b8ffe3e04c2",
+    "quality": 60
   },
   "Muizenberg trawler wrecks.png": {
     "key": "muizenberg-trawler-wrecks",
@@ -1257,7 +1382,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Muizenberg_trawler_wrecks.png",
     "width": 3840,
     "height": 1881,
-    "sha1": "917b2c15a7251a533aac78fd183b07d67d842611"
+    "sha1": "917b2c15a7251a533aac78fd183b07d67d842611",
+    "quality": 60
   },
   "I&J Trawler A (east).jpg": {
     "key": "i-j-trawler-a-east",
@@ -1266,7 +1392,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:I%26J_Trawler_A_(east).jpg",
     "width": 500,
     "height": 458,
-    "sha1": "94551cc6d67b12db6b045f8291426940e1ffd817"
+    "sha1": "94551cc6d67b12db6b045f8291426940e1ffd817",
+    "quality": 90
   },
   "I&J trawler B (west).jpg": {
     "key": "i-j-trawler-b-west",
@@ -1275,7 +1402,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:I%26J_trawler_B_(west).jpg",
     "width": 469,
     "height": 480,
-    "sha1": "e3e562b79abbeab8e46edcc4a9446641051518b5"
+    "sha1": "e3e562b79abbeab8e46edcc4a9446641051518b5",
+    "quality": 90
   },
   "Fish Tank reef map.png": {
     "key": "fish-tank-reef-map",
@@ -1285,7 +1413,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Fish_Tank_reef_map.png",
     "width": 3840,
     "height": 3152,
-    "sha1": "c4631f42ed00403046f1384bab44857ce84ddce0"
+    "sha1": "c4631f42ed00403046f1384bab44857ce84ddce0",
+    "quality": 60
   },
   "Long Beach Aerial View.jpg": {
     "key": "long-beach-aerial-view",
@@ -1295,7 +1424,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Long_Beach_Aerial_View.jpg",
     "width": 960,
     "height": 640,
-    "sha1": "54236dcf29da5556d31e64031638d1fed96b0c56"
+    "sha1": "54236dcf29da5556d31e64031638d1fed96b0c56",
+    "quality": 90
   },
   "P87 dive site map.png": {
     "key": "p87-dive-site-map",
@@ -1305,7 +1435,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:P87_dive_site_map.png",
     "width": 3179,
     "height": 3840,
-    "sha1": "4fd31f09fa557da2efe7e969d968023e192940de"
+    "sha1": "4fd31f09fa557da2efe7e969d968023e192940de",
+    "quality": 60
   },
   "Ark Rock map.png": {
     "key": "ark-rock-map",
@@ -1315,7 +1446,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Ark_Rock_map.png",
     "width": 3840,
     "height": 3020,
-    "sha1": "0258804a60ee572625792ef378fccb52c7fe6f0a"
+    "sha1": "0258804a60ee572625792ef378fccb52c7fe6f0a",
+    "quality": 60
   },
   "Winton site map.png": {
     "key": "winton-site-map",
@@ -1325,7 +1457,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Winton_site_map.png",
     "width": 3208,
     "height": 3840,
-    "sha1": "056d9bcb928d42efc1414d5e00792cfb3c4e1198"
+    "sha1": "056d9bcb928d42efc1414d5e00792cfb3c4e1198",
+    "quality": 60
   },
   "MV Treasure.png": {
     "key": "mv-treasure",
@@ -1335,7 +1468,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:MV_Treasure.png",
     "width": 432,
     "height": 800,
-    "sha1": "235d78e2e40e8810802d9f73d97aa91f8bca8233"
+    "sha1": "235d78e2e40e8810802d9f73d97aa91f8bca8233",
+    "quality": 90
   },
   "Oratava.png": {
     "key": "oratava",
@@ -1345,7 +1479,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Oratava.png",
     "width": 426,
     "height": 313,
-    "sha1": "df23000aebb509390120ccdbb760a484bb31cb31"
+    "sha1": "df23000aebb509390120ccdbb760a484bb31cb31",
+    "quality": 90
   },
   "Princess Elizabeth.png": {
     "key": "princess-elizabeth",
@@ -1355,7 +1490,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Princess_Elizabeth.png",
     "width": 421,
     "height": 251,
-    "sha1": "60230bae2224af5ca7d3927011be6c136955a9a3"
+    "sha1": "60230bae2224af5ca7d3927011be6c136955a9a3",
+    "quality": 90
   },
   "Rockeater.png": {
     "key": "rockeater",
@@ -1365,7 +1501,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Rockeater.png",
     "width": 452,
     "height": 293,
-    "sha1": "777c7ccc48ae7245ffd047d8ed93836f8e053227"
+    "sha1": "777c7ccc48ae7245ffd047d8ed93836f8e053227",
+    "quality": 90
   },
   "L.M. Gemsbok.png": {
     "key": "l-m-gemsbok",
@@ -1375,7 +1512,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:L.M._Gemsbok.png",
     "width": 280,
     "height": 185,
-    "sha1": "07c26b35e6f285329a4e596924e9da8dab604e50"
+    "sha1": "07c26b35e6f285329a4e596924e9da8dab604e50",
+    "quality": 90
   },
   "Seli 1.png": {
     "key": "seli-1",
@@ -1385,7 +1523,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Seli_1.png",
     "width": 293,
     "height": 469,
-    "sha1": "70733a956977d922fd8c48b905d03d4e85135a16"
+    "sha1": "70733a956977d922fd8c48b905d03d4e85135a16",
+    "quality": 90
   },
   "Aster.png": {
     "key": "aster",
@@ -1395,7 +1534,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Aster.png",
     "width": 490,
     "height": 358,
-    "sha1": "87c21083107c19268f5ce3add3fb0fe3d64b1ad0"
+    "sha1": "87c21083107c19268f5ce3add3fb0fe3d64b1ad0",
+    "quality": 90
   },
   "Katsu Maru No. 25.png": {
     "key": "katsu-maru-no-25",
@@ -1405,7 +1545,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Katsu_Maru_No._25.png",
     "width": 492,
     "height": 328,
-    "sha1": "463e5ead1aa22f87567e7da70287c91226dcf18e"
+    "sha1": "463e5ead1aa22f87567e7da70287c91226dcf18e",
+    "quality": 90
   },
   "Bulby.png": {
     "key": "bulby",
@@ -1415,7 +1556,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Bulby.png",
     "width": 430,
     "height": 479,
-    "sha1": "0840f38d06c51172458c038b290802d8c6d38913"
+    "sha1": "0840f38d06c51172458c038b290802d8c6d38913",
+    "quality": 90
   },
   "Iolite.png": {
     "key": "iolite",
@@ -1425,7 +1567,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Iolite.png",
     "width": 468,
     "height": 343,
-    "sha1": "a0723fcb9a0112263c6c38fd35d602ffb6306027"
+    "sha1": "a0723fcb9a0112263c6c38fd35d602ffb6306027",
+    "quality": 90
   },
   "Borella.png": {
     "key": "borella",
@@ -1435,7 +1578,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Borella.png",
     "width": 431,
     "height": 351,
-    "sha1": "a4af2ed9e624179e6445987b08806fc8be70e045"
+    "sha1": "a4af2ed9e624179e6445987b08806fc8be70e045",
+    "quality": 90
   },
   "Afrikaner.png": {
     "key": "afrikaner",
@@ -1445,7 +1589,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Afrikaner.png",
     "width": 278,
     "height": 198,
-    "sha1": "d59d139ce60ee854ab7b74a8b171a18789abbf2e"
+    "sha1": "d59d139ce60ee854ab7b74a8b171a18789abbf2e",
+    "quality": 90
   },
   "Mooivlei.png": {
     "key": "mooivlei",
@@ -1455,7 +1600,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Mooivlei.png",
     "width": 256,
     "height": 272,
-    "sha1": "3a0ef26a09b9c41cd018745efe1bc02a26f322f7"
+    "sha1": "3a0ef26a09b9c41cd018745efe1bc02a26f322f7",
+    "quality": 90
   },
   "Lonehill Reef.png": {
     "key": "lonehill-reef",
@@ -1465,7 +1611,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Lonehill_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "41a7562df40ae170e670a075289e525f8e097d55"
+    "sha1": "41a7562df40ae170e670a075289e525f8e097d55",
+    "quality": 90
   },
   "Midway Reef.png": {
     "key": "midway-reef",
@@ -1475,7 +1622,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Midway_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "faf11eb72fc85355a0783d1c1dec33be96d76414"
+    "sha1": "faf11eb72fc85355a0783d1c1dec33be96d76414",
+    "quality": 90
   },
   "North Island Reef.png": {
     "key": "north-island-reef",
@@ -1485,7 +1633,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:North_Island_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "b311589ebfe1b0da2bfe4c79c47939b5beeac10d"
+    "sha1": "b311589ebfe1b0da2bfe4c79c47939b5beeac10d",
+    "quality": 90
   },
   "Off-Whittle Ridge 2026.png": {
     "key": "off-whittle-ridge-2026",
@@ -1495,7 +1644,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Off-Whittle_Ridge_2026.png",
     "width": 1184,
     "height": 930,
-    "sha1": "04867c1b30bca2a5bacc4a5dfd399c6a013efacd"
+    "sha1": "04867c1b30bca2a5bacc4a5dfd399c6a013efacd",
+    "quality": 90
   },
   "Cape Matapan wreck map.png": {
     "key": "cape-matapan-wreck-map",
@@ -1505,7 +1655,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Cape_Matapan_wreck_map.png",
     "width": 3840,
     "height": 3240,
-    "sha1": "581d7d90c4d3f9c5e839cc4e44ff3d07ef871be6"
+    "sha1": "581d7d90c4d3f9c5e839cc4e44ff3d07ef871be6",
+    "quality": 60
   },
   "Daves Caves detail.png": {
     "key": "daves-caves-detail",
@@ -1515,7 +1666,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Daves_Caves_detail.png",
     "width": 1384,
     "height": 1008,
-    "sha1": "fb833b0a2b356a68f97b7b5507ff9b2d963e4bf2"
+    "sha1": "fb833b0a2b356a68f97b7b5507ff9b2d963e4bf2",
+    "quality": 90
   },
   "Map of the dive sites Photographers Reef Windmill Beach and Penguin Point.png": {
     "key": "map-of-the-dive-sites-photographers-reef-windmill-beach-and-",
@@ -1525,7 +1677,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_the_dive_sites_Photographers_Reef_Windmill_Beach_and_Penguin_Point.png",
     "width": 2992,
     "height": 3840,
-    "sha1": "fa70a642bebc8a0a7f2d37a0be9f6962ab8fc865"
+    "sha1": "fa70a642bebc8a0a7f2d37a0be9f6962ab8fc865",
+    "quality": 60
   },
   "Percys cave.png": {
     "key": "percys-cave",
@@ -1535,7 +1688,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Percys_cave.png",
     "width": 600,
     "height": 434,
-    "sha1": "fdf86459271f5890299c3ce7426299a360118196"
+    "sha1": "fdf86459271f5890299c3ce7426299a360118196",
+    "quality": 90
   },
   "Batsata Maze map.png": {
     "key": "batsata-maze-map",
@@ -1545,7 +1699,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Batsata_Maze_map.png",
     "width": 3840,
     "height": 2857,
-    "sha1": "7de5844302b97b97090eb5f1516bab1512a5b9ff"
+    "sha1": "7de5844302b97b97090eb5f1516bab1512a5b9ff",
+    "quality": 60
   },
   "Fleur map.png": {
     "key": "fleur-map",
@@ -1555,7 +1710,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Fleur_map.png",
     "width": 2000,
     "height": 2278,
-    "sha1": "c9058e3bd0cbed199ed66a0f621d107003004399"
+    "sha1": "c9058e3bd0cbed199ed66a0f621d107003004399",
+    "quality": 60
   },
   "Map of CT dive site South Paw.png": {
     "key": "map-of-ct-dive-site-south-paw",
@@ -1565,7 +1721,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_CT_dive_site_South_Paw.png",
     "width": 1200,
     "height": 888,
-    "sha1": "cf3e7d5182a3cb901555bf6a1aec88769a43d14c"
+    "sha1": "cf3e7d5182a3cb901555bf6a1aec88769a43d14c",
+    "quality": 90
   },
   "Map of dive site Sandy Cove.png": {
     "key": "map-of-dive-site-sandy-cove",
@@ -1575,7 +1732,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_dive_site_Sandy_Cove.png",
     "width": 1326,
     "height": 999,
-    "sha1": "9bcd6ec887dd7d50ba7c099c50f5434ab30c4467"
+    "sha1": "9bcd6ec887dd7d50ba7c099c50f5434ab30c4467",
+    "quality": 90
   },
   "Map of the CT dive site Clan Stuart.png": {
     "key": "map-of-the-ct-dive-site-clan-stuart",
@@ -1585,7 +1743,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_the_CT_dive_site_Clan_Stuart.png",
     "width": 1200,
     "height": 1053,
-    "sha1": "b07279e210f17934751aeca38bb4727de3039631"
+    "sha1": "b07279e210f17934751aeca38bb4727de3039631",
+    "quality": 90
   },
   "Map of the CT dive site Pinnacle.png": {
     "key": "map-of-the-ct-dive-site-pinnacle",
@@ -1595,7 +1754,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_the_CT_dive_site_Pinnacle.png",
     "width": 3008,
     "height": 1933,
-    "sha1": "68e29198a430a467e55cf14e64cd9bffb101c959"
+    "sha1": "68e29198a430a467e55cf14e64cd9bffb101c959",
+    "quality": 60
   },
   "Photographer's reef detail.png": {
     "key": "photographers-reef-detail",
@@ -1605,7 +1765,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Photographer%27s_reef_detail.png",
     "width": 2000,
     "height": 1488,
-    "sha1": "d9486b2dd453a9a19230414ef570dd71b9698289"
+    "sha1": "d9486b2dd453a9a19230414ef570dd71b9698289",
+    "quality": 60
   },
   "Rambler Rock Reefs map.png": {
     "key": "rambler-rock-reefs-map",
@@ -1615,7 +1776,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Rambler_Rock_Reefs_map.png",
     "width": 2352,
     "height": 3839,
-    "sha1": "4902d162f06e12d486fac2130a860b1670efe7a1"
+    "sha1": "4902d162f06e12d486fac2130a860b1670efe7a1",
+    "quality": 60
   },
   "Roman Rock Reef Map.png": {
     "key": "roman-rock-reef-map",
@@ -1625,7 +1787,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Roman_Rock_Reef_Map.png",
     "width": 3840,
     "height": 2462,
-    "sha1": "dbe0841ef91f836509ad02bd73f805238521a4db"
+    "sha1": "dbe0841ef91f836509ad02bd73f805238521a4db",
+    "quality": 60
   },
   "Sea Point Ridge Pinnacle map.png": {
     "key": "sea-point-ridge-pinnacle-map",
@@ -1635,7 +1798,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sea_Point_Ridge_Pinnacle_map.png",
     "width": 2000,
     "height": 1782,
-    "sha1": "d4937be06206d92b7da449d61cc5ea949969bc89"
+    "sha1": "d4937be06206d92b7da449d61cc5ea949969bc89",
+    "quality": 60
   },
   "Site map of wreck of SAS Pietermaritzburg.png": {
     "key": "site-map-of-wreck-of-sas-pietermaritzburg",
@@ -1645,7 +1809,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Site_map_of_wreck_of_SAS_Pietermaritzburg.png",
     "width": 3000,
     "height": 2999,
-    "sha1": "33d0c58568adeff75f9ff8f19f7cc4007e37970b"
+    "sha1": "33d0c58568adeff75f9ff8f19f7cc4007e37970b",
+    "quality": 60
   },
   "Sketch of the wreck General Botha.png": {
     "key": "sketch-of-the-wreck-general-botha",
@@ -1655,7 +1820,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sketch_of_the_wreck_General_Botha.png",
     "width": 1200,
     "height": 817,
-    "sha1": "2ff363ecfbc9eaaef526e1ebea475dbc17faeba8"
+    "sha1": "2ff363ecfbc9eaaef526e1ebea475dbc17faeba8",
+    "quality": 90
   },
   "Sketch of the wreck of SAS Good Hope.png": {
     "key": "sketch-of-the-wreck-of-sas-good-hope",
@@ -1665,7 +1831,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sketch_of_the_wreck_of_SAS_Good_Hope.png",
     "width": 2673,
     "height": 836,
-    "sha1": "f18bd722fefd903322ab8a797eb4a649116b00a5"
+    "sha1": "f18bd722fefd903322ab8a797eb4a649116b00a5",
+    "quality": 60
   },
   "Sketch of the wreck of SAS Pietermaritzburg.png": {
     "key": "sketch-of-the-wreck-of-sas-pietermaritzburg",
@@ -1675,7 +1842,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sketch_of_the_wreck_of_SAS_Pietermaritzburg.png",
     "width": 2000,
     "height": 858,
-    "sha1": "9c8813aaea3659dcea63d23fb82b3b6cba54e010"
+    "sha1": "9c8813aaea3659dcea63d23fb82b3b6cba54e010",
+    "quality": 60
   },
   "Smits reef map.png": {
     "key": "smits-reef-map",
@@ -1685,7 +1853,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Smits_reef_map.png",
     "width": 3588,
     "height": 3840,
-    "sha1": "00e1fd6be9019030ce2d6d7ca4c1e8f444f1ebaa"
+    "sha1": "00e1fd6be9019030ce2d6d7ca4c1e8f444f1ebaa",
+    "quality": 60
   },
   "Boulders Penguin Point and Photographers Reef 150dpi.jpg": {
     "key": "boulders-penguin-point-and-photographers-reef-150dpi",
@@ -1695,7 +1864,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Boulders_Penguin_Point_and_Photographers_Reef_150dpi.jpg",
     "width": 1275,
     "height": 1755,
-    "sha1": "49501f49830d931d48721901216468e3cf0ae566"
+    "sha1": "49501f49830d931d48721901216468e3cf0ae566",
+    "quality": 60
   },
   "Rocky Bay Aerial.jpg": {
     "key": "rocky-bay-aerial",
@@ -1705,7 +1875,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Rocky_Bay_Aerial.jpg",
     "width": 824,
     "height": 1173,
-    "sha1": "7295f746ccdaaa4050002e8abd237e935576f391"
+    "sha1": "7295f746ccdaaa4050002e8abd237e935576f391",
+    "quality": 90
   },
   "Rooi-els Point Aerial.jpg": {
     "key": "rooi-els-point-aerial",
@@ -1715,7 +1886,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Rooi-els_Point_Aerial.jpg",
     "width": 946,
     "height": 611,
-    "sha1": "564b9f0af706614a085f48c91ede4308dd304e62"
+    "sha1": "564b9f0af706614a085f48c91ede4308dd304e62",
+    "quality": 90
   },
   "Sherwood Forest Reef map.png": {
     "key": "sherwood-forest-reef-map",
@@ -1725,7 +1897,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sherwood_Forest_Reef_map.png",
     "width": 3840,
     "height": 2333,
-    "sha1": "b59bdfa0ef0a15ba79b394a90c579f14aa96a84b"
+    "sha1": "b59bdfa0ef0a15ba79b394a90c579f14aa96a84b",
+    "quality": 60
   },
   "Phoenix Shoal map.png": {
     "key": "phoenix-shoal-map",
@@ -1735,7 +1908,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Phoenix_Shoal_map.png",
     "width": 3840,
     "height": 2948,
-    "sha1": "e521048ff5a1d47578c876064661665d768a55dd"
+    "sha1": "e521048ff5a1d47578c876064661665d768a55dd",
+    "quality": 60
   },
   "Shark Alley 150dpi.jpg": {
     "key": "shark-alley-150dpi",
@@ -1745,7 +1919,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Shark_Alley_150dpi.jpg",
     "width": 1275,
     "height": 1755,
-    "sha1": "0727ff7945dfca4422df8d5caa5448ddcbc2365b"
+    "sha1": "0727ff7945dfca4422df8d5caa5448ddcbc2365b",
+    "quality": 60
   },
   "SAS Gelderland wreck map.png": {
     "key": "sas-gelderland-wreck-map",
@@ -1755,7 +1930,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SAS_Gelderland_wreck_map.png",
     "width": 3840,
     "height": 1925,
-    "sha1": "dd85c8e659a147537f31218dacfe1aa731d5db61"
+    "sha1": "dd85c8e659a147537f31218dacfe1aa731d5db61",
+    "quality": 60
   },
   "Unidentified steamer off Robben Island.png": {
     "key": "unidentified-steamer-off-robben-island",
@@ -1765,7 +1941,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Unidentified_steamer_off_Robben_Island.png",
     "width": 2689,
     "height": 2003,
-    "sha1": "c702f38a02a7eaa3a0921afe4c18885be66f10fc"
+    "sha1": "c702f38a02a7eaa3a0921afe4c18885be66f10fc",
+    "quality": 60
   },
   "Rachel's Reef map.png": {
     "key": "rachels-reef-map",
@@ -1775,7 +1952,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Rachel%27s_Reef_map.png",
     "width": 3046,
     "height": 2365,
-    "sha1": "7e682855af7e324485cd36934830e781b03fea04"
+    "sha1": "7e682855af7e324485cd36934830e781b03fea04",
+    "quality": 60
   },
   "Random Rocks Reefs map.png": {
     "key": "random-rocks-reefs-map",
@@ -1785,7 +1963,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Random_Rocks_Reefs_map.png",
     "width": 3840,
     "height": 2867,
-    "sha1": "4733a3a4454b39edab4ee0ed5aa7e7d557830149"
+    "sha1": "4733a3a4454b39edab4ee0ed5aa7e7d557830149",
+    "quality": 60
   },
   "SAS Bloemfontein wreck map.png": {
     "key": "sas-bloemfontein-wreck-map",
@@ -1795,7 +1974,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SAS_Bloemfontein_wreck_map.png",
     "width": 2405,
     "height": 3840,
-    "sha1": "070b7ce86d79207ba5acc4728f0fc3e9ab3fc3ba"
+    "sha1": "070b7ce86d79207ba5acc4728f0fc3e9ab3fc3ba",
+    "quality": 60
   },
   "Phone Reef and Super Fan Reef.png": {
     "key": "phone-reef-and-super-fan-reef",
@@ -1805,7 +1985,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Phone_Reef_and_Super_Fan_Reef.png",
     "width": 3840,
     "height": 3609,
-    "sha1": "553f9f010ea42dbf0c2d07e2639275bcd87e070a"
+    "sha1": "553f9f010ea42dbf0c2d07e2639275bcd87e070a",
+    "quality": 60
   },
   "Pyramid Rock Reef and Shark Alley.png": {
     "key": "pyramid-rock-reef-and-shark-alley",
@@ -1815,7 +1996,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Pyramid_Rock_Reef_and_Shark_Alley.png",
     "width": 3840,
     "height": 3026,
-    "sha1": "6f139760ab1baf003115f523d855f3f7478a33cf"
+    "sha1": "6f139760ab1baf003115f523d855f3f7478a33cf",
+    "quality": 60
   },
   "General Botha.png": {
     "key": "general-botha",
@@ -1825,7 +2007,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:General_Botha.png",
     "width": 441,
     "height": 544,
-    "sha1": "ed1d846e8d417de628e2de670e65224fa6ee0db0"
+    "sha1": "ed1d846e8d417de628e2de670e65224fa6ee0db0",
+    "quality": 90
   },
   "SAS Bloemfontein.png": {
     "key": "sas-bloemfontein",
@@ -1835,7 +2018,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SAS_Bloemfontein.png",
     "width": 434,
     "height": 521,
-    "sha1": "f0a1922e4b16aae474dabb71105ac067322598db"
+    "sha1": "f0a1922e4b16aae474dabb71105ac067322598db",
+    "quality": 90
   },
   "Clan Stuart.png": {
     "key": "clan-stuart",
@@ -1845,7 +2029,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Clan_Stuart.png",
     "width": 533,
     "height": 478,
-    "sha1": "e3713f98119f8028a2803b55db82c491e7f87c75"
+    "sha1": "e3713f98119f8028a2803b55db82c491e7f87c75",
+    "quality": 90
   },
   "SAS Fleur.png": {
     "key": "sas-fleur",
@@ -1855,7 +2040,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SAS_Fleur.png",
     "width": 421,
     "height": 574,
-    "sha1": "70cf0b81af5a8e156588a8cd4cb7f7694aeecc24"
+    "sha1": "70cf0b81af5a8e156588a8cd4cb7f7694aeecc24",
+    "quality": 90
   },
   "SAS Pietermaritzburg.png": {
     "key": "sas-pietermaritzburg",
@@ -1865,7 +2051,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SAS_Pietermaritzburg.png",
     "width": 508,
     "height": 732,
-    "sha1": "226bb1318851fe3487b4bca617f8a5ef8f8feb41"
+    "sha1": "226bb1318851fe3487b4bca617f8a5ef8f8feb41",
+    "quality": 90
   },
   "SAS Transvaal.png": {
     "key": "sas-transvaal",
@@ -1875,7 +2062,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SAS_Transvaal.png",
     "width": 327,
     "height": 644,
-    "sha1": "767884e344c252b5a6368d293c75b081493e864c"
+    "sha1": "767884e344c252b5a6368d293c75b081493e864c",
+    "quality": 90
   },
   "Gilia.png": {
     "key": "gilia",
@@ -1885,7 +2073,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Gilia.png",
     "width": 298,
     "height": 186,
-    "sha1": "c54088751ecb3feb0b62bc7335f0020805f3dca5"
+    "sha1": "c54088751ecb3feb0b62bc7335f0020805f3dca5",
+    "quality": 90
   },
   "SAS Good Hope shipwreck.png": {
     "key": "sas-good-hope-shipwreck",
@@ -1895,7 +2084,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SAS_Good_Hope_shipwreck.png",
     "width": 320,
     "height": 653,
-    "sha1": "944aba6597deb93a519209bd1efd0535d5f13653"
+    "sha1": "944aba6597deb93a519209bd1efd0535d5f13653",
+    "quality": 90
   },
   "SAS Gelderland.png": {
     "key": "sas-gelderland",
@@ -1905,7 +2095,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SAS_Gelderland.png",
     "width": 434,
     "height": 305,
-    "sha1": "717201157a87265e6d603d61ecfbb9438b3896a5"
+    "sha1": "717201157a87265e6d603d61ecfbb9438b3896a5",
+    "quality": 90
   },
   "Cape Matapan shipwreck.png": {
     "key": "cape-matapan-shipwreck",
@@ -1915,7 +2106,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Cape_Matapan_shipwreck.png",
     "width": 244,
     "height": 203,
-    "sha1": "1826d776b0a371139fd4cbf0dd97645cf42ff5bb"
+    "sha1": "1826d776b0a371139fd4cbf0dd97645cf42ff5bb",
+    "quality": 90
   },
   "False Bay Overview Map.pdf": {
     "key": "false-bay-overview-map",
@@ -1925,7 +2117,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:False_Bay_Overview_Map.pdf",
     "width": 2715,
     "height": 3840,
-    "sha1": "6d58e513070b799a1cee679cb4465c3a68545856"
+    "sha1": "6d58e513070b799a1cee679cb4465c3a68545856",
+    "quality": 60
   },
   "Sandy-top Ridge.png": {
     "key": "sandy-top-ridge",
@@ -1935,7 +2128,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sandy-top_Ridge.png",
     "width": 1184,
     "height": 930,
-    "sha1": "a54003ce5d897acb0a7fac6e4c9ac29dd0313211"
+    "sha1": "a54003ce5d897acb0a7fac6e4c9ac29dd0313211",
+    "quality": 90
   },
   "Sickle Reef.png": {
     "key": "sickle-reef",
@@ -1945,7 +2139,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sickle_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "23d5e6ae18866c1da72e1719d89578b7c894d712"
+    "sha1": "23d5e6ae18866c1da72e1719d89578b7c894d712",
+    "quality": 90
   },
   "South Island Reef.png": {
     "key": "south-island-reef",
@@ -1955,7 +2150,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:South_Island_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "04cf1e6b47b229f0239ff46305f62e2ec6305d03"
+    "sha1": "04cf1e6b47b229f0239ff46305f62e2ec6305d03",
+    "quality": 90
   },
   "Southwood's Corner.png": {
     "key": "southwoods-corner",
@@ -1965,7 +2161,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Southwood%27s_Corner.png",
     "width": 1184,
     "height": 930,
-    "sha1": "7730ea7f46d92b7c5ca3b50f04a036f2ae9cce1b"
+    "sha1": "7730ea7f46d92b7c5ca3b50f04a036f2ae9cce1b",
+    "quality": 90
   },
   "Rocky Bank - contours (10 m) 20260217.pdf": {
     "key": "rocky-bank-contours-10-m-20260217",
@@ -1975,7 +2172,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Rocky_Bank_-_contours_(10_m)_20260217.pdf",
     "width": 2715,
     "height": 3840,
-    "sha1": "f399d02c6f74a591d405a2976175275c5d75922e"
+    "sha1": "f399d02c6f74a591d405a2976175275c5d75922e",
+    "quality": 60
   },
   "Rocky Bank - dive sites 20260217.pdf": {
     "key": "rocky-bank-dive-sites-20260217",
@@ -1985,7 +2183,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Rocky_Bank_-_dive_sites_20260217.pdf",
     "width": 2715,
     "height": 3840,
-    "sha1": "caedca6599e92a920ddada0114a2344030f1f8e3"
+    "sha1": "caedca6599e92a920ddada0114a2344030f1f8e3",
+    "quality": 60
   },
   "Rocky Bank - overview 20260217.pdf": {
     "key": "rocky-bank-overview-20260217",
@@ -1995,7 +2194,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Rocky_Bank_-_overview_20260217.pdf",
     "width": 2715,
     "height": 3840,
-    "sha1": "1e29ebe13364510e532b77df2d2f8415249602ac"
+    "sha1": "1e29ebe13364510e532b77df2d2f8415249602ac",
+    "quality": 60
   },
   "Clan Stuart sidescan.jpg": {
     "key": "clan-stuart-sidescan",
@@ -2005,7 +2205,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Clan_Stuart_sidescan.jpg",
     "width": 446,
     "height": 711,
-    "sha1": "a10ddda9e8a2b5397c95665452af12c12ea4680d"
+    "sha1": "a10ddda9e8a2b5397c95665452af12c12ea4680d",
+    "quality": 90
   },
   "Map of CT dive site SS Maori.png": {
     "key": "map-of-ct-dive-site-ss-maori",
@@ -2015,7 +2216,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_CT_dive_site_SS_Maori.png",
     "width": 3840,
     "height": 2659,
-    "sha1": "8e27a868067fa067a2e79b083ea861de1a8e4594"
+    "sha1": "8e27a868067fa067a2e79b083ea861de1a8e4594",
+    "quality": 60
   },
   "Map of the SS Lusitania wreck site.png": {
     "key": "map-of-the-ss-lusitania-wreck-site",
@@ -2025,7 +2227,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Map_of_the_SS_Lusitania_wreck_site.png",
     "width": 3840,
     "height": 3329,
-    "sha1": "b459df92a2908d5a48d9f604e64343cb7c155d59"
+    "sha1": "b459df92a2908d5a48d9f604e64343cb7c155d59",
+    "quality": 60
   },
   "Oakburn and Bos400 map.png": {
     "key": "oakburn-and-bos400-map",
@@ -2035,7 +2238,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Oakburn_and_Bos400_map.png",
     "width": 3840,
     "height": 2832,
-    "sha1": "afd3cbe38f9d4efdf48936efa18400fb00218d46"
+    "sha1": "afd3cbe38f9d4efdf48936efa18400fb00218d46",
+    "quality": 60
   },
   "SS Hypatia wreck map.png": {
     "key": "ss-hypatia-wreck-map",
@@ -2045,7 +2249,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SS_Hypatia_wreck_map.png",
     "width": 3208,
     "height": 3840,
-    "sha1": "4f82c5ac291053ea882767532759e6b6e230518c"
+    "sha1": "4f82c5ac291053ea882767532759e6b6e230518c",
+    "quality": 60
   },
   "Tafelberg Deep Reef map.png": {
     "key": "tafelberg-deep-reef-map",
@@ -2055,7 +2260,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Tafelberg_Deep_Reef_map.png",
     "width": 3000,
     "height": 2212,
-    "sha1": "cfac6e01674fa6867d0fcb3c310749f6283e00d0"
+    "sha1": "cfac6e01674fa6867d0fcb3c310749f6283e00d0",
+    "quality": 60
   },
   "Target Reef Map.png": {
     "key": "target-reef-map",
@@ -2065,7 +2271,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Target_Reef_Map.png",
     "width": 1598,
     "height": 1527,
-    "sha1": "a8607b7054b3019af417273f90a213ef5c5279ea"
+    "sha1": "a8607b7054b3019af417273f90a213ef5c5279ea",
+    "quality": 60
   },
   "Tivoli Pinnacles Map.png": {
     "key": "tivoli-pinnacles-map",
@@ -2075,7 +2282,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Tivoli_Pinnacles_Map.png",
     "width": 2996,
     "height": 2504,
-    "sha1": "47c5c4854081b00f6485051d7e34a1b9d0b60fcb"
+    "sha1": "47c5c4854081b00f6485051d7e34a1b9d0b60fcb",
+    "quality": 60
   },
   "Clan Stuart 300dpi crop.jpg": {
     "key": "clan-stuart-300dpi-crop",
@@ -2085,7 +2293,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Clan_Stuart_300dpi_crop.jpg",
     "width": 1800,
     "height": 1330,
-    "sha1": "b098860983bfdb5e4506d995fd0850c9573f457f"
+    "sha1": "b098860983bfdb5e4506d995fd0850c9573f457f",
+    "quality": 60
   },
   "Sunny Cove 300dpi crop.jpg": {
     "key": "sunny-cove-300dpi-crop",
@@ -2095,7 +2304,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sunny_Cove_300dpi_crop.jpg",
     "width": 2527,
     "height": 2284,
-    "sha1": "08bdd91239938d27870cc2bf1c8a15e8202b5a27"
+    "sha1": "08bdd91239938d27870cc2bf1c8a15e8202b5a27",
+    "quality": 60
   },
   "Tonys Reef Aerial.jpg": {
     "key": "tonys-reef-aerial",
@@ -2105,7 +2315,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Tonys_Reef_Aerial.jpg",
     "width": 525,
     "height": 475,
-    "sha1": "fd1da61569ac9612c8692dd0745ecd3e895f26d2"
+    "sha1": "fd1da61569ac9612c8692dd0745ecd3e895f26d2",
+    "quality": 90
   },
   "Troglodytes Cove Aerial.jpg": {
     "key": "troglodytes-cove-aerial",
@@ -2115,7 +2326,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Troglodytes_Cove_Aerial.jpg",
     "width": 748,
     "height": 604,
-    "sha1": "6ba3fca973f44ae4122321656301b899aa941770"
+    "sha1": "6ba3fca973f44ae4122321656301b899aa941770",
+    "quality": 90
   },
   "Stonehenge dive sites (Cape Town) map.png": {
     "key": "stonehenge-dive-sites-cape-town-map",
@@ -2125,7 +2337,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Stonehenge_dive_sites_(Cape_Town)_map.png",
     "width": 3840,
     "height": 3127,
-    "sha1": "d46571d296141e772c640310e6f9ef0ca66606f6"
+    "sha1": "d46571d296141e772c640310e6f9ef0ca66606f6",
+    "quality": 60
   },
   "SURG Pinnacle detail map.png": {
     "key": "surg-pinnacle-detail-map",
@@ -2135,7 +2348,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SURG_Pinnacle_detail_map.png",
     "width": 3840,
     "height": 3010,
-    "sha1": "3c2ad37fae5b0e805860c70bf3b2832d2420ee84"
+    "sha1": "3c2ad37fae5b0e805860c70bf3b2832d2420ee84",
+    "quality": 60
   },
   "Star Walls detail map.png": {
     "key": "star-walls-detail-map",
@@ -2145,7 +2359,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Star_Walls_detail_map.png",
     "width": 3840,
     "height": 2910,
-    "sha1": "503861bd7e4351702017e919e47e51bf9610dadd"
+    "sha1": "503861bd7e4351702017e919e47e51bf9610dadd",
+    "quality": 60
   },
   "Sunfish and Lollipop Pinnacles detail map.png": {
     "key": "sunfish-and-lollipop-pinnacles-detail-map",
@@ -2155,7 +2370,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sunfish_and_Lollipop_Pinnacles_detail_map.png",
     "width": 3269,
     "height": 2477,
-    "sha1": "a10174f61a5c3be63fb322e0c6a6732625384eda"
+    "sha1": "a10174f61a5c3be63fb322e0c6a6732625384eda",
+    "quality": 60
   },
   "M&M Pinnacles detail map.png": {
     "key": "m-m-pinnacles-detail-map",
@@ -2165,7 +2381,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:M%26M_Pinnacles_detail_map.png",
     "width": 3840,
     "height": 2909,
-    "sha1": "5dfc4c671b034dd82ac1fa05465aa6a1e925ea76"
+    "sha1": "5dfc4c671b034dd82ac1fa05465aa6a1e925ea76",
+    "quality": 60
   },
   "Twin Towers Reef map.png": {
     "key": "twin-towers-reef-map",
@@ -2175,7 +2392,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Twin_Towers_Reef_map.png",
     "width": 3249,
     "height": 2251,
-    "sha1": "07441985ecc9150457e7c377990258303cae6d8d"
+    "sha1": "07441985ecc9150457e7c377990258303cae6d8d",
+    "quality": 60
   },
   "Star of Africa wreck map.png": {
     "key": "star-of-africa-wreck-map",
@@ -2185,7 +2403,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Star_of_Africa_wreck_map.png",
     "width": 2694,
     "height": 3840,
-    "sha1": "288589384451e13d4918f472691e709b57ea52bb"
+    "sha1": "288589384451e13d4918f472691e709b57ea52bb",
+    "quality": 60
   },
   "Dusky Pinnacles detail map.png": {
     "key": "dusky-pinnacles-detail-map",
@@ -2195,7 +2414,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dusky_Pinnacles_detail_map.png",
     "width": 3840,
     "height": 2986,
-    "sha1": "a8b7d95f3d302db1faafbd01ae9620989bf00185"
+    "sha1": "a8b7d95f3d302db1faafbd01ae9620989bf00185",
+    "quality": 60
   },
   "SS Godetia site map.png": {
     "key": "ss-godetia-site-map",
@@ -2205,7 +2425,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:SS_Godetia_site_map.png",
     "width": 2496,
     "height": 2983,
-    "sha1": "ece5fbcbd0bc7c28394f560bfc20fcbc03c4d6c6"
+    "sha1": "ece5fbcbd0bc7c28394f560bfc20fcbc03c4d6c6",
+    "quality": 60
   },
   "Dive sites of Tafelberg Reef.png": {
     "key": "dive-sites-of-tafelberg-reef",
@@ -2215,7 +2436,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dive_sites_of_Tafelberg_Reef.png",
     "width": 3840,
     "height": 3566,
-    "sha1": "c805b52b35d196d7781a1e036532507cece610f2"
+    "sha1": "c805b52b35d196d7781a1e036532507cece610f2",
+    "quality": 60
   },
   "Godetia.png": {
     "key": "godetia",
@@ -2225,7 +2447,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Godetia.png",
     "width": 485,
     "height": 318,
-    "sha1": "5b81425033fd9b119f7cdaac51e5a811233c41c7"
+    "sha1": "5b81425033fd9b119f7cdaac51e5a811233c41c7",
+    "quality": 90
   },
   "S.A. Seafarer.png": {
     "key": "s-a-seafarer",
@@ -2235,7 +2458,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:S.A._Seafarer.png",
     "width": 262,
     "height": 153,
-    "sha1": "9d7774504540d86f228f7e49f62f93d39ed49efa"
+    "sha1": "9d7774504540d86f228f7e49f62f93d39ed49efa",
+    "quality": 90
   },
   "BOS 400.png": {
     "key": "bos-400",
@@ -2245,7 +2469,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:BOS_400.png",
     "width": 499,
     "height": 193,
-    "sha1": "bd7de9155da69edee1e346cd6a4c48443e25b191"
+    "sha1": "bd7de9155da69edee1e346cd6a4c48443e25b191",
+    "quality": 90
   },
   "Maori.png": {
     "key": "maori",
@@ -2255,7 +2480,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Maori.png",
     "width": 491,
     "height": 270,
-    "sha1": "67549d0f5432660eb15fea4efc55cd6bc8da8eb7"
+    "sha1": "67549d0f5432660eb15fea4efc55cd6bc8da8eb7",
+    "quality": 90
   },
   "Oakburn.png": {
     "key": "oakburn",
@@ -2265,7 +2491,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Oakburn.png",
     "width": 454,
     "height": 208,
-    "sha1": "e78ef8bf5eafea4d01802e545b777050c0463ff6"
+    "sha1": "e78ef8bf5eafea4d01802e545b777050c0463ff6",
+    "quality": 90
   },
   "Star of Africa.png": {
     "key": "star-of-africa",
@@ -2275,7 +2502,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Star_of_Africa.png",
     "width": 419,
     "height": 305,
-    "sha1": "37aeccce70d9ea319b76a5b0eccd8ab9b305f600"
+    "sha1": "37aeccce70d9ea319b76a5b0eccd8ab9b305f600",
+    "quality": 90
   },
   "T.S. McEwen.png": {
     "key": "t-s-mcewen",
@@ -2285,7 +2513,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:T.S._McEwen.png",
     "width": 261,
     "height": 189,
-    "sha1": "4dc327647c15b25498f115a15ce8fc7660bfe890"
+    "sha1": "4dc327647c15b25498f115a15ce8fc7660bfe890",
+    "quality": 90
   },
   "Tristania.png": {
     "key": "tristania",
@@ -2295,7 +2524,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Tristania.png",
     "width": 271,
     "height": 291,
-    "sha1": "55ebfd29fe10559f87e8e0bc26d823cd0b688361"
+    "sha1": "55ebfd29fe10559f87e8e0bc26d823cd0b688361",
+    "quality": 90
   },
   "Hypatia shipwreck.png": {
     "key": "hypatia-shipwreck",
@@ -2305,7 +2535,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Hypatia_shipwreck.png",
     "width": 279,
     "height": 375,
-    "sha1": "d8958bec578dff5a4dd0534f3c2754f539caa2ea"
+    "sha1": "d8958bec578dff5a4dd0534f3c2754f539caa2ea",
+    "quality": 90
   },
   "Steenbras Ridge Overview Map.pdf": {
     "key": "steenbras-ridge-overview-map",
@@ -2315,7 +2546,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Steenbras_Ridge_Overview_Map.pdf",
     "width": 2715,
     "height": 3840,
-    "sha1": "7419010203be5acc1c259233c0b87a4080919d05"
+    "sha1": "7419010203be5acc1c259233c0b87a4080919d05",
+    "quality": 60
   },
   "Steenbras Ridge Contour Map.pdf": {
     "key": "steenbras-ridge-contour-map",
@@ -2325,7 +2557,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Steenbras_Ridge_Contour_Map.pdf",
     "width": 2715,
     "height": 3840,
-    "sha1": "2e6be12a995b39598ba0bdb9525470de25a19afe"
+    "sha1": "2e6be12a995b39598ba0bdb9525470de25a19afe",
+    "quality": 60
   },
   "Steenbras Ridge Dive Sites Map.pdf": {
     "key": "steenbras-ridge-dive-sites-map",
@@ -2335,7 +2568,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Steenbras_Ridge_Dive_Sites_Map.pdf",
     "width": 2715,
     "height": 3840,
-    "sha1": "d8f7cc5916fa8cda6bbeb230f92ee1d424fe2656"
+    "sha1": "d8f7cc5916fa8cda6bbeb230f92ee1d424fe2656",
+    "quality": 60
   },
   "Stefan's Reef.png": {
     "key": "stefans-reef",
@@ -2345,7 +2579,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Stefan%27s_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "17542ab6c915a88c87d10cc396f7da3af4bfed41"
+    "sha1": "17542ab6c915a88c87d10cc396f7da3af4bfed41",
+    "quality": 90
   },
   "Steenbras Ridge Edge Reef.png": {
     "key": "steenbras-ridge-edge-reef",
@@ -2355,7 +2590,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Steenbras_Ridge_Edge_Reef.png",
     "width": 1540,
     "height": 852,
-    "sha1": "be3b5ccdc7427bcd8c0d453a8d988561889a1a14"
+    "sha1": "be3b5ccdc7427bcd8c0d453a8d988561889a1a14",
+    "quality": 60
   },
   "Choirboys on Steenbras Ridge.png": {
     "key": "choirboys-on-steenbras-ridge",
@@ -2365,7 +2601,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Choirboys_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "447ba58f2267a8b8f9642c936cfa600daea3da71"
+    "sha1": "447ba58f2267a8b8f9642c936cfa600daea3da71",
+    "quality": 60
   },
   "Drop Zone (North and South) on Steenbras Ridge.png": {
     "key": "drop-zone-north-and-south-on-steenbras-ridge",
@@ -2375,7 +2612,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Drop_Zone_(North_and_South)_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "0c3e4329a898513e41f55040c140c6b17ab2555f"
+    "sha1": "0c3e4329a898513e41f55040c140c6b17ab2555f",
+    "quality": 60
   },
   "Sterretjies on Steenbras Ridge.png": {
     "key": "sterretjies-on-steenbras-ridge",
@@ -2385,7 +2623,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Sterretjies_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "0a27eb8789afc64dfdcd4c2dd9df351178c72029"
+    "sha1": "0a27eb8789afc64dfdcd4c2dd9df351178c72029",
+    "quality": 60
   },
   "Outpost on Steenbras Ridge.png": {
     "key": "outpost-on-steenbras-ridge",
@@ -2395,7 +2634,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Outpost_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "474016116836cebd2020369d90d9cb0d586cd06a"
+    "sha1": "474016116836cebd2020369d90d9cb0d586cd06a",
+    "quality": 60
   },
   "Outpost and Steenbras Deep Far North on Steenbras Ridge.png": {
     "key": "outpost-and-steenbras-deep-far-north-on-steenbras-ridge",
@@ -2405,7 +2645,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Outpost_and_Steenbras_Deep_Far_North_on_Steenbras_Ridge.png",
     "width": 1540,
     "height": 852,
-    "sha1": "89f6b6da97adaa285af56a1c5f4b262930e049ca"
+    "sha1": "89f6b6da97adaa285af56a1c5f4b262930e049ca",
+    "quality": 60
   },
   "Steenbras Deep North on Steenbras Ridge.png": {
     "key": "steenbras-deep-north-on-steenbras-ridge",
@@ -2415,7 +2656,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Steenbras_Deep_North_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3839,
-    "sha1": "9809e0fa0b99a47b5eba8e615435055a85cc4adc"
+    "sha1": "9809e0fa0b99a47b5eba8e615435055a85cc4adc",
+    "quality": 60
   },
   "Steenbras Deep South, Snake Reef and Steenbras Koppie.png": {
     "key": "steenbras-deep-south-snake-reef-and-steenbras-koppie",
@@ -2425,7 +2667,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Steenbras_Deep_South,_Snake_Reef_and_Steenbras_Koppie.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "ddeaee1c521e17090e23afa36fc3f5f3b291d4c8"
+    "sha1": "ddeaee1c521e17090e23afa36fc3f5f3b291d4c8",
+    "quality": 60
   },
   "Number 8 Reef on Steenbras Ridge.png": {
     "key": "number-8-reef-on-steenbras-ridge",
@@ -2435,7 +2678,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Number_8_Reef_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "f749ff0e8f20edf8e2bb1b88063ac1d66e62dc45"
+    "sha1": "f749ff0e8f20edf8e2bb1b88063ac1d66e62dc45",
+    "quality": 60
   },
   "Inner Ridge North on Steenbras Ridge.png": {
     "key": "inner-ridge-north-on-steenbras-ridge",
@@ -2445,7 +2689,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Inner_Ridge_North_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "8d9ab63908056bfc5939be07d8e04f4b4b9f87fc"
+    "sha1": "8d9ab63908056bfc5939be07d8e04f4b4b9f87fc",
+    "quality": 60
   },
   "Number 11 Reef on Steenbras Ridge.png": {
     "key": "number-11-reef-on-steenbras-ridge",
@@ -2455,7 +2700,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Number_11_Reef_on_Steenbras_Ridge.png",
     "width": 1540,
     "height": 852,
-    "sha1": "db7ac16f3128ba5e3ed6d0c50200b1b4846e76bb"
+    "sha1": "db7ac16f3128ba5e3ed6d0c50200b1b4846e76bb",
+    "quality": 60
   },
   "Number 12 Reef on Steenbras Ridge.png": {
     "key": "number-12-reef-on-steenbras-ridge",
@@ -2465,7 +2711,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Number_12_Reef_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "05764aa3ed9024790d2b7b933ce57fdb6ad6f0e1"
+    "sha1": "05764aa3ed9024790d2b7b933ce57fdb6ad6f0e1",
+    "quality": 60
   },
   "Whale Reef on Steenbras Ridge.png": {
     "key": "whale-reef-on-steenbras-ridge",
@@ -2475,7 +2722,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Whale_Reef_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "c417b20d32ee5e0c5fd1191d9618a217a8680132"
+    "sha1": "c417b20d32ee5e0c5fd1191d9618a217a8680132",
+    "quality": 60
   },
   "Mossie's Reef on Steenbras Ridge.png": {
     "key": "mossies-reef-on-steenbras-ridge",
@@ -2485,7 +2733,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Mossie%27s_Reef_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "465fca8ebdf675374abf631cea2e6ae38c766f3d"
+    "sha1": "465fca8ebdf675374abf631cea2e6ae38c766f3d",
+    "quality": 60
   },
   "Mossie's Reef South on Steenbras Ridge.png": {
     "key": "mossies-reef-south-on-steenbras-ridge",
@@ -2495,7 +2744,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Mossie%27s_Reef_South_on_Steenbras_Ridge.png",
     "width": 2635,
     "height": 3840,
-    "sha1": "0ab78c7337c9e6ba043a65579fddd39d35b87f41"
+    "sha1": "0ab78c7337c9e6ba043a65579fddd39d35b87f41",
+    "quality": 60
   },
   "Two Oceans Aquarium 300dpi crop.jpg": {
     "key": "two-oceans-aquarium-300dpi-crop",
@@ -2505,7 +2755,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Two_Oceans_Aquarium_300dpi_crop.jpg",
     "width": 2454,
     "height": 3192,
-    "sha1": "8e1280a61f6882bdef6f9dd50badeca857439fcd"
+    "sha1": "8e1280a61f6882bdef6f9dd50badeca857439fcd",
+    "quality": 60
   },
   "Two Oceans Aquarium building aerial.jpg": {
     "key": "two-oceans-aquarium-building-aerial",
@@ -2515,7 +2766,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Two_Oceans_Aquarium_building_aerial.jpg",
     "width": 1243,
     "height": 876,
-    "sha1": "ff4c3cde7acf7a2cecabc9aa6284be2452b5adcd"
+    "sha1": "ff4c3cde7acf7a2cecabc9aa6284be2452b5adcd",
+    "quality": 90
   },
   "Whirlpool Aerial.jpg": {
     "key": "whirlpool-aerial",
@@ -2525,7 +2777,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Whirlpool_Aerial.jpg",
     "width": 624,
     "height": 608,
-    "sha1": "33f50b5aee716420d610c4d677504437f99ea965"
+    "sha1": "33f50b5aee716420d610c4d677504437f99ea965",
+    "quality": 90
   },
   "Windmill Beach 300dpi.jpg": {
     "key": "windmill-beach-300dpi",
@@ -2535,7 +2788,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Windmill_Beach_300dpi.jpg",
     "width": 1564,
     "height": 1861,
-    "sha1": "39be689e8cbdc30eb66bd4565d3a052e93c7fc53"
+    "sha1": "39be689e8cbdc30eb66bd4565d3a052e93c7fc53",
+    "quality": 60
   },
   "Wilhelms Wall map.png": {
     "key": "wilhelms-wall-map",
@@ -2545,7 +2799,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Wilhelms_Wall_map.png",
     "width": 3290,
     "height": 2267,
-    "sha1": "d05a3d70d95c46d661085020641a96c88e44d0a3"
+    "sha1": "d05a3d70d95c46d661085020641a96c88e44d0a3",
+    "quality": 60
   },
   "Dangerous Doug Reefs Map.png": {
     "key": "dangerous-doug-reefs-map",
@@ -2555,7 +2810,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dangerous_Doug_Reefs_Map.png",
     "width": 3840,
     "height": 3446,
-    "sha1": "1b51850513f25a4ef5ccce6ec314ae90b7405520"
+    "sha1": "1b51850513f25a4ef5ccce6ec314ae90b7405520",
+    "quality": 60
   },
   "Windmill beach and offshore reefs map.png": {
     "key": "windmill-beach-and-offshore-reefs-map",
@@ -2565,7 +2821,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Windmill_beach_and_offshore_reefs_map.png",
     "width": 3840,
     "height": 2140,
-    "sha1": "b366e07c9923f95e89689fc986b30454247716ac"
+    "sha1": "b366e07c9923f95e89689fc986b30454247716ac",
+    "quality": 60
   },
   "York Shoal Reef map.png": {
     "key": "york-shoal-reef-map",
@@ -2575,7 +2832,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:York_Shoal_Reef_map.png",
     "width": 3158,
     "height": 3840,
-    "sha1": "94a230c176616cde2875e5255b565a15d19628a0"
+    "sha1": "94a230c176616cde2875e5255b565a15d19628a0",
+    "quality": 60
   },
   "Dive sites of the Whittle Rock area Hi-Res for mobile.png": {
     "key": "dive-sites-of-the-whittle-rock-area-hi-res-for-mobile",
@@ -2585,7 +2843,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dive_sites_of_the_Whittle_Rock_area_Hi-Res_for_mobile.png",
     "width": 3840,
     "height": 2716,
-    "sha1": "1542da379273245ca1068c2ed2bb9822db211914"
+    "sha1": "1542da379273245ca1068c2ed2bb9822db211914",
+    "quality": 60
   },
   "Dive sites of Whittle Rock on multibeam map.jpg": {
     "key": "dive-sites-of-whittle-rock-on-multibeam-map",
@@ -2595,7 +2854,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Dive_sites_of_Whittle_Rock_on_multibeam_map.jpg",
     "width": 1682,
     "height": 1289,
-    "sha1": "1f36a3f20d8ab856a97a45578d8d909290202801"
+    "sha1": "1f36a3f20d8ab856a97a45578d8d909290202801",
+    "quality": 60
   },
   "Whittle Rock - Aoife's reef.jpg": {
     "key": "whittle-rock-aoifes-reef",
@@ -2605,7 +2865,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Whittle_Rock_-_Aoife%27s_reef.jpg",
     "width": 1055,
     "height": 914,
-    "sha1": "5538e06eb0571069e3530f0911f5119bf7dcb8af"
+    "sha1": "5538e06eb0571069e3530f0911f5119bf7dcb8af",
+    "quality": 90
   },
   "Peter's Ridge at Whittle Rock, False Bay, South Africa.jpg": {
     "key": "peters-ridge-at-whittle-rock-false-bay-south-africa",
@@ -2615,7 +2876,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Peter%27s_Ridge_at_Whittle_Rock,_False_Bay,_South_Africa.jpg",
     "width": 1289,
     "height": 906,
-    "sha1": "f2c5092e3b0f0e73795c09dcca3d5b94971d23cb"
+    "sha1": "f2c5092e3b0f0e73795c09dcca3d5b94971d23cb",
+    "quality": 90
   },
   "Butt Rocks at Whittle Rock, False Bay, South Africa.jpg": {
     "key": "butt-rocks-at-whittle-rock-false-bay-south-africa",
@@ -2625,7 +2887,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Butt_Rocks_at_Whittle_Rock,_False_Bay,_South_Africa.jpg",
     "width": 1201,
     "height": 917,
-    "sha1": "2a313fb4501a7977aa888b30a0a7fc78ab87131c"
+    "sha1": "2a313fb4501a7977aa888b30a0a7fc78ab87131c",
+    "quality": 90
   },
   "Whittle Rock reef complex, False Bay, South Africa.jpg": {
     "key": "whittle-rock-reef-complex-false-bay-south-africa",
@@ -2635,7 +2898,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Whittle_Rock_reef_complex,_False_Bay,_South_Africa.jpg",
     "width": 1295,
     "height": 932,
-    "sha1": "e8aa315058babd89f7a68550dc9b54d75087f921"
+    "sha1": "e8aa315058babd89f7a68550dc9b54d75087f921",
+    "quality": 90
   },
   "Whittle Rock - Anchors map.pdf": {
     "key": "whittle-rock-anchors-map",
@@ -2645,7 +2909,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Whittle_Rock_-_Anchors_map.pdf",
     "width": 3840,
     "height": 2715,
-    "sha1": "dab491c677d482713a4440560ede46536d07872e"
+    "sha1": "dab491c677d482713a4440560ede46536d07872e",
+    "quality": 60
   },
   "3D bathymetric image of Bus-stop overhang.png": {
     "key": "3d-bathymetric-image-of-bus-stop-overhang",
@@ -2655,7 +2920,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:3D_bathymetric_image_of_Bus-stop_overhang.png",
     "width": 1206,
     "height": 785,
-    "sha1": "f2495e818a1d348b0c74a3deae85627085c32654"
+    "sha1": "f2495e818a1d348b0c74a3deae85627085c32654",
+    "quality": 90
   },
   "Ultima Thule Reef.png": {
     "key": "ultima-thule-reef",
@@ -2665,7 +2931,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Ultima_Thule_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "d0c6287296ebc5b1841b7045ca8fa24d90da4928"
+    "sha1": "d0c6287296ebc5b1841b7045ca8fa24d90da4928",
+    "quality": 90
   },
   "Western Deep Reef.png": {
     "key": "western-deep-reef",
@@ -2675,7 +2942,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Western_Deep_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "2caafd78a313e8e49d2fda7a8e6bb4178b18b12c"
+    "sha1": "2caafd78a313e8e49d2fda7a8e6bb4178b18b12c",
+    "quality": 90
   },
   "Windtoy Reef.png": {
     "key": "windtoy-reef",
@@ -2685,7 +2953,8 @@
     "page": "https://commons.wikimedia.org/wiki/File:Windtoy_Reef.png",
     "width": 1184,
     "height": 930,
-    "sha1": "bc4b4a3bc57c72e23ac5884eee6e5eea055f4c90"
+    "sha1": "bc4b4a3bc57c72e23ac5884eee6e5eea055f4c90",
+    "quality": 90
   },
   "Wreckless Ridge.png": {
     "key": "wreckless-ridge",
@@ -2695,6 +2964,7 @@
     "page": "https://commons.wikimedia.org/wiki/File:Wreckless_Ridge.png",
     "width": 1184,
     "height": 930,
-    "sha1": "6345c3019616e93e05b04df1c1b53e8972cb9d50"
+    "sha1": "6345c3019616e93e05b04df1c1b53e8972cb9d50",
+    "quality": 90
   }
 }

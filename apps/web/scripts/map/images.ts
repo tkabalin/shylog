@@ -37,6 +37,11 @@ const outDir = join(import.meta.dirname, "../../src/map/images")
 // lot near the issue's 30 MB estimate.
 const longest = 3840
 const quality = 60
+// Commons has some only small, which every screen stretches, so there
+// smoothing would show: up to 1500 px they keep more detail and colour,
+// at about two and a half times the bytes.
+const small = 1500
+const smallQuality = 90
 // The sheet's strip shows thumbnails 112 px tall, so 3× for a phone.
 const thumbHeight = 336
 const thumbQuality = 55
@@ -51,6 +56,8 @@ export type Credit = {
   width: number
   height: number
   sha1: string
+  // What it was encoded at, so a change to the setting encodes it again.
+  quality: number
 }
 
 type Info = {
@@ -247,8 +254,16 @@ for (let i = 0; i < names.length; i += 50) {
     const was = credits[name]
     const meta = image.extmetadata ?? {}
     let { width, height } = was ?? { width: 0, height: 0 }
+    const size = target(image)
+    const encoding =
+      Math.max(size.width, size.height) <= small ? smallQuality : quality
     let downloaded = false
-    if (was?.sha1 !== image.sha1 || !existsSync(full) || !existsSync(thumb)) {
+    if (
+      was?.sha1 !== image.sha1 ||
+      was?.quality !== encoding ||
+      !existsSync(full) ||
+      !existsSync(thumb)
+    ) {
       const body = await download(sources(image)).catch((error: unknown) => {
         console.warn(`${name}: ${String(error)}`)
       })
@@ -261,11 +276,10 @@ for (let i = 0; i < names.length; i += 50) {
         continue
       }
       const picture = sharp(body)
-      const size = target(image)
       const written = await picture
         .clone()
         .resize(size.width, size.height, { fit: "inside" })
-        .webp({ quality })
+        .webp({ quality: encoding, smartSubsample: encoding !== quality })
         .toFile(full)
       ;({ width, height } = written)
       await picture
@@ -289,6 +303,7 @@ for (let i = 0; i < names.length; i += 50) {
       width,
       height,
       sha1: image.sha1,
+      quality: encoding,
     }
     // After each download, so a run stopped part way keeps what it has,
     // and the next downloads only the rest.
