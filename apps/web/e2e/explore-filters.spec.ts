@@ -319,17 +319,21 @@ test.describe("at desktop width", () => {
     ).toHaveCount(0)
   })
 
-  test("lists the sites in a card that folds to its search", async ({
+  test("lists the sites in a card that opens folded to its search", async ({
     page,
   }) => {
     await page.goto("/explore")
     const map = await drawn(page)
     const card = page.getByRole("region", { name: "Dive sites" })
+    await expect(card.getByText(`${sites.length} sites`)).toBeVisible()
+    // Folded at first, so the map comes first.
+    const row = card.getByRole("button", { name: /^A-Frame/ })
+    await expect(row).toBeHidden()
+    await card.getByRole("button", { name: "Show the list" }).click()
+    await expect(row).toBeVisible()
     // The window's height, 12 px in.
     expect((await card.boundingBox())!.height).toBeCloseTo(map.height - 24, 0)
-    await expect(card.getByText(`${sites.length} sites`)).toBeVisible()
     await card.getByRole("button", { name: "Hide the list" }).click()
-    const row = card.getByRole("button", { name: /^A-Frame/ })
     await expect(row).toBeHidden()
     // Searching brings the list back.
     await card.getByRole("textbox", { name: "Search sites" }).fill("a frame")
