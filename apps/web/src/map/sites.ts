@@ -2,19 +2,20 @@ import { mapPagePrefix, normaliseName } from "@shylog/core"
 
 import raw from "./sites.geojson?raw"
 
+import type { Area } from "./areas"
 import type { Compass, GoodFor, Need, Season } from "./tag-values"
 
 // The dive site map's sites, from Wikivoyage (scripts/map/sites.ts writes
 // the file). Imported as text, as Vite reads only .json as JSON, and part
 // of the map's own chunk.
 
-export type Area = "atlantic" | "false-bay" | "offshore" | "east" | "fresh"
 export type SiteType = "reef" | "wreck" | "fresh"
 // How you get in, as its page says: usually from the shore, by boat, or both,
 // which counts a hard shore entry off a boat dive and says why it's hard.
 export type Access = "shore" | "boat" | "both"
 export type ShoreEntry = "long swim" | "climb"
 export type { Compass, GoodFor, Need, Season } from "./tag-values"
+export { areas, type Area } from "./areas"
 
 export type Site = {
   id: string
@@ -158,15 +159,6 @@ export const searchSites = (query: string, among: readonly Site[] = sites) =>
   matchName(query, among)
 export const searchPages = (query: string, among: readonly Page[] = pages) =>
   matchName(query, among)
-
-// In the list's order, each clustering on its own.
-export const areas: Record<Area, string> = {
-  atlantic: "Atlantic coast",
-  "false-bay": "False Bay coast",
-  offshore: "Offshore False Bay",
-  east: "East False Bay",
-  fresh: "Fresh water",
-}
 
 export const siteTypes: Record<SiteType, string> = {
   reef: "Reef",
