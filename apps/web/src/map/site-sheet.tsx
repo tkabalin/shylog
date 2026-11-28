@@ -33,6 +33,7 @@ import { useOnline } from "@/lib/online"
 import { useMapFrame } from "./basemap"
 import { useCardWidth } from "./card-edge"
 import { siteZone } from "./find"
+import { publicSite } from "./host"
 import { ImageStrip } from "./image-strip"
 import { withSite } from "./search"
 import { SiteText } from "./site-text"
@@ -131,6 +132,9 @@ export function SiteSheet({
   if (site && site !== shown) setShown(site)
   // State, not a ref: the portal mounts the sheet a render after it opens.
   const [summary, setSummary] = useState<HTMLDivElement | null>(null)
+  // The home indicator's height, under the peek on the public site, where
+  // the map runs to the screen's foot with no tab bar between.
+  const [homeBar, setHomeBar] = useState<HTMLDivElement | null>(null)
   const content = useRef<HTMLDivElement>(null)
   // The peek is as tall as the summary; a drag raises the sheet to the
   // map's full height, with the page's text below it.
@@ -159,15 +163,18 @@ export function SiteSheet({
   useLayoutEffect(() => {
     if (!summary || !shownId || raised) return
     const measure = () => {
-      const height = summary.offsetTop + summary.offsetHeight
+      const height =
+        summary.offsetTop + summary.offsetHeight + (homeBar?.offsetHeight ?? 0)
       setPeek(`${height}px`)
       onCover({ left: 0, bottom: height }, shownId)
     }
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(summary)
+    // The inset changes with the browser's toolbar and the phone's turn.
+    if (homeBar) observer.observe(homeBar)
     return () => observer.disconnect()
-  }, [summary, onCover, shownId, raised])
+  }, [summary, homeBar, onCover, shownId, raised])
 
   // At the top of its text whenever it's at its peek, lowered after
   // reading or showing another site.
@@ -236,6 +243,13 @@ export function SiteSheet({
                   <>
                     {/* Its foot clear of the tab bar at the peek. */}
                     <div ref={setSummary} className="pt-2 pb-6">
+                      {publicSite && (
+                        <div
+                          ref={setHomeBar}
+                          aria-hidden
+                          className="pointer-events-none invisible absolute h-[env(safe-area-inset-bottom)]"
+                        />
+                      )}
                       <Summary
                         site={shown}
                         titleRef={setTitle}
@@ -271,7 +285,12 @@ export function SiteSheet({
                     )}
                     <SiteText
                       site={shown}
-                      className="pt-2 pb-8"
+                      className={cn(
+                        "pt-2",
+                        publicSite
+                          ? "pb-[calc(2rem+env(safe-area-inset-bottom))]"
+                          : "pb-8"
+                      )}
                       onFollow={follow}
                       end={end}
                     />

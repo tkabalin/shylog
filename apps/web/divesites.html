@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- As the app's page (index.html): the map takes pinches itself. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="A map of Cape Town's dive sites, around the Cape Peninsula and False Bay. Filter them by depth, shore or boat, wind and swell, and read each site's guide and the marine protected areas' rules."
+    />
+    <link rel="canonical" href="https://divesites.thomaskabalin.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://divesites.thomaskabalin.com/" />
+    <meta property="og:title" content="Cape Town Dive Sites" />
+    <meta
+      property="og:description"
+      content="A map of Cape Town's dive sites, around the Cape Peninsula and False Bay."
+    />
+    <!-- Browser and status bar colour; set below and kept in step by
+         ThemeProvider, so it always matches the page background. -->
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- iOS ignores SVG icons; scripts/apple-touch-icon.ts renders this one. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- The build writes the public site's own ArcGIS key here; empty, no
+         satellite. -->
+    <meta name="shylog-arcgis-key" content="" />
+    <title>Cape Town Dive Sites</title>
+    <script>
+      // Set the theme before first paint so a dark phone does not flash white
+      // while React loads. Mirrors ThemeProvider's storage key and values, and
+      // falls back to the system setting when storage is blocked.
+      {
+        let theme = null
+        try {
+          theme = localStorage.getItem("theme")
+        } catch {}
+        const dark =
+          theme === "dark" ||
+          (theme !== "light" &&
+            matchMedia("(prefers-color-scheme: dark)").matches)
+        document.documentElement.classList.add(dark ? "dark" : "light")
+        // --background of each theme (white, mist-950); CSS isn't loaded yet.
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute("content", dark ? "#090b0c" : "#ffffff")
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/divesites/main.tsx"></script>
+  </body>
+</html>

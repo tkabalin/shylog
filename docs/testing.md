@@ -31,11 +31,12 @@ Vitest runs the first three as projects of one root config (`vitest.config.ts`),
 
 The Playwright suite in `apps/web/e2e/` runs at a 390 by 844 viewport, phone width, in Chromium and WebKit. WebKit matters most, since the app is used installed from iOS Safari, and several bugs have shown up only there.
 
-Playwright starts everything it needs and never reuses a running dev server. Each stack is a fresh data folder seeded from the D4i fixture, the server with the dev login standing in for Tailscale, and Vite's dev server in front of it. A stand-in for `dctool` plays back raw downloads from the watch, so even the direct download from the dive computer runs end to end. The suite is split into three lanes by tag:
+Playwright starts everything it needs and never reuses a running dev server. Each stack is a fresh data folder seeded from the D4i fixture, the server with the dev login standing in for Tailscale, and Vite's dev server in front of it. A stand-in for `dctool` plays back raw downloads from the watch, so even the direct download from the dive computer runs end to end. The suite is split into four lanes by tag:
 
 - **Read-only tests** run in parallel on one shared stack and assert the fixture's real figures.
 - **`@writes` tests** change the log and put it back, so each browser runs them one at a time on a stack of its own.
 - **`@built` tests** run against a production build served by the server itself, because only a build has the service worker, and offline behaviour can't be tested without it.
+- **`@divesites` tests** run against the public dive site map as it's built, previewed with no server behind it, and check it never asks for the app's API or the extract.
 
 Some specs check conventions rather than features: one tours the Log, a dive and You and fails on any console warning, uncaught exception or error response, and each navigation flow checks that `page.goBack()` lands where the history rule in [ui.md](ui.md) says. Screenshots taken during a run are evidence for review, uploaded as a CI artifact, not pixel comparisons and never committed.
 

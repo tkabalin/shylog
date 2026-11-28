@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, type CSSProperties } from "react"
 import { cn } from "cn"
 
+import { publicSite } from "./host"
 import { mpaRules, type Mpa, type Swatch } from "./zone-rules"
 
 // Each swatch as the map draws its zone: hatching over a tint where no one
@@ -51,7 +52,12 @@ export function ZoneRulesList({
       ref={scroller}
       className={cn(
         "min-h-0 flex-1 overflow-y-auto overscroll-contain",
-        desk ? "[scrollbar-width:thin] px-5 pb-5" : "px-4 pb-6"
+        desk
+          ? "[scrollbar-width:thin] px-5 pb-5"
+          : // Clear of the home indicator on the public site, with no tab bar.
+            publicSite
+            ? "px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+            : "px-4 pb-6"
       )}
     >
       {mpaRules.map(({ id, mpa: name, groups, note }) => (

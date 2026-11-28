@@ -46,6 +46,9 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm build
+      # The public dive site map, so its guard against the app's log and API
+      # code, and its tile files, are checked on every pull request.
+      - run: pnpm --filter @shylog/web build:divesites
 
   # Apart from static, as the tests took over three minutes of a five
   # minute job, with typecheck, lint and build waiting behind them.

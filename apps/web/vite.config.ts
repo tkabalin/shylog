@@ -2,16 +2,10 @@ import { resolve } from "node:path"
 import tailwindcss from "@tailwindcss/vite"
 import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
-import { defineConfig, loadEnv } from "vite"
+import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
-// The server writes the instance's ArcGIS key into the page it serves. In
-// development Vite serves the page, so it writes the key from the repo's
-// .env, where the server's settings are, unless the shell sets one, which
-// loadEnv prefers.
-const arcgisKey =
-  loadEnv("development", resolve(import.meta.dirname, "../.."), "SHYLOG_")
-    .SHYLOG_ARCGIS_KEY ?? ""
+import { arcgisKey } from "./scripts/arcgis-key.ts"
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -20,21 +14,8 @@ export default defineConfig({
     tanstackRouter({ target: "react", autoCodeSplitting: true }),
     react(),
     tailwindcss(),
-    {
-      name: "arcgis-key",
-      apply: "serve",
-      transformIndexHtml: (html) =>
-        html.replace(
-          /(<meta name="shylog-arcgis-key" content=")[^"]*"/,
-          // Escaped as the server escapes it.
-          (_, start: string) =>
-            `${start}${arcgisKey
-              .replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;")}"`
-        ),
-    },
+    // The server writes the key into a built page.
+    arcgisKey("serve"),
     // Precaches the shell and every lazy chunk, so the app opens with no
     // signal and a cold launch downloads nothing. The server writes the
     // manifest, with the instance's name, so the plugin makes none.

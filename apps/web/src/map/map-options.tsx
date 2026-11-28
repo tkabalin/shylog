@@ -21,6 +21,7 @@ import { months } from "@/format/dates"
 import { localValue } from "@/lib/local-value"
 
 import { extractBuilt } from "./extract-built"
+import { publicSite } from "./host"
 import { imageryThumb } from "./imagery"
 import mapDark from "./looks/map-dark.png"
 import mapLight from "./looks/map-light.png"
@@ -264,6 +265,22 @@ function Body({
             Gazettes. Read on{" "}
             <span className="whitespace-nowrap">{day(rulesRead)}</span>.
           </li>
+          {/* The public site is Shylog's map on its own; its code is the
+              app's, which the GPL asks it to offer. */}
+          {publicSite && (
+            <li>
+              <b className="font-medium text-foreground">App</b>: made with{" "}
+              <a
+                href="https://github.com/tkabalin/shylog"
+                target="_blank"
+                rel="noopener"
+                className={link}
+              >
+                Shylog
+              </a>
+              , an open-source dive log.
+            </li>
+          )}
         </ul>
       </div>
     </>

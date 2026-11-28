@@ -1,0 +1,15 @@
+/* The public site has no tab bar, so the map runs to the screen's foot.
+   MapLibre's credit stays clear of the home indicator; scoped to the map,
+   as MapLibre's own rule comes later, with the map's chunk. */
+.maplibregl-map .maplibregl-ctrl-bottom-right {
+  bottom: env(safe-area-inset-bottom);
+}
+
+/* Toasts near the foot at every width, as the app's are from desk: up,
+   centred in the window, which has no sidebar for them to clear. */
+:root {
+  --sidebar-offset: 0px;
+}
+[data-sonner-toaster] {
+  --toast-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
