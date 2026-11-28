@@ -10,6 +10,7 @@ export default defineConfig([
     ".claude",
     "**/dist",
     "**/dist-divesites",
+    "**/.wrangler",
     "planning",
     "playwright-report",
     "test-results",

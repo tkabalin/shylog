@@ -112,9 +112,10 @@ export function hostFiles(): Plugin {
   }
 }
 
-// A hash of every file the site serves, served as build.txt, so CI deploys
-// only when what the site shows has changed, whatever the commit touched.
-export function buildStamp(): Plugin {
+// A hash of every file the site serves, and of wrangler.jsonc, which says how
+// Cloudflare serves them, served as build.txt, so CI deploys only when the
+// site would change, whatever the commit touched.
+export function buildStamp(wrangler: string): Plugin {
   let outDir = ""
   return {
     name: "build-stamp",
@@ -129,6 +130,7 @@ export function buildStamp(): Plugin {
         .filter((entry) => entry.isFile())
         .map((entry) => join(entry.parentPath, entry.name))
         .sort()
+        .concat(wrangler)
       const stamp = createHash("sha256")
       for (const file of files) {
         const name = relative(outDir, file).split(sep).join("/")

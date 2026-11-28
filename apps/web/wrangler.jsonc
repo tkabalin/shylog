@@ -1,0 +1,21 @@
+// Cape Town Dive Sites, the public dive site map: files only, no Worker
+// code, served by Cloudflare from what build:divesites writes. CI deploys
+// it (.github/workflows/ci.yml); see the README's Public dive site map.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "divesites",
+  "compatibility_date": "2026-11-23",
+  "assets": {
+    // A path that isn't a file is a 404, a missing tile included: the
+    // site is one page, at /.
+    "directory": "./dist-divesites",
+    "not_found_handling": "none",
+  },
+  // Its own address only, not a workers.dev one or a preview per version.
+  "routes": [
+    { "pattern": "divesites.thomaskabalin.com", "custom_domain": true },
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "send_metrics": false,
+}

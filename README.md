@@ -44,7 +44,7 @@ A self-hosted, mobile-first web app for logging scuba dives. It runs on a home s
 - Work out SAC rate, MOD, max PO₂, CNS and OTU, surface intervals and statistics across the whole log, with the patterns worth knowing about picked out and a celebration at each dive-number milestone.
 - Export the whole log as UDDF and CSV each night, or download either from You.
 - Keep sites, people, dive centres, trips and certification cards, with the cards viewable offline.
-- Find somewhere to dive around Cape Town on Explore: a map of the Cape Peninsula and False Bay's 409 dive sites from Wikivoyage, found by type, depth, shore or boat, the wind and swell, season, the skills a site asks for and what it's good for, each with its page, site maps and sonar images, the marine protected areas' zones and who may dive where, and a satellite view. A dive's site can be picked from them, filled in from the map. The map, pages and images stay on the phone for a boat with no signal, and an instance for a diver elsewhere can turn Explore off.
+- Find somewhere to dive around Cape Town on Explore: a map of the Cape Peninsula and False Bay's 409 dive sites from Wikivoyage, found by type, depth, shore or boat, the wind and swell, season, the skills a site asks for and what it's good for, each with its page, site maps and sonar images, the marine protected areas' zones and who may dive where, and a satellite view. A dive's site can be picked from them, filled in from the map. The map, pages and images stay on the phone for a boat with no signal, and an instance for a diver elsewhere can turn Explore off. Explore is also public, as its own website: [Cape Town Dive Sites](https://divesites.thomaskabalin.com).
 - Keep a packing checklist to tick off before a dive.
 - Plan a dive on the phone, offline: the nitrox mixes for a target depth, and a mix's no-stop time at every depth, worked out as Subsurface's planner does or from the US Navy table.
 - Install to the home screen, with one instance per diver.
@@ -251,6 +251,12 @@ Explore's satellite view shows Esri's World Imagery, which needs a free [ArcGIS 
 4. The key lasts a year at most. Once Esri refuses it, Explore says "Esri refused the satellite key" and the app's log has a `client_error` line saying the key was refused: make a new key then, the same way.
 
 Then run `docker compose --env-file instances/<instance>.env up -d`. Installed apps keep the page they installed with, so a new or changed key reaches a phone with the app's next update: set it before updating to a new image, and change it while the old one still works. The free tier is 2 million basemap tiles a month. Leave pay-as-you-go off, so going over stops the imagery rather than billing. The key is in the app's page, which anyone who can reach the instance can read, as every map tile carries it to Esri anyway; at worst someone spends the month's free tiles.
+
+### Public dive site map
+
+Explore also runs as a public website, [Cape Town Dive Sites](https://divesites.thomaskabalin.com): static files on Cloudflare's free plan (no card), which CI deploys from `main` whenever they change.
+
+The site's address is in `apps/web/wrangler.jsonc`, `divesites.html` and the `divesites` job in `.github/workflows/ci.yml`. To see the site as it's built, run `pnpm --filter @shylog/web build:divesites`, which writes the key from `.env` into the page, then `pnpm --filter @shylog/web preview:divesites`, which serves it on `http://localhost:5173`, so stop the app's dev server first. There is no script to deploy it by hand, as that build would carry the instance's key rather than the site's.
 
 ### Updating
 

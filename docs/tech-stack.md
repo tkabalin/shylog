@@ -104,11 +104,12 @@ Everything is TypeScript, in a pnpm workspace of four packages:
 
 ## Deployment
 
-| Category  | Choice                                                                |
-| --------- | --------------------------------------------------------------------- |
-| Container | Docker Compose: the app and a Tailscale sidecar per instance          |
-| Image     | `node:24.22.0-trixie-slim`, pinned by digest, published to GHCR by CI |
-| Network   | Tailscale 1.104, with HTTPS through Tailscale Serve                   |
+| Category   | Choice                                                                     |
+| ---------- | -------------------------------------------------------------------------- |
+| Container  | Docker Compose: the app and a Tailscale sidecar per instance               |
+| Image      | `node:24.22.0-trixie-slim`, pinned by digest, published to GHCR by CI      |
+| Network    | Tailscale 1.104, with HTTPS through Tailscale Serve                        |
+| Public map | Cloudflare's static files on the free plan, deployed by wrangler 4 from CI |
 
 **Tailscale only, no app login.** The app is never on the public internet. Tailscale puts it on a private network that only the diver's devices can join, and Tailscale Serve terminates HTTPS with a real certificate and tells the server which Tailscale user is calling. That identity is the login, so the app has no accounts, passwords or sessions to get wrong. The reasoning and the remaining risks are in [security.md](security.md).
 
@@ -132,3 +133,5 @@ Everything is TypeScript, in a pnpm workspace of four packages:
 | `SHYLOG_DEV_LOGIN`      | Development only: stands in for the Tailscale login, and the server refuses to start with it in production     |
 
 **One image for every instance.** CI builds and publishes the image once the checks pass on `main`, tagged with the commit, so one pull updates every instance and each runs its own migrations when it starts. The commit is also the version the You tab shows and every log line carries. Deployment steps are in the [README](../README.md#deploying), and the pipeline in [ci-cd.md](ci-cd.md).
+
+**The public dive site map on Cloudflare.** Explore is also a public website, Cape Town Dive Sites, built from the same code as a second Vite entry with no log, sync or service worker, and a build that fails if any of them reaches it. Cloudflare's free plan serves it as files from its edge, with no card and no server to run, and CI deploys it only when its files change. Those static files ignore range requests, which pmtiles needs, so the build unpacks the extract into its 1,861 tiles, 12.9 MB in all; a Worker cutting the ranges instead would have run for every tile, against the free plan's 100,000 requests a day.
