@@ -66,6 +66,7 @@ import {
   typeOptions,
   type SiteFilters,
 } from "./filters"
+import { author } from "./author"
 import { exploreRoot } from "./home"
 import { publicSite } from "./host"
 import {
@@ -864,10 +865,23 @@ function ListCard({
           </Button>
         </div>
       </div>
-      {/* The public site's longer heading needs the row, so the count
-          and Clear go under it. */}
+      {/* The public site's longer heading needs the row, so its maker goes
+          under it, with the count and Clear across from them. */}
       {publicSite && (
-        <div className="flex h-6 items-center gap-2 px-5">{count}</div>
+        <div className="flex h-6 items-center justify-between gap-3 px-5">
+          <span className="text-[13px] whitespace-nowrap text-muted-foreground">
+            By{" "}
+            <a
+              href={author.url}
+              target="_blank"
+              rel="noopener"
+              className="underline decoration-current/40 underline-offset-2 hover:decoration-current"
+            >
+              {author.name}
+            </a>
+          </span>
+          <div className="flex items-center gap-2">{count}</div>
+        </div>
       )}
       {/* Searching brings the list back. */}
       <div className="px-5 pt-3.5 pb-1" onFocus={() => setFold(false)}>

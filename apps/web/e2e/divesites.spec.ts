@@ -65,17 +65,28 @@ test.describe("the public dive site map @divesites", () => {
       await expect(
         list.getByRole("button", { name: "Show the list" })
       ).toHaveAttribute("aria-expanded", "false")
+      // Its maker under the heading.
+      await expect(
+        list.getByRole("link", { name: "Thomas Kabalin" })
+      ).toHaveAttribute("href", "https://thomaskabalin.com")
     })
   })
 
-  test("credits its author and its code in Sources", async ({ page }) => {
+  test("names its maker in the credit and Sources", async ({ page }) => {
     await page.goto("/")
     await drawn(page)
-    await page.getByRole("button", { name: "Map options" }).click()
+    // The credit is open until the map is first dragged.
     await expect(
-      page.getByRole("link", { name: "Thomas Kabalin" })
+      page
+        .locator(".maplibregl-ctrl-attrib")
+        .getByRole("link", { name: "Thomas Kabalin" })
+    ).toBeVisible()
+    await page.getByRole("button", { name: "Map options" }).click()
+    const options = page.getByRole("dialog")
+    await expect(
+      options.getByRole("link", { name: "Thomas Kabalin" })
     ).toHaveAttribute("href", "https://thomaskabalin.com")
-    await expect(page.getByRole("link", { name: "Shylog" })).toHaveAttribute(
+    await expect(options.getByRole("link", { name: "Shylog" })).toHaveAttribute(
       "href",
       "https://github.com/tkabalin/shylog"
     )
