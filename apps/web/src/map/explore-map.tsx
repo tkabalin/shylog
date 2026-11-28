@@ -395,7 +395,7 @@ export default function Explore({
         />
       )}
       {!desk && view === "list" && (
-        <Screen title="Dive sites">
+        <Screen title={listTitle}>
           <div className="shrink-0 px-4 pt-1">
             <SheetSearch
               value={query}
@@ -797,6 +797,8 @@ function Card({
 // and filters with its chevron; moving the map never folds it. It opens
 // folded, so the map comes first, and keeps how it was left after that.
 let folded = true
+// On the public site nothing else on the page says where the sites are.
+const listTitle = publicSite ? "Cape Town dive sites" : "Dive sites"
 function ListCard({
   total,
   of,
@@ -817,27 +819,32 @@ function ListCard({
 }) {
   const [fold, setFoldState] = useState(folded)
   const setFold = (next: boolean) => setFoldState((folded = next))
+  const count = (
+    <>
+      <span className="text-[13px] whitespace-nowrap text-muted-foreground tabular-nums">
+        {onClear ? `${total} of ${siteCount(of)}` : siteCount(total)}
+      </span>
+      {onClear && (
+        <Button
+          variant="ghost"
+          size="xs"
+          aria-label="Clear filters"
+          onClick={onClear}
+          className="-mx-1 text-[13px]"
+        >
+          Clear
+        </Button>
+      )}
+    </>
+  )
   return (
-    <Card label="Dive sites" className={cn(!fold && "h-[calc(100%-1.5rem)]")}>
+    <Card label={listTitle} className={cn(!fold && "h-[calc(100%-1.5rem)]")}>
       <div className="flex items-baseline justify-between gap-3 px-5 pt-4">
         <h2 className="text-2xl leading-[30px] font-semibold tracking-[-0.03em]">
-          Dive sites
+          {listTitle}
         </h2>
         <div className="flex items-center gap-2 self-center">
-          <span className="text-[13px] whitespace-nowrap text-muted-foreground tabular-nums">
-            {onClear ? `${total} of ${siteCount(of)}` : siteCount(total)}
-          </span>
-          {onClear && (
-            <Button
-              variant="ghost"
-              size="xs"
-              aria-label="Clear filters"
-              onClick={onClear}
-              className="-mx-1 text-[13px]"
-            >
-              Clear
-            </Button>
-          )}
+          {!publicSite && count}
           <Button
             variant="ghost"
             size="icon-sm"
@@ -857,6 +864,11 @@ function ListCard({
           </Button>
         </div>
       </div>
+      {/* The public site's longer heading needs the row, so the count
+          and Clear go under it. */}
+      {publicSite && (
+        <div className="flex h-6 items-center gap-2 px-5">{count}</div>
+      )}
       {/* Searching brings the list back. */}
       <div className="px-5 pt-3.5 pb-1" onFocus={() => setFold(false)}>
         <SheetSearch
