@@ -55,6 +55,8 @@ The endpoint is as private as the app: Claude on the phone and claude.ai connect
 
 The API's and the MCP endpoint's checks don't run on the app's own files. The app's HTML, scripts, manifest and service worker are fetched by the browser itself, which can't add a custom header to them, and they hold no dive data: the app's code is public in the repo anyway. Everything with data in it, from the log to a certification card image, is under `/api` or behind `/mcp`, and passes that side's checks. The health endpoint is no exception, so even the instance's dive count needs an allowed login.
 
+The public dive site map, Cape Town Dive Sites, is Explore's files alone, on Cloudflare. It holds only the dive sites' public data that the repo holds too, has no API behind it, and its build fails if the log, its sync or the API client would reach it. CI deploys it with an account-owned Cloudflare token that can edit only the account's Workers and the Worker routes on the site's zone, which lives in a GitHub environment only `main` can deploy from.
+
 ## The development bypass
 
 In development there is no Tailscale in front of the server, so `SHYLOG_DEV_LOGIN` supplies a login in place of the header. It is used only when the header is absent, and must itself be in the allow-list. The server refuses to start with it set in production, and an unset `NODE_ENV` counts as production, so forgetting to set the environment in a deployment can never turn the bypass on. The same rule covers the one other development-only setting, an alternative folder for the built app.

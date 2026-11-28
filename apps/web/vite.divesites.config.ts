@@ -82,7 +82,7 @@ export default defineConfig({
     arcgisKey(),
     basemapTiles(resolve(src, "map/basemap.pmtiles")),
     hostFiles(),
-    buildStamp(),
+    buildStamp(resolve(import.meta.dirname, "wrangler.jsonc")),
     page,
   ],
   cacheDir: process.env.VITE_CACHE_DIR ?? "node_modules/.vite-divesites",

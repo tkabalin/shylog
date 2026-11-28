@@ -313,3 +313,73 @@ jobs:
           # still the tested build.
           labels: org.opencontainers.image.revision=${{ github.sha }}
           cache-from: type=gha
+
+  # Cape Town Dive Sites on Cloudflare once main is green, deployed only
+  # when its files differ from the build.txt the site serves (ci-cd.md).
+  # Not a required check; a cut-short deploy leaves the last one serving.
+  divesites:
+    if: >-
+      ${{ !cancelled() && github.event_name == 'push'
+      && needs.check.result == 'success'
+      && needs.e2e.result == 'success' }}
+    needs: [check, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Its secrets (the Cloudflare token and the site's own Esri key) are the
+    # environment's, which only main may use.
+    environment:
+      name: divesites
+      url: https://divesites.thomaskabalin.com
+    permissions:
+      contents: read
+    env:
+      SITE: https://divesites.thomaskabalin.com
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # A missing secret would deploy a site with no satellite, unnoticed.
+      - name: Build
+        run: |
+          : "${SHYLOG_ARCGIS_KEY:?The divesites environment has no DIVESITES_ARCGIS_KEY}"
+          pnpm --filter @shylog/web build:divesites
+        env:
+          SHYLOG_ARCGIS_KEY: ${{ secrets.DIVESITES_ARCGIS_KEY }}
+      # A rerun of an older run would otherwise put its older build back.
+      - name: Compare with the live site
+        id: live
+        run: |
+          built=$(cat apps/web/dist-divesites/build.txt)
+          main=$(git ls-remote "https://github.com/$GITHUB_REPOSITORY" refs/heads/main)
+          main=${main%%$'\t'*}
+          if [[ $main != "$GITHUB_SHA" ]]; then
+            echo "Superseded: main has moved on to \`$main\`." >> "$GITHUB_STEP_SUMMARY"
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "current=true" >> "$GITHUB_OUTPUT"
+          if [[ $(.github/scripts/smoke-divesites.sh live) = "$built" ]]; then
+            echo "Unchanged: the site already serves build \`$built\`." >> "$GITHUB_STEP_SUMMARY"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Deploy
+        if: steps.live.outputs.changed == 'true'
+        working-directory: apps/web
+        run: pnpm exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_SEND_METRICS: "false"
+      # On every current run, so a rerun checks a deploy whose first check
+      # failed.
+      - name: Check the live site
+        if: steps.live.outputs.current == 'true'
+        run: .github/scripts/smoke-divesites.sh

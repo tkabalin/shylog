@@ -51,6 +51,7 @@ Everything is TypeScript, so one core package (draft upload and edit schemas, na
 | Data | `shylog.db` on a bind mount, plus `export/dives.uddf`, `export/dives.csv` and `cards/` | The UDDF and CSV exports are rewritten nightly with the snapshot; all are backed up |
 | Access | Tailscale only, no app login | Only the devices of the instance's diver (plus the owner's for support, where allowed), enforced by tailnet ACLs and an identity check |
 | Deployment | Docker Compose on the home server: the app and a Tailscale sidecar | Own tailnet name with HTTPS via Tailscale Serve |
+| Public map | Cloudflare's static files on the free plan, deployed by wrangler from CI | Cape Town Dive Sites, Explore alone (see Public site under Dive site map) |
 | Units | Metric everywhere | SI only inside the UDDF export |
 
 ### Instance configuration

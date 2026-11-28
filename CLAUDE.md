@@ -28,7 +28,7 @@ The topic docs in `docs/` (and the README) are the public write-up for the owner
 - Web: React, Vite, TanStack Router, vite-plugin-pwa, shadcn/ui with preset `b1sAmWaNW` (cyan accent and chart colour), Geist font, shadcn charts (Recharts), MapLibre GL JS with a PMTiles extract, Dexie
 - Server: Node 24 (LTS), TypeScript, Hono (typed RPC client used by `apps/web`), better-sqlite3 (not `node:sqlite`), @xmldom/xmldom, tsup for the build
 - Validation: Zod schemas in `packages/core`, shared by client and server
-- Deployment: Docker Compose on the home server, app plus a Tailscale sidecar, HTTPS via Tailscale Serve
+- Deployment: Docker Compose on the home server, app plus a Tailscale sidecar, HTTPS via Tailscale Serve. The public dive site map (Explore alone, `vite.divesites.config.ts`) is static files on Cloudflare, deployed by wrangler from CI
 - Testing: Vitest for unit and integration tests (Dexie code with `fake-indexeddb`, the server with Hono's test client and in-memory better-sqlite3), Playwright for the web app on Chromium and WebKit, and `xmllint` for UDDF XSD validation in CI. `fast-check` property tests are optional, added when a milestone needs them
 
 ## Rules that are easy to get wrong

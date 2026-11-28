@@ -18,6 +18,9 @@ trustPolicyExclude:
 
 allowBuilds:
   esbuild: true
+  # Wrangler's local runtime, which links its binary on install. Deploying
+  # the public dive site map never runs it, so its script stays off.
+  workerd: false
 
 overrides:
   # GHSA-g3hv-75wg-m249 (a glob pattern that grows quadratically) is fixed

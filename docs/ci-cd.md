@@ -15,18 +15,21 @@ flowchart LR
   check --> publish["publish<br>(push to main only)"]
   e2e --> publish
   image --> publish
+  check --> divesites["divesites<br>(push to main only)"]
+  e2e --> divesites
 ```
 
-| Job            | What it does                                                                                                                                   |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `static`       | Installs from the frozen lockfile, checks the Playwright image matches `@playwright/test`, then typecheck, ESLint and Prettier, and the build. |
-| `unit`         | Installs `xsltproc` and `xmllint`, then runs Vitest with coverage and adds the coverage table to the run's summary.                            |
-| `e2e-shard`    | The Playwright suite in three shards, inside Microsoft's Playwright container. Reports and traces are kept for 14 days.                        |
-| `e2e-changes`  | On a pull request, lists the browser spec files it adds or changes.                                                                            |
-| `e2e-repeat`   | Runs those spec files five more times, in three shards.                                                                                        |
-| `image`        | Checks the Compose files, builds the Docker image and smoke-tests it.                                                                          |
-| `check`, `e2e` | Gate jobs that report the results above under the names the branch rules require.                                                              |
-| `publish`      | On a push to `main` with everything green, pushes the image to the GitHub Container Registry.                                                  |
+| Job            | What it does                                                                                                                                                                              |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `static`       | Installs from the frozen lockfile, checks the Playwright image matches `@playwright/test`, then typecheck, ESLint and Prettier, and the build of the app and of the public dive site map. |
+| `unit`         | Installs `xsltproc` and `xmllint`, then runs Vitest with coverage and adds the coverage table to the run's summary.                                                                       |
+| `e2e-shard`    | The Playwright suite in three shards, inside Microsoft's Playwright container. Reports and traces are kept for 14 days.                                                                   |
+| `e2e-changes`  | On a pull request, lists the browser spec files it adds or changes.                                                                                                                       |
+| `e2e-repeat`   | Runs those spec files five more times, in three shards.                                                                                                                                   |
+| `image`        | Checks the Compose files, builds the Docker image and smoke-tests it.                                                                                                                     |
+| `check`, `e2e` | Gate jobs that report the results above under the names the branch rules require.                                                                                                         |
+| `publish`      | On a push to `main` with everything green, pushes the image to the GitHub Container Registry.                                                                                             |
+| `divesites`    | On a push to `main` with `check` and `e2e` green, deploys the public dive site map to Cloudflare if its files changed.                                                                    |
 
 `static` and `unit` started as one job. The tests took over three minutes of a five-minute job, with typecheck, lint and the build queued behind them, so they were split and now run in parallel.
 
@@ -85,6 +88,16 @@ It rebuilds from the `image` job's cache, and with pinned base images and a froz
 
 **Superseded runs are cancelled.** Runs are grouped per branch or pull request, and a newer push cancels the running CI, `main` included. Cutting a publish short is safe, because each tag moves only when its manifest lands: `:latest` stays on the last finished image until a newer run replaces it.
 
+## The public dive site map
+
+Cape Town Dive Sites, Explore on its own at divesites.thomaskabalin.com, is static files on Cloudflare, so unlike the instances it deploys from CI. `divesites` runs on a push to `main` once `check` and `e2e` have succeeded. It doesn't wait for `image`, which the site doesn't use.
+
+**It deploys only when the site would change.** A paths filter would miss what reaches the site from elsewhere: a shared component, a dependency bump, the extract. So the job builds the site every time and compares `build.txt`, a hash over every file the build writes and the wrangler settings that serve them, with the one the live site serves. A match ends the job with "Unchanged" in the run's summary; otherwise wrangler uploads the files that differ and switches the site over. A deploy cut short by a newer push leaves the previous version serving, and a rerun of an older run deploys nothing once `main` has moved on, so it can't put an older build back. Tailwind builds one stylesheet from every class in the app, so a push that adds a class anywhere changes the site's CSS too, and deploys it.
+
+**Then it checks the live site**, on every run of the current commit, so a rerun checks a deploy whose first check failed: `.github/scripts/smoke-divesites.sh` asks the zone's own nameserver for the address, as the runner's resolver can keep a not-found answer from before the first deploy, waits up to five minutes for the new `build.txt` to reach the edge, then checks the page's title, that a tile is cached for good, that a site image loads, and that a tile that isn't there is a 404 rather than the page, which MapLibre would fail to read.
+
+**Its secrets live in a GitHub environment.** The Cloudflare token, the account ID and the site's own Esri key belong to the `divesites` environment, which only `main` may deploy to, so a pull request's workflow can't read them. The token is account-owned and can edit only the account's Workers and the Worker routes on the site's own zone. The `static` job also builds the site on every pull request, so the build's guard against the app's log, sync and API code runs before a merge.
+
 ## Supply chain
 
 - **Actions are pinned to commit SHAs**, with the version in a comment, so a moved or hijacked tag can't change what runs. Checkouts don't keep the token in the git config.
@@ -93,7 +106,7 @@ It rebuilds from the `image` job's cache, and with pinned base images and a froz
 
 ## Deploying
 
-CI publishes the image and stops there. It holds no credentials for any server, and the instances are reachable only over Tailscale, so nothing in GitHub could reach them anyway. Updating is a deliberate step on the home server, for each instance:
+For the instances, CI publishes the image and stops there. Its only deploy credential is the public map's Cloudflare token, none reaches the home server, and the instances are reachable only over Tailscale, so nothing in GitHub could reach them anyway. Updating is a deliberate step on the home server, for each instance:
 
 ```bash
 git pull && scripts/update.sh <instance>
