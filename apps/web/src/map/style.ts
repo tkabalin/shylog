@@ -342,11 +342,13 @@ const zoneLabel = {
   "text-keep-upright": true,
 } as const
 
-// In a new tab, so the installed app on a desktop isn't replaced.
+// In a new tab, so the installed app on a desktop isn't replaced. Only
+// what the map itself must credit, so it fits a phone's line: Protomaps
+// (a courtesy) and the sites' licence are in Sources and each site's text.
 const attribution =
-  '<a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a> © <a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
+  '© <a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
 const sitesAttribution =
-  'Sites: <a href="https://en.wikivoyage.org/wiki/Diving_the_Cape_Peninsula_and_False_Bay/Dive_sites" target="_blank" rel="noopener">Wikivoyage</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC&nbsp;BY&#8209;SA</a>'
+  '<a href="https://en.wikivoyage.org/wiki/Diving_the_Cape_Peninsula_and_False_Bay/Dive_sites" target="_blank" rel="noopener">Wikivoyage</a>'
 
 // A quiet basemap from Protomaps' OpenStreetMap layers, kept to the few
 // that help find a dive site, with the marine protected areas over it.
