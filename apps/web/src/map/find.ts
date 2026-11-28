@@ -44,5 +44,12 @@ const notes: Record<DivingLimit, ZoneNote> = {
 }
 export function zoneNote(site: Site): ZoneNote | undefined {
   const limit = divingLimit(site)
+  // Beside "Boat", "Shore dives only" read as a mistake in the data, so a
+  // site with a boat way in says what the zone rules out.
+  if (
+    limit === "shore-only" &&
+    (site.access === "boat" || site.access === "both")
+  )
+    return { text: "No boat dives" }
   return limit && notes[limit]
 }

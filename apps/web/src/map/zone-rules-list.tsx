@@ -4,10 +4,9 @@ import { cn } from "cn"
 import { publicSite } from "./host"
 import { mpaRules, type Mpa, type Swatch } from "./zone-rules"
 
-// Each swatch as the map draws its zone: hatching over a tint where no one
-// may dive, the tint alone where only a dive business may, an orange dashed
-// edge round Robben Island's abalone area, and a solid grey edge on a
-// no-take zone.
+// Each swatch as the map draws its zone, square-cornered: hatching over a
+// tint where no one may dive, the tint alone where only a dive business
+// may, an orange dashed edge for the abalone area, a no-take zone's edge.
 const warn = (share: number) =>
   `color-mix(in oklab, var(--color-warn) ${share}%, transparent)`
 const swatches: Record<Swatch, CSSProperties> = {
@@ -17,7 +16,10 @@ const swatches: Record<Swatch, CSSProperties> = {
   },
   business: { background: warn(14) },
   "no-snorkel": { border: "1.5px dashed var(--color-warn)" },
-  "no-take": { border: "1.5px solid var(--color-muted-foreground)" },
+  "no-take": {
+    border: "1.4px solid var(--no-take-edge)",
+    background: "var(--no-take-sea)",
+  },
 }
 
 // Each marine protected area's rules, under a heading for each zone and one
@@ -99,7 +101,7 @@ export function ZoneRulesList({
                     {rule.swatch ? (
                       <span
                         aria-hidden
-                        className="mt-px size-4.25 shrink-0 rounded-[4px]"
+                        className="mt-px size-4.25 shrink-0"
                         style={swatches[rule.swatch]}
                       />
                     ) : (

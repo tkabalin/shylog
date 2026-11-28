@@ -1,3 +1,15 @@
+/* A no-take zone as the map draws it, its edge (style.ts) on the sea
+   (sea.ts), for the rules' key, which as an empty square read as a box
+   to tick. */
+:root {
+  --no-take-edge: oklch(0.42 0.02 222 / 0.7);
+  --no-take-sea: oklch(0.905 0.032 222);
+}
+.dark {
+  --no-take-edge: oklch(0.8 0.02 214 / 0.6);
+  --no-take-sea: oklch(0.2 0.022 232);
+}
+
 /* MapLibre's own look for what it draws in HTML: Helvetica, a white disc
    with a black icon for the credit, glaring in dark mode, and a blue glow
    after a tap. In the app's type and colours instead. */

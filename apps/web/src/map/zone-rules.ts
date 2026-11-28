@@ -72,7 +72,7 @@ export const mpaRules: MpaRules[] = [
             source: "GN R.695 of 2004, reg 7",
           },
           {
-            text: "No dive permit since 3 May 2024. Dive businesses still need a permit.",
+            text: "Divers haven't needed a permit since 3 May 2024. Dive businesses still do.",
             source: "GN R.4786 of 2024",
           },
           {
